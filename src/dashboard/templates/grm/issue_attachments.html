@@ -17,7 +17,11 @@
                 <div class="row border-bottom">
                     <div class="col-9">
                         <div class="align-self-center mt-2">
-                            {{ attachment.name }}
+                            <a href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
+                               target="_blank">
+                                <i class="fas fa-paperclip mr-2"></i>
+                                {{ attachment.name }}
+                            </a>
                         </div>
                     </div>
                     <div class="col-3">

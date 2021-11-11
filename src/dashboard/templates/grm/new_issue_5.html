@@ -94,7 +94,11 @@
                                             {% for attachment in doc.attachments %}
                                                 <div class="row mb-2">
                                                     <div class="col-12">
-                                                        {{ attachment.name }}
+                                                        <a href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
+                                                           target="_blank">
+                                                            <i class="fas fa-paperclip mr-2"></i>
+                                                            {{ attachment.name }}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             {% endfor %}
