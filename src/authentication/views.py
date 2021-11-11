@@ -79,7 +79,7 @@ class ADLActiveAPIView(generics.GenericAPIView):
         responses={200: ADLActiveResponseSerializer()},
         operation_description="Get adl user status",
         manual_parameters=[
-            Parameter('email', IN_QUERY, description='Email of an ADL user', type='string')
+            Parameter('email', IN_QUERY, description='Email of an facilitator user', type='string')
         ]
     )
     def get(self, request, *args, **kwargs):

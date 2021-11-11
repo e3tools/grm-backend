@@ -23,7 +23,7 @@ class TestAdlDetailView(DashboardTestCase):
         context_data = response.context_data
 
         assert response.status_code == 200
-        assert context_data['title'] == AdlDetailView.title == 'ADL Profile'
+        assert context_data['title'] == AdlDetailView.title == 'Facilitator Profile'
         assert context_data['active_level1'] == AdlDetailView.active_level1 == 'adls'
         assert context_data['active_level2'] == AdlDetailView.active_level2 is None
         assert len(context_data['breadcrumb']) == 2

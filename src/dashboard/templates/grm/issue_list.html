@@ -5,7 +5,6 @@
     <tr>
         <th>{% translate 'ID Number' %}</th>
         <th>{% translate 'Access Code' %}</th>
-        <th>{% translate 'Needs Review For' %}</th>
         <th>{% translate 'Summary' %}</th>
         <th>{% translate 'Assigned to' %}</th>
         <th>{% translate 'Days Open' %}</th>
@@ -23,7 +22,6 @@
                 </a>
             </td>
             <td>{{ issue.tracking_code }}</td>
-            <td>Neque porro quisquam</td>
             <td>{{ issue.description }}</td>
             <td>{{ issue.assignee.name }}</td>
             <td>{% get_days_until_today issue.created_date %}</td>

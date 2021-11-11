@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-11 03:39+0100\n"
+"POT-Creation-Date: 2021-11-11 17:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -242,12 +242,12 @@ msgid "ID Number / Access Code"
 msgstr "Numéro ID / Code d'accès"
 
 #: dashboard/grm/forms.py:150 dashboard/templates/adls/task_detail.html:25
-#: dashboard/templates/grm/issue_list.html:14
+#: dashboard/templates/grm/issue_list.html:13
 #: dashboard/templates/grm/review_issues.html:224
 msgid "Status"
 msgstr "Statut"
 
-#: dashboard/grm/forms.py:151 dashboard/templates/grm/issue_list.html:10
+#: dashboard/grm/forms.py:151 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
 msgid "Assigned to"
 msgstr "Assigné à"
@@ -348,7 +348,6 @@ msgid "This month"
 msgstr "Ce mois-ci"
 
 #: dashboard/participatory_budget/views.py:13
-#: dashboard/templates/adls/profile.html:95
 msgid "Participatory Budget"
 msgstr "Budget Participatif"
 
@@ -387,7 +386,6 @@ msgid "See profile"
 msgstr "Voir le profil"
 
 #: dashboard/templates/adls/phase_detail.html:37
-#: dashboard/templates/adls/profile.html:176
 #: dashboard/templates/adls/task_detail.html:28
 #: dashboard/templates/common/progress_bar.html:6
 #: dashboard/templates/participatory_budget/dashboard.html:5
@@ -397,14 +395,12 @@ msgid "Completed"
 msgstr "Complété"
 
 #: dashboard/templates/adls/phase_detail.html:39
-#: dashboard/templates/adls/profile.html:178
 #: dashboard/templates/adls/task_detail.html:30
 #: dashboard/templates/participatory_budget/task_list.html:29
 msgid "In progress"
 msgstr "En cours"
 
 #: dashboard/templates/adls/phase_detail.html:41
-#: dashboard/templates/adls/profile.html:180
 #: dashboard/templates/adls/task_detail.html:32
 #: dashboard/templates/participatory_budget/task_list.html:31
 msgid "Pending"
@@ -456,14 +452,6 @@ msgstr "Surveillance participative"
 #: dashboard/templates/adls/profile.html:143
 msgid "Participatory diagnostics"
 msgstr "Diagnostics participatifs"
-
-#: dashboard/templates/adls/profile.html:193
-msgid "unfinished"
-msgstr "non terminée"
-
-#: dashboard/templates/adls/profile.html:194
-msgid "Completion date"
-msgstr "Phase terminée le"
 
 #: dashboard/templates/adls/profile.html:251
 msgid "Please enter your password to deactivate the facilitator account!"
@@ -631,8 +619,8 @@ msgstr ""
 "jointes\n"
 "                "
 
-#: dashboard/templates/grm/issue_attachments.html:40
-#: dashboard/templates/grm/issue_attachments_column1.html:39
+#: dashboard/templates/grm/issue_attachments.html:44
+#: dashboard/templates/grm/issue_attachments_column1.html:43
 msgid "Add attachments"
 msgstr "Ajouter des pièces jointes"
 
@@ -641,7 +629,7 @@ msgid "No comments found"
 msgstr "Aucun commentaire trouvé"
 
 #: dashboard/templates/grm/issue_detail.html:18
-#: dashboard/templates/grm/issue_list.html:9
+#: dashboard/templates/grm/issue_list.html:8
 msgid "Summary"
 msgstr "Résumé"
 
@@ -654,7 +642,7 @@ msgid "Citizen"
 msgstr "Citoyenne"
 
 #: dashboard/templates/grm/issue_detail.html:64
-#: dashboard/templates/grm/issue_list.html:12
+#: dashboard/templates/grm/issue_list.html:11
 #: dashboard/templates/grm/review_issues.html:216
 msgid "Category"
 msgstr "Catégory"
@@ -692,20 +680,16 @@ msgstr "Numéro ID"
 msgid "Access Code"
 msgstr "Code d'accès"
 
-#: dashboard/templates/grm/issue_list.html:8
-msgid "Needs Review For"
-msgstr "Besoin d'examen pour"
-
-#: dashboard/templates/grm/issue_list.html:11
+#: dashboard/templates/grm/issue_list.html:10
 msgid "Days Open"
 msgstr "Jours d'ouverture"
 
-#: dashboard/templates/grm/issue_list.html:13
+#: dashboard/templates/grm/issue_list.html:12
 #: dashboard/templates/grm/review_issues.html:220
 msgid "Type"
 msgstr ""
 
-#: dashboard/templates/grm/issue_list.html:36
+#: dashboard/templates/grm/issue_list.html:34
 msgid "No issues found"
 msgstr "Aucun problème n'a été trouvé"
 
@@ -782,7 +766,7 @@ msgstr "Confirmer et Soumettre"
 msgid "Confirmation"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_5.html:144
+#: dashboard/templates/grm/new_issue_5.html:148
 msgid "Done"
 msgstr "Terminé"
 
@@ -885,3 +869,12 @@ msgstr "Anglais"
 #: grm/settings.py:129
 msgid "French"
 msgstr "Français"
+
+#~ msgid "unfinished"
+#~ msgstr "non terminée"
+
+#~ msgid "Completion date"
+#~ msgstr "Phase terminée le"
+
+#~ msgid "Needs Review For"
+#~ msgstr "Besoin d'examen pour"
