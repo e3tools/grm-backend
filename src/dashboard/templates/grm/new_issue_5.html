@@ -1,0 +1,151 @@
+{% extends 'layouts/base.html' %}
+{% load bootstrap4 static i18n custom_tags %}
+
+{% block progress-bar %}
+    {% include 'common/progress_bar.html' with percentage=100 %}
+{% endblock progress-bar %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <img src="{% static 'images/celebration.png' %}" class="bg-left-horizontal-celebration"/>
+                <form method="post">{% csrf_token %}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="fs20 lh46 mb-1 text-regular-family">
+                                    {% translate 'Enter New Issue' %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="fs56 lh46 text-primary text-bold-family mb-4">
+                                    {% translate 'Step' %} 5
+                                </div>
+                                <div class="fs35 lh35 text-bold-family ">
+                                    {% translate 'Confirmation' %}<br>
+                                </div>
+                            </div>
+                            <div class="col-6 label-align-right">
+                                <div class="row mr-2 mb-2">
+                                    <label class="col-3">
+                                        {% translate 'ID Number' %}:
+                                    </label>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.internal_code }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.intake_date.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.intake_date|string_to_date|date:'j - F - Y' }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.issue_date.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.issue_date|string_to_date|date:'j - F - Y' }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.administrative_region.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {% get_administrative_region_name doc.administrative_region.administrative_id %}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.issue_type.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.issue_type.name }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.category.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.category.name }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.description.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.description }}
+                                    </div>
+                                </div>
+                                {% if doc.attachments %}
+                                    <div class="row mr-2 mb-2">
+                                        <label class="col-3">
+                                            {% translate 'Attachments' %}:
+                                        </label>
+                                        <div class="col-9">
+                                            {% for attachment in doc.attachments %}
+                                                <div class="row mb-2">
+                                                    <div class="col-12">
+                                                        {{ attachment.name }}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="row mr-2 mb-2">
+                                    <div class="col-3">
+                                        {{ form.contact_medium.label_tag }}
+                                    </div>
+                                    <div class="col-9 text-regular-family">
+                                        {% if doc.contact_medium == choice_contact %}
+                                            <div class="row mb-2">
+                                                <div class="col-12">
+                                                    {% get_contact_type_display doc.contact_information.type %}
+                                                </div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-12">
+                                                    {{ doc.contact_information.contact }}
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="row mb-2">
+                                                <div class="col-12">
+                                                    {% get_contact_medium_display doc.contact_medium %}
+                                                </div>
+                                            </div>
+
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-5">
+                                    <div class="col-3"></div>
+                                    <div class="col-9 text-regular-family">
+                                        {% if doc.confidential_status %}
+                                            {{ form.confidential_status.label }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer mb-2">
+                        <a href="{% url 'dashboard:grm:dashboard' %}"
+                           class="btn btn-primary btn-sm rounded-xl float-right mt-5">
+                            {% translate "Done" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
