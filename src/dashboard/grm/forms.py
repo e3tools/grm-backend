@@ -6,7 +6,7 @@ from client import get_db
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm import CHOICE_ANONYMOUS, CHOICE_CONTACT, CONTACT_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
-    get_administrative_region_choices, get_administrative_region_parent, get_government_worker_choices,
+    get_administrative_region_choices, get_base_administrative_id, get_government_worker_choices,
     get_issue_category_choices, get_issue_status_choices, get_issue_type_choices
 )
 
@@ -50,7 +50,8 @@ class NewIssueStep1Form(forms.Form):
 
 
 class NewIssueStep2Form(forms.Form):
-    administrative_region = forms.ChoiceField(label=_('Issue Location'))
+    administrative_region = forms.ChoiceField()
+    administrative_region_value = forms.CharField(label='', required=False)
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial')
@@ -58,18 +59,27 @@ class NewIssueStep2Form(forms.Form):
         super().__init__(*args, **kwargs)
 
         eadl_db = get_db()
+
+        label = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "parent_id": None,
+            }
+        )[:][0]['administrative_level'].title()
+        self.fields['administrative_region'].label = label
+
         administrative_region_choices = get_administrative_region_choices(eadl_db)
         self.fields['administrative_region'].widget.choices = administrative_region_choices
         self.fields['administrative_region'].choices = administrative_region_choices
+        self.fields['administrative_region'].widget.attrs['class'] = "region"
+        self.fields['administrative_region_value'].widget.attrs['class'] = "hidden"
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         document = grm_db[doc_id]
         if 'administrative_region' in document and document['administrative_region']:
             administrative_id = document['administrative_region']['administrative_id']
-            self.fields['administrative_region'].initial = administrative_id
-            administrative_region_parent = get_administrative_region_parent(eadl_db, administrative_id)
-            if administrative_region_parent:
-                self.fields['administrative_region'].widget.attrs['parent_id'] = administrative_region_parent
+            self.fields['administrative_region_value'].initial = administrative_id
+            self.fields['administrative_region'].initial = get_base_administrative_id(eadl_db, administrative_id)
 
 
 class NewIssueStep3Form(forms.Form):
@@ -118,6 +128,7 @@ class NewIssueStep4Form(NewIssueStep3Form, NewIssueStep2Form, NewIssueStep1Form)
 
     def __init__(self, *args, **kwargs):
         NewIssueStep1Form.__init__(self, *args, **kwargs)
+        NewIssueStep2Form.__init__(self, *args, **kwargs)
         NewIssueStep3Form.__init__(self, *args, **kwargs)
         self.fields['contact_medium'].label = _("Citizen Contact")
 

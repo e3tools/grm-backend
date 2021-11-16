@@ -67,20 +67,6 @@ def get_government_worker_choices(empty_choice=True):
     return choices
 
 
-def get_administrative_region_parent(eadl_db, administrative_id):
-    parent_id = None
-    docs = eadl_db.get_query_result({
-        "administrative_id": administrative_id,
-        "type": 'administrative_level'
-    })
-    try:
-        doc = eadl_db[docs[0][0]['_id']]
-        parent_id = doc['parent_id']
-    except Exception:
-        pass
-    return parent_id
-
-
 def get_administrative_region_name(eadl_db, administrative_id):
     not_found_message = f'[Missing region with administrative_id "{administrative_id}"]'
     if not administrative_id:
@@ -106,3 +92,46 @@ def get_administrative_region_name(eadl_db, administrative_id):
             has_parent = False
 
     return ', '.join(region_names)
+
+
+def get_base_administrative_id(eadl_db, administrative_id):
+    has_parent = True
+    while has_parent:
+        parent = get_parent_administrative_level(eadl_db, administrative_id)
+        if parent:
+            administrative_id = parent['administrative_id']
+        else:
+            has_parent = False
+
+    return administrative_id
+
+
+def get_child_administrative_levels(eadl_db, parent_id):
+    data = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "parent_id": parent_id,
+        }
+    )
+    return data[:]
+
+
+def get_parent_administrative_level(eadl_db, administrative_id):
+    parent = None
+    docs = eadl_db.get_query_result({
+        "administrative_id": administrative_id,
+        "type": 'administrative_level'
+    })
+
+    try:
+        doc = eadl_db[docs[0][0]['_id']]
+        if 'parent_id' in doc and doc['parent_id']:
+            administrative_id = doc['parent_id']
+            docs = eadl_db.get_query_result({
+                "administrative_id": administrative_id,
+                "type": 'administrative_level'
+            })
+            parent = eadl_db[docs[0][0]['_id']]
+    except Exception:
+        pass
+    return parent

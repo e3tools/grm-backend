@@ -19,7 +19,7 @@ from dashboard.grm.forms import (
     NewIssueStep3Form, NewIssueStep4Form, SearchIssueForm
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
-from grm.utils import sort_dictionary_list_by_field
+from grm.utils import get_child_administrative_levels, get_parent_administrative_level, sort_dictionary_list_by_field
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -269,7 +269,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
         try:
             doc_administrative_level = get_db().get_query_result({
-                "administrative_id": data['administrative_region'],
+                "administrative_id": data['administrative_region_value'],
                 "type": 'administrative_level'
             })[0][0]
         except Exception:
@@ -631,3 +631,29 @@ class SubmitIssueResearchResultFormView(AJAXRequestMixin, ModalFormMixin, LoginR
 
         context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
+
+
+class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+    def get(self, request, *args, **kwargs):
+        parent_id = request.GET.get('parent_id')
+        eadl_db = get_db()
+        data = get_child_administrative_levels(eadl_db, parent_id)
+        return self.render_to_json_response(data, safe=False)
+
+
+class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin,
+                                          generic.View):
+    def get(self, request, *args, **kwargs):
+        administrative_id = request.GET.get('administrative_id', None)
+        ancestors = list()
+        if administrative_id:
+            eadl_db = get_db()
+            has_parent = True
+            while has_parent:
+                parent = get_parent_administrative_level(eadl_db, administrative_id)
+                if parent:
+                    administrative_id = parent['administrative_id']
+                    ancestors.insert(0, administrative_id)
+                else:
+                    has_parent = False
+        return self.render_to_json_response(ancestors, safe=False)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-11 17:46+0100\n"
+"POT-Creation-Date: 2021-11-16 12:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -200,59 +200,55 @@ msgstr "Type de Problème"
 msgid "Nature of Issue"
 msgstr "Nature du Problème"
 
-#: dashboard/grm/forms.py:53
-msgid "Issue Location"
-msgstr "Emplacement du Problème"
-
-#: dashboard/grm/forms.py:76
+#: dashboard/grm/forms.py:86
 msgid "How does the citizen wish to be contacted?"
 msgstr "Comment le citoyenne souhaite-t-il être contacté?"
 
-#: dashboard/grm/forms.py:79
+#: dashboard/grm/forms.py:89
 msgid "Citizen wants contact information to be kept confidential"
 msgstr ""
 "Le citoyenne souhaite que les informations de contact restent confidentielles"
 
-#: dashboard/grm/forms.py:81
+#: dashboard/grm/forms.py:91
 msgid "This is an optional field"
 msgstr "Ce champ n'est pas obligatoire"
 
-#: dashboard/grm/forms.py:96
+#: dashboard/grm/forms.py:106
 msgid "Please type the contact information"
 msgstr "Veuillez saisir les coordonnées"
 
-#: dashboard/grm/forms.py:97
+#: dashboard/grm/forms.py:107
 msgid "Please type the name of the citizen"
 msgstr "Veuillez saisir le nom du citoyen"
 
-#: dashboard/grm/forms.py:122 dashboard/templates/grm/new_issue_3.html:28
+#: dashboard/grm/forms.py:133 dashboard/templates/grm/new_issue_3.html:28
 msgid "Citizen Contact"
 msgstr "Contact Citoyen"
 
-#: dashboard/grm/forms.py:126
+#: dashboard/grm/forms.py:137
 msgid "Start Date"
 msgstr "Date de début"
 
-#: dashboard/grm/forms.py:127
+#: dashboard/grm/forms.py:138
 msgid "End Date"
 msgstr "Date de fin"
 
-#: dashboard/grm/forms.py:128
+#: dashboard/grm/forms.py:139
 msgid "ID Number / Access Code"
 msgstr "Numéro ID / Code d'accès"
 
-#: dashboard/grm/forms.py:150 dashboard/templates/adls/task_detail.html:25
+#: dashboard/grm/forms.py:161 dashboard/templates/adls/task_detail.html:25
 #: dashboard/templates/grm/issue_list.html:13
 #: dashboard/templates/grm/review_issues.html:224
 msgid "Status"
 msgstr "Statut"
 
-#: dashboard/grm/forms.py:151 dashboard/templates/grm/issue_list.html:9
+#: dashboard/grm/forms.py:162 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
 msgid "Assigned to"
 msgstr "Assigné à"
 
-#: dashboard/grm/forms.py:169
+#: dashboard/grm/forms.py:180
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
@@ -716,17 +712,17 @@ msgstr "Informations de base"
 #: dashboard/templates/grm/new_issue_1.html:44
 #: dashboard/templates/grm/new_issue_2.html:38
 #: dashboard/templates/grm/new_issue_3.html:58
-#: dashboard/templates/grm/new_issue_4.html:104
+#: dashboard/templates/grm/new_issue_4.html:105
 msgid "SAVE & NEXT"
 msgstr "ENREGISTRER ET SUIVRE"
 
 #: dashboard/templates/grm/new_issue_1.html:60
-#: dashboard/templates/grm/new_issue_4.html:129
+#: dashboard/templates/grm/new_issue_4.html:130
 msgid "What is this is issue about?"
 msgstr "C'est quoi ce problème?"
 
 #: dashboard/templates/grm/new_issue_1.html:64
-#: dashboard/templates/grm/new_issue_4.html:133
+#: dashboard/templates/grm/new_issue_4.html:134
 msgid "What kind of issue are you reporting?"
 msgstr "Quel type de problème signalez-vous?"
 
@@ -736,21 +732,26 @@ msgstr "Information de Lieu"
 
 #: dashboard/templates/grm/new_issue_2.html:43
 #: dashboard/templates/grm/new_issue_3.html:63
-#: dashboard/templates/grm/new_issue_4.html:109
+#: dashboard/templates/grm/new_issue_4.html:110
 msgid "BACK"
 msgstr "ARRIÈRE"
 
 #: dashboard/templates/grm/new_issue_2.html:55
-#: dashboard/templates/grm/new_issue_4.html:125
+#: dashboard/templates/grm/new_issue_4.html:126
 msgid "Where is the issue happening?"
 msgstr "Où se passe le problème?"
+
+#: dashboard/templates/grm/new_issue_2.html:128
+#: dashboard/templates/grm/new_issue_4.html:213
+msgid "Select an option"
+msgstr "Sélectionner une option"
 
 #: dashboard/templates/grm/new_issue_3.html:29
 msgid "Information"
 msgstr "Informations"
 
 #: dashboard/templates/grm/new_issue_3.html:75
-#: dashboard/templates/grm/new_issue_4.html:137
+#: dashboard/templates/grm/new_issue_4.html:138
 msgid "Method of contact"
 msgstr "Mode de contact"
 
@@ -869,6 +870,9 @@ msgstr "Anglais"
 #: grm/settings.py:129
 msgid "French"
 msgstr "Français"
+
+#~ msgid "Issue Location"
+#~ msgstr "Emplacement du Problème"
 
 #~ msgid "unfinished"
 #~ msgstr "non terminée"

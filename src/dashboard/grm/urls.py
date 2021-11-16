@@ -24,4 +24,8 @@ urlpatterns = [
     path('issue-comments/<int:issue>/', views.IssueCommentListView.as_view(), name='issue_comments'),
     path('submit-issue-result/<int:issue>/', views.SubmitIssueResearchResultFormView.as_view(),
          name='submit_issue_result'),
+    path('get-choices-for-next-administrative-level', views.GetChoicesForNextAdministrativeLevelView.as_view(),
+         name='get_choices_for_next_administrative_level'),
+    path('get-ancestor-administrative-levels', views.GetAncestorAdministrativeLevelsView.as_view(),
+         name='get_ancestor_administrative_levels'),
 ]
