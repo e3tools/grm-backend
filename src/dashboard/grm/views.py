@@ -19,7 +19,10 @@ from dashboard.grm.forms import (
     NewIssueStep3Form, NewIssueStep4Form, SearchIssueForm
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
-from grm.utils import get_child_administrative_levels, get_parent_administrative_level, sort_dictionary_list_by_field
+from grm.utils import (
+    get_assignee, get_auto_increment_id, get_child_administrative_levels,
+    get_parent_administrative_level
+)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -40,14 +43,11 @@ class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView)
 class StartNewIssueView(LoginRequiredMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
-        eadl_db = get_db(COUCHDB_GRM_DATABASE)
-        try:
-            max_auto_increment_id = eadl_db.get_view_result('issues', 'auto_increment_id_stats')[0][0]['value']['max']
-        except Exception:
-            max_auto_increment_id = 0
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+        auto_increment_id = get_auto_increment_id(grm_db)
         user = request.user
         issue = {
-            "auto_increment_id": max_auto_increment_id + 1,
+            "auto_increment_id": auto_increment_id,
             "reporter": {
                 "id": user.id,
                 "name": user.get_name()
@@ -57,7 +57,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             "confidential_status": False,
             "type": "issue"
         }
-        eadl_db.create_document(issue)
+        grm_db.create_document(issue)
         return HttpResponseRedirect(
             reverse('dashboard:grm:new_issue_step_1', kwargs={'issue': issue['auto_increment_id']}))
 
@@ -210,10 +210,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
                 "type": 'issue_category'
             })[0][0]
             department_id = doc_category['assigned_department']['id']
-            doc_department = self.grm_db.get_query_result({
-                "id": department_id,
-                "type": 'issue_department'
-            })[0][0]
+            assignee = get_assignee(self.grm_db, doc_category)
         except Exception:
             raise Http404
 
@@ -227,43 +224,13 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "confidentiality_level": doc_category['confidentiality_level'],
             "assigned_department": department_id
         }
-        if doc_category['redirection_protocol']:
-            startkey = [department_id, None, None]
-            endkey = [department_id, {}, {}]
-            result = self.grm_db.get_view_result('issues', 'group_by_assignee', group=True, startkey=startkey,
-                                                 endkey=endkey)[:]
-            department_workers = set(
-                GovernmentWorker.objects.filter(department=department_id).values_list('user', flat=True))
-            department_workers_with_assignment = {w['key'][1] for w in result}
-            department_workers_without_assignment = department_workers - department_workers_with_assignment
-            if department_workers_without_assignment:
-                worker_id = list(department_workers_without_assignment)[0]
-                worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
-                self.doc['assignee'] = {
-                    "id": worker_id,
-                    "name": worker_without_assignment.get_name()
-                }
-            else:
-                if result:
-                    result = sort_dictionary_list_by_field(result, 'value')
-                    self.doc['assignee'] = {
-                        "id": result[0]['key'][1],
-                        "name": result[0]['key'][2]
-                    }
-                elif department_workers:
-                    worker = GovernmentWorker.objects.filter(department=department_id).first()
-                    self.doc['assignee'] = {
-                        "id": worker.user.id,
-                        "name": worker.get_name()
-                    }
-                else:
-                    self.doc['assignee'] = ""
-                    msg = _("There is no government worker for the selected category (nature of the issue). "
-                            "Please report to IT staff.")
-                    messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 
-        else:
-            self.doc['assignee'] = doc_department['head']
+        if assignee == "":
+            msg = _("There is no government worker for the selected category (nature of the issue). "
+                    "Please report to IT staff.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
+
+        self.doc['assignee'] = assignee
 
     def set_fields_step2(self, data):
 

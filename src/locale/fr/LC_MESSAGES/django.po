@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-16 12:36+0100\n"
+"POT-Creation-Date: 2021-12-14 00:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,7 +127,7 @@ msgstr ""
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/adls/views.py:121 dashboard/grm/views.py:612
+#: dashboard/adls/views.py:121 dashboard/grm/views.py:576
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -252,28 +252,28 @@ msgstr "Assigné à"
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
-#: dashboard/grm/views.py:30 dashboard/grm/views.py:298
-#: dashboard/grm/views.py:317 dashboard/grm/views.py:333
-#: dashboard/grm/views.py:352 dashboard/grm/views.py:394
-#: dashboard/grm/views.py:414 dashboard/grm/views.py:500
+#: dashboard/grm/views.py:30 dashboard/grm/views.py:262
+#: dashboard/grm/views.py:281 dashboard/grm/views.py:297
+#: dashboard/grm/views.py:316 dashboard/grm/views.py:358
+#: dashboard/grm/views.py:378 dashboard/grm/views.py:464
 #: dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr "MGR"
 
-#: dashboard/grm/views.py:96
+#: dashboard/grm/views.py:93
 msgid "Add attachment"
 msgstr "Ajouter une pièce jointe"
 
-#: dashboard/grm/views.py:97
+#: dashboard/grm/views.py:94
 msgid "Upload"
 msgstr "Téléverser"
 
-#: dashboard/grm/views.py:116
+#: dashboard/grm/views.py:113
 msgid "The attachment was successfully uploaded."
 msgstr "La pièce jointe a été téléverser avec succès."
 
-#: dashboard/grm/views.py:119
+#: dashboard/grm/views.py:116
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
@@ -282,7 +282,7 @@ msgstr ""
 "jointe dans la base de données. S'il vous plaît signaler au personnel des "
 "TIC."
 
-#: dashboard/grm/views.py:123
+#: dashboard/grm/views.py:120
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
@@ -291,11 +291,11 @@ msgstr ""
 "Le fichier n'a pas pu être téléverser car il a déjà atteint la limite de "
 "%(max)d pièces jointes."
 
-#: dashboard/grm/views.py:146
+#: dashboard/grm/views.py:143
 msgid "The attachment was successfully deleted."
 msgstr "La pièce jointe a été supprimée avec succès."
 
-#: dashboard/grm/views.py:261
+#: dashboard/grm/views.py:226
 msgid ""
 "There is no government worker for the selected category (nature of the "
 "issue). Please report to IT staff."
@@ -303,31 +303,31 @@ msgstr ""
 "Il n'y a pas de fonctionnaire pour la catégorie sélectionnée (nature du "
 "problème). S'il vous plaît signaler au personnel des TIC."
 
-#: dashboard/grm/views.py:409 dashboard/grm/views.py:504
+#: dashboard/grm/views.py:373 dashboard/grm/views.py:468
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:495
+#: dashboard/grm/views.py:459
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:556
+#: dashboard/grm/views.py:520
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:589
+#: dashboard/grm/views.py:553
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:592
+#: dashboard/grm/views.py:556
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: dashboard/grm/views.py:611
+#: dashboard/grm/views.py:575
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:629
+#: dashboard/grm/views.py:593
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
@@ -863,11 +863,11 @@ msgstr ""
 msgid "Commune"
 msgstr ""
 
-#: grm/settings.py:128
+#: grm/settings.py:129
 msgid "English"
 msgstr "Anglais"
 
-#: grm/settings.py:129
+#: grm/settings.py:130
 msgid "French"
 msgstr "Français"
 

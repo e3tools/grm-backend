@@ -54,6 +54,7 @@ THIRD_PARTY_APPS = [
     'bootstrap4',
     'drf_yasg',
     'rest_framework',
+    'django_celery_results'
 ]
 
 INSTALLED_APPS += CREATED_APPS + THIRD_PARTY_APPS
@@ -180,3 +181,13 @@ DATE_INPUT_FORMATS = [
     '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
     '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
 ]
+
+# Celery settings
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+
+#: Only add pickle to this list if your broker is secured
+#: from unwanted access (see userguide/security.html)
+CELERY_ACCEPT_CONTENT = [env('CELERY_ACCEPT_CONTENT')]
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
+CELERY_TASK_SERIALIZER = env('CELERY_TASK_SERIALIZER')

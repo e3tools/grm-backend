@@ -135,3 +135,58 @@ def get_parent_administrative_level(eadl_db, administrative_id):
     except Exception:
         pass
     return parent
+
+
+def get_auto_increment_id(grm_db):
+    try:
+        max_auto_increment_id = grm_db.get_view_result('issues', 'auto_increment_id_stats')[0][0]['value']['max']
+    except Exception:
+        max_auto_increment_id = 0
+    return max_auto_increment_id + 1
+
+
+def get_assignee(grm_db, doc_category):
+
+    try:
+        department_id = doc_category['assigned_department']['id']
+        doc_department = grm_db.get_query_result({
+            "id": department_id,
+            "type": 'issue_department'
+        })[0][0]
+    except Exception:
+        raise
+
+    if doc_category['redirection_protocol']:
+        startkey = [department_id, None, None]
+        endkey = [department_id, {}, {}]
+        result = grm_db.get_view_result('issues', 'group_by_assignee', group=True, startkey=startkey,
+                                        endkey=endkey)[:]
+        department_workers = set(
+            GovernmentWorker.objects.filter(department=department_id).values_list('user', flat=True))
+        department_workers_with_assignment = {w['key'][1] for w in result}
+        department_workers_without_assignment = department_workers - department_workers_with_assignment
+        if department_workers_without_assignment:
+            worker_id = list(department_workers_without_assignment)[0]
+            worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
+            assignee = {
+                "id": worker_id,
+                "name": worker_without_assignment.get_name()
+            }
+        else:
+            if result:
+                result = sort_dictionary_list_by_field(result, 'value')
+                assignee = {
+                    "id": result[0]['key'][1],
+                    "name": result[0]['key'][2]
+                }
+            elif department_workers:
+                worker = GovernmentWorker.objects.filter(department=department_id).first()
+                assignee = {
+                    "id": worker.user.id,
+                    "name": worker.get_name()
+                }
+            else:
+                assignee = ""
+    else:
+        assignee = doc_department['head']
+    return assignee

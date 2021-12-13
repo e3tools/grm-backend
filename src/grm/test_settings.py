@@ -1,12 +1,12 @@
 import logging
 
 try:
-    from grm.settings import *
+    from grm.settings import *  # noqa
 except ImportError:
     pass
 
 MIDDLEWARE = [
-    middleware for middleware in MIDDLEWARE if middleware not in [
+    middleware for middleware in MIDDLEWARE if middleware not in [  # noqa: F405
         'django.middleware.security.SecurityMiddleware',
         'corsheaders.middleware.CorsMiddleware',
         'django.middleware.common.CommonMiddleware',
@@ -16,7 +16,7 @@ MIDDLEWARE = [
 ]
 
 INSTALLED_APPS = [
-    app for app in INSTALLED_APPS if app not in [
+    app for app in INSTALLED_APPS if app not in [  # noqa: F405
         'django.contrib.staticfiles'
     ]
 ]
