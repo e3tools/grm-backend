@@ -32954,3 +32954,17 @@ a.text-muted:hover {
 .close-modal {
     min-width: 45px;
 }
+
+.z-index1000 {
+    z-index: 1000 !important;
+}
+.map-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.75);
+    font-weight: bold;
+    text-align: center;
+    padding-top: 6px;
+    box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.1);
+}
