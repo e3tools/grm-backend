@@ -5,7 +5,7 @@ from django.views import generic
 
 from client import get_db
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
-from grm.utils import get_parent_administrative_level
+from grm.utils import get_base_administrative_id
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -35,8 +35,7 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
         issues_percentages = dict()
         eadl_db = get_db()
         for d in issues_by_region:
-            parent = get_parent_administrative_level(eadl_db, d['key'])
-            key = parent['administrative_id'] if parent else d['key']
+            key = get_base_administrative_id(eadl_db, d['key'])
             if key in issues_percentages:
                 issues_percentages[key] = issues_percentages[key] + d['value']
             else:
