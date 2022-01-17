@@ -112,7 +112,7 @@ def get_contact_medium_display(value):
 
 @register.simple_tag
 def get_initials(string):
-    return ''.join((w[0] for w in string.split(' '))).upper()
+    return ''.join((w[0] for w in string.split(' ') if w)).upper()
 
 
 @register.simple_tag

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserChangeForm
 from django.forms.fields import EmailField
 
 from authentication.models import GovernmentWorker, User
@@ -19,9 +20,20 @@ class UserWithEmptyPasswordCreationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self._meta.model.EMAIL_FIELD in self.fields:
             self.fields[self._meta.model.EMAIL_FIELD].widget.attrs['autofocus'] = True
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+
+
+class CustomUserChangeForm(UserChangeForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
 
 
 class UserAdmin(BaseUserAdmin):
+    form = CustomUserChangeForm
     add_form = UserWithEmptyPasswordCreationForm
     add_fieldsets = (
         (None, {
