@@ -7,7 +7,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="row issues-filter">
-                        <div class="col-4 label-align-right text-left">
+                        <div class="col-4 text-left">
                             <div class="fs28 lh35 text-primary text-bold-family mb-4">
                                 {% translate 'Search Results' %}<br>
                             </div>
@@ -18,10 +18,10 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-8 label-align-right border-left">
+                        <div class="col-8 border-left">
                             <div class="row">
                                 <div class="col-2">
-                                    <label class="col-form-label">{% translate 'Filter by' %}</label>
+                                    <label class="label-align">{% translate 'Filter by' %}</label>
                                 </div>
                                 <div class="col-5">
                                     {% bootstrap_field form.code show_label=False %}

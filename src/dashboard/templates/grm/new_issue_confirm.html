@@ -2,7 +2,7 @@
 {% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=75 %}
+    {% include 'common/progress_bar.html' with percentage=83 %}
 {% endblock progress-bar %}
 
 {% block content %}
@@ -23,60 +23,13 @@
                         <div class="row">
                             <div class="col-3">
                                 <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 4
+                                    {% translate 'Step' %} 5
                                 </div>
                                 <div class="fs35 lh35 text-bold-family ">
                                     {% translate 'Confirm & Submit' %}
                                 </div>
                             </div>
-                            <div class="col-6 label-align-right">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_intake_date">
-                                            {{ form.intake_date.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        {% bootstrap_field form.intake_date show_label=False %}
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_issue_date">
-                                            {{ form.issue_date.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        {% bootstrap_field form.issue_date show_label=False %}
-                                    </div>
-                                </div>
-                                {% bootstrap_field form.administrative_region layout='horizontal' %}
-                                {{ form.administrative_region_value }}
-                                {% bootstrap_field form.issue_type layout='horizontal' %}
-                                {% bootstrap_field form.category layout='horizontal' %}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_description">
-                                            {{ form.description.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <a class="btn absolute-left-110 p-0 text-primary" id="edit-description"
-                                           title="{{ edit }}">
-                                            <i class="fas fa-edit fs17"></i>
-                                        </a>
-                                        <div id="description_value" class="mb-3"></div>
-                                        <div id="input_description" class="hidden input">
-                                            {% bootstrap_field form.description layout='horizontal' show_label=False %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="overlay-wrapper">
-                                    <div id="attachments"></div>
-                                    <div class="overlay" id="load-attachments-spin">
-                                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                                    </div>
-                                </div>
+                            <div class="col-6">
                                 {% bootstrap_field form.contact_medium layout='horizontal' %}
                                 <div class="row">
                                     <div class="col-md-3">
@@ -92,10 +45,70 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        {% bootstrap_field form.citizen %}
                                     </div>
                                 </div>
-                                {% bootstrap_field form.confidential_status layout='horizontal' %}
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="id_citizen" class="label-align">
+                                            {{ form.citizen.label }}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-9">
+                                        {% bootstrap_field form.citizen show_label=False %}
+                                        {% bootstrap_field form.citizen_type %}
+                                    </div>
+                                </div>
+                                {% bootstrap_field form.gender layout='horizontal' %}
+                                {% bootstrap_field form.citizen_group_1 layout='horizontal' %}
+                                {% bootstrap_field form.citizen_group_2 layout='horizontal' %}
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="id_intake_date" class="label-align">
+                                            {{ form.intake_date.label }}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-9">
+                                        {% bootstrap_field form.intake_date show_label=False %}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="id_issue_date" class="label-align">
+                                            {{ form.issue_date.label }}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-9">
+                                        {% bootstrap_field form.issue_date show_label=False %}
+                                    </div>
+                                </div>
+                                {% bootstrap_field form.issue_type layout='horizontal' %}
+                                {% bootstrap_field form.category layout='horizontal' %}
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="id_description" class="label-align">
+                                            {{ form.description.label }}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <a class="btn absolute-left-110 p-0 text-primary" id="edit-description"
+                                           title="{{ edit }}">
+                                            <i class="fas fa-edit fs17"></i>
+                                        </a>
+                                        <div id="description_value" class="mb-3"></div>
+                                        <div id="input_description" class="hidden input">
+                                            {% bootstrap_field form.description layout='horizontal' show_label=False %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% bootstrap_field form.ongoing_issue layout='horizontal' %}
+                                <div class="overlay-wrapper">
+                                    <div id="attachments"></div>
+                                    <div class="overlay" id="load-attachments-spin">
+                                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                                    </div>
+                                </div>
+                                {% bootstrap_field form.administrative_region layout='horizontal' %}
+                                {{ form.administrative_region_value }}
                             </div>
                             <div class="col-3"></div>
                         </div>
@@ -104,7 +117,7 @@
                         <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
                             {% translate "SAVE & NEXT" %}
                         </button>
-                        <a href="{% url 'dashboard:grm:new_issue_step_3' doc.auto_increment_id %}"
+                        <a href="{% url 'dashboard:grm:new_issue_step_4' doc.auto_increment_id %}"
                            class="btn btn-primary btn-sm rounded-xl float-right mr-4">
                             <i class="fa fa-chevron-left mr-2"></i>
                             {% translate "BACK" %}
@@ -122,8 +135,26 @@
 
 {% block select2 %}
     <script type="text/javascript">
-        $("#id_administrative_region").select2({
-            placeholder: "{% translate 'Where is the issue happening?' %}",
+        $("#id_contact_type").select2({
+            placeholder: "{% translate 'Method of contact' %}",
+            allowClear: true,
+            disabled: {% if doc.contact_information %}false{% else %}true{% endif %}
+        });
+        $("#id_citizen_age_group").select2({
+            placeholder: "{% translate 'Click to select age group' %}",
+            allowClear: true
+        });
+        $("#id_gender").select2({
+            placeholder: "{% translate 'Click to select gender' %}",
+            allowClear: true
+        });
+        {% translate 'Click to select ethnicity, religion, nationality' as empty_group_msg %}
+        $("#id_citizen_group_1").select2({
+            placeholder: "{{ empty_group_msg }}",
+            allowClear: true
+        });
+        $("#id_citizen_group_2").select2({
+            placeholder: "{{ empty_group_msg }}",
             allowClear: true
         });
         $("#id_issue_type").select2({
@@ -134,10 +165,9 @@
             placeholder: "{% translate 'What kind of issue are you reporting?' %}",
             allowClear: true
         });
-        $("#id_contact_type").select2({
-            placeholder: "{% translate 'Method of contact' %}",
-            allowClear: true,
-            disabled: {% if doc.contact_information %}false{% else %}true{% endif %}
+        $("#id_administrative_region").select2({
+            placeholder: "{% translate 'Where is the issue happening?' %}",
+            allowClear: true
         });
 
         function changeRegionTrigger() {
@@ -265,7 +295,10 @@
     {{ block.super }}
     <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
     <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+    <script src="{% static 'js/deselectableRadios.js' %}"></script>
     <script type="text/javascript">
+        deselectableRadios("id_citizen_type");
+
         let load_attachments_spin = $('#load-attachments-spin');
 
         function loadAttachments() {
@@ -353,7 +386,6 @@
 
         let contact_type = $('#id_contact_type');
         let contact = $('#id_contact');
-        let citizen = $('#id_citizen');
 
         function toggleContactInputs() {
             if ($('#id_contact_medium_2').is(':checked')) {
@@ -367,13 +399,6 @@
             } else {
                 contact_type.prop("disabled", true).prop("required", false).val(null).trigger('change');
                 contact.prop("disabled", true).prop("required", false).val('').hide();
-            }
-            if ($('#id_contact_medium_1').is(':checked')) {
-                citizen.val('');
-                citizen.parent().hide();
-            } else {
-                citizen.show();
-                citizen.parent().show();
             }
         }
 
@@ -412,6 +437,7 @@
         $('#edit-description').click(function () {
             description_value.hide();
             input_description.show();
+            $("#id_description").focus();
         });
 
     </script>

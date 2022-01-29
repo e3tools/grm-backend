@@ -4,23 +4,107 @@ from django.utils.translation import gettext_lazy as _
 
 from client import get_db
 from dashboard.forms.widgets import RadioSelect
-from dashboard.grm import CHOICE_ANONYMOUS, CHOICE_CONTACT, CONTACT_CHOICES, MEDIUM_CHOICES
+from dashboard.grm import CHOICE_CONTACT, CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, GENDER_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
     get_administrative_region_choices, get_base_administrative_id, get_government_worker_choices,
-    get_issue_category_choices, get_issue_status_choices, get_issue_type_choices
+    get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
+    get_issue_citizen_group_2_choices, get_issue_status_choices, get_issue_type_choices
 )
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 MAX_LENGTH = 65000
 
 
-class NewIssueStep1Form(forms.Form):
-    intake_date = forms.DateTimeField(label=_('Date of Intake'), input_formats=['%d/%m/%Y'])
-    issue_date = forms.DateTimeField(label=_('Date of Issue'), input_formats=['%d/%m/%Y'])
-    description = forms.CharField(label=_('Summary of Issue'), max_length=2000, widget=forms.Textarea(
+class NewIssueContactForm(forms.Form):
+    contact_medium = forms.ChoiceField(label=_('How does the citizen wish to be contacted?'), widget=RadioSelect,
+                                       choices=MEDIUM_CHOICES)
+    contact_type = forms.ChoiceField(label='', required=False, choices=CONTACT_CHOICES)
+    contact = forms.CharField(label='', required=False)
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial')
+        doc_id = initial.get('doc_id')
+        super().__init__(*args, **kwargs)
+
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+
+        self.fields['contact'].widget.attrs["placeholder"] = _("Please type the contact information")
+
+        document = grm_db[doc_id]
+        if 'contact_medium' in document:
+            self.fields['contact_medium'].initial = document['contact_medium']
+            if document['contact_medium'] == CHOICE_CONTACT:
+                if 'type' in document['contact_information'] and document['contact_information']['type']:
+                    self.fields['contact_type'].initial = document['contact_information']['type']
+                if 'contact' in document['contact_information'] and document['contact_information']['contact']:
+                    self.fields['contact'].initial = document['contact_information']['contact']
+            else:
+                self.fields['contact'].widget.attrs["class"] = "hidden"
+
+
+class NewIssuePersonForm(forms.Form):
+    citizen = forms.CharField(label=_('Enter name of the citizen'), required=False,
+                              help_text=_('This is an optional field'))
+    citizen_type = forms.ChoiceField(label=_(''), widget=RadioSelect, required=False,
+                                     choices=CITIZEN_TYPE_CHOICES, help_text=_('This is an optional field'))
+    citizen_age_group = forms.ChoiceField(label=_('Enter age group'), required=False,
+                                          help_text=_('This is an optional field'))
+    gender = forms.ChoiceField(label=_('Choose gender'), required=False, help_text=_('This is an optional field'),
+                               choices=GENDER_CHOICES)
+    citizen_group_1 = forms.ChoiceField(label=_('Ethnicity, Religion, Nationality'), required=False,
+                                        help_text=_('This is an optional field'))
+    citizen_group_2 = forms.ChoiceField(label=_('Ethnicity, Religion, Nationality'), required=False,
+                                        help_text=_('This is an optional field'))
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial')
+        doc_id = initial.get('doc_id')
+        super().__init__(*args, **kwargs)
+
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+
+        citizen_age_groups = get_issue_age_group_choices(grm_db)
+        self.fields['citizen_age_group'].widget.choices = citizen_age_groups
+        self.fields['citizen_age_group'].choices = citizen_age_groups
+
+        citizen_group_1_choices = get_issue_citizen_group_1_choices(grm_db)
+        self.fields['citizen_group_1'].widget.choices = citizen_group_1_choices
+        self.fields['citizen_group_1'].choices = citizen_group_1_choices
+
+        citizen_group_2_choices = get_issue_citizen_group_2_choices(grm_db)
+        self.fields['citizen_group_2'].widget.choices = citizen_group_2_choices
+        self.fields['citizen_group_2'].choices = citizen_group_2_choices
+
+        document = grm_db[doc_id]
+
+        if 'citizen' in document:
+            self.fields['citizen'].initial = document['citizen']
+
+        if 'citizen_type' in document:
+            self.fields['citizen_type'].initial = document['citizen_type']
+
+        if 'citizen_age_group' in document and document['citizen_age_group']:
+            self.fields['citizen_age_group'].initial = document['citizen_age_group']['id']
+
+        if 'gender' in document:
+            self.fields['gender'].initial = document['gender']
+
+        if 'citizen_group_1' in document and document['citizen_group_1']:
+            self.fields['citizen_group_1'].initial = document['citizen_group_1']['id']
+
+        if 'citizen_group_2' in document and document['citizen_group_2']:
+            self.fields['citizen_group_2'].initial = document['citizen_group_2']['id']
+
+
+class NewIssueDetailsForm(forms.Form):
+    intake_date = forms.DateTimeField(label=_('Date of intake'), input_formats=['%d/%m/%Y'])
+    issue_date = forms.DateTimeField(label=_('Date of issue'), input_formats=['%d/%m/%Y'])
+    issue_type = forms.ChoiceField(label=_('What are you reporting'))
+    category = forms.ChoiceField(label=_('Choose type of grievance'))
+    description = forms.CharField(label=_('Briefly describe the issue'), max_length=2000, widget=forms.Textarea(
         attrs={'rows': '3', 'placeholder': _('Please describe the issue')}))
-    issue_type = forms.ChoiceField(label=_('Type of Issue'))
-    category = forms.ChoiceField(label=_('Nature of Issue'))
+    ongoing_issue = forms.BooleanField(label=_('Current event or multiple occurrences'),
+                                       widget=forms.CheckboxInput, required=False)
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial')
@@ -47,9 +131,11 @@ class NewIssueStep1Form(forms.Form):
             self.fields['issue_type'].initial = document['issue_type']['id']
         if 'category' in document and document['category']:
             self.fields['category'].initial = document['category']['id']
+        if 'ongoing_issue' in document:
+            self.fields['ongoing_issue'].initial = document['ongoing_issue']
 
 
-class NewIssueStep2Form(forms.Form):
+class NewIssueLocationForm(forms.Form):
     administrative_region = forms.ChoiceField()
     administrative_region_value = forms.CharField(label='', required=False)
 
@@ -82,55 +168,13 @@ class NewIssueStep2Form(forms.Form):
             self.fields['administrative_region'].initial = get_base_administrative_id(eadl_db, administrative_id)
 
 
-class NewIssueStep3Form(forms.Form):
-    contact_medium = forms.ChoiceField(label=_('How does the citizen wish to be contacted?'), widget=RadioSelect)
-    contact_type = forms.ChoiceField(label='', required=False)
-    contact = forms.CharField(label='', required=False)
-    confidential_status = forms.BooleanField(label=_('Citizen wants contact information to be kept confidential'),
-                                             widget=forms.CheckboxInput, required=False)
-    citizen = forms.CharField(label='', required=False, help_text=_('This is an optional field'))
+class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
 
     def __init__(self, *args, **kwargs):
-        initial = kwargs.get('initial')
-        doc_id = initial.get('doc_id')
-        super().__init__(*args, **kwargs)
-
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-
-        self.fields['contact_medium'].widget.choices = MEDIUM_CHOICES
-        self.fields['contact_medium'].initial = None
-        self.fields['contact_medium'].choices = MEDIUM_CHOICES
-        self.fields['contact_type'].widget.choices = CONTACT_CHOICES
-        self.fields['contact_type'].initial = None
-        self.fields['contact_type'].choices = CONTACT_CHOICES
-        self.fields['contact'].widget.attrs["placeholder"] = _("Please type the contact information")
-        self.fields['citizen'].widget.attrs["placeholder"] = _("Please type the name of the citizen")
-
-        document = grm_db[doc_id]
-        if 'contact_medium' in document:
-            self.fields['contact_medium'].initial = document['contact_medium']
-            if document['contact_medium'] == CHOICE_CONTACT:
-                if 'type' in document['contact_information'] and document['contact_information']['type']:
-                    self.fields['contact_type'].initial = document['contact_information']['type']
-                if 'contact' in document['contact_information'] and document['contact_information']['contact']:
-                    self.fields['contact'].initial = document['contact_information']['contact']
-            else:
-                self.fields['contact'].widget.attrs["class"] = "hidden"
-                if document['contact_medium'] == CHOICE_ANONYMOUS:
-                    self.fields['citizen'].widget.attrs["class"] = "hidden"
-
-        if 'citizen' in document:
-            self.fields['citizen'].initial = document['citizen']
-        self.fields['confidential_status'].initial = document['confidential_status']
-
-
-class NewIssueStep4Form(NewIssueStep3Form, NewIssueStep2Form, NewIssueStep1Form):
-
-    def __init__(self, *args, **kwargs):
-        NewIssueStep1Form.__init__(self, *args, **kwargs)
-        NewIssueStep2Form.__init__(self, *args, **kwargs)
-        NewIssueStep3Form.__init__(self, *args, **kwargs)
-        self.fields['contact_medium'].label = _("Citizen Contact")
+        NewIssueContactForm.__init__(self, *args, **kwargs)
+        NewIssuePersonForm.__init__(self, *args, **kwargs)
+        NewIssueDetailsForm.__init__(self, *args, **kwargs)
+        NewIssueLocationForm.__init__(self, *args, **kwargs)
 
 
 class SearchIssueForm(forms.Form):
@@ -157,7 +201,7 @@ class SearchIssueForm(forms.Form):
         self.fields['status'].widget.choices = get_issue_status_choices(grm_db)
 
 
-class IssueDetailForm(forms.Form):
+class IssueDetailsForm(forms.Form):
     status = forms.ChoiceField(label=_('Status'))
     assignee = forms.ChoiceField(label=_('Assigned to'))
 

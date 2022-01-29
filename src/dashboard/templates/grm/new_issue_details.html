@@ -2,7 +2,7 @@
 {% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=20 %}
+    {% include 'common/progress_bar.html' with percentage=50 %}
 {% endblock progress-bar %}
 
 {% block content %}
@@ -15,20 +15,20 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="fs20 lh46 mb-1 text-regular-family">
-                                    {% translate 'Enter New Issue' %}
+                                    {% translate 'Details of issue of Feedback' %}
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6">
                                 <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 1
+                                    {% translate 'Step' %} 3
                                 </div>
                                 <div class="fs35 lh35 text-bold-family ">
                                     {% translate 'Basic Information' %}
                                 </div>
                             </div>
-                            <div class="col-6 label-align-right">
+                            <div class="col-6">
                                 {% bootstrap_form form layout='horizontal' %}
                                 <div class="overlay-wrapper">
                                     <div id="attachments"></div>
@@ -40,9 +40,14 @@
                         </div>
                     </div>
                     <div class="card-footer mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right mt-4">
+                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
                             {% translate "SAVE & NEXT" %}
                         </button>
+                        <a href="{% url 'dashboard:grm:new_issue_step_2' doc.auto_increment_id %}"
+                           class="btn btn-primary btn-sm rounded-xl float-right mr-4">
+                            <i class="fa fa-chevron-left mr-2"></i>
+                            {% translate "BACK" %}
+                        </a>
                     </div>
                 </form>
             </div>

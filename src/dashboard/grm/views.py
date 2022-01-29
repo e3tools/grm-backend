@@ -15,8 +15,8 @@ from client import get_db, upload_file
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
 from dashboard.grm.forms import (
-    IssueCommentForm, IssueDetailForm, IssueResearchResultForm, MAX_LENGTH, NewIssueStep1Form, NewIssueStep2Form,
-    NewIssueStep3Form, NewIssueStep4Form, SearchIssueForm
+    IssueCommentForm, IssueDetailsForm, IssueResearchResultForm, MAX_LENGTH, NewIssueConfirmForm, NewIssueContactForm,
+    NewIssueDetailsForm, NewIssueLocationForm, NewIssuePersonForm, SearchIssueForm
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
@@ -54,7 +54,6 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             },
             "created_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "confirmed": False,
-            "confidential_status": False,
             "type": "issue"
         }
         grm_db.create_document(issue)
@@ -173,6 +172,13 @@ class IssueFormMixin(IssueMixin, generic.FormView):
 
 
 class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
+    fields_to_check = None
+
+    def dispatch(self, request, *args, **kwargs):
+        dispatch = super().dispatch(request, *args, **kwargs)
+        if self.fields_to_check and not self.has_required_fields():
+            raise Http404
+        return dispatch
 
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
@@ -185,17 +191,13 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         self.initial = {'doc_id': self.doc['_id']}
         return super().get_form_kwargs()
 
-    def has_required_fields(self, fields_to_check=(
-            'intake_date', 'issue_date', 'description', 'issue_type', 'category', 'confidential_status', 'assignee')):
-        for field in fields_to_check:
+    def has_required_fields(self):
+        for field in self.fields_to_check:
             if field not in self.doc:
-                return False
-        for field in fields_to_check:
-            if self.doc[field] in [None, '']:
                 return False
         return True
 
-    def set_fields_step1(self, data):
+    def set_details_fields(self, data):
         self.doc['intake_date'] = data['intake_date'].strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         self.doc['issue_date'] = data['issue_date'].strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         self.doc['description'] = data['description']
@@ -231,8 +233,65 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 
         self.doc['assignee'] = assignee
+        self.doc['ongoing_issue'] = data['ongoing_issue']
 
-    def set_fields_step2(self, data):
+    def set_person_fields(self, data):
+        self.doc['citizen'] = data['citizen']
+
+        citizen_type = int(data['citizen_type']) if data['citizen_type'] else None
+        self.doc['citizen_type'] = citizen_type
+
+        if data['citizen'] and not citizen_type:
+            self.doc['citizen_type'] = 0
+
+        if data['citizen_age_group']:
+            try:
+                doc_issue_age_group = self.grm_db.get_query_result({
+                    "id": int(data['citizen_age_group']),
+                    "type": 'issue_age_group'
+                })[0][0]
+                self.doc['citizen_age_group'] = {
+                    "name": doc_issue_age_group['name'],
+                    "id": doc_issue_age_group['id']
+                }
+            except Exception:
+                raise Http404
+        else:
+            self.doc['citizen_age_group'] = ""
+
+        self.doc['gender'] = data['gender']
+
+        if data['citizen_group_1']:
+            try:
+                doc_issue_citizen_group_1 = self.grm_db.get_query_result({
+                    "id": int(data['citizen_group_1']),
+                    "type": 'issue_citizen_group_1'
+                })[0][0]
+                self.doc['citizen_group_1'] = {
+                    "name": doc_issue_citizen_group_1['name'],
+                    "id": doc_issue_citizen_group_1['id']
+                }
+            except Exception:
+                raise Http404
+        else:
+            self.doc['citizen_group_1'] = ""
+
+        if data['citizen_group_2']:
+            try:
+                doc_issue_citizen_group_2 = self.grm_db.get_query_result({
+                    "id": int(data['citizen_group_2']),
+                    "type": 'issue_citizen_group_2'
+                })[0][0]
+                self.doc['citizen_group_2'] = {
+                    "name": doc_issue_citizen_group_2['name'],
+                    "id": doc_issue_citizen_group_2['id']
+                }
+            except Exception:
+                raise Http404
+        else:
+            self.doc['citizen_group_2'] = ""
+
+    def set_location_fields(self, data):
 
         try:
             doc_administrative_level = get_db().get_query_result({
@@ -247,7 +306,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "name": doc_administrative_level['name'],
         }
 
-    def set_fields_step3(self, data):
+    def set_contact_fields(self, data):
         self.doc['contact_medium'] = data['contact_medium']
         if data['contact_medium'] == CHOICE_CONTACT:
             self.doc['contact_information'] = {
@@ -256,86 +315,91 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             }
         else:
             self.doc['contact_information'] = None
-        self.doc['citizen'] = data['citizen']
-        self.doc['confidential_status'] = data['confidential_status']
 
 
-class NewIssueStep1FormView(PageMixin, NewIssueMixin):
-    template_name = 'grm/new_issue_1.html'
+class NewIssueContactFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_contact.html'
     title = _('GRM')
     active_level1 = 'grm'
-    form_class = NewIssueStep1Form
+    form_class = NewIssueContactForm
 
     def form_valid(self, form):
         data = form.cleaned_data
         try:
-            self.set_fields_step1(data)
+            self.set_contact_fields(data)
         except Exception as e:
             raise e
         self.doc.save()
-        if not self.doc['assignee']:
-            return HttpResponseRedirect(
-                reverse('dashboard:grm:new_issue_step_1', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_2', kwargs={'issue': self.kwargs['issue']}))
 
 
-class NewIssueStep2FormView(PageMixin, NewIssueMixin):
-    template_name = 'grm/new_issue_2.html'
+class NewIssuePersonFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_person.html'
     title = _('GRM')
     active_level1 = 'grm'
-    form_class = NewIssueStep2Form
+    form_class = NewIssuePersonForm
+    fields_to_check = ('contact_medium',)
 
     def form_valid(self, form):
         data = form.cleaned_data
         try:
-            self.set_fields_step2(data)
+            self.set_person_fields(data)
         except Exception as e:
             raise e
         self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_3', kwargs={'issue': self.kwargs['issue']}))
 
 
-class NewIssueStep3FormView(PageMixin, NewIssueMixin):
-    template_name = 'grm/new_issue_3.html'
+class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_details.html'
     title = _('GRM')
     active_level1 = 'grm'
-    form_class = NewIssueStep3Form
-
-    def dispatch(self, request, *args, **kwargs):
-        dispatch = super().dispatch(request, *args, **kwargs)
-        if not self.has_required_fields():
-            raise Http404
-        return dispatch
+    form_class = NewIssueDetailsForm
+    fields_to_check = ('contact_medium', 'citizen')
 
     def form_valid(self, form):
         data = form.cleaned_data
-        self.set_fields_step3(data)
+        self.set_details_fields(data)
         self.doc.save()
+        if not self.doc['assignee']:
+            return HttpResponseRedirect(
+                reverse('dashboard:grm:new_issue_step_3', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
 
 
-class NewIssueStep4FormView(PageMixin, NewIssueMixin):
-    template_name = 'grm/new_issue_4.html'
+class NewIssueLocationFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_location.html'
     title = _('GRM')
     active_level1 = 'grm'
-    form_class = NewIssueStep4Form
+    form_class = NewIssueLocationForm
+    fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
+                       'ongoing_issue', 'assignee')
 
-    def dispatch(self, request, *args, **kwargs):
-        dispatch = super().dispatch(request, *args, **kwargs)
-        if not self.has_required_fields() or 'contact_medium' not in self.doc or (
-                self.doc['contact_medium'] == CHOICE_CONTACT and not self.has_required_fields(('contact_information',))
-        ):
-            raise Http404
-        return dispatch
+    def form_valid(self, form):
+        data = form.cleaned_data
+        self.set_location_fields(data)
+        self.doc.save()
+        return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
+
+
+class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_confirm.html'
+    title = _('GRM')
+    active_level1 = 'grm'
+    form_class = NewIssueConfirmForm
+    fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
+                       'ongoing_issue', 'assignee', 'administrative_region')
 
     def form_valid(self, form):
         data = form.cleaned_data
         try:
-            self.set_fields_step1(data)
-            self.set_fields_step2(data)
+            self.set_contact_fields(data)
+            self.set_person_fields(data)
+            self.set_details_fields(data)
+            self.set_location_fields(data)
         except Exception as e:
             raise e
-        self.set_fields_step3(data)
+        self.set_contact_fields(data)
         self.doc['confirmed'] = True
         try:
             doc_category = self.grm_db.get_query_result({
@@ -353,14 +417,14 @@ class NewIssueStep4FormView(PageMixin, NewIssueMixin):
         }
         self.doc['created_date'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         self.doc.save()
-        return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
+        return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_6', kwargs={'issue': self.kwargs['issue']}))
 
 
-class NewIssueStep5FormView(PageMixin, NewIssueMixin):
-    template_name = 'grm/new_issue_5.html'
+class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
+    template_name = 'grm/new_issue_confirmation.html'
     title = _('GRM')
     active_level1 = 'grm'
-    form_class = NewIssueStep4Form
+    form_class = NewIssueConfirmForm
 
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
@@ -456,9 +520,9 @@ class IssueCommentsContextMixin:
         return context
 
 
-class IssueDetailFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, LoginRequiredMixin, generic.FormView):
-    form_class = IssueDetailForm
-    template_name = 'grm/issue_detail.html'
+class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, LoginRequiredMixin, generic.FormView):
+    form_class = IssueDetailsForm
+    template_name = 'grm/issue_details.html'
     title = _('Issue Detail')
     active_level1 = 'grm'
     breadcrumb = [

@@ -2,7 +2,7 @@
 {% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=80 %}
+    {% include 'common/progress_bar.html' with percentage=16 %}
 {% endblock progress-bar %}
 
 {% block content %}
@@ -22,11 +22,10 @@
                         <div class="row">
                             <div class="col-6">
                                 <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 3
+                                    {% translate 'Step' %} 1
                                 </div>
                                 <div class="fs35 lh35 text-bold-family ">
-                                    {% translate 'Citizen Contact' %}<br>
-                                    {% translate 'Information' %}
+                                    {% translate 'Preferred Method of Contact' %}
                                 </div>
                             </div>
                             <div class="col-6">
@@ -44,24 +43,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mt-2">
-                                    {% bootstrap_field form.citizen %}
-                                </div>
-                                <div class="mt-5">
-                                    {% bootstrap_field form.confidential_status %}
-                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="card-footer mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right mt-4">
                             {% translate "SAVE & NEXT" %}
                         </button>
-                        <a href="{% url 'dashboard:grm:new_issue_step_2' doc.auto_increment_id %}"
-                           class="btn btn-primary btn-sm rounded-xl float-right mr-4">
-                            <i class="fa fa-chevron-left mr-2"></i>
-                            {% translate "BACK" %}
-                        </a>
                     </div>
                 </form>
             </div>
@@ -88,7 +76,6 @@
 
         let contact_type = $('#id_contact_type');
         let contact = $('#id_contact');
-        let citizen = $('#id_citizen');
 
         function toggleContactInputs() {
             if ($('#id_contact_medium_2').is(':checked')) {
@@ -102,13 +89,6 @@
             } else {
                 contact_type.prop("disabled", true).prop("required", false).val(null).trigger('change');
                 contact.prop("disabled", true).prop("required", false).val('').hide();
-            }
-            if ($('#id_contact_medium_1').is(':checked')) {
-                citizen.val('');
-                citizen.parent().hide();
-            } else {
-                citizen.show();
-                citizen.parent().show();
             }
         }
 

@@ -35,28 +35,41 @@ def get_administrative_region_choices(eadl_db, empty_choice=True):
     return choices
 
 
-def get_issue_type_choices(grm_db, empty_choice=True):
-    query_result = grm_db.get_query_result({"type": 'issue_type'})
+def get_choices(query_result, empty_choice=True):
     choices = [(i['id'], i['name']) for i in query_result]
     if empty_choice:
         choices = [('', '')] + choices
     return choices
+
+
+def get_issue_age_group_choices(grm_db, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": 'issue_age_group'})
+    return get_choices(query_result, empty_choice)
+
+
+def get_issue_citizen_group_1_choices(grm_db, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": 'issue_citizen_group_1'})
+    return get_choices(query_result, empty_choice)
+
+
+def get_issue_citizen_group_2_choices(grm_db, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": 'issue_citizen_group_2'})
+    return get_choices(query_result, empty_choice)
+
+
+def get_issue_type_choices(grm_db, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": 'issue_type'})
+    return get_choices(query_result, empty_choice)
 
 
 def get_issue_category_choices(grm_db, empty_choice=True):
     query_result = grm_db.get_query_result({"type": 'issue_category'})
-    choices = [(i['id'], i['name']) for i in query_result]
-    if empty_choice:
-        choices = [('', '')] + choices
-    return choices
+    return get_choices(query_result, empty_choice)
 
 
 def get_issue_status_choices(grm_db, empty_choice=True):
     query_result = grm_db.get_query_result({"type": 'issue_status'})
-    choices = [(i['id'], i['name']) for i in query_result]
-    if empty_choice:
-        choices = [('', '')] + choices
-    return choices
+    return get_choices(query_result, empty_choice)
 
 
 def get_government_worker_choices(empty_choice=True):

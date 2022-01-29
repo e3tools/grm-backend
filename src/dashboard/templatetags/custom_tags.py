@@ -4,7 +4,7 @@ from django import template
 
 from authentication.utils import get_validation_code
 from client import get_db
-from dashboard.grm import CONTACT_CHOICES, MEDIUM_CHOICES
+from dashboard.grm import CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, MEDIUM_CHOICES
 from grm.utils import get_administrative_region_name as get_region_name
 
 register = template.Library()
@@ -94,6 +94,13 @@ def next_in_circular_list(items, i):
     if i >= len(items):
         i %= len(items)
     return items[i]
+
+
+@register.simple_tag
+def get_citizen_type_display(value):
+    for key, label in CITIZEN_TYPE_CHOICES:
+        if key == value:
+            return label
 
 
 @register.simple_tag

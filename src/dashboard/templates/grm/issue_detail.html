@@ -15,7 +15,7 @@
                 <div class="card-body text-left">
                     <div class="row mr-2">
                         <div class="col-12">
-                            <label>{% translate 'Summary' %}</label>
+                            <label class="label-align">{% translate 'Summary' %}</label>
                             <p>{{ doc.description }}</p>
                         </div>
                     </div>
@@ -30,12 +30,12 @@
         </div>
         <div class="col-4">
             <div class="card h-100">
-                <div class="card-body label-align-right">
+                <div class="card-body">
                     {% bootstrap_field form.status layout='horizontal' %}
                     {% bootstrap_field form.assignee layout='horizontal' %}
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
-                            <label>
+                            <label class="label-align">
                                 {% translate 'Reporter' %}
                             </label>
                         </div>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
-                            <label>
+                            <label class="label-align">
                                 {% translate 'Citizen' %}
                             </label>
                         </div>
@@ -60,7 +60,7 @@
                     </div>
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
-                            <label>
+                            <label class="label-align">
                                 {% translate 'Category' %}
                             </label>
                         </div>
@@ -70,17 +70,7 @@
                     </div>
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
-                            <label>
-                                {% translate 'Confidentiality' %}
-                            </label>
-                        </div>
-                        <div class="col-9 text-regular-family">
-                            {{ doc.confidential_status }}
-                        </div>
-                    </div>
-                    <div class="row mr-2 mb-2">
-                        <div class="col-3">
-                            <label>
+                            <label class="label-align">
                                 {% translate 'Opened' %}
                             </label>
                         </div>
@@ -90,7 +80,7 @@
                     </div>
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
-                            <label>
+                            <label class="label-align">
                                 {% translate 'Days before resolution' %}
                             </label>
                         </div>
