@@ -37,7 +37,7 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
         for d in issues_by_region:
             key = get_base_administrative_id(eadl_db, d['key'])
             if key in issues_percentages:
-                issues_percentages[key] = issues_percentages[key] + d['value']
+                issues_percentages[key]['count'] = issues_percentages[key]['count'] + d['value']
             else:
                 issues_percentages[key] = {
                     'count': d['value']

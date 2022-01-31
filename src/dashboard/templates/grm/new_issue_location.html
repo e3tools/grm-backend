@@ -34,11 +34,11 @@
                         </div>
                     </div>
                     <div class="card-footer mb-2" style="margin-top: 120px">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+                        <button id="next" type="submit" class="btn btn-primary btn-sm rounded-xl float-right" disabled>
                             {% translate "SAVE & NEXT" %}
                         </button>
                         <a href="{% url 'dashboard:grm:new_issue_step_3' doc.auto_increment_id %}"
-                           class="btn btn-primary btn-sm rounded-xl float-right mr-4">
+                           class="btn btn-primary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
                             <i class="fa fa-chevron-left mr-2"></i>
                             {% translate "BACK" %}
                         </a>
@@ -52,7 +52,7 @@
 {% block select2 %}
     <script type="text/javascript">
         $("#id_administrative_region").select2({
-            placeholder: "{% translate 'Where is the issue happening?' %}",
+            placeholder: "{% translate 'Click to select location' %}",
             allowClear: true
         });
 
@@ -78,6 +78,8 @@
                     data.push(administrative_region_value);
                     ancestors = data;
                     loadNextLevelRegions($("select.region:last"));
+                } else {
+                    $('#next').prop('disabled', false);
                 }
             },
             error: function () {
@@ -125,7 +127,7 @@
                             child = current_level.closest('.form-group').next().find('.region');
                             child.select2({
                                 allowClear: true,
-                                placeholder: "{% translate 'Select an option' %}",
+                                placeholder: "{% translate 'Click to select location' %}",
                             });
                             changeRegionTrigger();
 
@@ -159,6 +161,7 @@
                 }).done(function () {
                         if (ancestors.length === 0) {
                             select_region.attr('disabled', false);
+                            $('#next').prop('disabled', false);
                         }
                     }
                 );

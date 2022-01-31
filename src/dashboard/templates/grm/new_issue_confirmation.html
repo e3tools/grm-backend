@@ -189,9 +189,9 @@
                                     </div>
                                 {% endif %}
                                 <div class="row mr-2 mb-2">
-                                    <div class="col-3 label-align">
-                                        {{ form.administrative_region.label_tag }}
-                                    </div>
+                                    <label class="col-3 label-align">
+                                        {% translate "Location" %}:
+                                    </label>
                                     <div class="col-9 text-regular-family">
                                         {% get_administrative_region_name doc.administrative_region.administrative_id %}
                                     </div>

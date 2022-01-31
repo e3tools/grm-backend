@@ -60,7 +60,7 @@
 {% block select2 %}
     <script type="text/javascript">
         $("#id_contact_type").select2({
-            placeholder: "{% translate 'Method of contact' %}",
+            placeholder: "{% translate 'Click to select contact method' %}",
             allowClear: true,
             disabled: {% if doc.contact_information %}false{% else %}true{% endif %}
         });
