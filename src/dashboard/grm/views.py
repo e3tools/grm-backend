@@ -522,7 +522,7 @@ class IssueCommentsContextMixin:
 
 class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, LoginRequiredMixin, generic.FormView):
     form_class = IssueDetailsForm
-    template_name = 'grm/issue_details.html'
+    template_name = 'grm/issue_detail.html'
     title = _('Issue Detail')
     active_level1 = 'grm'
     breadcrumb = [
