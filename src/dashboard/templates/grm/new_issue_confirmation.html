@@ -82,9 +82,9 @@
                                 </div>
                                 {% if doc.citizen_age_group %}
                                     <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_age_group.label_tag }}
-                                        </div>
+                                        <label class="col-3 label-align">
+                                            {% translate "Age" %}:
+                                        </label>
                                         <div class="col-9 text-regular-family">
                                             {{ doc.citizen_age_group.name }}
                                         </div>

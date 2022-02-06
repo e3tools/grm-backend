@@ -23,9 +23,17 @@ CHOICE_1 = 1
 CHOICE_2 = 2
 CHOICE_3 = 3
 CITIZEN_TYPE_CHOICES = [
-    (CHOICE_1, _('Keep name confidential.  Only the person resolving the issue will see the name.')),
+    (CHOICE_1, _('Keep name confidential. Only the person resolving the issue will see the name.')),
     (CHOICE_2, _('This is an individual filing on behalf of someone else.')),
     (CHOICE_3, _('This is an organization filing on behalf of someone else.')),
+]
+
+CHOICE_0_OR_1_LABEL = _('Complainant')
+CITIZEN_TYPE_CHOICES_ALT = [
+    (0, CHOICE_0_OR_1_LABEL),
+    (CHOICE_1, CHOICE_0_OR_1_LABEL),
+    (CHOICE_2, _('Citizen on behalf of others')),
+    (CHOICE_3, _('Organization on behalf of others')),
 ]
 
 CHOICE_MALE = "Male"
