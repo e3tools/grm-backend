@@ -54,6 +54,7 @@ class GovernmentWorkerAdmin(admin.ModelAdmin):
     fields = (
         'user',
         'department',
+        'administrative_level',
     )
     raw_id_fields = (
         'user',
@@ -62,10 +63,13 @@ class GovernmentWorkerAdmin(admin.ModelAdmin):
         'id',
         'user',
         'department',
+        'administrative_level',
     )
     search_fields = (
         'id',
         'user__email',
+        'department',
+        'administrative_level',
     )
 
     def get_queryset(self, request):

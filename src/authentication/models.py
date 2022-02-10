@@ -32,6 +32,8 @@ class User(AbstractUser):
 class GovernmentWorker(models.Model):
     user = models.OneToOneField('User', models.PROTECT)
     department = models.PositiveSmallIntegerField(db_index=True, verbose_name=_('department'))
+    administrative_level = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name=_('administrative level'))
 
     class Meta:
         verbose_name = _('Government Worker')
