@@ -54,6 +54,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             },
             "created_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "confirmed": False,
+            "escalate_flag": False,
             "type": "issue"
         }
         grm_db.create_document(issue)

@@ -159,7 +159,6 @@ def get_auto_increment_id(grm_db):
 
 
 def get_assignee(grm_db, doc_category):
-
     try:
         department_id = doc_category['assigned_department']['id']
         doc_department = grm_db.get_query_result({
@@ -203,3 +202,21 @@ def get_assignee(grm_db, doc_category):
     else:
         assignee = doc_department['head']
     return assignee
+
+
+def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
+    try:
+        parent = get_parent_administrative_level(eadl_db, administrative_id)
+    except Exception:
+        raise
+
+    administrative_id = parent['administrative_id']
+    worker = GovernmentWorker.objects.filter(department=department_id, administrative_level=administrative_id).first()
+    if worker:
+        assignee = {
+            "id": worker.user.id,
+            "name": worker.get_name()
+        }
+        return assignee
+    elif parent:
+        return get_assignee_to_escalate(eadl_db, department_id, administrative_id)
