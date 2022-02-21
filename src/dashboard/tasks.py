@@ -78,10 +78,14 @@ def check_issues():
             continue
 
         if 'auto_increment_id' not in issue or not issue['auto_increment_id']:
-            auto_increment_id = get_auto_increment_id(grm_db)
-            issue_doc['auto_increment_id'] = auto_increment_id
-            auto_increment_id_updated = True
-            result['auto_increment_id_updated'].append(issue_id)
+            try:
+                auto_increment_id = get_auto_increment_id(grm_db)
+                issue_doc['auto_increment_id'] = auto_increment_id
+                auto_increment_id_updated = True
+                result['auto_increment_id_updated'].append(issue_id)
+            except Exception:
+                error = f'Error trying to set auto_increment_id of issue document with id {issue_id}'
+                result['errors'].append(error)
         else:
             auto_increment_id = issue_doc['auto_increment_id']
 
@@ -97,10 +101,14 @@ def check_issues():
             continue
 
         if 'internal_code' not in issue or not issue['internal_code']:
-            administrative_id = issue_doc["administrative_region"]["administrative_id"]
-            issue_doc['internal_code'] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
-            internal_code_updated = True
-            result['internal_code_updated'].append(issue_id)
+            try:
+                administrative_id = issue_doc["administrative_region"]["administrative_id"]
+                issue_doc['internal_code'] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
+                internal_code_updated = True
+                result['internal_code_updated'].append(issue_id)
+            except Exception:
+                error = f'Error trying to set internal_code for issue document with id {issue_id}'
+                result['errors'].append(error)
 
         if 'assignee' not in issue or not issue_doc['assignee']:
             try:
@@ -110,7 +118,7 @@ def check_issues():
                     assignee_updated = True
                     result['assignee_updated'].append(issue_id)
             except Exception:
-                error = f'Error trying to get an assignee for issue document with id {issue_id}'
+                error = f'Error trying to set assignee for issue document with id {issue_id}'
                 result['errors'].append(error)
 
         if auto_increment_id_updated or internal_code_updated or assignee_updated:
