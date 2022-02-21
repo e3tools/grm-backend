@@ -14,8 +14,45 @@ def check_issues():
         "type": "issue",
         "confirmed": True,
         "$or": [
-            {"auto_increment_id": ""},
-            {"assignee": ""}
+            {
+                "auto_increment_id": {
+                    "$in": [
+                        None,
+                        ""
+                    ]
+                }
+            },
+            {
+                "auto_increment_id": {
+                    "$exists": False
+                }
+            },
+            {
+                "internal_code": {
+                    "$in": [
+                        None,
+                        ""
+                    ]
+                }
+            },
+            {
+                "internal_code": {
+                    "$exists": False
+                }
+            },
+            {
+                "assignee": {
+                    "$in": [
+                        None,
+                        ""
+                    ]
+                }
+            },
+            {
+                "assignee": {
+                    "$exists": False
+                }
+            }
         ]
     }
 
@@ -23,12 +60,15 @@ def check_issues():
     result = {
         'errors': [],
         'auto_increment_id_updated': [],
+        'internal_code_updated': [],
         'assignee_updated': [],
     }
     updated_issues = 0
     for issue in issues:
         auto_increment_id_updated = False
+        internal_code_updated = False
         assignee_updated = False
+
         issue_id = issue['_id']
         try:
             issue_doc = grm_db[issue_id]
@@ -36,17 +76,34 @@ def check_issues():
             error = f'Error trying to get issue document with id {issue_id}'
             result['errors'].append(error)
             continue
-        if not issue['auto_increment_id']:
-            issue_doc['auto_increment_id'] = get_auto_increment_id(grm_db)
+
+        if 'auto_increment_id' not in issue or not issue['auto_increment_id']:
+            auto_increment_id = get_auto_increment_id(grm_db)
+            issue_doc['auto_increment_id'] = auto_increment_id
             auto_increment_id_updated = True
             result['auto_increment_id_updated'].append(issue_id)
-        if not issue_doc['assignee']:
+        else:
+            auto_increment_id = issue_doc['auto_increment_id']
+
+        try:
+            category_id = issue_doc['category']['id']
+            doc_category = grm_db.get_query_result({
+                "id": category_id,
+                "type": 'issue_category'
+            })[0][0]
+        except Exception:
+            error = f'Error trying to get the category of issue document with id {issue_id}'
+            result['errors'].append(error)
+            continue
+
+        if 'internal_code' not in issue or not issue['internal_code']:
+            administrative_id = issue_doc["administrative_region"]["administrative_id"]
+            issue_doc['internal_code'] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
+            internal_code_updated = True
+            result['internal_code_updated'].append(issue_id)
+
+        if 'assignee' not in issue or not issue_doc['assignee']:
             try:
-                category_id = issue_doc['category']['id']
-                doc_category = grm_db.get_query_result({
-                    "id": category_id,
-                    "type": 'issue_category'
-                })[0][0]
                 assignee = get_assignee(grm_db, doc_category)
                 issue_doc['assignee'] = assignee
                 if assignee:
@@ -55,7 +112,8 @@ def check_issues():
             except Exception:
                 error = f'Error trying to get an assignee for issue document with id {issue_id}'
                 result['errors'].append(error)
-        if auto_increment_id_updated or assignee_updated:
+
+        if auto_increment_id_updated or internal_code_updated or assignee_updated:
             issue_doc.save()
             updated_issues += 1
             grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
