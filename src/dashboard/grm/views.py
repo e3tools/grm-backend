@@ -75,6 +75,7 @@ class IssueMixin(object):
 
     def dispatch(self, request, *args, **kwargs):
         self.grm_db = get_db(COUCHDB_GRM_DATABASE)
+        self.eadl_db = get_db()
         docs = self.get_query_result(**kwargs)
         try:
             self.doc = self.grm_db[docs[0][0]['_id']]
@@ -213,7 +214,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
                 "type": 'issue_category'
             })[0][0]
             department_id = doc_category['assigned_department']['id']
-            assignee = get_assignee(self.grm_db, doc_category)
         except Exception:
             raise Http404
 
@@ -225,15 +225,9 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "id": doc_category['id'],
             "name": doc_category['name'],
             "confidentiality_level": doc_category['confidentiality_level'],
-            "assigned_department": department_id
+            "assigned_department": department_id,
+            "administrative_level": doc_category['assigned_department']['administrative_level'],
         }
-
-        if assignee == "":
-            msg = _("There is no government worker for the selected category (nature of the issue). "
-                    "Please report to IT staff.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
-
-        self.doc['assignee'] = assignee
         self.doc['ongoing_issue'] = data['ongoing_issue']
 
     def set_person_fields(self, data):
@@ -295,10 +289,11 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     def set_location_fields(self, data):
 
         try:
-            doc_administrative_level = get_db().get_query_result({
+            doc_administrative_level = self.eadl_db.get_query_result({
                 "administrative_id": data['administrative_region_value'],
                 "type": 'administrative_level'
             })[0][0]
+            assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
         except Exception:
             raise Http404
 
@@ -306,6 +301,13 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "administrative_id": doc_administrative_level['administrative_id'],
             "name": doc_administrative_level['name'],
         }
+
+        if assignee == "":
+            msg = _("There is no government worker for the selected category (nature of the issue). "
+                    "Please report to IT staff.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
+
+        self.doc['assignee'] = assignee
 
     def set_contact_fields(self, data):
         self.doc['contact_medium'] = data['contact_medium']
@@ -374,7 +376,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
     active_level1 = 'grm'
     form_class = NewIssueLocationForm
     fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
-                       'ongoing_issue', 'assignee')
+                       'ongoing_issue')
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -673,8 +675,7 @@ class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMi
         return self.render_to_json_response(data, safe=False)
 
 
-class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin,
-                                          generic.View):
+class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         administrative_id = request.GET.get('administrative_id', None)
         ancestors = list()

@@ -96,7 +96,6 @@ def get_administrative_region_name(eadl_db, administrative_id):
 
         try:
             doc = eadl_db[docs[0][0]['_id']]
-
             region_names.append(doc['name'])
             administrative_id = doc['parent_id']
             has_parent = administrative_id is not None
@@ -150,6 +149,19 @@ def get_parent_administrative_level(eadl_db, administrative_id):
     return parent
 
 
+def get_related_region_with_specific_level(eadl_db, region_doc, level):
+    has_parent = True
+    administrative_id = region_doc['administrative_id']
+    while has_parent and region_doc['administrative_level'] != level:
+        region_doc = get_parent_administrative_level(eadl_db, administrative_id)
+        if region_doc:
+            administrative_id = region_doc['administrative_id']
+        else:
+            has_parent = False
+
+    return region_doc
+
+
 def get_auto_increment_id(grm_db):
     try:
         max_auto_increment_id = grm_db.get_view_result('issues', 'auto_increment_id_stats')[0][0]['value']['max']
@@ -158,25 +170,38 @@ def get_auto_increment_id(grm_db):
     return max_auto_increment_id + 1
 
 
-def get_assignee(grm_db, doc_category):
+def get_assignee(grm_db, eadl_db, issue_doc):
     try:
-        department_id = doc_category['assigned_department']['id']
-        doc_department = grm_db.get_query_result({
-            "id": department_id,
-            "type": 'issue_department'
+        doc_category = grm_db.get_query_result({
+            "id": issue_doc['category']['id'],
+            "type": 'issue_category'
         })[0][0]
     except Exception:
         raise
 
+    department_id = doc_category['assigned_department']['id']
+
     if doc_category['redirection_protocol']:
+        try:
+            doc_administrative_level = eadl_db.get_query_result({
+                "administrative_id": issue_doc['administrative_region']['administrative_id'],
+                "type": 'administrative_level'
+            })[0][0]
+        except Exception:
+            raise
+        level = issue_doc['category']['administrative_level']
+        related_region = get_related_region_with_specific_level(eadl_db, doc_administrative_level, level)
+
         startkey = [department_id, None, None]
         endkey = [department_id, {}, {}]
-        result = grm_db.get_view_result('issues', 'group_by_assignee', group=True, startkey=startkey,
-                                        endkey=endkey)[:]
-        department_workers = set(
-            GovernmentWorker.objects.filter(department=department_id).values_list('user', flat=True))
-        department_workers_with_assignment = {w['key'][1] for w in result}
-        department_workers_without_assignment = department_workers - department_workers_with_assignment
+        assignments_result = grm_db.get_view_result(
+            'issues', 'group_by_assignee', group=True, startkey=startkey, endkey=endkey)[:]
+        administrative_id = related_region['administrative_id']
+        related_workers = set(
+            GovernmentWorker.objects.filter(
+                department=department_id, administrative_level=administrative_id).values_list('user', flat=True))
+        department_workers_with_assignment = {worker['key'][1] for worker in assignments_result}
+        department_workers_without_assignment = related_workers - department_workers_with_assignment
         if department_workers_without_assignment:
             worker_id = list(department_workers_without_assignment)[0]
             worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
@@ -185,21 +210,32 @@ def get_assignee(grm_db, doc_category):
                 "name": worker_without_assignment.get_name()
             }
         else:
-            if result:
-                result = sort_dictionary_list_by_field(result, 'value')
-                assignee = {
-                    "id": result[0]['key'][1],
-                    "name": result[0]['key'][2]
-                }
-            elif department_workers:
-                worker = GovernmentWorker.objects.filter(department=department_id).first()
+            assignee = ""
+            if assignments_result:
+                assignments_result = sort_dictionary_list_by_field(assignments_result, 'value')
+                for assignment in assignments_result:
+                    worker_id = assignment['key'][1]
+                    if worker_id in department_workers_with_assignment:
+                        assignee = {
+                            "id": worker_id,
+                            "name": assignment['key'][2]
+                        }
+                        break
+            elif related_workers:
+                worker = GovernmentWorker.objects.filter(
+                    department=department_id, administrative_level=administrative_id).first()
                 assignee = {
                     "id": worker.user.id,
                     "name": worker.get_name()
                 }
-            else:
-                assignee = ""
     else:
+        try:
+            doc_department = grm_db.get_query_result({
+                "id": department_id,
+                "type": 'issue_department'
+            })[0][0]
+        except Exception:
+            raise
         assignee = doc_department['head']
     return assignee
 
