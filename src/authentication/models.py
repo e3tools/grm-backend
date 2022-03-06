@@ -25,7 +25,8 @@ class User(AbstractUser):
             self.username = str(uuid.uuid())
         return super().save(*args, **kwargs)
 
-    def get_name(self):
+    @property
+    def name(self):
         return f'{self.first_name} {self.last_name}'
 
 
@@ -39,5 +40,6 @@ class GovernmentWorker(models.Model):
         verbose_name = _('Government Worker')
         verbose_name_plural = _('Government Workers')
 
-    def get_name(self):
-        return self.user.get_name()
+    @property
+    def name(self):
+        return self.user.name

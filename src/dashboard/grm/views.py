@@ -50,7 +50,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             "auto_increment_id": auto_increment_id,
             "reporter": {
                 "id": user.id,
-                "name": user.get_name()
+                "name": user.name
             },
             "created_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "confirmed": False,
@@ -584,7 +584,7 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
         worker = GovernmentWorker.objects.get(user=assignee)
         self.doc['assignee'] = {
             "id": worker.user.id,
-            "name": worker.get_name()
+            "name": worker.name
         }
         self.doc.save()
         msg = _("The issue was successfully edited.")
@@ -612,7 +612,7 @@ class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JS
         if comment:
             comments = self.doc['comments'] if 'comments' in self.doc else list()
             comment_obj = {
-                "name": request.user.get_name(),
+                "name": request.user.name,
                 "id": user_id,
                 "comment": comment,
                 "due_at": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')

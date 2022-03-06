@@ -207,7 +207,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
             worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
             assignee = {
                 "id": worker_id,
-                "name": worker_without_assignment.get_name()
+                "name": worker_without_assignment.name
             }
         else:
             assignee = ""
@@ -215,7 +215,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                 assignments_result = sort_dictionary_list_by_field(assignments_result, 'value')
                 for assignment in assignments_result:
                     worker_id = assignment['key'][1]
-                    if worker_id in department_workers_with_assignment:
+                    if worker_id in related_workers:
                         assignee = {
                             "id": worker_id,
                             "name": assignment['key'][2]
@@ -226,7 +226,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                     department=department_id, administrative_level=administrative_id).first()
                 assignee = {
                     "id": worker.user.id,
-                    "name": worker.get_name()
+                    "name": worker.name
                 }
     else:
         try:
@@ -251,7 +251,7 @@ def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
     if worker:
         assignee = {
             "id": worker.user.id,
-            "name": worker.get_name()
+            "name": worker.name
         }
         return assignee
     elif parent:
