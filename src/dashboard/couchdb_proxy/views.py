@@ -18,7 +18,12 @@ class StatisticsOfTasksUpdatedByRegionView(AJAXRequestMixin, LoginRequiredMixin,
         else:
             stats = eadl_db.get_view_result('tasks', 'updated_by_administrative_region_stats')
 
-        return self.render_to_json_response(stats[0][0]['value'], safe=False)
+        if stats[0]:
+            stats = stats[0][0]['value']
+        else:
+            stats = {'count': 0}
+
+        return self.render_to_json_response(stats, safe=False)
 
 
 class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
@@ -30,4 +35,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         else:
             issues_stats = grm_db.get_view_result('issues', 'by_assignee_stats')
 
-        return self.render_to_json_response(issues_stats[0][0]['value'], safe=False)
+        if issues_stats[0]:
+            issues_stats = issues_stats[0][0]['value']
+        else:
+            issues_stats = {'count': 0}
+
+        return self.render_to_json_response(issues_stats, safe=False)
