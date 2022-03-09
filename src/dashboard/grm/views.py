@@ -409,6 +409,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
             self.set_person_fields(data)
             self.set_details_fields(data)
             self.set_location_fields(data)
+            self.set_assignee()
         except Exception as e:
             raise e
         self.set_contact_fields(data)
