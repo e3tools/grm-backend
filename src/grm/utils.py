@@ -196,10 +196,10 @@ def get_assignee(grm_db, eadl_db, issue_doc):
         endkey = [department_id, {}, {}]
         assignments_result = grm_db.get_view_result(
             'issues', 'group_by_assignee', group=True, startkey=startkey, endkey=endkey)[:]
-        administrative_id = related_region['administrative_id']
+        administrative_level = related_region['administrative_id']
         related_workers = set(
             GovernmentWorker.objects.filter(
-                department=department_id, administrative_level=administrative_id).values_list('user', flat=True))
+                department=department_id, administrative_level=administrative_level).values_list('user', flat=True))
         department_workers_with_assignment = {worker['key'][1] for worker in assignments_result}
         department_workers_without_assignment = related_workers - department_workers_with_assignment
         if department_workers_without_assignment:
@@ -223,7 +223,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                         break
             elif related_workers:
                 worker = GovernmentWorker.objects.filter(
-                    department=department_id, administrative_level=administrative_id).first()
+                    department=department_id, administrative_level=administrative_level).first()
                 assignee = {
                     "id": worker.user.id,
                     "name": worker.name

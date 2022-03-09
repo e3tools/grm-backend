@@ -288,8 +288,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         else:
             self.doc['citizen_group_2'] = ""
 
-        self.doc.save()
-
     def set_location_fields(self, data):
 
         try:
@@ -305,8 +303,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "name": doc_administrative_level['name'],
         }
 
-        self.doc.save()
-
     def set_assignee(self):
 
         try:
@@ -321,8 +317,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
         self.doc['assignee'] = assignee
 
-        self.doc.save()
-
     def set_contact_fields(self, data):
         self.doc['contact_medium'] = data['contact_medium']
         if data['contact_medium'] == CHOICE_CONTACT:
@@ -332,8 +326,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             }
         else:
             self.doc['contact_information'] = None
-
-        self.doc.save()
 
 
 class NewIssueContactFormView(PageMixin, NewIssueMixin):
@@ -348,6 +340,7 @@ class NewIssueContactFormView(PageMixin, NewIssueMixin):
             self.set_contact_fields(data)
         except Exception as e:
             raise e
+        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_2', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -364,6 +357,7 @@ class NewIssuePersonFormView(PageMixin, NewIssueMixin):
             self.set_person_fields(data)
         except Exception as e:
             raise e
+        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_3', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -377,6 +371,7 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
     def form_valid(self, form):
         data = form.cleaned_data
         self.set_details_fields(data)
+        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -392,6 +387,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         data = form.cleaned_data
         self.set_location_fields(data)
         self.set_assignee()
+        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
 
 
