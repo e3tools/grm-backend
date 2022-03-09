@@ -364,9 +364,6 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
         data = form.cleaned_data
         self.set_details_fields(data)
         self.doc.save()
-        if not self.doc['assignee']:
-            return HttpResponseRedirect(
-                reverse('dashboard:grm:new_issue_step_3', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -394,6 +391,9 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
                        'ongoing_issue', 'assignee', 'administrative_region')
 
     def form_valid(self, form):
+        if not self.doc['assignee']:
+            return HttpResponseRedirect(
+                reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
         data = form.cleaned_data
         try:
             self.set_contact_fields(data)
