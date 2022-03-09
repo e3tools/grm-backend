@@ -230,6 +230,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         }
         self.doc['ongoing_issue'] = data['ongoing_issue']
 
+        self.doc.save()
+
     def set_person_fields(self, data):
         self.doc['citizen'] = data['citizen']
 
@@ -286,6 +288,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         else:
             self.doc['citizen_group_2'] = ""
 
+        self.doc.save()
+
     def set_location_fields(self, data):
 
         try:
@@ -293,7 +297,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
                 "administrative_id": data['administrative_region_value'],
                 "type": 'administrative_level'
             })[0][0]
-            assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
         except Exception:
             raise Http404
 
@@ -302,12 +305,23 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "name": doc_administrative_level['name'],
         }
 
+        self.doc.save()
+
+    def set_assignee(self):
+
+        try:
+            assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
+        except Exception:
+            raise Http404
+
         if assignee == "":
             msg = _("There is no government worker for the selected category (nature of the issue). "
                     "Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 
         self.doc['assignee'] = assignee
+
+        self.doc.save()
 
     def set_contact_fields(self, data):
         self.doc['contact_medium'] = data['contact_medium']
@@ -318,6 +332,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             }
         else:
             self.doc['contact_information'] = None
+
+        self.doc.save()
 
 
 class NewIssueContactFormView(PageMixin, NewIssueMixin):
@@ -332,7 +348,6 @@ class NewIssueContactFormView(PageMixin, NewIssueMixin):
             self.set_contact_fields(data)
         except Exception as e:
             raise e
-        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_2', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -349,7 +364,6 @@ class NewIssuePersonFormView(PageMixin, NewIssueMixin):
             self.set_person_fields(data)
         except Exception as e:
             raise e
-        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_3', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -363,7 +377,6 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
     def form_valid(self, form):
         data = form.cleaned_data
         self.set_details_fields(data)
-        self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -378,7 +391,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
     def form_valid(self, form):
         data = form.cleaned_data
         self.set_location_fields(data)
-        self.doc.save()
+        self.set_assignee()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
 
 
