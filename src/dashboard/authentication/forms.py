@@ -14,7 +14,7 @@ class EmailAuthenticationForm(AuthenticationForm):
         email = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
 
-        user = User.objects.filter(email=email).first()
+        user = User.objects.filter(email__iexact=email).first()
 
         if not user:
             raise self.get_invalid_login_error()
