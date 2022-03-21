@@ -51,9 +51,9 @@ class NewIssuePersonForm(forms.Form):
                                           help_text=_('This is an optional field'))
     gender = forms.ChoiceField(label=_('Choose gender'), required=False, help_text=_('This is an optional field'),
                                choices=GENDER_CHOICES)
-    citizen_group_1 = forms.ChoiceField(label=_('Ethnicity, Religion, Nationality'), required=False,
+    citizen_group_1 = forms.ChoiceField(label=_('Religion, Nationality'), required=False,
                                         help_text=_('This is an optional field'))
-    citizen_group_2 = forms.ChoiceField(label=_('Ethnicity, Religion, Nationality'), required=False,
+    citizen_group_2 = forms.ChoiceField(label=_('Religion, Nationality'), required=False,
                                         help_text=_('This is an optional field'))
 
     def __init__(self, *args, **kwargs):

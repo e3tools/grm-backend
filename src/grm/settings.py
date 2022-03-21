@@ -188,9 +188,9 @@ CELERY_BROKER_URL = env('CELERY_BROKER_URL')
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
-CELERY_ACCEPT_CONTENT = [env('CELERY_ACCEPT_CONTENT')]
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
-CELERY_TASK_SERIALIZER = env('CELERY_TASK_SERIALIZER')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_SERIALIZER = 'json'
 
 # Mapbox
 
