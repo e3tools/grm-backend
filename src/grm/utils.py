@@ -237,6 +237,20 @@ def get_assignee(grm_db, eadl_db, issue_doc):
         except Exception:
             raise
         assignee = doc_department['head']
+    if not assignee:
+        try:
+            adl_user = eadl_db.get_query_result({
+                "administrative_level": issue_doc['category']['administrative_level'],
+                "administrative_region": issue_doc['category']['administrative_region']['administrative_level'],
+                "village_secretary": 1,
+                "type": 'adl'
+            })[0][0]
+            assignee = {
+                "id": adl_user['representative']['id'],
+                "name": adl_user['representative']['name']
+            }
+        except Exception:
+            raise
     return assignee
 
 
