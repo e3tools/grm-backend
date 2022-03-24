@@ -311,7 +311,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             raise Http404
 
         if assignee == "":
-            msg = _("There is no government worker for the selected category (nature of the issue). "
+            msg = _("There is no staff member for the selected category (nature of the issue). "
                     "Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 

@@ -250,7 +250,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                 "name": adl_user['representative']['name']
             }
         except Exception:
-            raise
+            pass
     return assignee
 
 
