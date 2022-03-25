@@ -241,7 +241,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
         try:
             adl_user = eadl_db.get_query_result({
                 "administrative_level": issue_doc['category']['administrative_level'],
-                "administrative_region": issue_doc['category']['administrative_region']['administrative_level'],
+                "administrative_region": issue_doc['administrative_region']['administrative_id'],
                 "village_secretary": 1,
                 "type": 'adl'
             })[0][0]
