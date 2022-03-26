@@ -346,6 +346,15 @@
         $('#id_issue_date').before(dp1.replace('{id}', 'issue_date')).parent().wrapInner(
             dp2.replace('{id}', 'issue_date'));
 
+        let help_text1 = $('#intake_date small')[0];
+        console.log(help_text1);
+        $('#intake_date small').remove();
+        $('#intake_date').after(help_text1);
+
+        let help_text2 = $('#issue_date small')[0];
+        $('#issue_date small').remove();
+        $('#issue_date').after(help_text2);
+
         //Datemask dd/mm/yyyy
         $('.datetimepicker-input').inputmask({alias: "datetime", inputFormat: "dd/mm/yyyy"});
 

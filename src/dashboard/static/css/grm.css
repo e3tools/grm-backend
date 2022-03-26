@@ -32925,6 +32925,12 @@ a.text-muted:hover {
     display: block !important;
 }
 
+@media (min-width: 576px) {
+    .label-align, .col-form-label {
+        text-align: left !important;
+    }
+}
+
 .absolute-left-110 {
     position: absolute;
     left: 110%;
@@ -32960,6 +32966,7 @@ a.text-muted:hover {
 .z-index1000 {
     z-index: 1000 !important;
 }
+
 .map-marker {
     width: 32px;
     height: 32px;
