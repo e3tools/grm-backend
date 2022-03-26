@@ -246,7 +246,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                 "type": 'adl'
             })[0][0]
             assignee = {
-                "id": adl_user['representative']['id'],
+                "id": adl_user['_id'],
                 "name": adl_user['representative']['name']
             }
         except Exception:
