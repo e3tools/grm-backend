@@ -1,4 +1,5 @@
-{% load bootstrap4 %}
+{% load bootstrap4 static %}
+<script src="{% static 'js/disableOnSubmit.js' %}"></script>
 
 <div class="modal-dialog modal-confirmation">
     <div class="modal-content">
@@ -24,12 +25,17 @@
         <form id="{{ id_form }}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="modal-body">
-                {% if picture %}
-                    <div class="text-center">
-                        <img id="modal_form_picture" src="{{ picture }}" class="{{ picture_class }}">
+                <div class="overlay-wrapper">
+                    {% if picture %}
+                        <div class="text-center">
+                            <img id="modal_form_picture" src="{{ picture }}" class="{{ picture_class }}">
+                        </div>
+                    {% endif %}
+                    {% bootstrap_form form %}
+                    <div class="overlay submit-spin">
+                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
                     </div>
-                {% endif %}
-                {% bootstrap_form form %}
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="submit" class="btn btn-lg btn-primary padding-inline-60 text-right">

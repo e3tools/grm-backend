@@ -1,12 +1,6 @@
 <!-- Constants -->
 const error_server_message = "An error has occurred, please check your network connection and try again";
 
-<!-- Disable button on submit -->
-$("form").submit(function () {
-    $(this).find(":submit").attr('disabled', 'disabled');
-    $(this).find(".disabled-on-submit").addClass('disabled');
-});
-
 <!-- Django messages -->
 /**
  * Show alerts and hide success alerts after 4 seconds
