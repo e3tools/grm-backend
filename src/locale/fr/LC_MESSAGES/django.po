@@ -3,12 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#: dashboard/grm/forms.py:48
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-14 00:19+0100\n"
+"POT-Creation-Date: 2022-03-28 14:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,15 +44,19 @@ msgstr "numéro de téléphone"
 msgid "photo"
 msgstr "photo"
 
-#: authentication/models.py:34
+#: authentication/models.py:35
 msgid "department"
 msgstr "département"
 
 #: authentication/models.py:37
+msgid "administrative level"
+msgstr ""
+
+#: authentication/models.py:40
 msgid "Government Worker"
 msgstr "Employé du Gouvernement"
 
-#: authentication/models.py:38
+#: authentication/models.py:41
 msgid "Government Workers"
 msgstr "Travailleurs du Gouvernement"
 
@@ -90,6 +95,7 @@ msgid "Unable to register with provided validation code."
 msgstr "Impossible d'enregistrer avec le code de validation fourni."
 
 #: dashboard/adls/forms.py:14 dashboard/templates/adls/list.html:25
+#: dashboard/templates/grm/issue_detail.html:70
 msgid "Name"
 msgstr "Nom"
 
@@ -127,7 +133,8 @@ msgstr ""
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/adls/views.py:121 dashboard/grm/views.py:576
+#: dashboard/adls/views.py:121 dashboard/grm/views.py:656
+#: dashboard/templates/grm/issue_detail.html:164
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -151,7 +158,7 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr "Les informations de profil ont été modifiées avec succès."
 
-#: dashboard/diagnostics/views.py:10
+#: dashboard/diagnostics/views.py:15
 #: dashboard/templates/layouts/sidebar.html:35
 msgid "Diagnostics"
 msgstr "Diagnostique"
@@ -161,119 +168,154 @@ msgid "Allowed file size less than or equal to 2 MB"
 msgstr "Taille de fichier autorisée inférieure ou égale à 2 Mo"
 
 #: dashboard/grm/__init__.py:7
-msgid "No information available"
-msgstr "Pas d'information disponible"
+msgid "Remain anonymous"
+msgstr ""
 
 #: dashboard/grm/__init__.py:8
-msgid "Anonymous"
-msgstr "Anonyme"
+msgid "Receive updates from facilitator"
+msgstr ""
 
 #: dashboard/grm/__init__.py:9
-msgid "Citizen can be alerted through:"
-msgstr "Le citoyenne peut être alerté par:"
+msgid "Receive updates directly"
+msgstr ""
 
 #: dashboard/grm/__init__.py:17
 msgid "email"
 msgstr ""
 
-#: dashboard/grm/forms.py:18
-msgid "Date of Intake"
-msgstr "Date d'admission"
+#: dashboard/grm/__init__.py:26
+msgid ""
+"Keep name confidential. Only the person resolving the issue will see the "
+"name."
+msgstr ""
+
+#: dashboard/grm/__init__.py:27
+msgid "This is an individual filing on behalf of someone else."
+msgstr ""
+
+#: dashboard/grm/__init__.py:28
+msgid "This is an organization filing on behalf of someone else."
+msgstr ""
+
+#: dashboard/grm/__init__.py:31
+msgid "Complainant"
+msgstr ""
+
+#: dashboard/grm/__init__.py:35
+msgid "Citizen on behalf of others"
+msgstr ""
+
+#: dashboard/grm/__init__.py:36
+msgid "Organization on behalf of others"
+msgstr ""
 
 #: dashboard/grm/forms.py:19
-msgid "Date of Issue"
-msgstr "Date du Problème"
-
-#: dashboard/grm/forms.py:20
-msgid "Summary of Issue"
-msgstr "Résumé du Problème"
-
-#: dashboard/grm/forms.py:21
-msgid "Please describe the issue"
-msgstr "S'il vous plaît décrivez le problème"
-
-#: dashboard/grm/forms.py:22
-msgid "Type of Issue"
-msgstr "Type de Problème"
-
-#: dashboard/grm/forms.py:23
-msgid "Nature of Issue"
-msgstr "Nature du Problème"
-
-#: dashboard/grm/forms.py:86
 msgid "How does the citizen wish to be contacted?"
 msgstr "Comment le citoyenne souhaite-t-il être contacté?"
 
-#: dashboard/grm/forms.py:89
-msgid "Citizen wants contact information to be kept confidential"
-msgstr ""
-"Le citoyenne souhaite que les informations de contact restent confidentielles"
-
-#: dashboard/grm/forms.py:91
-msgid "This is an optional field"
-msgstr "Ce champ n'est pas obligatoire"
-
-#: dashboard/grm/forms.py:106
+#: dashboard/grm/forms.py:31
 msgid "Please type the contact information"
 msgstr "Veuillez saisir les coordonnées"
 
+#: dashboard/grm/forms.py:46
+msgid "Enter name of the citizen"
+msgstr ""
+
+#: dashboard/grm/forms.py:47 dashboard/grm/forms.py:49
+#: dashboard/grm/forms.py:51 dashboard/grm/forms.py:52
+#: dashboard/grm/forms.py:55 dashboard/grm/forms.py:57
+msgid "This is an optional field"
+msgstr "Ce champ n'est pas obligatoire"
+
+#: dashboard/grm/forms.py:50
+msgid "Enter age group"
+msgstr ""
+
+#: dashboard/grm/forms.py:52
+msgid "Choose gender"
+msgstr ""
+
+#: dashboard/grm/forms.py:54 dashboard/grm/forms.py:56
+msgid "Religion, Nationality"
+msgstr ""
+
+#: dashboard/grm/forms.py:100
+msgid "Date of intake"
+msgstr ""
+
+#: dashboard/grm/forms.py:102
+msgid "Date of issue"
+msgstr "Date du Problème"
+
+#: dashboard/grm/forms.py:104
+msgid "What are you reporting"
+msgstr ""
+
+#: dashboard/grm/forms.py:105
+msgid "Choose type of grievance"
+msgstr ""
+
+#: dashboard/grm/forms.py:106
+msgid "Briefly describe the issue"
+msgstr ""
+
 #: dashboard/grm/forms.py:107
-msgid "Please type the name of the citizen"
-msgstr "Veuillez saisir le nom du citoyen"
+msgid "Please describe the issue"
+msgstr "S'il vous plaît décrivez le problème"
 
-#: dashboard/grm/forms.py:133 dashboard/templates/grm/new_issue_3.html:28
-msgid "Citizen Contact"
-msgstr "Contact Citoyen"
+#: dashboard/grm/forms.py:108
+msgid "Current event or multiple occurrences"
+msgstr ""
 
-#: dashboard/grm/forms.py:137
+#: dashboard/grm/forms.py:183
 msgid "Start Date"
 msgstr "Date de début"
 
-#: dashboard/grm/forms.py:138
+#: dashboard/grm/forms.py:184
 msgid "End Date"
 msgstr "Date de fin"
 
-#: dashboard/grm/forms.py:139
+#: dashboard/grm/forms.py:185
 msgid "ID Number / Access Code"
 msgstr "Numéro ID / Code d'accès"
 
-#: dashboard/grm/forms.py:161 dashboard/templates/adls/task_detail.html:25
+#: dashboard/grm/forms.py:207 dashboard/templates/adls/task_detail.html:25
 #: dashboard/templates/grm/issue_list.html:13
 #: dashboard/templates/grm/review_issues.html:224
 msgid "Status"
 msgstr "Statut"
 
-#: dashboard/grm/forms.py:162 dashboard/templates/grm/issue_list.html:9
+#: dashboard/grm/forms.py:208 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
 msgid "Assigned to"
 msgstr "Assigné à"
 
-#: dashboard/grm/forms.py:180
+#: dashboard/grm/forms.py:226
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
-#: dashboard/grm/views.py:30 dashboard/grm/views.py:262
-#: dashboard/grm/views.py:281 dashboard/grm/views.py:297
-#: dashboard/grm/views.py:316 dashboard/grm/views.py:358
-#: dashboard/grm/views.py:378 dashboard/grm/views.py:464
-#: dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:33 dashboard/grm/views.py:333
+#: dashboard/grm/views.py:349 dashboard/grm/views.py:366
+#: dashboard/grm/views.py:380 dashboard/grm/views.py:396
+#: dashboard/grm/views.py:438 dashboard/grm/views.py:458
+#: dashboard/grm/views.py:544 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr "MGR"
 
-#: dashboard/grm/views.py:93
+#: dashboard/grm/views.py:97
 msgid "Add attachment"
 msgstr "Ajouter une pièce jointe"
 
-#: dashboard/grm/views.py:94
+#: dashboard/grm/views.py:98
 msgid "Upload"
 msgstr "Téléverser"
 
-#: dashboard/grm/views.py:113
+#: dashboard/grm/views.py:117
 msgid "The attachment was successfully uploaded."
 msgstr "La pièce jointe a été téléverser avec succès."
 
-#: dashboard/grm/views.py:116
+#: dashboard/grm/views.py:120
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
@@ -282,7 +324,7 @@ msgstr ""
 "jointe dans la base de données. S'il vous plaît signaler au personnel des "
 "TIC."
 
-#: dashboard/grm/views.py:120
+#: dashboard/grm/views.py:124
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
@@ -291,43 +333,41 @@ msgstr ""
 "Le fichier n'a pas pu être téléverser car il a déjà atteint la limite de "
 "%(max)d pièces jointes."
 
-#: dashboard/grm/views.py:143
+#: dashboard/grm/views.py:147
 msgid "The attachment was successfully deleted."
 msgstr "La pièce jointe a été supprimée avec succès."
 
-#: dashboard/grm/views.py:226
+#: dashboard/grm/views.py:314
 msgid ""
-"There is no government worker for the selected category (nature of the "
-"issue). Please report to IT staff."
+"There is no staff member for the selected category (nature of the issue). "
+"Please report to IT staff."
 msgstr ""
-"Il n'y a pas de fonctionnaire pour la catégorie sélectionnée (nature du "
-"problème). S'il vous plaît signaler au personnel des TIC."
 
-#: dashboard/grm/views.py:373 dashboard/grm/views.py:468
+#: dashboard/grm/views.py:453 dashboard/grm/views.py:548
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:459
+#: dashboard/grm/views.py:539
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:520
+#: dashboard/grm/views.py:600
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:553
+#: dashboard/grm/views.py:633
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:556
+#: dashboard/grm/views.py:636
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: dashboard/grm/views.py:575
+#: dashboard/grm/views.py:655
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:593
+#: dashboard/grm/views.py:673
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
@@ -481,7 +521,7 @@ msgstr "Aller à la phase"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:7
 #: dashboard/templates/grm/issue_attachments_column1.html:7
-#: dashboard/templates/grm/new_issue_5.html:91
+#: dashboard/templates/grm/new_issue_confirmation.html:174
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -498,6 +538,8 @@ msgid "No notes"
 msgstr "Pas de remarques"
 
 #: dashboard/templates/adls/task_detail.html:56
+#: dashboard/templates/grm/issue_detail.html:101
+#: dashboard/templates/grm/new_issue_confirmation.html:193
 msgid "Location"
 msgstr "Emplacement"
 
@@ -587,20 +629,8 @@ msgid "ENTER NEW ISSUES"
 msgstr "ENTRER DE NOUVEAUX PROBLÈMES"
 
 #: dashboard/templates/grm/dashboard.html:45
-msgid "EDIT EXISTING ISSUES"
-msgstr "MODIFIER LES PROBLÈMES EXISTANTS"
-
-#: dashboard/templates/grm/dashboard.html:53
 msgid "REVIEW ISSUES"
 msgstr "RÉVISER LES PROBLÈMES"
-
-#: dashboard/templates/grm/dashboard.html:64
-msgid "Problems?"
-msgstr "Problèmes?"
-
-#: dashboard/templates/grm/dashboard.html:66
-msgid "CLICK HERE FOR HELP!"
-msgstr "CLIQUEZ ICI POUR L'AIDE!"
 
 #: dashboard/templates/grm/issue_attachments.html:10
 #: dashboard/templates/grm/issue_attachments_column1.html:10
@@ -634,41 +664,42 @@ msgid "Reporter"
 msgstr "Rapporteur"
 
 #: dashboard/templates/grm/issue_detail.html:49
-msgid "Citizen"
-msgstr "Citoyenne"
+msgid "Reported"
+msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:64
+#: dashboard/templates/grm/issue_detail.html:59
+msgid "Lodged by"
+msgstr ""
+
+#: dashboard/templates/grm/issue_detail.html:75
+#: dashboard/templates/grm/issue_detail.html:91
+#: dashboard/templates/grm/issue_detail.html:106
+msgid "Confidential"
+msgstr ""
+
+#: dashboard/templates/grm/issue_detail.html:86
+#: dashboard/templates/grm/new_issue_confirmation.html:86
+msgid "Age"
+msgstr ""
+
+#: dashboard/templates/grm/issue_detail.html:115
 #: dashboard/templates/grm/issue_list.html:11
 #: dashboard/templates/grm/review_issues.html:216
 msgid "Category"
 msgstr "Catégory"
 
-#: dashboard/templates/grm/issue_detail.html:74
-msgid "Confidentiality"
-msgstr "Confidentialité"
+#: dashboard/templates/grm/issue_detail.html:125
+#: dashboard/templates/grm/issue_list.html:12
+#: dashboard/templates/grm/review_issues.html:220
+msgid "Type"
+msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:84
-msgid "Opened"
-msgstr "Ouvert"
-
-#: dashboard/templates/grm/issue_detail.html:94
-msgid "Days before resolution"
-msgstr "Jours avant résolution"
-
-#: dashboard/templates/grm/issue_detail.html:99
-msgid "days"
-msgstr "jours"
-
-#: dashboard/templates/grm/issue_detail.html:113
-msgid "Activity"
-msgstr "Activité"
-
-#: dashboard/templates/grm/issue_detail.html:135
-msgid "Send"
-msgstr "Envoyer"
+#: dashboard/templates/grm/issue_detail.html:142
+msgid "Steps Taken"
+msgstr ""
 
 #: dashboard/templates/grm/issue_list.html:6
-#: dashboard/templates/grm/new_issue_5.html:34
+#: dashboard/templates/grm/new_issue_confirmation.html:34
 msgid "ID Number"
 msgstr "Numéro ID"
 
@@ -680,96 +711,138 @@ msgstr "Code d'accès"
 msgid "Days Open"
 msgstr "Jours d'ouverture"
 
-#: dashboard/templates/grm/issue_list.html:12
-#: dashboard/templates/grm/review_issues.html:220
-msgid "Type"
-msgstr ""
-
 #: dashboard/templates/grm/issue_list.html:34
 msgid "No issues found"
 msgstr "Aucun problème n'a été trouvé"
 
-#: dashboard/templates/grm/new_issue_1.html:18
-#: dashboard/templates/grm/new_issue_2.html:18
-#: dashboard/templates/grm/new_issue_3.html:18
-#: dashboard/templates/grm/new_issue_4.html:19
-#: dashboard/templates/grm/new_issue_5.html:18
-msgid "Enter New Issue"
-msgstr "Entrez un nouveau problème"
-
-#: dashboard/templates/grm/new_issue_1.html:25
-#: dashboard/templates/grm/new_issue_2.html:25
-#: dashboard/templates/grm/new_issue_3.html:25
-#: dashboard/templates/grm/new_issue_4.html:26
-#: dashboard/templates/grm/new_issue_5.html:25
-msgid "Step"
-msgstr "Étape"
-
-#: dashboard/templates/grm/new_issue_1.html:28
-msgid "Basic Information"
-msgstr "Informations de base"
-
-#: dashboard/templates/grm/new_issue_1.html:44
-#: dashboard/templates/grm/new_issue_2.html:38
-#: dashboard/templates/grm/new_issue_3.html:58
-#: dashboard/templates/grm/new_issue_4.html:105
-msgid "SAVE & NEXT"
-msgstr "ENREGISTRER ET SUIVRE"
-
-#: dashboard/templates/grm/new_issue_1.html:60
-#: dashboard/templates/grm/new_issue_4.html:130
-msgid "What is this is issue about?"
-msgstr "C'est quoi ce problème?"
-
-#: dashboard/templates/grm/new_issue_1.html:64
-#: dashboard/templates/grm/new_issue_4.html:134
-msgid "What kind of issue are you reporting?"
-msgstr "Quel type de problème signalez-vous?"
-
-#: dashboard/templates/grm/new_issue_2.html:28
-msgid "Location Information"
-msgstr "Information de Lieu"
-
-#: dashboard/templates/grm/new_issue_2.html:43
-#: dashboard/templates/grm/new_issue_3.html:63
-#: dashboard/templates/grm/new_issue_4.html:110
-msgid "BACK"
-msgstr "ARRIÈRE"
-
-#: dashboard/templates/grm/new_issue_2.html:55
-#: dashboard/templates/grm/new_issue_4.html:126
-msgid "Where is the issue happening?"
-msgstr "Où se passe le problème?"
-
-#: dashboard/templates/grm/new_issue_2.html:128
-#: dashboard/templates/grm/new_issue_4.html:213
-msgid "Select an option"
-msgstr "Sélectionner une option"
-
-#: dashboard/templates/grm/new_issue_3.html:29
-msgid "Information"
-msgstr "Informations"
-
-#: dashboard/templates/grm/new_issue_3.html:75
-#: dashboard/templates/grm/new_issue_4.html:138
-msgid "Method of contact"
-msgstr "Mode de contact"
-
-#: dashboard/templates/grm/new_issue_4.html:9
+#: dashboard/templates/grm/new_issue_confirm.html:9
 msgid "Edit"
 msgstr "Éditer"
 
-#: dashboard/templates/grm/new_issue_4.html:29
+#: dashboard/templates/grm/new_issue_confirm.html:19
+#: dashboard/templates/grm/new_issue_confirmation.html:18
+#: dashboard/templates/grm/new_issue_contact.html:18
+#: dashboard/templates/grm/new_issue_location.html:18
+#: dashboard/templates/grm/new_issue_person.html:18
+msgid "Enter New Issue"
+msgstr "Entrez un nouveau problème"
+
+#: dashboard/templates/grm/new_issue_confirm.html:26
+#: dashboard/templates/grm/new_issue_confirmation.html:25
+#: dashboard/templates/grm/new_issue_contact.html:25
+#: dashboard/templates/grm/new_issue_details.html:25
+#: dashboard/templates/grm/new_issue_location.html:25
+#: dashboard/templates/grm/new_issue_person.html:25
+msgid "Step"
+msgstr "Étape"
+
+#: dashboard/templates/grm/new_issue_confirm.html:29
 msgid "Confirm & Submit"
 msgstr "Confirmer et Soumettre"
 
-#: dashboard/templates/grm/new_issue_5.html:28
+#: dashboard/templates/grm/new_issue_confirm.html:119
+#: dashboard/templates/grm/new_issue_contact.html:51
+#: dashboard/templates/grm/new_issue_details.html:44
+#: dashboard/templates/grm/new_issue_location.html:38
+#: dashboard/templates/grm/new_issue_person.html:38
+msgid "SAVE & NEXT"
+msgstr "ENREGISTRER ET SUIVRE"
+
+#: dashboard/templates/grm/new_issue_confirm.html:124
+#: dashboard/templates/grm/new_issue_details.html:49
+#: dashboard/templates/grm/new_issue_location.html:43
+#: dashboard/templates/grm/new_issue_person.html:43
+msgid "BACK"
+msgstr "ARRIÈRE"
+
+#: dashboard/templates/grm/new_issue_confirm.html:140
+#: dashboard/templates/grm/new_issue_contact.html:63
+msgid "Click to select contact method"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:145
+#: dashboard/templates/grm/new_issue_person.html:55
+msgid "Click to select age group"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:149
+#: dashboard/templates/grm/new_issue_person.html:59
+msgid "Click to select gender"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:152
+#: dashboard/templates/grm/new_issue_person.html:62
+msgid "Click to select religion, nationality"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:162
+#: dashboard/templates/grm/new_issue_details.html:65
+msgid "Click to select the report"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:166
+#: dashboard/templates/grm/new_issue_details.html:69
+msgid "Click to select the type of grievance"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirm.html:170
+#: dashboard/templates/grm/new_issue_confirm.html:246
+#: dashboard/templates/grm/new_issue_location.html:55
+#: dashboard/templates/grm/new_issue_location.html:130
+msgid "Click to select location"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:28
 msgid "Confirmation"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_5.html:148
+#: dashboard/templates/grm/new_issue_confirmation.html:42
+msgid "Citizen contact"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:68
+msgid "Citizen name"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:96
+msgid "Gender"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:141
+msgid "Report"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:149
+msgid "Type of grievance"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:157
+msgid "Description"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_confirmation.html:205
 msgid "Done"
 msgstr "Terminé"
+
+#: dashboard/templates/grm/new_issue_contact.html:28
+msgid "Preferred Method of Contact"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_details.html:18
+msgid "Details of issue of Feedback"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_details.html:28
+msgid "Basic Information"
+msgstr "Informations de base"
+
+#: dashboard/templates/grm/new_issue_location.html:28
+msgid "Location of Issue or Feedback"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_person.html:28
+msgid "Name of Person or Group"
+msgstr ""
 
 #: dashboard/templates/grm/review_issues.html:12
 msgid "Search Results"
@@ -871,14 +944,67 @@ msgstr "Anglais"
 msgid "French"
 msgstr "Français"
 
+#~ msgid "No information available"
+#~ msgstr "Pas d'information disponible"
+
+#~ msgid "Summary of Issue"
+#~ msgstr "Résumé du Problème"
+
+#~ msgid "Nature of Issue"
+#~ msgstr "Nature du Problème"
+
+#~ msgid "Citizen wants contact information to be kept confidential"
+#~ msgstr ""
+#~ "Le citoyenne souhaite que les informations de contact restent "
+#~ "confidentielles"
+
+#~ msgid "EDIT EXISTING ISSUES"
+#~ msgstr "MODIFIER LES PROBLÈMES EXISTANTS"
+
+#~ msgid "Problems?"
+#~ msgstr "Problèmes?"
+
+#~ msgid "CLICK HERE FOR HELP!"
+#~ msgstr "CLIQUEZ ICI POUR L'AIDE!"
+
+#~ msgid "Citizen"
+#~ msgstr "Citoyenne"
+
+#~ msgid "Opened"
+#~ msgstr "Ouvert"
+
+#~ msgid "Days before resolution"
+#~ msgstr "Jours avant résolution"
+
+#~ msgid "days"
+#~ msgstr "jours"
+
+#~ msgid "Activity"
+#~ msgstr "Activité"
+
+#~ msgid "Send"
+#~ msgstr "Envoyer"
+
+#~ msgid "What is this is issue about?"
+#~ msgstr "C'est quoi ce problème?"
+
+#~ msgid "Location Information"
+#~ msgstr "Information de Lieu"
+
+#~ msgid "Where is the issue happening?"
+#~ msgstr "Où se passe le problème?"
+
+#~ msgid "Select an option"
+#~ msgstr "Sélectionner une option"
+
+#~ msgid "Information"
+#~ msgstr "Informations"
+
 #~ msgid "Issue Location"
 #~ msgstr "Emplacement du Problème"
 
 #~ msgid "unfinished"
 #~ msgstr "non terminée"
-
-#~ msgid "Completion date"
-#~ msgstr "Phase terminée le"
 
 #~ msgid "Needs Review For"
 #~ msgstr "Besoin d'examen pour"
