@@ -62,7 +62,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             reverse('dashboard:grm:new_issue_step_1', kwargs={'issue': issue['auto_increment_id']}))
 
 
-class IssueMixin(object):
+class IssueMixin:
     doc = None
     grm_db = None
     max_attachments = 20
@@ -565,6 +565,9 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
         })
 
     def get_context_data(self, **kwargs):
+        if hasattr(self.request.user, 'governmentworker') and self.doc['assignee']['id'] != self.request.user.id:
+            raise Http404
+
         context = super().get_context_data(**kwargs)
         user_id = self.request.user.id
         context['enable_add_comment'] = user_id == self.doc['assignee']['id'] or user_id == self.doc_department[
