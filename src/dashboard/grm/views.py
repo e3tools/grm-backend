@@ -55,6 +55,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             "created_date": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
             "confirmed": False,
             "escalate_flag": False,
+            "created_by": False,
             "type": "issue"
         }
         grm_db.create_document(issue)
@@ -81,6 +82,10 @@ class IssueMixin:
             self.doc = self.grm_db[docs[0][0]['_id']]
         except Exception:
             raise Http404
+
+        if hasattr(self.request.user, 'governmentworker') and self.doc['assignee']['id'] != self.request.user.id:
+            raise Http404
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -185,6 +190,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
             "auto_increment_id": kwargs['issue'],
+            "reporter.id": self.request.user.id,
             "confirmed": False,
             "type": 'issue'
         })
@@ -565,8 +571,6 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
         })
 
     def get_context_data(self, **kwargs):
-        if hasattr(self.request.user, 'governmentworker') and self.doc['assignee']['id'] != self.request.user.id:
-            raise Http404
 
         context = super().get_context_data(**kwargs)
         user_id = self.request.user.id
