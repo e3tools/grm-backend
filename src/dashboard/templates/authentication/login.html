@@ -29,11 +29,13 @@
 </head>
 
 <body class="hold-transition login-page">
-{#    <nav class="main-header navbar navbar-expand">#}
-{#        <ul class="navbar-nav ml-auto">#}
-{#            {% include 'layouts/language_dropdown.html' %}#}
-{#        </ul>#}
-{#    </nav>#}
+    {%  if OTHER_LANGUAGES %}
+        <nav class="main-header navbar navbar-expand">
+            <ul class="navbar-nav ml-auto">
+                {% include 'layouts/language_dropdown.html' %}
+            </ul>
+        </nav>
+    {% endif %}
     <div class="login-box">
         <div class="login-logo"><b>GRM</b></div>
         <!-- /.login-logo -->

@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
+import django.conf.locale
 import environ
+from django.conf import global_settings
 from django.utils.translation import gettext_lazy as _
 
 # https://django-environ.readthedocs.io/en/latest/
@@ -83,6 +85,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.settings_vars',
             ],
         },
     },
@@ -125,10 +128,31 @@ USE_L10N = True
 
 USE_TZ = True
 
+OTHER_LANGUAGES = env('OTHER_LANGUAGES', list, default=[])
+
 LANGUAGES = (
     ('en-us', _('English')),
     ('fr', _('French')),
+    ('rw', _('Kinyarwanda')),
 )
+LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
+
+EXTRA_LANG_INFO = {
+    'rw': {
+        'bidi': True,
+        'code': 'rw',
+        'name': 'Kinyarwanda',
+        'name_local': 'Kinyarwanda',
+    },
+}
+
+# Add custom languages not provided by Django
+
+LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
+django.conf.locale.LANG_INFO = LANG_INFO
+
+# Languages using BiDi (right-to-left) layout
+LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI + ["rw"]
 
 LOCALE_PATHS = [
     BASE_DIR / "locale",

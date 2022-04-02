@@ -35,7 +35,9 @@
                 {% translate 'Help / FAQ' %}
             </a>
         </li>
-{#        {% include 'layouts/language_dropdown.html' %}#}
+        {% if OTHER_LANGUAGES %}
+            {% include 'layouts/language_dropdown.html' %}
+        {% endif %}
         <li class="nav-item dropdown white-shaded-nav-item mr-3">
             <a class="nav-link" data-toggle="dropdown" href="#">
                 <i class="far fa-bell align-bottom"></i>
