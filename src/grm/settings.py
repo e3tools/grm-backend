@@ -95,14 +95,12 @@ WSGI_APPLICATION = 'grm.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
 DATABASES = {
     'default': env.db(default='sqlite:///grm.db')
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
@@ -117,7 +115,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -137,6 +134,7 @@ LANGUAGES = (
 )
 LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
 
+# Add custom languages not provided by Django
 EXTRA_LANG_INFO = {
     'rw': {
         'bidi': True,
@@ -145,8 +143,6 @@ EXTRA_LANG_INFO = {
         'name_local': 'Kinyarwanda',
     },
 }
-
-# Add custom languages not provided by Django
 
 LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
 django.conf.locale.LANG_INFO = LANG_INFO
@@ -160,8 +156,8 @@ LOCALE_PATHS = [
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 STATIC_URL = '/static/'
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_ROOT = BASE_DIR / 'media/'
@@ -174,7 +170,6 @@ AUTH_USER_MODEL = 'authentication.User'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # AUTHENTICATION_BACKENDS = ('grm.backends.EmailModelBackend',)
@@ -207,21 +202,36 @@ DATE_INPUT_FORMATS = [
 ]
 
 # Celery settings
-
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
+
 CELERY_ACCEPT_CONTENT = ['json']
+
 CELERY_RESULT_BACKEND = 'django-db'
+
 CELERY_TASK_SERIALIZER = 'json'
 
 # Mapbox
-
 MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
+
 DIAGNOSTIC_MAP_LATITUDE = env('DIAGNOSTIC_MAP_LATITUDE')
+
 DIAGNOSTIC_MAP_LONGITUDE = env('DIAGNOSTIC_MAP_LONGITUDE')
+
 DIAGNOSTIC_MAP_ZOOM = env('DIAGNOSTIC_MAP_ZOOM')
+
 DIAGNOSTIC_MAP_WS_BOUND = env('DIAGNOSTIC_MAP_WS_BOUND')
+
 DIAGNOSTIC_MAP_EN_BOUND = env('DIAGNOSTIC_MAP_EN_BOUND')
+
 DIAGNOSTIC_MAP_ISO_CODE = env('DIAGNOSTIC_MAP_ISO_CODE')
+
+# Twilio
+# https://www.twilio.com/docs
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+
+TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER')

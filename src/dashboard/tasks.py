@@ -1,9 +1,12 @@
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from client import get_db
 from grm.celery import app
 from grm.utils import get_assignee, get_assignee_to_escalate, get_auto_increment_id
+from sms_client import send_sms
 
+from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
@@ -187,6 +190,104 @@ def escalate_issues():
     return result
 
 
+@app.task
+def send_sms_message():
+    messages = {
+        'accepted_alert_message': _(
+            "Your issue submitted has been accepted into the system with the code %s(tracking_code)s"),
+        'rejected_alert_message': _(
+            "Your issue %s(tracking_code)s has been rejected with the following response: %s(reason)s"),
+        'closed_alert_message': _(
+            "Your issue %s(tracking_code)s has been resolved with the following response: %s(resolution)s"),
+    }
+    grm_db = get_db(COUCHDB_GRM_DATABASE)
+    selector = {
+        "type": "issue",
+        "confirmed": True,
+        "assignee": {"$ne": ""},
+        "tracking_code": {"$ne": ""},
+        "contact_medium": CHOICE_CONTACT,
+        "contact_information.type": CHOICE_PHONE,
+        "contact_information.contact": {"$ne": ""},
+        "$or": [
+            {
+                "accepted_alert_message": False,
+            },
+            {
+                "rejected_alert_message": False,
+            },
+            {
+                "closed_alert_message": False,
+            },
+        ]
+    }
+
+    issues = grm_db.get_query_result(selector)
+    result = {
+        'errors': [],
+        'notified_issues': [],
+    }
+    updated_issues = 0
+    for issue in issues:
+        notified_issues = False
+        issue_id = issue['_id']
+        try:
+            issue_doc = grm_db[issue_id]
+        except Exception:
+            error = f'Error trying to get issue document with id {issue_id}'
+            result['errors'].append(error)
+            continue
+        try:
+            status_id = issue_doc['status']['id']
+            doc_status = grm_db.get_query_result({
+                "id": status_id,
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            error = f'Error trying to get issue_status document with id {status_id}'
+            result['errors'].append(error)
+            tracking_code = issue_doc['tracking_code']
+            phone = issue_doc['contact_information']['contact']
+            if not issue_doc['accepted_alert_message'] and doc_status['open_status']:
+                msg = messages['accepted_alert_message'] % {'tracking_code': tracking_code}
+                try:
+                    send_sms(phone, msg)
+                    notified_issues = True
+                    issue_doc['accepted_alert_message'] = True
+                except Exception as e:
+                    result['errors'].append(str(e))
+            if not issue_doc['rejected_alert_message'] and doc_status['rejected_status']:
+                msg = messages['rejected_alert_message'] % {
+                    'tracking_code': tracking_code,
+                    'reason': '???'
+                }
+                try:
+                    send_sms(phone, msg)
+                    notified_issues = True
+                    issue_doc['rejected_alert_message'] = True
+                except Exception as e:
+                    result['errors'].append(str(e))
+            if not issue_doc['closed_alert_message'] and doc_status['final_status']:
+                msg = messages['closed_alert_message'] % {
+                    'tracking_code': tracking_code,
+                    'resolution': '???'
+                }
+                try:
+                    send_sms(phone, msg)
+                    notified_issues = True
+                    issue_doc['closed_alert_message'] = True
+                except Exception as e:
+                    result['errors'].append(str(e))
+
+        if notified_issues:
+            issue_doc.save()
+            updated_issues += 1
+            grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
+
+    result['updated_issues'] = updated_issues
+    return result
+
+
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls check_issues() every 5 minutes.
@@ -194,3 +295,6 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Calls escalate_issues() every 5 minutes.
     sender.add_periodic_task(300, escalate_issues.s(), name='escalate issues every 5 minutes')
+
+    # Calls send_sms_message() every 5 minutes.
+    sender.add_periodic_task(300, send_sms_message.s(), name='send sms every 5 minutes')
