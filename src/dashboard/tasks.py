@@ -5,6 +5,7 @@ from client import get_db
 from grm.celery import app
 from grm.utils import get_assignee, get_assignee_to_escalate, get_auto_increment_id
 from sms_client import send_sms
+from twilio.base.exceptions import TwilioRestException
 
 from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -214,10 +215,25 @@ def send_sms_message():
                 "accepted_alert_message": False,
             },
             {
+                "accepted_alert_message": {
+                    "$exists": False
+                }
+            },
+            {
                 "rejected_alert_message": False,
             },
             {
+                "rejected_alert_message": {
+                    "$exists": False
+                }
+            },
+            {
                 "closed_alert_message": False,
+            },
+            {
+                "closed_alert_message": {
+                    "$exists": False
+                }
             },
         ]
     }
@@ -246,38 +262,46 @@ def send_sms_message():
         except Exception:
             error = f'Error trying to get issue_status document with id {status_id}'
             result['errors'].append(error)
-            tracking_code = issue_doc['tracking_code']
-            phone = issue_doc['contact_information']['contact']
-            if not issue_doc['accepted_alert_message'] and doc_status['open_status']:
-                msg = messages['accepted_alert_message'] % {'tracking_code': tracking_code}
-                try:
-                    send_sms(phone, msg)
-                    notified_issues = True
-                    issue_doc['accepted_alert_message'] = True
-                except Exception as e:
-                    result['errors'].append(str(e))
-            if not issue_doc['rejected_alert_message'] and doc_status['rejected_status']:
-                msg = messages['rejected_alert_message'] % {
-                    'tracking_code': tracking_code,
-                    'reason': '???'
-                }
-                try:
-                    send_sms(phone, msg)
-                    notified_issues = True
-                    issue_doc['rejected_alert_message'] = True
-                except Exception as e:
-                    result['errors'].append(str(e))
-            if not issue_doc['closed_alert_message'] and doc_status['final_status']:
-                msg = messages['closed_alert_message'] % {
-                    'tracking_code': tracking_code,
-                    'resolution': '???'
-                }
-                try:
-                    send_sms(phone, msg)
-                    notified_issues = True
-                    issue_doc['closed_alert_message'] = True
-                except Exception as e:
-                    result['errors'].append(str(e))
+            continue
+
+        tracking_code = issue_doc['tracking_code']
+        phone = issue_doc['contact_information']['contact']
+
+        no_alert = 'accepted_alert_message' not in issue_doc or not issue_doc['accepted_alert_message']
+        if no_alert and doc_status['open_status']:
+            msg = messages['accepted_alert_message'] % {'tracking_code': tracking_code}
+            try:
+                send_sms(phone, msg)
+                notified_issues = True
+                issue_doc['accepted_alert_message'] = True
+            except TwilioRestException as e:
+                result['errors'].append(e.msg)
+
+        no_alert = 'rejected_alert_message' not in issue_doc or not issue_doc['rejected_alert_message']
+        if no_alert and doc_status['rejected_status']:
+            msg = messages['rejected_alert_message'] % {
+                'tracking_code': tracking_code,
+                'reason': issue_doc['rejected_alert_message'] if 'rejected_alert_message' in issue_doc else ''
+            }
+            try:
+                send_sms(phone, msg)
+                notified_issues = True
+                issue_doc['rejected_alert_message'] = True
+            except TwilioRestException as e:
+                result['errors'].append(e.msg)
+
+        no_alert = 'closed_alert_message' not in issue_doc or not issue_doc['closed_alert_message']
+        if no_alert and doc_status['final_status']:
+            msg = messages['closed_alert_message'] % {
+                'tracking_code': tracking_code,
+                'resolution': issue_doc['research_result'] if 'research_result' in issue_doc else ''
+            }
+            try:
+                send_sms(phone, msg)
+                notified_issues = True
+                issue_doc['closed_alert_message'] = True
+            except TwilioRestException as e:
+                result['errors'].append(e.msg)
 
         if notified_issues:
             issue_doc.save()

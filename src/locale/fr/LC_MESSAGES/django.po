@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-02 15:55+0200\n"
+"POT-Creation-Date: 2022-04-07 23:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -390,6 +390,27 @@ msgstr "Budget Participatif"
 #: dashboard/subprojects/views.py:10
 msgid "Subprojects"
 msgstr "Sous-projets"
+
+#: dashboard/tasks.py:198
+#, python-format
+msgid ""
+"Your issue submitted has been accepted into the system with the code "
+"%s(tracking_code)s"
+msgstr ""
+
+#: dashboard/tasks.py:200
+#, python-format
+msgid ""
+"Your issue %s(tracking_code)s has been rejected with the following response: "
+"%s(reason)s"
+msgstr ""
+
+#: dashboard/tasks.py:202
+#, python-format
+msgid ""
+"Your issue %s(tracking_code)s has been resolved with the following response: "
+"%s(resolution)s"
+msgstr ""
 
 #: dashboard/templates/adls/list.html:11
 #: dashboard/templates/participatory_budget/dashboard.html:97
@@ -936,14 +957,14 @@ msgstr ""
 msgid "Commune"
 msgstr ""
 
-#: grm/settings.py:134
+#: grm/settings.py:131
 msgid "English"
 msgstr "Anglais"
 
-#: grm/settings.py:135
+#: grm/settings.py:132
 msgid "French"
 msgstr "Français"
 
-#: grm/settings.py:136
+#: grm/settings.py:133
 msgid "Kinyarwanda"
 msgstr ""
