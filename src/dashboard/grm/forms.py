@@ -6,10 +6,10 @@ from client import get_db
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm import CHOICE_CONTACT, CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, GENDER_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
-    get_administrative_region_choices, get_base_administrative_id, get_government_worker_choices,
-    get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
+    get_administrative_region_choices, get_base_administrative_id, get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
     get_issue_citizen_group_2_choices, get_issue_status_choices, get_issue_type_choices
 )
+from authentication.models import get_government_worker_choices
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 MAX_LENGTH = 65000

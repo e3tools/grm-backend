@@ -10,7 +10,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication.models import GovernmentWorker
+from authentication.models import GovernmentWorker, get_assignee
 from client import get_db, upload_file
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
@@ -20,7 +20,7 @@ from dashboard.grm.forms import (
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
-    get_assignee, get_auto_increment_id, get_child_administrative_levels,
+    get_auto_increment_id, get_child_administrative_levels,
     get_parent_administrative_level
 )
 
@@ -66,13 +66,30 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
 class IssueMixin:
     doc = None
     grm_db = None
+    eadl_db = None
     max_attachments = 20
+    government_workers_permissions = ('read', 'write')
+    has_permission = True
 
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
             "auto_increment_id": kwargs['issue'],
             "type": 'issue'
         })
+
+    def check_permissions(self):
+        user = self.request.user
+        is_government_worker = hasattr(user, 'governmentworker')
+
+        if self.doc["confirmed"] and is_government_worker:
+            if self.doc['assignee']['id'] != user.id:
+                if 'read' not in self.government_workers_permissions:
+                    self.has_permission = False
+                else:
+                    if not user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
+                        self.has_permission = False
+                if 'write' not in self.government_workers_permissions:
+                    self.has_permission = False
 
     def dispatch(self, request, *args, **kwargs):
         self.grm_db = get_db(COUCHDB_GRM_DATABASE)
@@ -83,7 +100,8 @@ class IssueMixin:
         except Exception:
             raise Http404
 
-        if hasattr(self.request.user, 'governmentworker') and self.doc['assignee']['id'] != self.request.user.id:
+        self.check_permissions()
+        if not self.has_permission:
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
@@ -93,6 +111,7 @@ class IssueMixin:
         context['doc'] = self.doc
         context['max_attachments'] = self.max_attachments
         context['choice_contact'] = CHOICE_CONTACT
+        context['has_permission'] = self.has_permission
         return context
 
 
@@ -101,6 +120,7 @@ class UploadIssueAttachmentFormView(IssueMixin, AJAXRequestMixin, ModalFormMixin
     form_class = FileForm
     title = _('Add attachment')
     submit_button = _('Upload')
+    government_workers_permissions = ('read',)
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -135,6 +155,7 @@ class UploadIssueAttachmentFormView(IssueMixin, AJAXRequestMixin, ModalFormMixin
 
 class IssueAttachmentDeleteView(IssueMixin, AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin,
                                 generic.DeleteView):
+    government_workers_permissions = ('read',)
 
     def delete(self, request, *args, **kwargs):
         if 'attachments' in self.doc:
@@ -581,6 +602,7 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
 
 
 class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+    government_workers_permissions = ('read',)
 
     def post(self, request, *args, **kwargs):
         status = int(request.POST.get('status'))
@@ -650,6 +672,7 @@ class IssueCommentListView(IssueMixin, IssueCommentsContextMixin, AJAXRequestMix
                            generic.ListView):
     template_name = 'grm/issue_comments.html'
     context_object_name = 'comments'
+    government_workers_permissions = ('read',)
 
     def get_queryset(self):
         return self.doc['comments'] if 'comments' in self.doc else list()

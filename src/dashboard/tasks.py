@@ -3,7 +3,8 @@ from django.utils.translation import gettext as _
 
 from client import get_db
 from grm.celery import app
-from grm.utils import get_assignee, get_assignee_to_escalate, get_auto_increment_id
+from grm.utils import get_auto_increment_id
+from authentication.models import get_assignee, get_assignee_to_escalate
 from sms_client import send_sms
 from twilio.base.exceptions import TwilioRestException
 
@@ -13,6 +14,9 @@ COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 @app.task
 def check_issues():
+    """
+    Check the issues without 'auto_increment_id', 'internal_code' or 'assignee', and try to set a value for these fields
+    """
     grm_db = get_db(COUCHDB_GRM_DATABASE)
     selector = {
         "type": "issue",
