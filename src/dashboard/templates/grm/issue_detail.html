@@ -144,7 +144,7 @@
                     </div>
                 </div>
                 <div class="card-header">
-                    {% if enable_add_comment and has_permission %}
+                    {% if enable_add_comment and permission_to_edit %}
                         <div class="row mb-3">
                             <div class="col-1">
                                 {% with indexed_users|get:user.id as color_index %}
@@ -196,7 +196,7 @@
         let status = $('#id_status');
         let assignee = $('#id_assignee');
 
-        {% if not has_permission %}
+        {% if not permission_to_edit %}
             status.prop("disabled", true);
             assignee.prop("disabled", true);
         {% endif %}

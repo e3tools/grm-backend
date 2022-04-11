@@ -118,6 +118,21 @@ def get_child_administrative_levels(eadl_db, parent_id):
     return data[:]
 
 
+def get_administrative_level_descendants(eadl_db, parent_id, ids):
+    data = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "parent_id": parent_id,
+        }
+    )
+    descendants_ids = [region["administrative_id"] for region in data[:]]
+    for descendant_id in descendants_ids:
+        get_administrative_level_descendants(eadl_db, descendant_id, ids)
+        ids.append(descendant_id)
+
+    return ids
+
+
 def get_parent_administrative_level(eadl_db, administrative_id):
     parent = None
     docs = eadl_db.get_query_result({
@@ -153,15 +168,10 @@ def get_related_region_with_specific_level(eadl_db, region_doc, level):
 
 
 def belongs_to_region(eadl_db, child_administrative_id, parent_administrative_id):
-    belongs = parent_administrative_id == child_administrative_id
-    has_parent = True
-    while has_parent and not belongs:
-        region_doc = get_parent_administrative_level(eadl_db, child_administrative_id)
-        if region_doc:
-            belongs = parent_administrative_id == region_doc['administrative_id']
-        else:
-            has_parent = False
-
+    if parent_administrative_id == child_administrative_id:
+        belongs = True
+    else:
+        belongs = child_administrative_id in get_administrative_level_descendants(eadl_db, parent_administrative_id, [])
     return belongs
 
 

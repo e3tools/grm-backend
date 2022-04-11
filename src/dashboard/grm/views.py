@@ -20,7 +20,7 @@ from dashboard.grm.forms import (
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
-    get_auto_increment_id, get_child_administrative_levels,
+    get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_levels,
     get_parent_administrative_level
 )
 
@@ -68,7 +68,7 @@ class IssueMixin:
     grm_db = None
     eadl_db = None
     max_attachments = 20
-    government_workers_permissions = ('read', 'write')
+    permissions = ('read', 'write')
     has_permission = True
 
     def get_query_result(self, **kwargs):
@@ -79,17 +79,24 @@ class IssueMixin:
 
     def check_permissions(self):
         user = self.request.user
-        is_government_worker = hasattr(user, 'governmentworker')
 
-        if self.doc["confirmed"] and is_government_worker:
-            if self.doc['assignee']['id'] != user.id:
-                if 'read' not in self.government_workers_permissions:
-                    self.has_permission = False
-                else:
-                    if not user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
+        if self.doc["confirmed"]:
+            if 'read_only_by_reporter' in self.permissions and self.doc['reporter']['id'] != user.id:
+                self.has_permission = False
+            else:
+                if hasattr(user, 'governmentworker') and self.doc['assignee']['id'] != user.id:
+                    if 'read' not in self.permissions and \
+                            'read_only_by_reporter' not in self.permissions:
                         self.has_permission = False
-                if 'write' not in self.government_workers_permissions:
-                    self.has_permission = False
+                    else:
+                        if 'read_only_by_reporter' in self.permissions:
+                            if self.doc['reporter']['id'] != user.id:
+                                self.has_permission = False
+                        else:
+                            if not user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
+                                self.has_permission = False
+                            if 'write' not in self.permissions:
+                                self.has_permission = False
 
     def dispatch(self, request, *args, **kwargs):
         self.grm_db = get_db(COUCHDB_GRM_DATABASE)
@@ -111,7 +118,11 @@ class IssueMixin:
         context['doc'] = self.doc
         context['max_attachments'] = self.max_attachments
         context['choice_contact'] = CHOICE_CONTACT
-        context['has_permission'] = self.has_permission
+        permission_to_edit = True
+        user = self.request.user
+        if hasattr(user, 'governmentworker') and self.doc['assignee']['id'] != user.id:
+            permission_to_edit = False
+        context['permission_to_edit'] = permission_to_edit
         return context
 
 
@@ -120,7 +131,7 @@ class UploadIssueAttachmentFormView(IssueMixin, AJAXRequestMixin, ModalFormMixin
     form_class = FileForm
     title = _('Add attachment')
     submit_button = _('Upload')
-    government_workers_permissions = ('read',)
+    permissions = ('read',)
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -155,7 +166,7 @@ class UploadIssueAttachmentFormView(IssueMixin, AJAXRequestMixin, ModalFormMixin
 
 class IssueAttachmentDeleteView(IssueMixin, AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin,
                                 generic.DeleteView):
-    government_workers_permissions = ('read',)
+    permissions = ('read',)
 
     def delete(self, request, *args, **kwargs):
         if 'attachments' in self.doc:
@@ -465,6 +476,7 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     title = _('GRM')
     active_level1 = 'grm'
     form_class = NewIssueConfirmForm
+    permissions = ('read_only_by_reporter',)
 
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
@@ -497,6 +509,7 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
+        eadl_db = get_db()
         index = int(self.request.GET.get('index'))
         offset = int(self.request.GET.get('offset'))
         start_date = self.request.GET.get('start_date')
@@ -512,8 +525,19 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
             "confirmed": True,
             "auto_increment_id": {"$ne": ""},
         }
-        if hasattr(self.request.user, 'governmentworker'):
-            selector["assignee.id"] = self.request.user.id
+        user = self.request.user
+        if hasattr(user, 'governmentworker'):
+            parent_id = user.governmentworker.administrative_level
+            descendants = get_administrative_level_descendants(eadl_db, parent_id, [])
+            allowed_regions = descendants + [parent_id]
+            selector["$or"] = [
+                {"assignee.id": user.id},
+                {"$and": [
+                    {"category.assigned_department": user.governmentworker.department},
+                    {"administrative_region.administrative_id": {"$in": allowed_regions}},
+                ]}
+            ]
+
         date_range = dict()
         if start_date:
             start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -592,7 +616,6 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
         })
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
         user_id = self.request.user.id
         context['enable_add_comment'] = user_id == self.doc['assignee']['id'] or user_id == self.doc_department[
@@ -602,7 +625,7 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
 
 
 class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
-    government_workers_permissions = ('read',)
+    permissions = ('read',)
 
     def post(self, request, *args, **kwargs):
         status = int(request.POST.get('status'))
@@ -672,7 +695,7 @@ class IssueCommentListView(IssueMixin, IssueCommentsContextMixin, AJAXRequestMix
                            generic.ListView):
     template_name = 'grm/issue_comments.html'
     context_object_name = 'comments'
-    government_workers_permissions = ('read',)
+    permissions = ('read',)
 
     def get_queryset(self):
         return self.doc['comments'] if 'comments' in self.doc else list()

@@ -56,7 +56,8 @@ class GovernmentWorker(models.Model):
                 issue_department_id = issue['category']['assigned_department']
                 if self.department != issue_department_id:
                     return False
-            return belongs_to_region(eadl_db, issue_administrative_id, self.administrative_level)
+            belongs = belongs_to_region(eadl_db, issue_administrative_id, self.administrative_level)
+            return belongs
         except Exception:
             return False
 
