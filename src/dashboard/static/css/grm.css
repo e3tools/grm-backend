@@ -32523,6 +32523,19 @@ a.text-muted:hover {
     margin-top: 5px;
 }
 
+.btn-status {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    border-radius: 10px !important;
+    border: none;
+    box-shadow: 3px 3px 17px 0 rgba(0, 0, 0, 0.05)
+}
+
+.btn-status i {
+    margin-top: 5px;
+}
+
 .info-label-task {
     font-family: 'poppinsbold';
     font-size: 7px;

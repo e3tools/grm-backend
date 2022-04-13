@@ -146,9 +146,9 @@
                         more.prop('disabled', true);
                     }
                 },
-                error: function () {
+                error: function (data) {
                     tasks_updated_spin.hide();
-                    alert(error_server_message);
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         }
@@ -164,8 +164,8 @@
                     total_tasks = response['count'];
                     loadTasks();
                 },
-                error: function () {
-                    alert(error_server_message);
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         }
@@ -192,9 +192,9 @@
                     statement_spin.hide();
                     $('#statement').html(response);
                 },
-                error: function () {
+                error: function (data) {
                     statement_spin.hide();
-                    alert(error_server_message);
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         }

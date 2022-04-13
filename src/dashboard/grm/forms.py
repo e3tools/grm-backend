@@ -2,14 +2,15 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from authentication.models import get_government_worker_choices
 from client import get_db
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm import CHOICE_CONTACT, CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, GENDER_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
-    get_administrative_region_choices, get_base_administrative_id, get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
+    get_administrative_region_choices, get_base_administrative_id, get_issue_age_group_choices,
+    get_issue_category_choices, get_issue_citizen_group_1_choices,
     get_issue_citizen_group_2_choices, get_issue_status_choices, get_issue_type_choices
 )
-from authentication.models import get_government_worker_choices
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 MAX_LENGTH = 65000
@@ -204,7 +205,6 @@ class SearchIssueForm(forms.Form):
 
 
 class IssueDetailsForm(forms.Form):
-    status = forms.ChoiceField(label=_('Status'))
     assignee = forms.ChoiceField(label=_('Assigned to'))
 
     def __init__(self, *args, **kwargs):
@@ -213,11 +213,9 @@ class IssueDetailsForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
-        self.fields['status'].widget.choices = get_issue_status_choices(grm_db, False)
         self.fields['assignee'].widget.choices = get_government_worker_choices(False)
 
         document = grm_db[doc_id]
-        self.fields['status'].initial = document['status']['id']
         self.fields['assignee'].initial = document['assignee']['id']
 
 
@@ -236,5 +234,17 @@ class IssueResearchResultForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         document = grm_db[doc_id]
-        if 'research_result' in document:
-            self.fields['research_result'].initial = document['research_result']
+        self.fields['research_result'].initial = document['research_result'] if 'research_result' in document else ''
+
+
+class IssueRejectReasonForm(forms.Form):
+    reject_reason = forms.CharField(label='', max_length=MAX_LENGTH, widget=forms.Textarea(attrs={'rows': '3'}))
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial')
+        doc_id = initial.get('doc_id')
+        super().__init__(*args, **kwargs)
+
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+        document = grm_db[doc_id]
+        self.fields['reject_reason'].initial = document['reject_reason'] if 'reject_reason' in document else ''

@@ -31,7 +31,14 @@
         <div class="col-4">
             <div class="card h-100">
                 <div class="card-body">
-                    {% bootstrap_field form.status layout='horizontal' %}
+
+                    <div class="overlay-wrapper">
+                        <div id="status_buttons"></div>
+                        <div class="overlay" id="load-status-buttons-spin">
+                            <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                        </div>
+                    </div>
+
                     {% bootstrap_field form.assignee layout='horizontal' %}
                     <div class="row mr-2 mb-2">
                         <div class="col-3">
@@ -184,7 +191,7 @@
 
 {% block modals %}
     <div id="fileFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
-    <div id="finalStatusFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+    <div id="statusChangeModalForm" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 {% endblock modals %}
 
 {% block javascript %}
@@ -193,50 +200,89 @@
     <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
     <script type="text/javascript">
         let load_attachments_spin = $('#load-attachments-spin');
-        let status = $('#id_status');
+        let load_status_buttons_spin = $('#load-status-buttons-spin');
+        let status_change_modal = $('#statusChangeModalForm');
         let assignee = $('#id_assignee');
 
         {% if not permission_to_edit %}
-            status.prop("disabled", true);
             assignee.prop("disabled", true);
         {% endif %}
 
+        assignee.on('change', function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'dashboard:grm:edit_issue' doc.auto_increment_id %}",
+                data: {
+                    "assignee": assignee.val()
+                },
+                success: function (response) {
+                    showPopupMessage(response.msg);
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                }
+            });
+        });
+
         class ResearchResultFormAjaxSubmit extends FormAjaxSubmit {
+            submitted_form() {
+                loadStatusButtons();
+            }
         }
 
         let research_result_form_ajax = new ResearchResultFormAjaxSubmit();
-        let research_result_modal = $('#finalStatusFormModal');
-        let decline_change_to_final_status = false;
 
-        $('.form-group select').on('change', function () {
-            if (!decline_change_to_final_status) {
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'dashboard:grm:edit_issue' doc.auto_increment_id %}",
-                    data: {
-                        "status": status.val(),
-                        "assignee": assignee.val()
-                    },
-                    success: function (response) {
-                        if (response.final_status) {
-                            let url = "{% url 'dashboard:grm:submit_issue_result' doc.auto_increment_id %}";
-                            research_result_form_ajax.load_form('#research_result_form', research_result_modal, url);
-                            $(document).on('click', '#finalStatusFormModal .close-modal', function () {
-                                decline_change_to_final_status = true;
-                                status.val(response.status).trigger('change');
-                                decline_change_to_final_status = false;
-                            });
-                        } else {
+        class RejectReasonFormAjaxSubmit extends FormAjaxSubmit {
+            submitted_form() {
+                loadStatusButtons();
+            }
+        }
+
+        let reject_reason_form_ajax = new RejectReasonFormAjaxSubmit();
+
+
+        function loadStatusButtons() {
+            load_status_buttons_spin.show();
+            $('#status_buttons').load("{% url 'dashboard:grm:issue_status_buttons' doc.auto_increment_id %}", function (
+                response, status, xhr) {
+                if (status === "error") {
+                    alert(error_server_message + "Error " + response.status);
+                }
+                load_status_buttons_spin.hide();
+                let accept_issue = $("#accept_issue");
+                let record_resolution = $("#record_resolution");
+                let reject_issue = $("#reject_issue");
+
+                {% if not permission_to_edit %}
+                    $('.btn-status').prop("disabled", true);
+                {% endif %}
+
+                accept_issue.on('click', function () {
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'dashboard:grm:submit_issue_open_status' doc.auto_increment_id %}",
+                        success: function (response) {
                             showPopupMessage(response.msg);
+                            loadStatusButtons();
+                        },
+                        error: function (data) {
+                            alert(error_server_message + "Error " + data.status)
                         }
-                    },
-                    error: function () {
-                        alert(error_server_message);
-                    }
+                    });
                 });
 
-            }
-        });
+                record_resolution.on('click', function () {
+                    let url = "{% url 'dashboard:grm:submit_issue_research_result' doc.auto_increment_id %}";
+                    research_result_form_ajax.load_form('#research_result_form', status_change_modal, url);
+                });
+
+                reject_issue.on('click', function () {
+                    let url = "{% url 'dashboard:grm:submit_issue_reject_reason' doc.auto_increment_id %}";
+                    reject_reason_form_ajax.load_form('#reject_reason_form', status_change_modal, url);
+                });
+
+            });
+        }
 
         class FileFormAjaxSubmit extends FormAjaxSubmit {
             submitted_form() {
@@ -249,21 +295,23 @@
 
         function loadAttachments() {
             load_attachments_spin.show();
-            $('#attachments').load("{% url 'dashboard:grm:issue_attachments' doc.auto_increment_id %}?column=1", function (
-                response, status, xhr) {
-                if (status === "error") {
-                    alert(error_server_message);
-                }
-                load_attachments_spin.hide();
-                $('#add_attachment').click(function () {
-                    let url = "{% url 'dashboard:grm:upload_issue_attachment' doc.auto_increment_id %}";
-                    file_form_ajax.load_form('#form', file_form_modal, url, false, true);
+            $('#attachments').load(
+                "{% url 'dashboard:grm:issue_attachments' doc.auto_increment_id %}?column=1", function (
+                    response, status, xhr) {
+                    if (status === "error") {
+                        alert(error_server_message + "Error " + response.status);
+                    }
+                    load_attachments_spin.hide();
+                    $('#add_attachment').click(function () {
+                        let url = "{% url 'dashboard:grm:upload_issue_attachment' doc.auto_increment_id %}";
+                        file_form_ajax.load_form('#form', file_form_modal, url, false, true);
+                    });
                 });
-            });
         }
 
         $(document).ready(function () {
             loadAttachments();
+            loadStatusButtons();
             $('b[role="presentation"]').hide();
             $('.select2-selection__arrow').append(
                 '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
@@ -274,8 +322,8 @@
                 url: $(this).data('url'),
                 type: 'POST'
             })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    alert(error_server_message);
+                .fail(function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 })
                 .done(function (data) {
                     loadAttachments();
@@ -293,7 +341,7 @@
             $('#comments').load("{% url 'dashboard:grm:issue_comments' doc.auto_increment_id %}", function (
                 response, status, xhr) {
                 if (status === "error") {
-                    alert(error_server_message);
+                    alert(error_server_message + "Error " + response.status);
                 }
                 load_comments_spin.hide();
             });
@@ -312,8 +360,8 @@
                     comment.val('');
                     add_comment.prop('disabled', true);
                 },
-                error: function () {
-                    alert(error_server_message);
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         });

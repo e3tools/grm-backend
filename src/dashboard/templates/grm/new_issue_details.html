@@ -84,7 +84,7 @@
             $('#attachments').load("{% url 'dashboard:grm:issue_attachments' doc.auto_increment_id %}", function (
                 response, status, xhr) {
                 if (status === "error") {
-                    alert(error_server_message);
+                    alert(error_server_message + "Error " + response.status);
                 }
                 load_attachments_spin.hide();
                 $('#add_attachment').click(function () {
@@ -161,8 +161,8 @@
                 url: $(this).data('url'),
                 type: 'POST'
             })
-                .fail(function (jqXHR, textStatus, errorThrown) {
-                    alert(error_server_message);
+                .fail(function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 })
                 .done(function (data) {
                     loadAttachments();

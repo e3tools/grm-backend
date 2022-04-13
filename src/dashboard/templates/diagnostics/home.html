@@ -106,8 +106,8 @@
                             .addTo(map);
                     });
                 },
-                error: function () {
-                    alert(error_server_message);
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         }

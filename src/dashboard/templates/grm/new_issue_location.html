@@ -82,8 +82,8 @@
                     $('#next').prop('disabled', false);
                 }
             },
-            error: function () {
-                alert(error_server_message);
+            error: function (data) {
+                alert(error_server_message + "Error " + data.status);
             }
         });
 
@@ -155,8 +155,8 @@
                             }
                         }
                     },
-                    error: function () {
-                        alert(error_server_message);
+                    error: function (data) {
+                        alert(error_server_message + "Error " + data.status);
                     }
                 }).done(function () {
                         if (ancestors.length === 0) {

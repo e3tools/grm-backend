@@ -15,8 +15,8 @@ from client import get_db, upload_file
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
 from dashboard.grm.forms import (
-    IssueCommentForm, IssueDetailsForm, IssueResearchResultForm, MAX_LENGTH, NewIssueConfirmForm, NewIssueContactForm,
-    NewIssueDetailsForm, NewIssueLocationForm, NewIssuePersonForm, SearchIssueForm
+    IssueCommentForm, IssueDetailsForm, IssueRejectReasonForm, IssueResearchResultForm, MAX_LENGTH, NewIssueConfirmForm,
+    NewIssueContactForm, NewIssueDetailsForm, NewIssueLocationForm, NewIssuePersonForm, SearchIssueForm
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
@@ -109,7 +109,7 @@ class IssueMixin:
 
         self.check_permissions()
         if not self.has_permission:
-            raise Http404
+            raise PermissionDenied
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -462,10 +462,19 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         administrative_id = self.doc["administrative_region"]["administrative_id"]
         self.doc[
             'internal_code'] = f'{doc_category["abbreviation"]}-{administrative_id}-{self.doc["auto_increment_id"]}'
+
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "open_status": True,
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            raise Http404
         self.doc['status'] = {
-            "name": "Open",
-            "id": 1
+            "name": doc_status['name'],
+            "id": doc_status['id']
         }
+
         self.doc['created_date'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         self.doc.save()
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_6', kwargs={'issue': self.kwargs['issue']}))
@@ -621,6 +630,15 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
         context['enable_add_comment'] = user_id == self.doc['assignee']['id'] or user_id == self.doc_department[
             'head']['id']
         context['comment_form'] = IssueCommentForm()
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "id": self.doc['status']['id'],
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            raise Http404
+        context['doc_status'] = doc_status
+
         return context
 
 
@@ -628,21 +646,7 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
     permissions = ('read',)
 
     def post(self, request, *args, **kwargs):
-        status = int(request.POST.get('status'))
         assignee = int(request.POST.get('assignee'))
-        try:
-            doc_status = self.grm_db.get_query_result({
-                "id": status,
-                "type": 'issue_status'
-            })[0][0]
-        except Exception:
-            raise Http404
-        final_status = doc_status['final_status'] if 'final_status' in doc_status else False
-        if not final_status:
-            self.doc['status'] = {
-                "name": doc_status['name'],
-                "id": doc_status['id']
-            }
         worker = GovernmentWorker.objects.get(user=assignee)
         self.doc['assignee'] = {
             "id": worker.user.id,
@@ -651,8 +655,7 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
         self.doc.save()
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
-        context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8"),
-                   'final_status': final_status, 'status': self.doc['status']['id']}
+        context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
@@ -701,19 +704,142 @@ class IssueCommentListView(IssueMixin, IssueCommentsContextMixin, AJAXRequestMix
         return self.doc['comments'] if 'comments' in self.doc else list()
 
 
+class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView):
+    template_name = 'grm/issue_status_buttons.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "id": self.doc['status']['id'],
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            raise Http404
+        context['doc_status'] = doc_status
+
+        return context
+
+
+class SubmitIssueOpenStatusView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+    permissions = ('read',)
+
+    def check_permissions(self):
+        super().check_permissions()
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "id": self.doc["status"]["id"],
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            self.has_permission = False
+            return
+
+        open_status = doc_status['open_status'] if 'open_status' in doc_status else False
+        initial_status = doc_status['initial_status'] if 'initial_status' in doc_status else False
+        rejected_status = doc_status['rejected_status'] if 'rejected_status' in doc_status else False
+        if open_status or not initial_status or rejected_status:
+            self.has_permission = False
+
+    def post(self, request, *args, **kwargs):
+        self.doc['research_result'] = ""
+        self.doc['reject_reason'] = ""
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "open_status": True,
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            raise Http404
+        self.doc['status'] = {
+            "name": doc_status['name'],
+            "id": doc_status['id']
+        }
+        self.doc.save()
+        msg = _("The issue status was successfully updated.")
+        messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
+        context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8")}
+        return self.render_to_json_response(context, safe=False)
+
+
 class SubmitIssueResearchResultFormView(AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin,
                                         IssueFormMixin):
     form_class = IssueResearchResultForm
     id_form = "research_result_form"
     title = _('Please enter the resolution reached for this issue')
     submit_button = _('Save')
+    permissions = ('read',)
+
+    def check_permissions(self):
+        super().check_permissions()
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "id": self.doc["status"]["id"],
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            self.has_permission = False
+            return
+
+        open_status = doc_status['open_status'] if 'open_status' in doc_status else False
+        final_status = doc_status['final_status'] if 'final_status' in doc_status else False
+        if final_status or not open_status:
+            self.has_permission = False
 
     def form_valid(self, form):
         data = form.cleaned_data
         self.doc['research_result'] = data["research_result"]
+        self.doc['reject_reason'] = ""
         try:
             doc_status = self.grm_db.get_query_result({
                 "final_status": True,
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            raise Http404
+        self.doc['status'] = {
+            "name": doc_status['name'],
+            "id": doc_status['id']
+        }
+        self.doc.save()
+        msg = _("The issue status was successfully updated.")
+        messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
+
+        context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8")}
+        return self.render_to_json_response(context, safe=False)
+
+
+class SubmitIssueRejectReasonFormView(AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin,
+                                      IssueFormMixin):
+    form_class = IssueRejectReasonForm
+    id_form = "reject_reason_form"
+    title = _('Enter the reason for rejecting this issue')
+    submit_button = _('Save')
+    permissions = ('read',)
+
+    def check_permissions(self):
+        super().check_permissions()
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "id": self.doc["status"]["id"],
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            self.has_permission = False
+            return
+
+        initial_status = doc_status['initial_status'] if 'initial_status' in doc_status else False
+        rejected_status = doc_status['rejected_status'] if 'rejected_status' in doc_status else False
+        if rejected_status or not initial_status:
+            self.has_permission = False
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        self.doc['reject_reason'] = data["reject_reason"]
+        self.doc['research_result'] = ""
+        try:
+            doc_status = self.grm_db.get_query_result({
+                "rejected_status": True,
                 "type": 'issue_status'
             })[0][0]
         except Exception:

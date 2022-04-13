@@ -119,9 +119,9 @@
                         current_page.html("")
                     }
                 },
-                error: function () {
+                error: function (data) {
                     spin.hide();
-                    alert(error_server_message);
+                    alert(error_server_message + "Error " + data.status);
                     current_page.html("");
                 }
             });
@@ -135,8 +135,8 @@
                     total_issues = response['count'];
                     loadIssues();
                 },
-                error: function () {
-                    alert(error_server_message);
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 }
             });
         }
