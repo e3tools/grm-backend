@@ -3,13 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: dashboard/grm/forms.py:48
+#: dashboard/grm/forms.py:49
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-07 23:17+0200\n"
+"POT-Creation-Date: 2022-04-13 18:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,31 +29,31 @@ msgid ""
 "size is %(size)s."
 msgstr ""
 
-#: authentication/models.py:16
+#: authentication/models.py:21
 msgid "email address"
 msgstr ""
 
-#: authentication/models.py:17 dashboard/grm/__init__.py:18
+#: authentication/models.py:22 dashboard/grm/__init__.py:18
 msgid "phone number"
 msgstr ""
 
-#: authentication/models.py:18
+#: authentication/models.py:23
 msgid "photo"
 msgstr ""
 
-#: authentication/models.py:35
+#: authentication/models.py:40
 msgid "department"
 msgstr ""
 
-#: authentication/models.py:37
+#: authentication/models.py:42
 msgid "administrative level"
 msgstr ""
 
-#: authentication/models.py:40
+#: authentication/models.py:45
 msgid "Government Worker"
 msgstr ""
 
-#: authentication/models.py:41
+#: authentication/models.py:46
 msgid "Government Workers"
 msgstr ""
 
@@ -92,7 +92,7 @@ msgid "Unable to register with provided validation code."
 msgstr ""
 
 #: dashboard/adls/forms.py:14 dashboard/templates/adls/list.html:25
-#: dashboard/templates/grm/issue_detail.html:70
+#: dashboard/templates/grm/issue_detail.html:77
 msgid "Name"
 msgstr ""
 
@@ -129,8 +129,8 @@ msgstr ""
 msgid "Profile information"
 msgstr ""
 
-#: dashboard/adls/views.py:121 dashboard/grm/views.py:663
-#: dashboard/templates/grm/issue_detail.html:164
+#: dashboard/adls/views.py:121 dashboard/grm/views.py:770
+#: dashboard/grm/views.py:817 dashboard/templates/grm/issue_detail.html:171
 msgid "Save"
 msgstr ""
 
@@ -200,80 +200,74 @@ msgstr ""
 msgid "Organization on behalf of others"
 msgstr ""
 
-#: dashboard/grm/forms.py:19
+#: dashboard/grm/forms.py:20
 msgid "How does the citizen wish to be contacted?"
 msgstr ""
 
-#: dashboard/grm/forms.py:31
+#: dashboard/grm/forms.py:32
 msgid "Please type the contact information"
 msgstr ""
 
-#: dashboard/grm/forms.py:46
+#: dashboard/grm/forms.py:47
 msgid "Enter name of the citizen"
 msgstr ""
 
-#: dashboard/grm/forms.py:47 dashboard/grm/forms.py:49
-#: dashboard/grm/forms.py:51 dashboard/grm/forms.py:52
-#: dashboard/grm/forms.py:55 dashboard/grm/forms.py:57
+#: dashboard/grm/forms.py:48 dashboard/grm/forms.py:50
+#: dashboard/grm/forms.py:52 dashboard/grm/forms.py:53
+#: dashboard/grm/forms.py:56 dashboard/grm/forms.py:58
 msgid "This is an optional field"
 msgstr ""
 
-#: dashboard/grm/forms.py:50
+#: dashboard/grm/forms.py:51
 msgid "Enter age group"
 msgstr ""
 
-#: dashboard/grm/forms.py:52
+#: dashboard/grm/forms.py:53
 msgid "Choose gender"
 msgstr ""
 
-#: dashboard/grm/forms.py:54 dashboard/grm/forms.py:56
+#: dashboard/grm/forms.py:55 dashboard/grm/forms.py:57
 msgid "Religion, Nationality"
 msgstr ""
 
-#: dashboard/grm/forms.py:100
+#: dashboard/grm/forms.py:101
 msgid "Date of intake"
 msgstr ""
 
-#: dashboard/grm/forms.py:102
+#: dashboard/grm/forms.py:103
 msgid "Date of issue"
 msgstr ""
 
-#: dashboard/grm/forms.py:104
+#: dashboard/grm/forms.py:105
 msgid "What are you reporting"
 msgstr ""
 
-#: dashboard/grm/forms.py:105
+#: dashboard/grm/forms.py:106
 msgid "Choose type of grievance"
 msgstr ""
 
-#: dashboard/grm/forms.py:106
+#: dashboard/grm/forms.py:107
 msgid "Briefly describe the issue"
 msgstr ""
 
-#: dashboard/grm/forms.py:107
+#: dashboard/grm/forms.py:108
 msgid "Please describe the issue"
 msgstr ""
 
-#: dashboard/grm/forms.py:108
+#: dashboard/grm/forms.py:109
 msgid "Current event or multiple occurrences"
 msgstr ""
 
-#: dashboard/grm/forms.py:183
+#: dashboard/grm/forms.py:184
 msgid "Start Date"
 msgstr ""
 
-#: dashboard/grm/forms.py:184
+#: dashboard/grm/forms.py:185
 msgid "End Date"
 msgstr ""
 
-#: dashboard/grm/forms.py:185
+#: dashboard/grm/forms.py:186
 msgid "ID Number / Access Code"
-msgstr ""
-
-#: dashboard/grm/forms.py:207 dashboard/templates/adls/task_detail.html:25
-#: dashboard/templates/grm/issue_list.html:13
-#: dashboard/templates/grm/review_issues.html:224
-msgid "Status"
 msgstr ""
 
 #: dashboard/grm/forms.py:208 dashboard/templates/grm/issue_list.html:9
@@ -281,80 +275,85 @@ msgstr ""
 msgid "Assigned to"
 msgstr ""
 
-#: dashboard/grm/forms.py:226
+#: dashboard/grm/forms.py:224
 msgid "Add comment"
 msgstr ""
 
-#: dashboard/grm/views.py:33 dashboard/grm/views.py:339
-#: dashboard/grm/views.py:355 dashboard/grm/views.py:372
-#: dashboard/grm/views.py:386 dashboard/grm/views.py:402
-#: dashboard/grm/views.py:444 dashboard/grm/views.py:464
-#: dashboard/grm/views.py:550 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:33 dashboard/grm/views.py:371
+#: dashboard/grm/views.py:387 dashboard/grm/views.py:404
+#: dashboard/grm/views.py:418 dashboard/grm/views.py:434
+#: dashboard/grm/views.py:485 dashboard/grm/views.py:506
+#: dashboard/grm/views.py:604 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr ""
 
-#: dashboard/grm/views.py:102
+#: dashboard/grm/views.py:132
 msgid "Add attachment"
 msgstr ""
 
-#: dashboard/grm/views.py:103
+#: dashboard/grm/views.py:133
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:122
+#: dashboard/grm/views.py:153
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:125
+#: dashboard/grm/views.py:156
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:129
+#: dashboard/grm/views.py:160
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:152
+#: dashboard/grm/views.py:184
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:320
+#: dashboard/grm/views.py:352
 msgid ""
 "There is no staff member for the selected category (nature of the issue). "
 "Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:459 dashboard/grm/views.py:554
+#: dashboard/grm/views.py:501 dashboard/grm/views.py:608
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:545
+#: dashboard/grm/views.py:599
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:607
+#: dashboard/grm/views.py:656
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:640
+#: dashboard/grm/views.py:688
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:643
+#: dashboard/grm/views.py:691
 msgid "Comment cannot be empty."
 msgstr ""
 
-#: dashboard/grm/views.py:662
+#: dashboard/grm/views.py:759 dashboard/grm/views.py:805
+#: dashboard/grm/views.py:852
+msgid "The issue status was successfully updated."
+msgstr ""
+
+#: dashboard/grm/views.py:769
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:680
-msgid "The issue status was successfully updated."
+#: dashboard/grm/views.py:816
+msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
 #: dashboard/logs/views.py:10 dashboard/templates/layouts/sidebar.html:75
@@ -377,21 +376,21 @@ msgstr ""
 msgid "Subprojects"
 msgstr ""
 
-#: dashboard/tasks.py:198
+#: dashboard/tasks.py:202
 #, python-format
 msgid ""
 "Your issue submitted has been accepted into the system with the code "
 "%s(tracking_code)s"
 msgstr ""
 
-#: dashboard/tasks.py:200
+#: dashboard/tasks.py:204
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been rejected with the following response: "
 "%s(reason)s"
 msgstr ""
 
-#: dashboard/tasks.py:202
+#: dashboard/tasks.py:206
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been resolved with the following response: "
@@ -524,6 +523,13 @@ msgstr ""
 msgid "Go to the phase"
 msgstr ""
 
+#: dashboard/templates/adls/task_detail.html:25
+#: dashboard/templates/grm/issue_list.html:13
+#: dashboard/templates/grm/issue_status_buttons.html:5
+#: dashboard/templates/grm/review_issues.html:224
+msgid "Status"
+msgstr ""
+
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:7
 #: dashboard/templates/grm/issue_attachments_column1.html:7
@@ -544,7 +550,7 @@ msgid "No notes"
 msgstr ""
 
 #: dashboard/templates/adls/task_detail.html:56
-#: dashboard/templates/grm/issue_detail.html:101
+#: dashboard/templates/grm/issue_detail.html:108
 #: dashboard/templates/grm/new_issue_confirmation.html:193
 msgid "Location"
 msgstr ""
@@ -652,42 +658,42 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:39
+#: dashboard/templates/grm/issue_detail.html:46
 msgid "Reporter"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:49
+#: dashboard/templates/grm/issue_detail.html:56
 msgid "Reported"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:59
+#: dashboard/templates/grm/issue_detail.html:66
 msgid "Lodged by"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:75
-#: dashboard/templates/grm/issue_detail.html:91
-#: dashboard/templates/grm/issue_detail.html:106
+#: dashboard/templates/grm/issue_detail.html:82
+#: dashboard/templates/grm/issue_detail.html:98
+#: dashboard/templates/grm/issue_detail.html:113
 msgid "Confidential"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:86
+#: dashboard/templates/grm/issue_detail.html:93
 #: dashboard/templates/grm/new_issue_confirmation.html:86
 msgid "Age"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:115
+#: dashboard/templates/grm/issue_detail.html:122
 #: dashboard/templates/grm/issue_list.html:11
 #: dashboard/templates/grm/review_issues.html:216
 msgid "Category"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:125
+#: dashboard/templates/grm/issue_detail.html:132
 #: dashboard/templates/grm/issue_list.html:12
 #: dashboard/templates/grm/review_issues.html:220
 msgid "Type"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:142
+#: dashboard/templates/grm/issue_detail.html:149
 msgid "Steps Taken"
 msgstr ""
 
@@ -706,6 +712,18 @@ msgstr ""
 
 #: dashboard/templates/grm/issue_list.html:34
 msgid "No issues found"
+msgstr ""
+
+#: dashboard/templates/grm/issue_status_buttons.html:15
+msgid "Accept Issue"
+msgstr ""
+
+#: dashboard/templates/grm/issue_status_buttons.html:29
+msgid "Record Resolution"
+msgstr ""
+
+#: dashboard/templates/grm/issue_status_buttons.html:42
+msgid "Reject Issue"
 msgstr ""
 
 #: dashboard/templates/grm/new_issue_confirm.html:9
