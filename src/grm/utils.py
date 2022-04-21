@@ -141,6 +141,10 @@ def get_country_child_administrative_levels(eadl_db):
     return data[:]
 
 
+def get_country_child_administrative_level(eadl_db):
+    return get_country_child_administrative_levels(eadl_db)[0]['administrative_level'].title()
+
+
 def get_administrative_level_descendants(eadl_db, parent_id, ids):
     data = eadl_db.get_query_result(
         {

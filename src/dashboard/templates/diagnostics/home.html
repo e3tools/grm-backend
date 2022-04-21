@@ -6,21 +6,89 @@
     <link href="{% static 'plugins/mapbox-gl-js/v2.6.1/mapbox-gl.css' %}" rel="stylesheet">
     <style>
         #map {
-            height: 800px;
+            height: 600px;
         }
 
     </style>
 {% endblock extracss %}
 
 {% block content %}
-    <div class="col">
-        <div class="overlay-wrapper">
-            <div id="map"></div>
-            <div class="overlay z-index1000 map-spin irs--round">
-                <i class="fas fa-3x fa-sync-alt fa-spin">
-                </i>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body issues-filter">
+                    <div class="row">
+                        <div class="col-4 text-left">
+                            <div class="fs28 lh35 text-primary text-bold-family mb-4">
+                                {% translate 'Filter by' %}<br>
+                            </div>
+                        </div>
+                        <div class="col-2">
+{#                                    {% bootstrap_field form.start_date layout='horizontal' %}#}
+                            form.start_date layout='horizontal'
+                        </div>
+                        <div class="col-2">
+{#                                    {% bootstrap_field form.end_date layout='horizontal' %}#}
+                            form.end_date layout='horizontal'
+                        </div>
+                        <div class="col-2">
+{#                                    {% bootstrap_field form.type show_label=False %}#}
+                            form.type show_label=False
+                        </div>
+                        <div class="col-2">
+{#                                    {% bootstrap_field form.category show_label=False %}#}
+                            form.category show_label=False
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+{#                                    {% bootstrap_field form.region show_label=False %}#}
+                            form.region show_label=False <br>
+                        </div>
+                    </div>
+                    <a class="btn fs12 text-bold-family text-primary pull-right p-0"
+                       id="clear_all_filters">
+                        {% translate "Clear all filters" %}
+                    </a>
+                </div>
             </div>
-            <pre id="info"></pre>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="overlay-wrapper">
+                        <div id="map"></div>
+                        <div class="overlay z-index1000 issue-percentages-spin irs--round">
+                            <i class="fas fa-3x fa-sync-alt fa-spin">
+                            </i>
+                        </div>
+                        <pre id="info"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card">
+                <div class="card-body table-responsive">
+                    <table id="table" class="table">
+                        <thead class="primary">
+                        <tr>
+                            <th>{{ administrative_level }}</th>
+                            <th>{% translate 'Number' %}</th>
+                            <th>{% translate 'Percentage' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody id="issue-percentages-table">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overlay issue-percentages-spin">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock content %}
@@ -29,7 +97,7 @@
     {{ block.super }}
     <script src="{% static 'plugins/mapbox-gl-js/v2.6.1/mapbox-gl.js' %}"></script>
     <script>
-        let map_spin = $('.map-spin');
+        let issue_percentage_spin = $('.issue-percentages-spin');
 
         mapboxgl.accessToken = '{{ access_token }}';
         if (!mapboxgl.supported()) {
@@ -75,17 +143,17 @@
                 ]);
 
                 setTimeout(function () {
-                    map_spin.hide();
+                    issue_percentage_spin.hide();
                 }, 1000);
             });
 
             map.on('styledata', (e) => {
-                map_spin.show();
+                issue_percentage_spin.show();
             });
 
             map.on('idle', (e) => {
                 setTimeout(function () {
-                    map_spin.hide();
+                    issue_percentage_spin.hide();
                 }, 96000);
             });
 
@@ -104,6 +172,18 @@
                         new mapboxgl.Marker(el)
                             .setLngLat([region.longitude, region.latitude])
                             .addTo(map);
+
+                        const tr = document.createElement('tr');
+                        const td_name = document.createElement('td');
+                        td_name.innerHTML = region.name;
+                        tr.appendChild(td_name);
+                        const td_issues = document.createElement('td');
+                        td_issues.innerHTML = region.issues;
+                        tr.appendChild(td_issues);
+                        const td_percentage = document.createElement('td');
+                        td_percentage.innerHTML = region.percentage + '%';
+                        tr.appendChild(td_percentage);
+                        $('#issue-percentages-table').append(tr)
                     });
                 },
                 error: function (data) {

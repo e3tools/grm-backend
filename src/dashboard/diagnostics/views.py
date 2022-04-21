@@ -5,7 +5,7 @@ from django.views import generic
 
 from client import get_db
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
-from grm.utils import get_base_administrative_id
+from grm.utils import get_base_administrative_id, get_country_child_administrative_level
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -17,6 +17,7 @@ class HomeTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        eadl_db = get_db()
         context['access_token'] = settings.MAPBOX_ACCESS_TOKEN
         context['lat'] = settings.DIAGNOSTIC_MAP_LATITUDE
         context['lng'] = settings.DIAGNOSTIC_MAP_LONGITUDE
@@ -24,6 +25,7 @@ class HomeTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
         context['ws_bound'] = settings.DIAGNOSTIC_MAP_WS_BOUND
         context['en_bound'] = settings.DIAGNOSTIC_MAP_EN_BOUND
         context['country_iso_code'] = settings.DIAGNOSTIC_MAP_ISO_CODE
+        context['administrative_level'] = get_country_child_administrative_level(eadl_db)
         return context
 
 
@@ -44,6 +46,7 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
                 }
         for k in issues_percentages:
             issues_percentages[k]['percentage'] = round(issues_percentages[k]['count'] * 100 / total_issues)
+            issues_percentages[k]['issues'] = issues_percentages[k]['count']
         regions = [k for k in issues_percentages]
         selector = {
             "$and": [

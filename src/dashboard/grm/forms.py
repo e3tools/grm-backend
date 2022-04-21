@@ -7,7 +7,7 @@ from client import get_db
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm import CHOICE_CONTACT, CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, GENDER_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
-    get_administrative_region_choices, get_base_administrative_id, get_country_child_administrative_levels,
+    get_administrative_region_choices, get_base_administrative_id, get_country_child_administrative_level,
     get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
     get_issue_citizen_group_2_choices, get_issue_status_choices, get_issue_type_choices
 )
@@ -148,7 +148,7 @@ class NewIssueLocationForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         eadl_db = get_db()
-        label = get_country_child_administrative_levels(eadl_db)[0]['administrative_level'].title()
+        label = get_country_child_administrative_level(eadl_db)
         self.fields['administrative_region'].label = label
 
         administrative_region_choices = get_administrative_region_choices(eadl_db)
