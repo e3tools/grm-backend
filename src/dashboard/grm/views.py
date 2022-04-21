@@ -84,7 +84,8 @@ class IssueMixin:
             if 'read_only_by_reporter' in self.permissions and self.doc['reporter']['id'] != user.id:
                 self.has_permission = False
             else:
-                if hasattr(user, 'governmentworker') and self.doc['assignee']['id'] != user.id:
+                if hasattr(user, 'governmentworker') and 'assignee' in self.doc and \
+                        self.doc['assignee']['id'] != user.id:
                     if 'read' not in self.permissions and \
                             'read_only_by_reporter' not in self.permissions:
                         self.has_permission = False
@@ -120,7 +121,7 @@ class IssueMixin:
         context['choice_contact'] = CHOICE_CONTACT
         permission_to_edit = True
         user = self.request.user
-        if hasattr(user, 'governmentworker') and self.doc['assignee']['id'] != user.id:
+        if hasattr(user, 'governmentworker') and 'assignee' in self.doc and self.doc['assignee']['id'] != user.id:
             permission_to_edit = False
         context['permission_to_edit'] = permission_to_edit
         return context
