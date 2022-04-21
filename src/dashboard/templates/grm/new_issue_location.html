@@ -159,7 +159,7 @@
                         alert(error_server_message + "Error " + data.status);
                     }
                 }).done(function () {
-                        if (ancestors.length === 0) {
+                        if (ancestors.length === 1) {
                             select_region.attr('disabled', false);
                             $('#next').prop('disabled', false);
                         }

@@ -72,14 +72,16 @@
                                         </div>
                                     </div>
                                 {% endif %}
-                                <div class="row mr-2 mb-2">
-                                    <div class="col-3 label-align">
-                                        {{ form.citizen_type.label_tag }}
+                                {% if doc.citizen_type %}
+                                    <div class="row mr-2 mb-2">
+                                        <div class="col-3 label-align">
+                                            {{ form.citizen_type.label_tag }}
+                                        </div>
+                                        <div class="col-9 text-regular-family">
+                                            {% get_citizen_type_display doc.citizen_type %}
+                                        </div>
                                     </div>
-                                    <div class="col-9 text-regular-family">
-                                        {% get_citizen_type_display doc.citizen_type %}
-                                    </div>
-                                </div>
+                                {% endif %}
                                 {% if doc.citizen_age_group %}
                                     <div class="row mr-2 mb-2">
                                         <label class="col-3 label-align">

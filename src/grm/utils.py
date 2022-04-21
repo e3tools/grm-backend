@@ -19,10 +19,16 @@ def get_month_range(start, end=datetime.now(), fmt="Y F"):
 
 
 def get_administrative_region_choices(eadl_db, empty_choice=True):
-    query_result = eadl_db.get_query_result(
+    country_id = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
             "parent_id": None,
+        }
+    )[:][0]['administrative_id']
+    query_result = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "parent_id": country_id,
         }
     )
     choices = list()
@@ -98,14 +104,15 @@ def get_administrative_region_name(eadl_db, administrative_id):
 
 def get_base_administrative_id(eadl_db, administrative_id):
     has_parent = True
+    base_administrative_id = administrative_id
     while has_parent:
         parent = get_parent_administrative_level(eadl_db, administrative_id)
         if parent:
+            base_administrative_id = administrative_id
             administrative_id = parent['administrative_id']
         else:
             has_parent = False
-
-    return administrative_id
+    return base_administrative_id
 
 
 def get_child_administrative_levels(eadl_db, parent_id):
@@ -113,6 +120,22 @@ def get_child_administrative_levels(eadl_db, parent_id):
         {
             "type": 'administrative_level',
             "parent_id": parent_id,
+        }
+    )
+    return data[:]
+
+
+def get_country_child_administrative_levels(eadl_db):
+    country_id = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "parent_id": None,
+        }
+    )[:][0]['administrative_id']
+    data = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "parent_id": country_id,
         }
     )
     return data[:]
@@ -155,6 +178,11 @@ def get_parent_administrative_level(eadl_db, administrative_id):
 
 
 def get_related_region_with_specific_level(eadl_db, region_doc, level):
+    """
+    Returns the document of type=administrative_level related to the region_doc with
+    administrative_level=level. To find it, start from the region_doc and continue
+    through its ancestors until it is found, if it is not found, return the region_doc
+    """
     has_parent = True
     administrative_id = region_doc['administrative_id']
     while has_parent and region_doc['administrative_level'] != level:
