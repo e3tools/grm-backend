@@ -84,8 +84,8 @@ class IssueMixin:
             if 'read_only_by_reporter' in self.permissions and self.doc['reporter']['id'] != user.id:
                 self.has_permission = False
             else:
-                if hasattr(user, 'governmentworker') and 'assignee' in self.doc and \
-                        self.doc['assignee']['id'] != user.id:
+                is_assigned = 'assignee' in self.doc and self.doc['assignee']
+                if hasattr(user, 'governmentworker') and is_assigned and self.doc['assignee']['id'] != user.id:
                     if 'read' not in self.permissions and \
                             'read_only_by_reporter' not in self.permissions:
                         self.has_permission = False
@@ -121,7 +121,8 @@ class IssueMixin:
         context['choice_contact'] = CHOICE_CONTACT
         permission_to_edit = True
         user = self.request.user
-        if hasattr(user, 'governmentworker') and 'assignee' in self.doc and self.doc['assignee']['id'] != user.id:
+        is_assigned = 'assignee' in self.doc and self.doc['assignee']
+        if hasattr(user, 'governmentworker') and is_assigned and self.doc['assignee']['id'] != user.id:
             permission_to_edit = False
         context['permission_to_edit'] = permission_to_edit
         return context
@@ -216,7 +217,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
     def dispatch(self, request, *args, **kwargs):
         dispatch = super().dispatch(request, *args, **kwargs)
-        if self.fields_to_check and not self.has_required_fields():
+        if not self.has_required_fields():
             raise Http404
         return dispatch
 
@@ -233,9 +234,14 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return super().get_form_kwargs()
 
     def has_required_fields(self):
-        for field in self.fields_to_check:
-            if field not in self.doc:
-                return False
+        if self.fields_to_check:
+            for field in self.fields_to_check:
+
+                if field not in self.doc:
+                    return False
+
+                if field in ('assignee',) and not self.doc[field]:
+                    return False
         return True
 
     def set_details_fields(self, data):
@@ -427,6 +433,9 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         self.set_location_fields(data)
         self.set_assignee()
         self.doc.save()
+        if not self.doc['assignee']:
+            return HttpResponseRedirect(
+                reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -439,9 +448,6 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
                        'ongoing_issue', 'assignee', 'administrative_region')
 
     def form_valid(self, form):
-        if not self.doc['assignee']:
-            return HttpResponseRedirect(
-                reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
         data = form.cleaned_data
         try:
             self.set_contact_fields(data)
@@ -478,6 +484,9 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
 
         self.doc['created_date'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         self.doc.save()
+        if not self.doc['assignee']:
+            return HttpResponseRedirect(
+                reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_6', kwargs={'issue': self.kwargs['issue']}))
 
 
