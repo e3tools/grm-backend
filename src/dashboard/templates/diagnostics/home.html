@@ -13,6 +13,10 @@
 {% endblock extracss %}
 
 {% block content %}
+    {% translate 'Number' as number %}
+    {% translate 'Percentage' as percentage %}
+    {% translate 'Category' as category %}
+    {% translate 'Type' as type %}
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -67,8 +71,70 @@
                         <thead class="primary">
                         <tr>
                             <th id="administrative_level_label"></th>
-                            <th>{% translate 'Number' %}</th>
-                            <th>{% translate 'Percentage' %}</th>
+                            <th>{{ number }}</th>
+                            <th>{{ percentage }}</th>
+                        </tr>
+                        </thead>
+                        <tbody id="issue-percentages-table">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overlay issue-percentages-spin">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <div class="card">
+                <div class="card-body table-responsive overflow-y-auto" style="height: 400px;">
+                    <table id="table" class="table">
+                        <thead class="primary">
+                        <tr>
+                            <th>{% translate 'Status' %}</th>
+                            <th>{{ number }}</th>
+                            <th>{{ percentage }}</th>
+                        </tr>
+                        </thead>
+                        <tbody id="issue-percentages-table">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overlay issue-percentages-spin">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 display-flex flex-flow-column">
+            <div class="card h-100">
+                <div class="card-body table-responsive overflow-y-auto" style="max-height: 400px;">
+                    <table id="table" class="table">
+                        <thead class="primary">
+                        <tr>
+                            <th>{{ type }}</th>
+                            <th>{{ number }}</th>
+                            <th>{{ percentage }}</th>
+                        </tr>
+                        </thead>
+                        <tbody id="issue-percentages-table">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="overlay issue-percentages-spin">
+                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 display-flex flex-flow-column">
+            <div class="card h-100">
+                <div class="card-body table-responsive overflow-y-auto" style="max-height: 400px;">
+                    <table id="table" class="table">
+                        <thead class="primary">
+                        <tr>
+                            <th>{{ category }}</th>
+                            <th>{{ number }}</th>
+                            <th>{{ percentage }}</th>
                         </tr>
                         </thead>
                         <tbody id="issue-percentages-table">
@@ -87,11 +153,11 @@
     <script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
     <script type="text/javascript">
         $("#id_category").select2({
-            placeholder: "{% translate 'Category' %}",
+            placeholder: "{{ category }}",
             allowClear: true
         });
         $("#id_type").select2({
-            placeholder: "{% translate 'Type' %}",
+            placeholder: "{{ type }}",
             allowClear: true,
         });
         $("#id_administrative_region").select2({
@@ -186,7 +252,7 @@
 
             $.ajax({
                 type: 'GET',
-                url: '{% url 'dashboard:diagnostics:issues_percentages' %}',
+                url: '{% url 'dashboard:diagnostics:issues_statistics' %}',
                 data: {
                     start_date: start_date.val(),
                     end_date: end_date.val(),
@@ -195,12 +261,13 @@
                     region: current_region_id,
                 },
                 success: function (data) {
-                    if (Object.keys(data).length > 0) {
-                        let level = data[Object.keys(data)[0]].level;
+                    let region_stats = data.region_stats;
+                    if (Object.keys(region_stats).length > 0) {
+                        let level = region_stats[Object.keys(region_stats)[0]].level;
                         administrative_level_label.html(level);
 
                         let percentages_table = document.createElement('div');
-                        $.each(data, function (administrative_id, region) {
+                        $.each(region_stats, function (administrative_id, region) {
                             // create DOM element for the marker
                             const el = document.createElement('div');
                             el.className = 'map-marker';
@@ -227,7 +294,7 @@
                         });
                         $('#issue-percentages-table').html(percentages_table.innerHTML);
                     } else {
-                        let no_issues_msg = '{% translate "No issues found" %}';
+                        let no_issues_msg = "{% translate "No issues found" %}";
                         let no_issues_msg_html = '<td class="text-center" colspan="3">' + no_issues_msg + '</td>';
                         $('#issue-percentages-table').html(no_issues_msg_html)
                     }

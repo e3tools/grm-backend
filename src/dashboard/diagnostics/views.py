@@ -31,7 +31,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         eadl_db = get_db()
@@ -71,20 +71,20 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
         issues = grm_db.get_query_result(selector)[:]
 
         total_issues = len(issues)
-        issues_percentages = dict()
+        region_stats = dict()
         for doc in issues:
             key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
-            if key in issues_percentages:
-                issues_percentages[key]['count'] = issues_percentages[key]['count'] + 1
+            if key in region_stats:
+                region_stats[key]['count'] = region_stats[key]['count'] + 1
             else:
-                issues_percentages[key] = {
+                region_stats[key] = {
                     'count': 1
                 }
-        for k in issues_percentages:
-            issues_percentages[k]['percentage'] = round(issues_percentages[k]['count'] * 100 / total_issues)
-            issues_percentages[k]['issues'] = issues_percentages[k]['count']
+        for k in region_stats:
+            region_stats[k]['percentage'] = round(region_stats[k]['count'] * 100 / total_issues)
+            region_stats[k]['issues'] = region_stats[k]['count']
 
-        regions = [k for k in issues_percentages]
+        regions = [k for k in region_stats]
         selector = {
             "type": "administrative_level",
             "administrative_id": {
@@ -94,11 +94,14 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
         administrative_level_docs = eadl_db.get_query_result(selector)
         if administrative_level_docs[:]:
             for doc in administrative_level_docs:
-                data = issues_percentages[doc['administrative_id']]
+                data = region_stats[doc['administrative_id']]
                 data['name'] = doc['name']
                 data['latitude'] = doc['latitude']
                 data['longitude'] = doc['longitude']
                 data['level'] = doc['administrative_level'].capitalize()
         else:
-            issues_percentages = dict()
-        return self.render_to_json_response(issues_percentages)
+            region_stats = dict()
+        statistics = {
+            'region_stats': region_stats,
+        }
+        return self.render_to_json_response(statistics)
