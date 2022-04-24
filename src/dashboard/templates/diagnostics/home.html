@@ -227,9 +227,9 @@
                         });
                         $('#issue-percentages-table').html(percentages_table.innerHTML);
                     } else {
-                        let no_issues_found = '<td class="text-center" colspan="3">' +
-                            '{% translate "No issues found" %}' + '</td>';
-                        $('#issue-percentages-table').html(no_issues_found)
+                        let no_issues_msg = '{% translate "No issues found" %}';
+                        let no_issues_msg_html = '<td class="text-center" colspan="3">' + no_issues_msg + '</td>';
+                        $('#issue-percentages-table').html(no_issues_msg_html)
                     }
                     issue_percentage_spin.hide();
                 },
