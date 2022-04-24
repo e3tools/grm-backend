@@ -20,7 +20,7 @@ from dashboard.grm.forms import (
 )
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
-    get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_levels,
+    get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_regions,
     get_parent_administrative_level
 )
 
@@ -869,9 +869,15 @@ class SubmitIssueRejectReasonFormView(AJAXRequestMixin, ModalFormMixin, LoginReq
 class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         parent_id = request.GET.get('parent_id')
+        exclude_lower_level = request.GET.get('exclude_lower_level', None)
         eadl_db = get_db()
-        data = get_child_administrative_levels(eadl_db, parent_id)
-        return self.render_to_json_response(data, safe=False)
+        data = get_child_administrative_regions(eadl_db, parent_id)
+        child_level = None
+        if data:
+            child_level = data[0]['administrative_level'].capitalize()
+            if exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]['administrative_id']):
+                data = []
+        return self.render_to_json_response({"regions": data, "level": child_level}, safe=False)
 
 
 class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
@@ -888,4 +894,5 @@ class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, 
                     ancestors.insert(0, administrative_id)
                 else:
                     has_parent = False
+
         return self.render_to_json_response(ancestors, safe=False)

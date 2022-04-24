@@ -7,7 +7,7 @@ from client import get_db
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm import CHOICE_CONTACT, CITIZEN_TYPE_CHOICES, CONTACT_CHOICES, GENDER_CHOICES, MEDIUM_CHOICES
 from grm.utils import (
-    get_administrative_region_choices, get_base_administrative_id, get_country_child_administrative_level,
+    get_administrative_region_choices, get_base_administrative_id, get_administrative_regions_by_level,
     get_issue_age_group_choices, get_issue_category_choices, get_issue_citizen_group_1_choices,
     get_issue_citizen_group_2_choices, get_issue_status_choices, get_issue_type_choices
 )
@@ -148,7 +148,7 @@ class NewIssueLocationForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         eadl_db = get_db()
-        label = get_country_child_administrative_level(eadl_db)
+        label = get_administrative_regions_by_level(eadl_db)[0]['administrative_level'].title()
         self.fields['administrative_region'].label = label
 
         administrative_region_choices = get_administrative_region_choices(eadl_db)
@@ -182,6 +182,8 @@ class SearchIssueForm(forms.Form):
     category = forms.ChoiceField()
     type = forms.ChoiceField()
     status = forms.ChoiceField()
+    administrative_region = forms.ChoiceField()
+    administrative_region_value = forms.CharField(label='', required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -196,6 +198,13 @@ class SearchIssueForm(forms.Form):
         self.fields['category'].widget.choices = get_issue_category_choices(grm_db)
         self.fields['type'].widget.choices = get_issue_type_choices(grm_db)
         self.fields['status'].widget.choices = get_issue_status_choices(grm_db)
+
+        eadl_db = get_db()
+        label = get_administrative_regions_by_level(eadl_db)[0]['administrative_level'].title()
+        self.fields['administrative_region'].label = label
+        self.fields['administrative_region'].widget.choices = get_administrative_region_choices(eadl_db)
+        self.fields['administrative_region'].widget.attrs['class'] = "region"
+        self.fields['administrative_region_value'].widget.attrs['class'] = "hidden"
 
 
 class IssueDetailsForm(forms.Form):

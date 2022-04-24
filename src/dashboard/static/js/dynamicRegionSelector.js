@@ -1,7 +1,11 @@
 let ancestors = [];
 
+
+function loadNextLevelRegionsSuccessExtra(response) {
+}
+
 function changeRegionTrigger(url, placeholder) {
-    $(".region").change(function () {
+    $(document).on("change", ".region", function () {
         $("#id_administrative_region_value").val($("select.region:last").val());
         loadNextLevelRegions($(this), url, placeholder);
     });
@@ -9,8 +13,6 @@ function changeRegionTrigger(url, placeholder) {
 
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
-    console.log('current_level_val ' + current_level_val);
-    console.log('ancestors ' + ancestors);
     if (current_level_val !== '') {
         let select_region = $(".region");
         select_region.attr('disabled', true);
@@ -20,7 +22,10 @@ function loadNextLevelRegions(current_level, url, placeholder) {
             data: {
                 parent_id: current_level_val,
             },
-            success: function (data) {
+            success: function (response) {
+                let data = response.regions;
+                loadNextLevelRegionsSuccessExtra(response);
+
                 if (data.length > 0) {
                     let id_select = 'id_' + data[0].administrative_level;
                     let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
@@ -55,8 +60,6 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                     $(child).next().find('.select2-selection__arrow').append(
                         '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
 
-                    changeRegionTrigger(url, placeholder);
-
                     let options = '<option value></option>';
                     $.each(data, function (index, value) {
                         let administrative_id = value.administrative_id;
@@ -85,7 +88,7 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                 alert(error_server_message + "Error " + data.status);
             }
         }).done(function () {
-                if (ancestors.length === 1) {
+                if (ancestors.length <= 1) {
                     select_region.attr('disabled', false);
                     $('#next').prop('disabled', false);
                 }
@@ -99,12 +102,12 @@ function loadNextLevelRegions(current_level, url, placeholder) {
     }
 }
 
-function loadRegionSelectors(url, administrative_id) {
+function loadRegionSelectors(url, administrative_region_value) {
     $.ajax({
         type: 'GET',
         url: url,
         data: {
-            administrative_id: administrative_id,
+            administrative_id: $("#id_administrative_region_value").val(),
         },
         success: function (data) {
             if (data.length > 0) {

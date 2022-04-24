@@ -102,20 +102,21 @@ def get_administrative_region_name(eadl_db, administrative_id):
     return ', '.join(region_names)
 
 
-def get_base_administrative_id(eadl_db, administrative_id):
-    has_parent = True
+def get_base_administrative_id(eadl_db, administrative_id, level=None):
     base_administrative_id = administrative_id
-    while has_parent:
+    while True:
         parent = get_parent_administrative_level(eadl_db, administrative_id)
         if parent:
             base_administrative_id = administrative_id
             administrative_id = parent['administrative_id']
+            if level and parent['administrative_level'] == level:
+                break
         else:
-            has_parent = False
+            break
     return base_administrative_id
 
 
-def get_child_administrative_levels(eadl_db, parent_id):
+def get_child_administrative_regions(eadl_db, parent_id):
     data = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
@@ -125,24 +126,20 @@ def get_child_administrative_levels(eadl_db, parent_id):
     return data[:]
 
 
-def get_country_child_administrative_levels(eadl_db):
-    country_id = eadl_db.get_query_result(
-        {
-            "type": 'administrative_level',
-            "parent_id": None,
-        }
-    )[:][0]['administrative_id']
+def get_administrative_regions_by_level(eadl_db, level=None):
+    filters = {"type": 'administrative_level'}
+    if level:
+        filters['administrative_level'] = level
+    else:
+        filters['parent_id'] = None
+    parent_id = eadl_db.get_query_result(filters)[:][0]['administrative_id']
     data = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
-            "parent_id": country_id,
+            "parent_id": parent_id,
         }
     )
     return data[:]
-
-
-def get_country_child_administrative_level(eadl_db):
-    return get_country_child_administrative_levels(eadl_db)[0]['administrative_level'].title()
 
 
 def get_administrative_level_descendants(eadl_db, parent_id, ids):
