@@ -234,7 +234,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return super().get_form_kwargs()
 
     def has_required_fields(self):
-        if self.fields_to_check:
+        if self.fields_to_check and self.doc:
             for field in self.fields_to_check:
 
                 if field not in self.doc:
@@ -356,8 +356,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             raise Http404
 
         if assignee == "":
-            msg = _("There is no staff member for the selected category (nature of the issue). "
-                    "Please report to IT staff.")
+            msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 
         self.doc['assignee'] = assignee
@@ -872,12 +871,10 @@ class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMi
         exclude_lower_level = request.GET.get('exclude_lower_level', None)
         eadl_db = get_db()
         data = get_child_administrative_regions(eadl_db, parent_id)
-        child_level = None
-        if data:
-            child_level = data[0]['administrative_level'].capitalize()
-            if exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]['administrative_id']):
-                data = []
-        return self.render_to_json_response({"regions": data, "level": child_level}, safe=False)
+
+        if data and exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]['administrative_id']):
+            data = []
+        return self.render_to_json_response(data, safe=False)
 
 
 class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):

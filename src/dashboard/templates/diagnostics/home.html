@@ -33,9 +33,8 @@
                             {% bootstrap_field form.type layout='horizontal' show_label=False %}
                             {% bootstrap_field form.category layout='horizontal' show_label=False %}
                         </div>
-                        <div class="col-4 border-left">
+                        <div class="col-4 regions-filter border-left">
                             {% bootstrap_field form.administrative_region layout='horizontal' %}
-                            {{ form.administrative_region_value }}
                         </div>
                     </div>
                     <a class="btn fs12 text-bold-family text-primary pull-right p-0"
@@ -49,11 +48,11 @@
     <div class="row">
         <div class="col-6">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body" style="height: 650px;">
                     <div class="overlay-wrapper">
                         <div id="map"></div>
                         <div class="overlay z-index1000 issue-percentages-spin irs--round">
-                            <i class="fas fa-3x fa-sync-alt fa-spin">
+                            <i class="fas fa-2x fa-sync-alt fa-spin">
                             </i>
                         </div>
                         <pre id="info"></pre>
@@ -61,9 +60,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-6">
-            <div class="card">
-                <div class="card-body table-responsive">
+        <div class="col-6 display-flex flex-flow-column">
+            <div class="card h-100">
+                <div class="card-body table-responsive overflow-y-auto" style="max-height: 650px;">
                     <table id="table" class="table">
                         <thead class="primary">
                         <tr>
@@ -99,6 +98,11 @@
             placeholder: "{% translate 'Location' %}",
             allowClear: true
         });
+
+        $('b[role="presentation"]').hide();
+        $('.select2-selection__arrow').append(
+            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
+
     </script>
 {% endblock select2 %}
 
@@ -106,13 +110,16 @@
     {{ block.super }}
     <script src="{% static 'plugins/mapbox-gl-js/v2.6.1/mapbox-gl.js' %}"></script>
     <script>
+        let administrative_level_label = $("#administrative_level_label");
         let issue_percentage_spin = $('.issue-percentages-spin');
         let start_date = $('#id_start_date');
         let end_date = $('#id_end_date');
         let category = $('#id_category');
         let type = $('#id_type');
-        let region_level = null;
+        let current_region_id;
         let markers = [];
+
+        administrative_level_label.html($("label[for='id_administrative_region']").html());
 
         mapboxgl.accessToken = '{{ access_token }}';
         if (!mapboxgl.supported()) {
@@ -177,7 +184,6 @@
             // clear markers array
             markers.forEach((marker) => marker.remove());
 
-            console.log('region_level nuevo ' + region_level);
             $.ajax({
                 type: 'GET',
                 url: '{% url 'dashboard:diagnostics:issues_percentages' %}',
@@ -186,36 +192,45 @@
                     end_date: end_date.val(),
                     category: category.val(),
                     type: type.val(),
-                    region_level: region_level,
+                    region: current_region_id,
                 },
                 success: function (data) {
-                    let percentages_table = document.createElement('div');
-                    $.each(data, function (administrative_id, region) {
-                        // create DOM element for the marker
-                        const el = document.createElement('div');
-                        el.className = 'map-marker';
-                        el.title = region.name;
-                        el.textContent = region.percentage + '%';
+                    if (Object.keys(data).length > 0) {
+                        let level = data[Object.keys(data)[0]].level;
+                        administrative_level_label.html(level);
 
-                        // create the marker
-                        let marker = new mapboxgl.Marker(el)
-                            .setLngLat([region.longitude, region.latitude])
-                            .addTo(map);
-                        markers.push(marker);
+                        let percentages_table = document.createElement('div');
+                        $.each(data, function (administrative_id, region) {
+                            // create DOM element for the marker
+                            const el = document.createElement('div');
+                            el.className = 'map-marker';
+                            el.title = region.name;
+                            el.textContent = region.percentage + '%';
 
-                        const tr = document.createElement('tr');
-                        const td_name = document.createElement('td');
-                        td_name.innerHTML = region.name;
-                        tr.appendChild(td_name);
-                        const td_issues = document.createElement('td');
-                        td_issues.innerHTML = region.issues;
-                        tr.appendChild(td_issues);
-                        const td_percentage = document.createElement('td');
-                        td_percentage.innerHTML = region.percentage + '%';
-                        tr.appendChild(td_percentage);
-                        percentages_table.append(tr);
-                    });
-                    $('#issue-percentages-table').html(percentages_table.innerHTML);
+                            // create the marker
+                            let marker = new mapboxgl.Marker(el)
+                                .setLngLat([region.longitude, region.latitude])
+                                .addTo(map);
+                            markers.push(marker);
+
+                            const tr = document.createElement('tr');
+                            const td_name = document.createElement('td');
+                            td_name.innerHTML = region.name;
+                            tr.appendChild(td_name);
+                            const td_issues = document.createElement('td');
+                            td_issues.innerHTML = region.issues;
+                            tr.appendChild(td_issues);
+                            const td_percentage = document.createElement('td');
+                            td_percentage.innerHTML = region.percentage + '%';
+                            tr.appendChild(td_percentage);
+                            percentages_table.append(tr);
+                        });
+                        $('#issue-percentages-table').html(percentages_table.innerHTML);
+                    } else {
+                        let no_issues_found = '<td class="text-center" colspan="3">' +
+                            '{% translate "No issues found" %}' + '</td>';
+                        $('#issue-percentages-table').html(no_issues_found)
+                    }
                     issue_percentage_spin.hide();
                 },
                 error: function (data) {
@@ -225,24 +240,17 @@
             });
         }
 
-        let administrative_level_label = $("#administrative_level_label");
-        administrative_level_label.html($("label[for='id_administrative_region']").html());
-
         function changeRegionTrigger(url, placeholder) {
             $(document).on("change", ".region", function () {
-                $("#id_administrative_region_value").val($("select.region:last").val());
+                let current_input_value = $(this).val();
+                if (current_input_value) {
+                    current_region_id = current_input_value;
+                } else {
+                    current_region_id = $("select.region").eq(-2).val();
+                }
                 loadNextLevelRegions($(this), url, placeholder);
-                region_level = $("label[for='" + $(this).attr('id') + "']").html();
-                console.log('ese es el que cambia ' + region_level);
-                console.log('trigger ' + $(this).html());
                 loadStatistics();
             });
-        }
-
-        function loadNextLevelRegionsSuccessExtra(response) {
-            let level = response.level;
-            console.log('cambia en tabla a ' + level);
-            administrative_level_label.html(level);
         }
 
         let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}?exclude_lower_level=true';
@@ -291,7 +299,10 @@
         $("#clear_all_filters").on("click", function () {
             $('.issues-filter input').val('');
             $('.issues-filter select').val(null).trigger('change.select2');
+            $('.regions-filter select').val(null).trigger('change.select2');
+            current_region_id = null;
             loadStatistics();
+            loadNextLevelRegions($("#id_administrative_region"), '', '');
         });
 
     </script>

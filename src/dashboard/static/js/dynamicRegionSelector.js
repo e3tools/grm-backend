@@ -1,9 +1,5 @@
 let ancestors = [];
 
-
-function loadNextLevelRegionsSuccessExtra(response) {
-}
-
 function changeRegionTrigger(url, placeholder) {
     $(document).on("change", ".region", function () {
         $("#id_administrative_region_value").val($("select.region:last").val());
@@ -13,6 +9,7 @@ function changeRegionTrigger(url, placeholder) {
 
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
+    console.log('current_level_val para cargar proximo selector: ' + current_level_val);
     if (current_level_val !== '') {
         let select_region = $(".region");
         select_region.attr('disabled', true);
@@ -22,10 +19,7 @@ function loadNextLevelRegions(current_level, url, placeholder) {
             data: {
                 parent_id: current_level_val,
             },
-            success: function (response) {
-                let data = response.regions;
-                loadNextLevelRegionsSuccessExtra(response);
-
+            success: function (data) {
                 if (data.length > 0) {
                     let id_select = 'id_' + data[0].administrative_level;
                     let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
@@ -102,12 +96,13 @@ function loadNextLevelRegions(current_level, url, placeholder) {
     }
 }
 
-function loadRegionSelectors(url, administrative_region_value) {
+function loadRegionSelectors(url) {
+    let administrative_region_value = $("#id_administrative_region_value").val();
     $.ajax({
         type: 'GET',
         url: url,
         data: {
-            administrative_id: $("#id_administrative_region_value").val(),
+            administrative_id: administrative_region_value,
         },
         success: function (data) {
             if (data.length > 0) {

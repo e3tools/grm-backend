@@ -183,7 +183,6 @@ class SearchIssueForm(forms.Form):
     type = forms.ChoiceField()
     status = forms.ChoiceField()
     administrative_region = forms.ChoiceField()
-    administrative_region_value = forms.CharField(label='', required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -204,7 +203,6 @@ class SearchIssueForm(forms.Form):
         self.fields['administrative_region'].label = label
         self.fields['administrative_region'].widget.choices = get_administrative_region_choices(eadl_db)
         self.fields['administrative_region'].widget.attrs['class'] = "region"
-        self.fields['administrative_region_value'].widget.attrs['class'] = "hidden"
 
 
 class IssueDetailsForm(forms.Form):

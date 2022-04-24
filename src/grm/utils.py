@@ -18,6 +18,11 @@ def get_month_range(start, end=datetime.now(), fmt="Y F"):
     return months
 
 
+def unix_time_millis(dt):
+    epoch = datetime.utcfromtimestamp(0)
+    return int((dt - epoch).total_seconds() * 1000)
+
+
 def get_administrative_region_choices(eadl_db, empty_choice=True):
     country_id = eadl_db.get_query_result(
         {
@@ -102,14 +107,14 @@ def get_administrative_region_name(eadl_db, administrative_id):
     return ', '.join(region_names)
 
 
-def get_base_administrative_id(eadl_db, administrative_id, level=None):
+def get_base_administrative_id(eadl_db, administrative_id, base_parent_id=None):
     base_administrative_id = administrative_id
     while True:
         parent = get_parent_administrative_level(eadl_db, administrative_id)
         if parent:
             base_administrative_id = administrative_id
             administrative_id = parent['administrative_id']
-            if level and parent['administrative_level'] == level:
+            if base_parent_id and parent['administrative_id'] == base_parent_id:
                 break
         else:
             break

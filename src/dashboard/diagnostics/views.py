@@ -8,7 +8,7 @@ from django.views import generic
 from client import get_db
 from dashboard.grm.forms import SearchIssueForm
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
-from grm.utils import get_base_administrative_id
+from grm.utils import get_administrative_level_descendants, get_base_administrative_id
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -34,40 +34,18 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
 class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
+        eadl_db = get_db()
 
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
         category = self.request.GET.get('category')
         issue_type = self.request.GET.get('type')
-        region_level = self.request.GET.get('region_level')
+        region = self.request.GET.get('region')
 
-        issues_by_region = grm_db.get_view_result('issues', 'group_by_administrative_region', group=True)[:]
-        total_issues = sum((i['value'] for i in issues_by_region))
-        issues_percentages = dict()
-        eadl_db = get_db()
-        for d in issues_by_region:
-            key = get_base_administrative_id(eadl_db, d['key'], region_level)
-            if key in issues_percentages:
-                issues_percentages[key]['count'] = issues_percentages[key]['count'] + d['value']
-            else:
-                issues_percentages[key] = {
-                    'count': d['value']
-                }
-        for k in issues_percentages:
-            issues_percentages[k]['percentage'] = round(issues_percentages[k]['count'] * 100 / total_issues)
-            issues_percentages[k]['issues'] = issues_percentages[k]['count']
-        regions = [k for k in issues_percentages]
         selector = {
-            "$and": [
-                {
-                    "type": "administrative_level"
-                },
-                {
-                    "administrative_id": {
-                        "$in": regions
-                    }
-                }
-            ]
+            "type": "issue",
+            "confirmed": True,
+            "auto_increment_id": {"$ne": ""},
         }
 
         date_range = dict()
@@ -84,15 +62,43 @@ class IssuesPercentagesView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMi
         if issue_type:
             selector["issue_type.id"] = int(issue_type)
 
+        if region:
+            filter_regions = get_administrative_level_descendants(eadl_db, region, []) + [region]
+            selector["administrative_region.administrative_id"] = {
+                "$in": filter_regions
+            }
+
+        issues = grm_db.get_query_result(selector)[:]
+
+        total_issues = len(issues)
+        issues_percentages = dict()
+        for doc in issues:
+            key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
+            if key in issues_percentages:
+                issues_percentages[key]['count'] = issues_percentages[key]['count'] + 1
+            else:
+                issues_percentages[key] = {
+                    'count': 1
+                }
+        for k in issues_percentages:
+            issues_percentages[k]['percentage'] = round(issues_percentages[k]['count'] * 100 / total_issues)
+            issues_percentages[k]['issues'] = issues_percentages[k]['count']
+
+        regions = [k for k in issues_percentages]
+        selector = {
+            "type": "administrative_level",
+            "administrative_id": {
+                "$in": regions
+            }
+        }
         administrative_level_docs = eadl_db.get_query_result(selector)
-        print(administrative_level_docs[:])
         if administrative_level_docs[:]:
             for doc in administrative_level_docs:
-                d = issues_percentages[doc['administrative_id']]
-                d['name'] = doc['name']
-                d['latitude'] = doc['latitude']
-                d['longitude'] = doc['longitude']
+                data = issues_percentages[doc['administrative_id']]
+                data['name'] = doc['name']
+                data['latitude'] = doc['latitude']
+                data['longitude'] = doc['longitude']
+                data['level'] = doc['administrative_level'].capitalize()
         else:
             issues_percentages = dict()
-        # print(issues_percentages)
         return self.render_to_json_response(issues_percentages)

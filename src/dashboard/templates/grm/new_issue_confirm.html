@@ -171,12 +171,6 @@
             placeholder: "{% translate 'Click to select location' %}",
             allowClear: true
         });
-
-        let get_ancestors_url = '{% url 'dashboard:grm:get_ancestor_administrative_levels' %}';
-        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
-        let choice_placeholder = "{% translate 'Click to select location' %}";
-        changeRegionTrigger(get_choices_url, choice_placeholder);
-        loadRegionSelectors(get_ancestors_url);
     </script>
 {% endblock select2 %}
 
@@ -337,5 +331,10 @@
             $("#id_description").focus();
         });
 
+        let get_ancestors_url = '{% url 'dashboard:grm:get_ancestor_administrative_levels' %}';
+        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
+        let choice_placeholder = "{% translate 'Click to select location' %}";
+        changeRegionTrigger(get_choices_url, choice_placeholder);
+        loadRegionSelectors(get_ancestors_url);
     </script>
 {% endblock javascript %}
