@@ -72,17 +72,42 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
 
         total_issues = len(issues)
         region_stats = dict()
-        for doc in issues:
-            key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
-            if key in region_stats:
-                region_stats[key]['count'] = region_stats[key]['count'] + 1
+        status_stats = dict()
+        type_stats = dict()
+        category_stats = dict()
+
+        def fill_count(key, stats: dict, name=None):
+            if key in stats:
+                stats[key]['count'] = stats[key]['count'] + 1
             else:
-                region_stats[key] = {
+                stats[key] = {
                     'count': 1
                 }
-        for k in region_stats:
-            region_stats[k]['percentage'] = round(region_stats[k]['count'] * 100 / total_issues)
-            region_stats[k]['issues'] = region_stats[k]['count']
+            if name:
+                stats[key]['name'] = name
+
+        def process_stats(stats: dict):
+            for k in stats:
+                stats[k]['percentage'] = round(stats[k]['count'] * 100 / total_issues)
+                stats[k]['issues'] = stats[k]['count']
+
+        for doc in issues:
+            region_key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
+            fill_count(region_key, region_stats)
+
+            status_key = doc['status']['id']
+            fill_count(status_key, status_stats, doc['status']['name'])
+
+            type_key = doc['issue_type']['id']
+            fill_count(type_key, type_stats, doc['issue_type']['name'])
+
+            category_key = doc['category']['id']
+            fill_count(category_key, category_stats, doc['category']['name'])
+
+        process_stats(region_stats)
+        process_stats(status_stats)
+        process_stats(type_stats)
+        process_stats(category_stats)
 
         regions = [k for k in region_stats]
         selector = {
@@ -103,5 +128,8 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             region_stats = dict()
         statistics = {
             'region_stats': region_stats,
+            'status_stats': status_stats,
+            'type_stats': type_stats,
+            'category_stats': category_stats,
         }
         return self.render_to_json_response(statistics)

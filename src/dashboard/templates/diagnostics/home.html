@@ -73,7 +73,7 @@
                             <th>{{ percentage }}</th>
                         </tr>
                         </thead>
-                        <tbody id="issue-percentages-table">
+                        <tbody id="region-stats">
                         </tbody>
                     </table>
                 </div>
@@ -95,7 +95,7 @@
                             <th>{{ percentage }}</th>
                         </tr>
                         </thead>
-                        <tbody id="issue-percentages-table">
+                        <tbody id="status-stats">
                         </tbody>
                     </table>
                 </div>
@@ -115,7 +115,7 @@
                             <th>{{ percentage }}</th>
                         </tr>
                         </thead>
-                        <tbody id="issue-percentages-table">
+                        <tbody id="type-stats">
                         </tbody>
                     </table>
                 </div>
@@ -135,7 +135,7 @@
                             <th>{{ percentage }}</th>
                         </tr>
                         </thead>
-                        <tbody id="issue-percentages-table">
+                        <tbody id="category-stats">
                         </tbody>
                     </table>
                 </div>
@@ -244,6 +244,24 @@
 
         loadStatistics();
 
+        function fillStatsTable(stats, table_selector) {
+            let stats_table = document.createElement('div');
+            $.each(stats, function (key, value) {
+                const tr = document.createElement('tr');
+                const td_name = document.createElement('td');
+                td_name.innerHTML = value.name;
+                tr.appendChild(td_name);
+                const td_issues = document.createElement('td');
+                td_issues.innerHTML = value.issues;
+                tr.appendChild(td_issues);
+                const td_percentage = document.createElement('td');
+                td_percentage.innerHTML = value.percentage + '%';
+                tr.appendChild(td_percentage);
+                stats_table.append(tr);
+            });
+            table_selector.html(stats_table.innerHTML);
+        }
+
         function loadStatistics() {
             // clear markers array
             markers.forEach((marker) => marker.remove());
@@ -260,11 +278,14 @@
                 },
                 success: function (data) {
                     let region_stats = data.region_stats;
+                    let status_stats = data.status_stats;
+                    let type_stats = data.type_stats;
+                    let category_stats = data.category_stats;
+
                     if (Object.keys(region_stats).length > 0) {
                         let level = region_stats[Object.keys(region_stats)[0]].level;
                         administrative_level_label.html(level);
 
-                        let percentages_table = document.createElement('div');
                         $.each(region_stats, function (administrative_id, region) {
                             // create DOM element for the marker
                             const el = document.createElement('div');
@@ -278,23 +299,20 @@
                                 .addTo(map);
                             markers.push(marker);
 
-                            const tr = document.createElement('tr');
-                            const td_name = document.createElement('td');
-                            td_name.innerHTML = region.name;
-                            tr.appendChild(td_name);
-                            const td_issues = document.createElement('td');
-                            td_issues.innerHTML = region.issues;
-                            tr.appendChild(td_issues);
-                            const td_percentage = document.createElement('td');
-                            td_percentage.innerHTML = region.percentage + '%';
-                            tr.appendChild(td_percentage);
-                            percentages_table.append(tr);
                         });
-                        $('#issue-percentages-table').html(percentages_table.innerHTML);
+
+                        fillStatsTable(region_stats, $('#region-stats'));
+                        fillStatsTable(status_stats, $('#status-stats'));
+                        fillStatsTable(type_stats, $('#type-stats'));
+                        fillStatsTable(category_stats, $('#category-stats'));
+
                     } else {
                         let no_issues_msg = "{% translate "No issues found" %}";
                         let no_issues_msg_html = '<td class="text-center" colspan="3">' + no_issues_msg + '</td>';
-                        $('#issue-percentages-table').html(no_issues_msg_html)
+                        $('#region-stats').html(no_issues_msg_html);
+                        $('#status-stats').html(no_issues_msg_html);
+                        $('#type-stats').html(no_issues_msg_html);
+                        $('#category-stats').html(no_issues_msg_html);
                     }
                     issue_percentage_spin.hide();
                 },
