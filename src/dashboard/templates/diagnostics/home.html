@@ -15,8 +15,6 @@
 {% block content %}
     {% translate 'Number' as number %}
     {% translate 'Percentage' as percentage %}
-    {% translate 'Category' as category %}
-    {% translate 'Type' as type %}
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -112,7 +110,7 @@
                     <table id="table" class="table">
                         <thead class="primary">
                         <tr>
-                            <th>{{ type }}</th>
+                            <th>{% translate 'Type' %}</th>
                             <th>{{ number }}</th>
                             <th>{{ percentage }}</th>
                         </tr>
@@ -132,7 +130,7 @@
                     <table id="table" class="table">
                         <thead class="primary">
                         <tr>
-                            <th>{{ category }}</th>
+                            <th>{% translate 'Category' %}</th>
                             <th>{{ number }}</th>
                             <th>{{ percentage }}</th>
                         </tr>
@@ -153,11 +151,11 @@
     <script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
     <script type="text/javascript">
         $("#id_category").select2({
-            placeholder: "{{ category }}",
+            placeholder: "{% translate 'Category' %}",
             allowClear: true
         });
         $("#id_type").select2({
-            placeholder: "{{ type }}",
+            placeholder: "{% translate 'Type' %}",
             allowClear: true,
         });
         $("#id_administrative_region").select2({
