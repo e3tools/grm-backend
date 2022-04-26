@@ -32990,3 +32990,20 @@ a.text-muted:hover {
     padding-top: 6px;
     box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.1);
 }
+
+.pie-chart {
+    min-height: 250px;
+    height: 250px;
+    max-height: 250px;
+    max-width: 100%;
+}
+
+.card.transparent {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.card.transparent > .card-body {
+    padding: 0 !important;
+}
