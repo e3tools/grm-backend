@@ -154,6 +154,14 @@ LOCALE_PATHS = [
     BASE_DIR / "locale",
 ]
 
+# Format localization
+# https://docs.djangoproject.com/en/4.0/topics/i18n/formatting/#format-localization
+DATE_INPUT_FORMATS = [
+    '%d-%m-%Y', '%d/%m/%Y', '%d/%m/%y',  # '25-10-2006', '25/10/2006', '25/10/06'
+    '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
+    '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
+]
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 STATIC_URL = '/static/'
@@ -194,12 +202,6 @@ COUCHDB_URL = env('COUCHDB_URL')
 COUCHDB_USERNAME = env('COUCHDB_USERNAME')
 
 COUCHDB_PASSWORD = env('COUCHDB_PASSWORD')
-
-DATE_INPUT_FORMATS = [
-    '%d-%m-%Y', '%d/%m/%Y', '%d/%m/%y',  # '25-10-2006', '25/10/2006', '25/10/06'
-    '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
-    '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
-]
 
 # Celery settings
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')

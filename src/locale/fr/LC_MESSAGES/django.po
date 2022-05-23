@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-13 18:46+0200\n"
+"POT-Creation-Date: 2022-05-23 23:35+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -133,8 +133,8 @@ msgstr ""
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/adls/views.py:121 dashboard/grm/views.py:770
-#: dashboard/grm/views.py:817 dashboard/templates/grm/issue_detail.html:171
+#: dashboard/adls/views.py:121 dashboard/grm/views.py:779
+#: dashboard/grm/views.py:826 dashboard/templates/grm/issue_detail.html:171
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -158,7 +158,7 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr "Les informations de profil ont été modifiées avec succès."
 
-#: dashboard/diagnostics/views.py:15
+#: dashboard/diagnostics/views.py:19
 #: dashboard/templates/layouts/sidebar.html:35
 msgid "Diagnostics"
 msgstr "Diagnostique"
@@ -267,49 +267,49 @@ msgstr "S'il vous plaît décrivez le problème"
 msgid "Current event or multiple occurrences"
 msgstr ""
 
-#: dashboard/grm/forms.py:184
+#: dashboard/grm/forms.py:178
 msgid "Start Date"
 msgstr "Date de début"
 
-#: dashboard/grm/forms.py:185
+#: dashboard/grm/forms.py:179
 msgid "End Date"
 msgstr "Date de fin"
 
-#: dashboard/grm/forms.py:186
+#: dashboard/grm/forms.py:180
 msgid "ID Number / Access Code"
 msgstr "Numéro ID / Code d'accès"
 
-#: dashboard/grm/forms.py:208 dashboard/templates/grm/issue_list.html:9
+#: dashboard/grm/forms.py:209 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
 msgid "Assigned to"
 msgstr "Assigné à"
 
-#: dashboard/grm/forms.py:224
+#: dashboard/grm/forms.py:225
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
-#: dashboard/grm/views.py:33 dashboard/grm/views.py:371
-#: dashboard/grm/views.py:387 dashboard/grm/views.py:404
-#: dashboard/grm/views.py:418 dashboard/grm/views.py:434
-#: dashboard/grm/views.py:485 dashboard/grm/views.py:506
-#: dashboard/grm/views.py:604 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:33 dashboard/grm/views.py:377
+#: dashboard/grm/views.py:393 dashboard/grm/views.py:410
+#: dashboard/grm/views.py:424 dashboard/grm/views.py:443
+#: dashboard/grm/views.py:494 dashboard/grm/views.py:515
+#: dashboard/grm/views.py:613 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr "MGR"
 
-#: dashboard/grm/views.py:132
+#: dashboard/grm/views.py:134
 msgid "Add attachment"
 msgstr "Ajouter une pièce jointe"
 
-#: dashboard/grm/views.py:133
+#: dashboard/grm/views.py:135
 msgid "Upload"
 msgstr "Téléverser"
 
-#: dashboard/grm/views.py:153
+#: dashboard/grm/views.py:155
 msgid "The attachment was successfully uploaded."
 msgstr "La pièce jointe a été téléverser avec succès."
 
-#: dashboard/grm/views.py:156
+#: dashboard/grm/views.py:158
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
@@ -318,7 +318,7 @@ msgstr ""
 "jointe dans la base de données. S'il vous plaît signaler au personnel des "
 "TIC."
 
-#: dashboard/grm/views.py:160
+#: dashboard/grm/views.py:162
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
@@ -327,46 +327,45 @@ msgstr ""
 "Le fichier n'a pas pu être téléverser car il a déjà atteint la limite de "
 "%(max)d pièces jointes."
 
-#: dashboard/grm/views.py:184
+#: dashboard/grm/views.py:186
 msgid "The attachment was successfully deleted."
 msgstr "La pièce jointe a été supprimée avec succès."
 
-#: dashboard/grm/views.py:352
+#: dashboard/grm/views.py:359
 msgid ""
-"There is no staff member for the selected category (nature of the issue). "
-"Please report to IT staff."
+"There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:501 dashboard/grm/views.py:608
+#: dashboard/grm/views.py:510 dashboard/grm/views.py:617
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:599
+#: dashboard/grm/views.py:608
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:656
+#: dashboard/grm/views.py:665
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:688
+#: dashboard/grm/views.py:697
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:691
+#: dashboard/grm/views.py:700
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: dashboard/grm/views.py:759 dashboard/grm/views.py:805
-#: dashboard/grm/views.py:852
+#: dashboard/grm/views.py:768 dashboard/grm/views.py:814
+#: dashboard/grm/views.py:861
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
-#: dashboard/grm/views.py:769
+#: dashboard/grm/views.py:778
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:816
+#: dashboard/grm/views.py:825
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
@@ -539,6 +538,7 @@ msgid "Go to the phase"
 msgstr "Aller à la phase"
 
 #: dashboard/templates/adls/task_detail.html:25
+#: dashboard/templates/diagnostics/home.html:19
 #: dashboard/templates/grm/issue_list.html:13
 #: dashboard/templates/grm/issue_status_buttons.html:5
 #: dashboard/templates/grm/review_issues.html:224
@@ -548,7 +548,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:7
 #: dashboard/templates/grm/issue_attachments_column1.html:7
-#: dashboard/templates/grm/new_issue_confirmation.html:174
+#: dashboard/templates/grm/new_issue_confirmation.html:176
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -565,8 +565,9 @@ msgid "No notes"
 msgstr "Pas de remarques"
 
 #: dashboard/templates/adls/task_detail.html:56
+#: dashboard/templates/diagnostics/home.html:196
 #: dashboard/templates/grm/issue_detail.html:108
-#: dashboard/templates/grm/new_issue_confirmation.html:193
+#: dashboard/templates/grm/new_issue_confirmation.html:195
 msgid "Location"
 msgstr "Emplacement"
 
@@ -630,6 +631,53 @@ msgstr "Cette section est en construction"
 #: dashboard/templates/common/under_construction_col.html:6
 msgid "Under construction"
 msgstr "En construction"
+
+#: dashboard/templates/diagnostics/home.html:17
+msgid "Number"
+msgstr "Numéro"
+
+#: dashboard/templates/diagnostics/home.html:18
+msgid "Percentage"
+msgstr ""
+
+#: dashboard/templates/diagnostics/home.html:20
+#: dashboard/templates/diagnostics/home.html:192
+#: dashboard/templates/grm/issue_detail.html:132
+#: dashboard/templates/grm/issue_list.html:12
+#: dashboard/templates/grm/review_issues.html:220
+msgid "Type"
+msgstr ""
+
+#: dashboard/templates/diagnostics/home.html:21
+#: dashboard/templates/diagnostics/home.html:188
+#: dashboard/templates/grm/issue_detail.html:122
+#: dashboard/templates/grm/issue_list.html:11
+#: dashboard/templates/grm/review_issues.html:216
+msgid "Category"
+msgstr "Catégory"
+
+#: dashboard/templates/diagnostics/home.html:29
+#: dashboard/templates/grm/review_issues.html:24
+msgid "Filter by"
+msgstr "Filtrer par"
+
+#: dashboard/templates/diagnostics/home.html:49
+#: dashboard/templates/grm/review_issues.html:42
+msgid "Clear all filters"
+msgstr "Effacer tous les filtres"
+
+#: dashboard/templates/diagnostics/home.html:447
+#: dashboard/templates/grm/issue_list.html:34
+msgid "No issues found"
+msgstr "Aucun problème n'a été trouvé"
+
+#: dashboard/templates/diagnostics/home.html:477
+#: dashboard/templates/grm/new_issue_confirm.html:171
+#: dashboard/templates/grm/new_issue_confirm.html:336
+#: dashboard/templates/grm/new_issue_location.html:56
+#: dashboard/templates/grm/new_issue_location.html:69
+msgid "Click to select location"
+msgstr ""
 
 #: dashboard/templates/grm/dashboard.html:13
 msgid "Resources & Announcements"
@@ -705,25 +753,13 @@ msgid "Confidential"
 msgstr ""
 
 #: dashboard/templates/grm/issue_detail.html:93
-#: dashboard/templates/grm/new_issue_confirmation.html:86
+#: dashboard/templates/grm/new_issue_confirmation.html:88
 msgid "Age"
-msgstr ""
-
-#: dashboard/templates/grm/issue_detail.html:122
-#: dashboard/templates/grm/issue_list.html:11
-#: dashboard/templates/grm/review_issues.html:216
-msgid "Category"
-msgstr "Catégory"
-
-#: dashboard/templates/grm/issue_detail.html:132
-#: dashboard/templates/grm/issue_list.html:12
-#: dashboard/templates/grm/review_issues.html:220
-msgid "Type"
 msgstr ""
 
 #: dashboard/templates/grm/issue_detail.html:149
 msgid "Steps Taken"
-msgstr ""
+msgstr "Actions prises"
 
 #: dashboard/templates/grm/issue_list.html:6
 #: dashboard/templates/grm/new_issue_confirmation.html:34
@@ -738,21 +774,17 @@ msgstr "Code d'accès"
 msgid "Days Open"
 msgstr "Jours d'ouverture"
 
-#: dashboard/templates/grm/issue_list.html:34
-msgid "No issues found"
-msgstr "Aucun problème n'a été trouvé"
-
 #: dashboard/templates/grm/issue_status_buttons.html:15
 msgid "Accept Issue"
-msgstr ""
+msgstr "Accepter la plainte"
 
 #: dashboard/templates/grm/issue_status_buttons.html:29
 msgid "Record Resolution"
-msgstr ""
+msgstr "Enregistrer la résolution"
 
 #: dashboard/templates/grm/issue_status_buttons.html:42
 msgid "Reject Issue"
-msgstr ""
+msgstr "Rejeter la plainte"
 
 #: dashboard/templates/grm/new_issue_confirm.html:9
 msgid "Edit"
@@ -794,41 +826,34 @@ msgstr "ENREGISTRER ET SUIVRE"
 msgid "BACK"
 msgstr "ARRIÈRE"
 
-#: dashboard/templates/grm/new_issue_confirm.html:140
+#: dashboard/templates/grm/new_issue_confirm.html:141
 #: dashboard/templates/grm/new_issue_contact.html:63
 msgid "Click to select contact method"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirm.html:145
+#: dashboard/templates/grm/new_issue_confirm.html:146
 #: dashboard/templates/grm/new_issue_person.html:55
 msgid "Click to select age group"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirm.html:149
+#: dashboard/templates/grm/new_issue_confirm.html:150
 #: dashboard/templates/grm/new_issue_person.html:59
 msgid "Click to select gender"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirm.html:152
+#: dashboard/templates/grm/new_issue_confirm.html:153
 #: dashboard/templates/grm/new_issue_person.html:62
 msgid "Click to select religion, nationality"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirm.html:162
+#: dashboard/templates/grm/new_issue_confirm.html:163
 #: dashboard/templates/grm/new_issue_details.html:65
 msgid "Click to select the report"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirm.html:166
+#: dashboard/templates/grm/new_issue_confirm.html:167
 #: dashboard/templates/grm/new_issue_details.html:69
 msgid "Click to select the type of grievance"
-msgstr ""
-
-#: dashboard/templates/grm/new_issue_confirm.html:170
-#: dashboard/templates/grm/new_issue_confirm.html:246
-#: dashboard/templates/grm/new_issue_location.html:55
-#: dashboard/templates/grm/new_issue_location.html:130
-msgid "Click to select location"
 msgstr ""
 
 #: dashboard/templates/grm/new_issue_confirmation.html:28
@@ -843,23 +868,23 @@ msgstr ""
 msgid "Citizen name"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:96
+#: dashboard/templates/grm/new_issue_confirmation.html:98
 msgid "Gender"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:141
+#: dashboard/templates/grm/new_issue_confirmation.html:143
 msgid "Report"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:149
+#: dashboard/templates/grm/new_issue_confirmation.html:151
 msgid "Type of grievance"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:157
+#: dashboard/templates/grm/new_issue_confirmation.html:159
 msgid "Description"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:205
+#: dashboard/templates/grm/new_issue_confirmation.html:207
 msgid "Done"
 msgstr "Terminé"
 
@@ -886,14 +911,6 @@ msgstr ""
 #: dashboard/templates/grm/review_issues.html:12
 msgid "Search Results"
 msgstr "Chercher"
-
-#: dashboard/templates/grm/review_issues.html:24
-msgid "Filter by"
-msgstr "Filtrer par"
-
-#: dashboard/templates/grm/review_issues.html:42
-msgid "Clear all filters"
-msgstr "Effacer tous les filtres"
 
 #: dashboard/templates/layouts/base_error.html:14
 msgid "Error"
