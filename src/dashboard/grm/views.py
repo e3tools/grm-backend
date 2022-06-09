@@ -1,3 +1,4 @@
+import random
 from datetime import datetime, timedelta
 
 from django.conf import settings
@@ -222,10 +223,12 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return dispatch
 
     def get_query_result(self, **kwargs):
+        sample_words = ["Tree", "Cat", "Dog", "Car", "House"]
         return self.grm_db.get_query_result({
             "auto_increment_id": kwargs['issue'],
             "reporter.id": self.request.user.id,
             "confirmed": False,
+            "tracking_code": f'{random.choice(sample_words)}{random.choice(range(1, 1000))}',
             "type": 'issue'
         })
 
