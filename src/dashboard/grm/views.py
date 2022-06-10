@@ -47,6 +47,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         auto_increment_id = get_auto_increment_id(grm_db)
         user = request.user
+        sample_words = ["Tree", "Cat", "Dog", "Car", "House"]
         issue = {
             "auto_increment_id": auto_increment_id,
             "reporter": {
@@ -57,6 +58,7 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
             "confirmed": False,
             "escalate_flag": False,
             "created_by": False,
+            "tracking_code": f'{random.choice(sample_words)}{random.choice(range(1, 1000))}',
             "type": "issue"
         }
         grm_db.create_document(issue)
@@ -223,12 +225,10 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return dispatch
 
     def get_query_result(self, **kwargs):
-        sample_words = ["Tree", "Cat", "Dog", "Car", "House"]
         return self.grm_db.get_query_result({
             "auto_increment_id": kwargs['issue'],
             "reporter.id": self.request.user.id,
             "confirmed": False,
-            "tracking_code": f'{random.choice(sample_words)}{random.choice(range(1, 1000))}',
             "type": 'issue'
         })
 
