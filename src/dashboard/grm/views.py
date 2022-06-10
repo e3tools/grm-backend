@@ -548,7 +548,7 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
         }
         user = self.request.user
         if hasattr(user, 'governmentworker'):
-            parent_id = user.governmentworker.administrative_level
+            parent_id = user.governmentworker.administrative_id
             descendants = get_administrative_level_descendants(eadl_db, parent_id, [])
             allowed_regions = descendants + [parent_id]
             selector["$or"] = [

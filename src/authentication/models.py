@@ -38,7 +38,7 @@ class User(AbstractUser):
 class GovernmentWorker(models.Model):
     user = models.OneToOneField('User', models.PROTECT)
     department = models.PositiveSmallIntegerField(db_index=True, verbose_name=_('department'))
-    administrative_level = models.CharField(
+    administrative_id = models.CharField(
         max_length=255, blank=True, null=True, verbose_name=_('administrative level'))
 
     class Meta:
@@ -52,11 +52,11 @@ class GovernmentWorker(models.Model):
     def has_read_permission_for_issue(self, eadl_db, issue):
         try:
             issue_administrative_id = issue['administrative_region']['administrative_id']
-            if issue_administrative_id != self.administrative_level:
+            if issue_administrative_id != self.administrative_id:
                 issue_department_id = issue['category']['assigned_department']
                 if self.department != issue_department_id:
                     return False
-            belongs = belongs_to_region(eadl_db, issue_administrative_id, self.administrative_level)
+            belongs = belongs_to_region(eadl_db, issue_administrative_id, self.administrative_id)
             return belongs
         except Exception:
             return False
@@ -70,38 +70,61 @@ def get_government_worker_choices(empty_choice=True):
     return choices
 
 
-def get_assignee(grm_db, eadl_db, issue_doc):
+def get_assignee(grm_db, eadl_db, issue_doc, errors=None):
     try:
         doc_category = grm_db.get_query_result({
             "id": issue_doc['category']['id'],
             "type": 'issue_category'
         })[0][0]
     except Exception:
+        if errors:
+            error = 'Error trying to get issue_category document in get_assignee function'
+            errors.append(error)
         raise
 
-    department_id = doc_category['assigned_department']['id']
+    assigned_department = doc_category['assigned_department']
+    department_id = assigned_department['id']
 
     if doc_category['redirection_protocol']:
-        try:
-            doc_administrative_level = eadl_db.get_query_result({
-                "administrative_id": issue_doc['administrative_region']['administrative_id'],
-                "type": 'administrative_level'
-            })[0][0]
-        except Exception:
-            raise
-        level = issue_doc['category']['administrative_level']
-        related_region = get_related_region_with_specific_level(eadl_db, doc_administrative_level, level)
+        assigned_department_level = assigned_department[
+            'administrative_level'] if 'administrative_level' in assigned_department else None
+        assigned_department_level = assigned_department_level.strip() if assigned_department_level else None
+        administrative_id = None
+
+        if not assigned_department_level:
+            try:
+                reporter = GovernmentWorker.objects.get(user=issue_doc['reporter']['id'])
+                administrative_id = reporter.administrative_id
+            except Exception:
+                pass
+
+        if not administrative_id:
+            try:
+                doc_administrative_level = eadl_db.get_query_result({
+                    "administrative_id": issue_doc['administrative_region']['administrative_id'],
+                    "type": 'administrative_level'
+                })[0][0]
+            except Exception:
+                if errors:
+                    error = 'Error trying to get administrative_level document in get_assignee function'
+                    errors.append(error)
+                raise
+            level = issue_doc['category']['administrative_level']
+            related_region = get_related_region_with_specific_level(eadl_db, doc_administrative_level, level)
+            administrative_id = related_region['administrative_id']
+
+        related_workers = set(
+            GovernmentWorker.objects.filter(
+                department=department_id, administrative_id=administrative_id).values_list('user', flat=True))
 
         startkey = [department_id, None, None]
         endkey = [department_id, {}, {}]
         assignments_result = grm_db.get_view_result(
             'issues', 'group_by_assignee', group=True, startkey=startkey, endkey=endkey)[:]
-        administrative_level = related_region['administrative_id']
-        related_workers = set(
-            GovernmentWorker.objects.filter(
-                department=department_id, administrative_level=administrative_level).values_list('user', flat=True))
+
         department_workers_with_assignment = {worker['key'][1] for worker in assignments_result}
         department_workers_without_assignment = related_workers - department_workers_with_assignment
+
         if department_workers_without_assignment:
             worker_id = list(department_workers_without_assignment)[0]
             worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
@@ -123,7 +146,7 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                         break
             elif related_workers:
                 worker = GovernmentWorker.objects.filter(
-                    department=department_id, administrative_level=administrative_level).first()
+                    department=department_id, administrative_id=administrative_id).first()
                 assignee = {
                     "id": worker.user.id,
                     "name": worker.name
@@ -135,6 +158,9 @@ def get_assignee(grm_db, eadl_db, issue_doc):
                 "type": 'issue_department'
             })[0][0]
         except Exception:
+            if errors:
+                error = 'Error trying to get issue_department document in get_assignee function'
+                errors.append(error)
             raise
         assignee = doc_department['head']
     if not assignee:
@@ -161,7 +187,7 @@ def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
         raise
 
     administrative_id = parent['administrative_id']
-    worker = GovernmentWorker.objects.filter(department=department_id, administrative_level=administrative_id).first()
+    worker = GovernmentWorker.objects.filter(department=department_id, administrative_id=administrative_id).first()
     if worker:
         assignee = {
             "id": worker.user.id,

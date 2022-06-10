@@ -121,7 +121,7 @@ def check_issues():
         if 'assignee' not in issue or not issue_doc['assignee']:
             try:
                 eadl_db = get_db()
-                assignee = get_assignee(grm_db, eadl_db, issue_doc)
+                assignee = get_assignee(grm_db, eadl_db, issue_doc, result['errors'])
                 issue_doc['assignee'] = assignee
                 if assignee:
                     assignee_updated = True
