@@ -38,7 +38,7 @@ msgstr "adresse mail"
 
 #: authentication/models.py:22 dashboard/grm/__init__.py:18
 msgid "phone number"
-msgstr "numéro de téléphone"
+msgstr "nombre de téléphone"
 
 #: authentication/models.py:23
 msgid "photo"
@@ -255,7 +255,7 @@ msgstr "Que signalez-vous"
 
 #: dashboard/grm/forms.py:106
 msgid "Choose type of grievance"
-msgstr "Choisissez le type de plainte"
+msgstr "Choisissez le catégorie de plainte"
 
 #: dashboard/grm/forms.py:107
 msgid "Briefly describe the issue"
@@ -279,7 +279,7 @@ msgstr "Date de fin"
 
 #: dashboard/grm/forms.py:180
 msgid "ID Number / Access Code"
-msgstr "Numéro ID / Code d'accès"
+msgstr "Nombre ID / Code d'accès"
 
 #: dashboard/grm/forms.py:209 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
@@ -644,7 +644,7 @@ msgstr "En construction"
 
 #: dashboard/templates/diagnostics/home.html:17
 msgid "Number"
-msgstr "Numéro"
+msgstr "Nombre"
 
 #: dashboard/templates/diagnostics/home.html:18
 msgid "Percentage"
@@ -656,7 +656,7 @@ msgstr "Pourcentage"
 #: dashboard/templates/grm/issue_list.html:12
 #: dashboard/templates/grm/review_issues.html:220
 msgid "Type"
-msgstr "Type"
+msgstr "Catégorie"
 
 #: dashboard/templates/diagnostics/home.html:21
 #: dashboard/templates/diagnostics/home.html:188
@@ -664,7 +664,7 @@ msgstr "Type"
 #: dashboard/templates/grm/issue_list.html:11
 #: dashboard/templates/grm/review_issues.html:216
 msgid "Category"
-msgstr "Catégory"
+msgstr "Sujet"
 
 #: dashboard/templates/diagnostics/home.html:29
 #: dashboard/templates/grm/review_issues.html:24
@@ -679,7 +679,7 @@ msgstr "Effacer tous les filtres"
 #: dashboard/templates/diagnostics/home.html:447
 #: dashboard/templates/grm/issue_list.html:34
 msgid "No issues found"
-msgstr "Aucun problème n'a été trouvé"
+msgstr "Aucun plainte ou demande n'a été trouvée"
 
 #: dashboard/templates/diagnostics/home.html:477
 #: dashboard/templates/grm/new_issue_confirm.html:171
@@ -774,7 +774,7 @@ msgstr "Actions prises"
 #: dashboard/templates/grm/issue_list.html:6
 #: dashboard/templates/grm/new_issue_confirmation.html:34
 msgid "ID Number"
-msgstr "Numéro ID"
+msgstr "Nombre ID"
 
 #: dashboard/templates/grm/issue_list.html:7
 msgid "Access Code"
@@ -864,7 +864,7 @@ msgstr "Cliquez pour sélectionner le rapport"
 #: dashboard/templates/grm/new_issue_confirm.html:167
 #: dashboard/templates/grm/new_issue_details.html:69
 msgid "Click to select the type of grievance"
-msgstr "Cliquez pour sélectionner le type de réclamation"
+msgstr "Cliquez pour sélectionner le catégorie de réclamation"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:28
 msgid "Confirmation"
@@ -888,7 +888,7 @@ msgstr "Rapport"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:151
 msgid "Type of grievance"
-msgstr "Type de grief"
+msgstr "Catégorie de grief"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:159
 msgid "Description"
