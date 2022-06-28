@@ -49,7 +49,7 @@ class StatementListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
 
     @staticmethod
     def process_result(result):
-        phases = list()
+        phases = []
         for data in result:
             performance = 0
             completed_tasks = int(data['value'][0])
@@ -71,7 +71,8 @@ class StatementListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
         startkey = [year, month, None, None]
         endkey = [year, month, {}, {}]
         phases = get_db().get_view_result(
-            'phases', 'tasks_by_month', group=True, startkey=startkey, endkey=endkey)[:]
+            'phases', 'tasks_by_month', group=True, startkey=startkey, endkey=endkey)
+        phases = [doc for doc in phases]
         return self.process_result(phases)
 
     def get_context_data(self, **kwargs):

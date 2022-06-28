@@ -22,7 +22,7 @@ class Command(BaseCommand):
         # self.stdout.write(self.style.SUCCESS(f'Successfully deleted {communes_deleted} communes'))
 
         docs = [d for d in eadl_db if 'type' in d and d['type'] == 'adl']
-        docs_to_update = list()
+        docs_to_update = []
         for doc in docs:
             if 'name' not in doc or not doc['name']:
                 doc['name'] = get_administrative_region_name(eadl_db, doc['administrative_region'])
@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
         # grm_db = get_db(COUCHDB_GRM_DATABASE)
         # issues = [d for d in grm_db if 'commune' in d and 'type' in d and d['type'] == 'issue']
-        # docs_to_update = list()
+        # docs_to_update = []
         # for issue in issues:
         #     issue['administrative_region'] = {
         #         "administrative_id": issue['commune']['code'],

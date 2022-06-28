@@ -120,7 +120,8 @@ def get_assignee(grm_db, eadl_db, issue_doc, errors=None):
         startkey = [department_id, None, None]
         endkey = [department_id, {}, {}]
         assignments_result = grm_db.get_view_result(
-            'issues', 'group_by_assignee', group=True, startkey=startkey, endkey=endkey)[:]
+            'issues', 'group_by_assignee', group=True, startkey=startkey, endkey=endkey)
+        assignments_result = [doc for doc in assignments_result]
 
         department_workers_with_assignment = {worker['key'][1] for worker in assignments_result}
         department_workers_without_assignment = related_workers - department_workers_with_assignment

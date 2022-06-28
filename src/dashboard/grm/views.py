@@ -269,12 +269,14 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "id": doc_type['id'],
             "name": doc_type['name'],
         }
+        assigned_department = doc_category['assigned_department'][
+            'administrative_level'] if 'administrative_level' in doc_category['assigned_department'] else None
         self.doc['category'] = {
             "id": doc_category['id'],
             "name": doc_category['name'],
             "confidentiality_level": doc_category['confidentiality_level'],
             "assigned_department": department_id,
-            "administrative_level": doc_category['assigned_department']['administrative_level'],
+            "administrative_level": assigned_department,
         }
         self.doc['ongoing_issue'] = data['ongoing_issue']
 
@@ -559,7 +561,7 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
                 ]}
             ]
 
-        date_range = dict()
+        date_range = {}
         if start_date:
             start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             date_range["$gte"] = start_date
@@ -598,7 +600,7 @@ class IssueCommentsContextMixin:
         comments = self.doc['comments'] if 'comments' in self.doc else list()
         users = {c['id'] for c in comments} | {
             self.doc['assignee']['id'], self.doc_department['head']['id']}
-        indexed_users = dict()
+        indexed_users = {}
         for index, user_id in enumerate(users):
             indexed_users[user_id] = index
         context['indexed_users'] = indexed_users
@@ -877,13 +879,14 @@ class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMi
 
         if data and exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]['administrative_id']):
             data = []
+
         return self.render_to_json_response(data, safe=False)
 
 
 class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         administrative_id = request.GET.get('administrative_id', None)
-        ancestors = list()
+        ancestors = []
         if administrative_id:
             eadl_db = get_db()
             has_parent = True

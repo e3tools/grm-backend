@@ -48,7 +48,7 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             "auto_increment_id": {"$ne": ""},
         }
 
-        date_range = dict()
+        date_range = {}
         if start_date:
             start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             date_range["$gte"] = start_date
@@ -68,13 +68,14 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 "$in": filter_regions
             }
 
-        issues = grm_db.get_query_result(selector)[:]
+        issues = grm_db.get_query_result(selector)
+        issues = [doc for doc in issues]
 
         total_issues = len(issues)
-        region_stats = dict()
-        status_stats = dict()
-        type_stats = dict()
-        category_stats = dict()
+        region_stats = {}
+        status_stats = {}
+        type_stats = {}
+        category_stats = {}
 
         def fill_count(key, stats: dict, name=None):
             if key in stats:
@@ -117,15 +118,16 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             }
         }
         administrative_level_docs = eadl_db.get_query_result(selector)
-        if administrative_level_docs[:]:
-            for doc in administrative_level_docs:
-                data = region_stats[doc['administrative_id']]
-                data['name'] = doc['name']
-                data['latitude'] = doc['latitude']
-                data['longitude'] = doc['longitude']
-                data['level'] = doc['administrative_level'].capitalize()
-        else:
-            region_stats = dict()
+        without_administrative_level_docs = True
+        for doc in administrative_level_docs:
+            without_administrative_level_docs = False
+            data = region_stats[doc['administrative_id']]
+            data['name'] = doc['name']
+            data['latitude'] = doc['latitude']
+            data['longitude'] = doc['longitude']
+            data['level'] = doc['administrative_level'].capitalize()
+        if without_administrative_level_docs:
+            region_stats = {}
         statistics = {
             'region_stats': region_stats,
             'status_stats': status_stats,

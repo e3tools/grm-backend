@@ -128,7 +128,8 @@ def get_child_administrative_regions(eadl_db, parent_id):
             "parent_id": parent_id,
         }
     )
-    return data[:]
+    data = [doc for doc in data]
+    return data
 
 
 def get_administrative_regions_by_level(eadl_db, level=None):
@@ -144,7 +145,8 @@ def get_administrative_regions_by_level(eadl_db, level=None):
             "parent_id": parent_id,
         }
     )
-    return data[:]
+    data = [doc for doc in data]
+    return data
 
 
 def get_administrative_level_descendants(eadl_db, parent_id, ids):
@@ -154,7 +156,8 @@ def get_administrative_level_descendants(eadl_db, parent_id, ids):
             "parent_id": parent_id,
         }
     )
-    descendants_ids = [region["administrative_id"] for region in data[:]]
+    data = [doc for doc in data]
+    descendants_ids = [region["administrative_id"] for region in data]
     for descendant_id in descendants_ids:
         get_administrative_level_descendants(eadl_db, descendant_id, ids)
         ids.append(descendant_id)
