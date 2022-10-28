@@ -6,6 +6,7 @@ beautifulsoup4==4.9.3
 billiard==3.6.4.0
 celery==5.2.1
 certifi==2020.12.5
+cffi==1.15.1
 cfgv==3.2.0
 chardet==4.0.0
 click==8.0.3
@@ -15,6 +16,7 @@ click-repl==0.2.0
 cloudant==2.14.0
 coreapi==2.3.3
 coreschema==0.0.4
+cryptocode==0.1
 distlib==0.3.1
 dj-database-url==0.5.0
 Django==3.2
@@ -50,6 +52,8 @@ prompt-toolkit==3.0.24
 psycopg2-binary==2.8.6
 py==1.10.0
 pycodestyle==2.6.0
+pycparser==2.21
+pycryptodomex==3.15.0
 pyflakes==2.2.0
 PyJWT==2.3.0
 pyparsing==2.4.7

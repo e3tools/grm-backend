@@ -81,7 +81,11 @@
                                 {% if doc.assignee.id != user.id and doc.citizen_type == 1 %}
                                     {% translate 'Confidential' %}
                                 {% else %}
-                                    {{ doc.citizen }}
+                                    <div id="citizen">
+                                        *****
+                                        <i class="fas fa-eye pull-right link show-data"
+                                           title={% translate "Show sensitive data" %}></i>
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -192,6 +196,39 @@
 {% block modals %}
     <div id="fileFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
     <div id="statusChangeModalForm" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+
+    <div class="modal fade modal-confirmation" id="checkPasswordModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title mx-auto">
+                        <img src="{% static 'images/password-required.png' %}" height="254">
+                    </h5>
+                    <button type="button" class="border-0 bg-transparent" data-dismiss="modal"
+                            aria-label="Close">
+                        <div class="circle-icon bg-primary">
+                            <div class="center-27">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-primary text-center fs17 lh19 text-bold mb-4"
+                         style="padding: 0 45px 0 45px;">
+                        {% translate "Please enter your password to show sensitive data" %}
+                    </div>
+                    {% bootstrap_form password_confirm_form %}
+                </div>
+                <div class="modal-footer border-0">
+                    <button id="check-password" type="submit" class="btn btn-lg btn-primary text-right">
+                        {% translate "Check password" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock modals %}
 
 {% block javascript %}
@@ -372,6 +409,32 @@
             } else {
                 add_comment.prop('disabled', true);
             }
+        });
+
+        $(".show-data").click(function () {
+            $('#checkPasswordModal').modal('show');
+        });
+
+        $("#check-password").click(function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'dashboard:grm:get_sensitive_issue_data' %}",
+                data: {
+                    "password": $("#id_password").val(),
+                    "id": "{{ doc|get:'_id' }}",
+                },
+                success: function (response) {
+                    showPopupMessage(response.msg);
+                    let data = response.data;
+                    if (data && data.citizen) {
+                        $("#citizen").html(data.citizen);
+                    }
+                    $('#checkPasswordModal').modal('hide')
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                }
+            });
         });
 
     </script>

@@ -48,11 +48,11 @@
                                                     {% get_contact_type_display doc.contact_information.type %}
                                                 </div>
                                             </div>
-                                            <div class="row mb-2">
+                                            {% comment %}<div class="row mb-2">
                                                 <div class="col-12">
                                                     {{ doc.contact_information.contact }}
                                                 </div>
-                                            </div>
+                                            </div>{% endcomment %}
                                         {% else %}
                                             <div class="row mb-2">
                                                 <div class="col-12">
@@ -62,7 +62,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                {% if doc.citizen %}
+                                {% comment %}{% if doc.citizen %}
                                     <div class="row mr-2">
                                         <label class="col-3 label-align">
                                             {% translate "Citizen name" %}:
@@ -71,7 +71,7 @@
                                             {{ doc.citizen }}
                                         </div>
                                     </div>
-                                {% endif %}
+                                {% endif %}{% endcomment %}
                                 {% if doc.citizen_type %}
                                     <div class="row mr-2 mb-2">
                                         <div class="col-3 label-align">

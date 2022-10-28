@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.forms.fields import EmailField
 
-from authentication.models import GovernmentWorker, User
+from authentication.models import GovernmentWorker, User, Pdata, Cdata
 
 
 class UserWithEmptyPasswordCreationForm(forms.ModelForm):
@@ -102,4 +102,6 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(GovernmentWorker, GovernmentWorkerAdmin)
+admin.site.register(Pdata)
+admin.site.register(Cdata)
 admin.site.register(LogEntry, LogEntryAdmin)

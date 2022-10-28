@@ -1,5 +1,6 @@
 import os
 
+import cryptocode
 import shortuuid as uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -33,6 +34,30 @@ class User(AbstractUser):
     @property
     def name(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class AbstractKeyData(models.Model):
+    key = models.CharField(max_length=255, primary_key=True, unique=True)
+    data = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Pdata(AbstractKeyData):
+    class Meta:
+        verbose_name_plural = 'Pdata'
+
+    def __str__(self):
+        return f'{self.key}: {self.data}'
+
+
+class Cdata(AbstractKeyData):
+    class Meta:
+        verbose_name_plural = 'Cdata'
+
+    def __str__(self):
+        return f'{self.key}: {self.data}'
 
 
 class GovernmentWorker(models.Model):
@@ -197,3 +222,30 @@ def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
         return assignee
     elif parent:
         return get_assignee_to_escalate(eadl_db, department_id, administrative_id)
+
+
+def anonymize_issue_data(issue_doc):
+    key = issue_doc['_id']
+    citizen = issue_doc['citizen']
+    if citizen:
+        pdata, _ = Pdata.objects.get_or_create(key=key)
+        data_encoded = cryptocode.encrypt(citizen, key)
+        pdata.data = data_encoded
+        pdata.save()
+        issue_doc['citizen'] = "*"
+    else:
+        Pdata.objects.filter(key=key).delete()
+
+    contact_information = issue_doc['contact_information']
+    if contact_information:
+        contact = contact_information['contact']
+        cdata, _ = Cdata.objects.get_or_create(key=key)
+        data_encoded = cryptocode.encrypt(contact, key)
+        cdata.data = data_encoded
+        cdata.save()
+        issue_doc['contact_information'] = {
+            "type": contact_information['type'],
+            "contact": "*",
+        }
+    else:
+        Cdata.objects.filter(key=key).delete()

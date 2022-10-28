@@ -1,8 +1,9 @@
 import csv
 import time
+
 from django.core.management.base import BaseCommand, CommandError
 
-from client import get_db, bulk_update
+from client import bulk_update, get_db
 
 
 class Command(BaseCommand):
@@ -88,17 +89,3 @@ class Command(BaseCommand):
 
         except IOError as e:
             raise CommandError(f'Failed to open file {e}')
-
-# {
-#   "region": "Kindia",
-#   "prefecture": "Coyah",
-#   "administrative_id": "5101",
-#   "name": "CU Coyah",
-#   "type_cl": "CU",
-#   "population": 57670,
-#   "administrative_level": "commune",
-#   "type": "administrative_level",
-#   "parent_id": None,
-#   "latitude": 9.70643,
-#   "longitude": -13.38465
-# }

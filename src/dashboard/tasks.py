@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.utils.translation import gettext as _
-
-from client import get_db
-from grm.celery import app
-from grm.utils import get_auto_increment_id
-from authentication.models import get_assignee, get_assignee_to_escalate
-from sms_client import send_sms
 from twilio.base.exceptions import TwilioRestException
 
+from authentication.models import anonymize_issue_data, get_assignee, get_assignee_to_escalate
+from client import get_db
 from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE
+from grm.celery import app
+from grm.utils import get_auto_increment_id
+from sms_client import send_sms
+
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
@@ -49,6 +49,24 @@ def check_issues():
                 }
             },
             {
+                "citizen": {
+                    "$nin": [
+                        None,
+                        "",
+                        "*"
+                    ]
+                }
+            },
+            {
+                "contact_information.contact": {
+                    "$nin": [
+                        None,
+                        "",
+                        "*"
+                    ]
+                }
+            },
+            {
                 "assignee": {
                     "$in": [
                         None,
@@ -69,12 +87,14 @@ def check_issues():
         'errors': [],
         'auto_increment_id_updated': [],
         'internal_code_updated': [],
+        'anonymized_data': [],
         'assignee_updated': [],
     }
     updated_issues = 0
     for issue in issues:
         auto_increment_id_updated = False
         internal_code_updated = False
+        anonymized_data = False
         assignee_updated = False
 
         issue_id = issue['_id']
@@ -83,9 +103,9 @@ def check_issues():
         except Exception:
             error = f'Error trying to get issue document with id {issue_id}'
             result['errors'].append(error)
-            continue
+            return result
 
-        if 'auto_increment_id' not in issue or not issue['auto_increment_id']:
+        if 'auto_increment_id' not in issue_doc or not issue_doc['auto_increment_id']:
             try:
                 auto_increment_id = get_auto_increment_id(grm_db)
                 issue_doc['auto_increment_id'] = auto_increment_id
@@ -108,7 +128,7 @@ def check_issues():
             result['errors'].append(error)
             continue
 
-        if 'internal_code' not in issue or not issue['internal_code']:
+        if 'internal_code' not in issue_doc or not issue_doc['internal_code']:
             try:
                 administrative_id = issue_doc["administrative_region"]["administrative_id"]
                 issue_doc['internal_code'] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
@@ -118,7 +138,17 @@ def check_issues():
                 error = f'Error trying to set internal_code for issue document with id {issue_id}'
                 result['errors'].append(error)
 
-        if 'assignee' not in issue or not issue_doc['assignee']:
+        contact_information = issue_doc['contact_information']
+        if issue_doc['citizen'] != '*' or (contact_information and contact_information['contact'] != '*'):
+            try:
+                anonymize_issue_data(issue_doc)
+                anonymized_data = True
+                result['anonymized_data'].append(issue_id)
+            except Exception:
+                error = f'Error trying to anonymize issue document with id {issue_id}'
+                result['errors'].append(error)
+
+        if 'assignee' not in issue_doc or not issue_doc['assignee']:
             try:
                 eadl_db = get_db()
                 assignee = get_assignee(grm_db, eadl_db, issue_doc, result['errors'])
@@ -130,7 +160,7 @@ def check_issues():
                 error = f'Error trying to set assignee for issue document with id {issue_id}'
                 result['errors'].append(error)
 
-        if auto_increment_id_updated or internal_code_updated or assignee_updated:
+        if auto_increment_id_updated or internal_code_updated or anonymized_data or assignee_updated:
             issue_doc.save()
             updated_issues += 1
             grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
