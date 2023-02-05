@@ -131,6 +131,7 @@ LANGUAGES = (
     ('en-us', _('English')),
     ('fr', _('French')),
     ('rw', _('Kinyarwanda')),
+    ('et', _('Ethiopia')),
 )
 LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
 
@@ -141,6 +142,12 @@ EXTRA_LANG_INFO = {
         'code': 'rw',
         'name': 'Kinyarwanda',
         'name_local': 'Kinyarwanda',
+    },
+    'et': {
+        'bidi': True,
+        'code': 'et',
+        'name': 'Ethiopia',
+        'name_local': 'Ethiopia',
     },
 }
 
