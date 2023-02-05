@@ -1,6 +1,7 @@
 import random
 from datetime import datetime, timedelta
 
+import cryptocode
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,8 +12,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication.models import GovernmentWorker, get_assignee
+from authentication.models import Cdata, GovernmentWorker, Pdata, anonymize_issue_data, get_assignee
 from client import get_db, upload_file
+from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
 from dashboard.grm.forms import (
@@ -461,8 +463,12 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
             self.set_assignee()
         except Exception as e:
             raise e
+
+        if not self.doc['assignee']:
+            return HttpResponseRedirect(
+                reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
+
         self.set_contact_fields(data)
-        self.doc['confirmed'] = True
         try:
             doc_category = self.grm_db.get_query_result({
                 "id": self.doc['category']['id'],
@@ -487,10 +493,9 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         }
 
         self.doc['created_date'] = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        self.doc['confirmed'] = True
+        anonymize_issue_data(self.doc)
         self.doc.save()
-        if not self.doc['assignee']:
-            return HttpResponseRedirect(
-                reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_6', kwargs={'issue': self.kwargs['issue']}))
 
 
@@ -652,6 +657,7 @@ class IssueDetailsFormView(PageMixin, IssueMixin, IssueCommentsContextMixin, Log
         except Exception:
             raise Http404
         context['doc_status'] = doc_status
+        context['password_confirm_form'] = PasswordConfirmForm()
 
         return context
 
@@ -899,3 +905,33 @@ class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, 
                     has_parent = False
 
         return self.render_to_json_response(ancestors, safe=False)
+
+
+class GetSensitiveIssueDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+
+    def post(self, request, *args, **kwargs):
+        data = None
+
+        if self.request.user.check_password(request.POST.get('password')):
+            doc_id = request.POST.get('id')
+
+            citizen = Pdata.objects.get(key=doc_id) if Pdata.objects.filter(key=doc_id).exists() else None
+            citizen = cryptocode.decrypt(citizen.data, doc_id) if citizen else None
+
+            contact = Cdata.objects.get(key=doc_id) if Cdata.objects.filter(key=doc_id).exists() else None
+            contact = cryptocode.decrypt(contact.data, doc_id) if contact else None
+
+            data = {
+                'citizen': citizen,
+                'contact': contact,
+            }
+
+        else:
+            msg = _("The password was not correct, we could not proceed with action.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
+
+        context = {
+            'msg': render(self.request, 'common/messages.html').content.decode("utf-8"),
+            'data': data
+        }
+        return self.render_to_json_response(context, safe=False)

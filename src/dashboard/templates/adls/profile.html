@@ -53,7 +53,7 @@
                                 <div class="text-right">
                                     {% if profile.is_active %}
                                         <button class="btn btn-xs btn-danger" data-toggle="modal"
-                                                data-target="#confirmToogleStatusModal">
+                                                data-target="#confirmToggleStatusModal">
                                             {% translate 'Deactivate Account' %}
                                         </button>
                                     {% else %}
@@ -224,45 +224,42 @@
         {% include 'adls/phase_detail.html' with phase=phase %}
     {% endfor %}
 
-    {% with adl.representative as profile %}
-        <div class="modal fade modal-confirmation" id="confirmToogleStatusModal" tabindex="-1" role="dialog"
-             aria-labelledby="confirmToogleStatus" aria-hidden="true" data-backdrop="static">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <form class="form-horizontal" action="{% url 'dashboard:adls:toggle_status' adl|get:'_id' %}"
-                          method="POST">
-                        {% csrf_token %}
-                        <div class="modal-header border-0">
-                            <h5 class="modal-title mx-auto">
-                                <img src="{% static 'images/password-required.png' %}" height="254">
-                            </h5>
-                            <button type="button" class="border-0 bg-transparent" data-dismiss="modal"
-                                    aria-label="Close">
-                                <div class="circle-icon bg-primary">
-                                    <div class="center-27">
-                                        <i class="fas fa-times"></i>
-                                    </div>
+    <div class="modal fade modal-confirmation" id="confirmToggleStatusModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form class="form-horizontal" action="{% url 'dashboard:adls:toggle_status' adl|get:'_id' %}"
+                      method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title mx-auto">
+                            <img src="{% static 'images/password-required.png' %}" height="254">
+                        </h5>
+                        <button type="button" class="border-0 bg-transparent" data-dismiss="modal"
+                                aria-label="Close">
+                            <div class="circle-icon bg-primary">
+                                <div class="center-27">
+                                    <i class="fas fa-times"></i>
                                 </div>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="text-primary text-center fs17 lh19 text-bold mb-4"
-                                 style="padding: 0 45px 0 45px;">
-                                {% translate "Please enter your password to deactivate the facilitator account!" %}
                             </div>
-                            {% bootstrap_form password_confirm_form %}
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-primary text-center fs17 lh19 text-bold mb-4"
+                             style="padding: 0 45px 0 45px;">
+                            {% translate "Please enter your password to deactivate the facilitator account!" %}
                         </div>
-                        <div class="modal-footer border-0">
-                            <button id="deactivate-btn" type="submit" class="btn btn-lg btn-primary text-right"
-                                    disabled>
-                                {% translate "Deactivate Account" %}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        {% bootstrap_form password_confirm_form %}
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button id="deactivate-btn" type="submit" class="btn btn-lg btn-primary text-right"
+                                disabled>
+                            {% translate "Deactivate Account" %}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-    {% endwith %}
+    </div>
 
     <div id="editProfileFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 {% endblock modals %}
