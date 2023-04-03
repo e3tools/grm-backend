@@ -312,33 +312,30 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
         if data['citizen_group_1']:
             try:
-                doc_issue_citizen_group_1 = self.grm_db.get_query_result({
-                    "id": int(data['citizen_group_1']),
-                    "type": 'issue_citizen_group_1'
-                })[0][0]
-                self.doc['citizen_group_1'] = {
-                    "name": doc_issue_citizen_group_1['name'],
-                    "id": doc_issue_citizen_group_1['id']
-                }
+                # doc_issue_citizen_group_1 = self.grm_db.get_query_result({
+                #     "id": int(data['citizen_group_1']),
+                #     "type": 'issue_citizen_group_1'
+                # })[0][0]
+                self.doc['citizen_group_1'] = data['citizen_group_1']
             except Exception:
                 raise Http404
         else:
             self.doc['citizen_group_1'] = ""
 
-        if data['citizen_group_2']:
-            try:
-                doc_issue_citizen_group_2 = self.grm_db.get_query_result({
-                    "id": int(data['citizen_group_2']),
-                    "type": 'issue_citizen_group_2'
-                })[0][0]
-                self.doc['citizen_group_2'] = {
-                    "name": doc_issue_citizen_group_2['name'],
-                    "id": doc_issue_citizen_group_2['id']
-                }
-            except Exception:
-                raise Http404
-        else:
-            self.doc['citizen_group_2'] = ""
+        # if data['citizen_group_2']:
+        #     try:
+        #         doc_issue_citizen_group_2 = self.grm_db.get_query_result({
+        #             "id": int(data['citizen_group_2']),
+        #             "type": 'issue_citizen_group_2'
+        #         })[0][0]
+        #         self.doc['citizen_group_2'] = {
+        #             "name": doc_issue_citizen_group_2['name'],
+        #             "id": doc_issue_citizen_group_2['id']
+        #         }
+        #     except Exception:
+        #         raise Http404
+        # else:
+        self.doc['citizen_group_2'] = ""
 
     def set_location_fields(self, data):
 
@@ -358,7 +355,9 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     def set_assignee(self):
 
         try:
+            print('antes')
             assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
+            print('despues')
         except Exception:
             raise Http404
 

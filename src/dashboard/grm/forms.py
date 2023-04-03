@@ -52,10 +52,10 @@ class NewIssuePersonForm(forms.Form):
                                           help_text=_('This is an optional field'))
     gender = forms.ChoiceField(label=_('Choose gender'), required=False, help_text=_('This is an optional field'),
                                choices=GENDER_CHOICES)
-    citizen_group_1 = forms.ChoiceField(label=_('Religion, Nationality'), required=False,
+    citizen_group_1 = forms.CharField(label=_('Religion'), required=False,
                                         help_text=_('This is an optional field'))
-    citizen_group_2 = forms.ChoiceField(label=_('Religion, Nationality'), required=False,
-                                        help_text=_('This is an optional field'))
+    # citizen_group_2 = forms.ChoiceField(label=_('Religion, Nationality'), required=False,
+    #                                     help_text=_('This is an optional field'))
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial')
@@ -68,13 +68,13 @@ class NewIssuePersonForm(forms.Form):
         self.fields['citizen_age_group'].widget.choices = citizen_age_groups
         self.fields['citizen_age_group'].choices = citizen_age_groups
 
-        citizen_group_1_choices = get_issue_citizen_group_1_choices(grm_db)
-        self.fields['citizen_group_1'].widget.choices = citizen_group_1_choices
-        self.fields['citizen_group_1'].choices = citizen_group_1_choices
+        # citizen_group_1_choices = get_issue_citizen_group_1_choices(grm_db)
+        # self.fields['citizen_group_1'].widget.choices = citizen_group_1_choices
+        # self.fields['citizen_group_1'].choices = citizen_group_1_choices
 
-        citizen_group_2_choices = get_issue_citizen_group_2_choices(grm_db)
-        self.fields['citizen_group_2'].widget.choices = citizen_group_2_choices
-        self.fields['citizen_group_2'].choices = citizen_group_2_choices
+        # citizen_group_2_choices = get_issue_citizen_group_2_choices(grm_db)
+        # self.fields['citizen_group_2'].widget.choices = citizen_group_2_choices
+        # self.fields['citizen_group_2'].choices = citizen_group_2_choices
 
         document = grm_db[doc_id]
 
