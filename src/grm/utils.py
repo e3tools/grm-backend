@@ -343,7 +343,7 @@ def fix_administrative_id():
             }
         )
         print(i)
-        if administrative_level:
+        if len(administrative_level) > 0:
             adl['administrative_region'] = administrative_level[:][0]['_id']
             docs_to_update.append(adl)
     docs_updated = len(bulk_update(eadl_db, docs_to_update))
