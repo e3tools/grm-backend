@@ -1,5 +1,7 @@
 from datetime import datetime
 from operator import itemgetter
+from django.utils.text import slugify
+from client import bulk_update, get_db
 
 from django.template.defaultfilters import date as _date
 
@@ -218,3 +220,104 @@ def get_auto_increment_id(grm_db):
     except Exception:
         max_auto_increment_id = 0
     return max_auto_increment_id + 1
+
+
+def create_facilitators_per_administrative_level():
+    eadl_db = get_db()
+    cells = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "administrative_level": "CELL",
+        }
+    )
+    i = 0
+    for cell in cells:
+        i = i + 1
+        sector = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "administrative_level": "SECTOR",
+                "administrative_id": cell["parent_id"]
+            }
+        )[:][0]
+        district = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "administrative_level": "DISRICT",
+                "administrative_id": sector["parent_id"]
+            }
+        )[:][0]
+
+        username_press = 'press.' + slugify(cell["name"]) + '.' + slugify(sector["name"]) + '.' + slugify(district["name"])
+        username_vice = 'vice.' + slugify(cell["name"]) + '.' + slugify(sector["name"]) + '.' + slugify(district["name"])
+
+        doc_pres = {
+              "type": "adl",
+              "administrative_region": cell["administrative_id"],
+              "name": cell["name"],
+              "photo": "",
+              "location": {
+                "lat": "null",
+                "long": "null"
+              },
+              "representative": {
+                "email": username_press + "@rbc.gov.rw",
+                "password": "",
+                "is_active": True,
+                "name": username_press,
+                "photo": "",
+                "last_active": "null"
+              },
+              "phases": [],
+              "department": 1,
+              "administrative_level": "CELL",
+              "unique_region": 1,
+              "village_secretary": 1
+        }
+
+        doc_vice = {
+            "type": "adl",
+            "administrative_region": cell["administrative_id"],
+            "name": cell["name"],
+            "photo": "",
+            "location": {
+                "lat": "null",
+                "long": "null"
+            },
+            "representative": {
+                "email": username_vice + "@rbc.gov.rw",
+                "password": "",
+                "is_active": True,
+                "name": username_vice,
+                "photo": "",
+                "last_active": "null"
+            },
+            "phases": [],
+            "department": 1,
+            "administrative_level": "CELL",
+            "unique_region": 1,
+            "village_secretary": 0
+        }
+        print("Cell: " + str(i))
+        print(eadl_db.get_query_result(
+            doc_vice
+        )[:])
+        if not eadl_db.get_query_result(
+            doc_vice
+        )[:]:
+            print("Creating vice")
+            eadl_db.create_document(doc_vice)
+        else:
+            print("Vice already exists")
+
+        if not eadl_db.get_query_result(
+            doc_pres
+        )[:]:
+            print("Creating press")
+            eadl_db.create_document(doc_pres)
+        else:
+            print("Press already exists")
+
+        # eadl_db.create_document(doc_vice)
+        # eadl_db.create_document(doc_pres)
+    print("Done")
