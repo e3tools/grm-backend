@@ -339,12 +339,12 @@ def fix_administrative_id():
         administrative_level = eadl_db.get_query_result(
             {
                 "type": 'administrative_level',
-                "administrative_id": adl["administrative_region"]
+                "_id": adl["administrative_region"]
             }
         )
         print(i)
         if administrative_level[:]:
-            adl['administrative_region'] = administrative_level[:][0]['_id']
+            adl['administrative_region'] = administrative_level[:][0]['administrative_id']
             docs_to_update.append(adl)
     docs_updated = len(bulk_update(eadl_db, docs_to_update))
     print(docs_updated)
