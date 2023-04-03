@@ -333,15 +333,19 @@ def fix_administrative_id():
         }
     )
     docs_to_update = []
+    i = 0
     for adl in adls:
+        i = i + 1
         administrative_level = eadl_db.get_query_result(
             {
                 "type": 'administrative_level',
                 "administrative_id": adl["administrative_region"]
             }
-        )[:][0]
-        adl['administrative_region'] = administrative_level['_id']
-        docs_to_update.append(adl)
+        )
+        print(i)
+        if administrative_level:
+            adl['administrative_region'] = administrative_level[:][0]['_id']
+            docs_to_update.append(adl)
     docs_updated = len(bulk_update(eadl_db, docs_to_update))
     print(docs_updated)
     return 'DONE'
