@@ -255,7 +255,7 @@ def create_facilitators_per_administrative_level():
 
         doc_pres = {
               "type": "adl",
-              "administrative_region": cell["administrative_id"],
+              "administrative_region": cell["_id"],
               "name": cell["name"],
               "photo": "",
               "location": {
@@ -279,7 +279,7 @@ def create_facilitators_per_administrative_level():
 
         doc_vice = {
             "type": "adl",
-            "administrative_region": cell["administrative_id"],
+            "administrative_region": cell["_id"],
             "name": cell["name"],
             "photo": "",
             "location": {
@@ -323,3 +323,25 @@ def create_facilitators_per_administrative_level():
         # eadl_db.create_document(doc_vice)
         # eadl_db.create_document(doc_pres)
     print("Done")
+
+
+def fix_administrative_id():
+    eadl_db = get_db()
+    adls = eadl_db.get_query_result(
+        {
+            "type": 'adl'
+        }
+    )
+    docs_to_update = []
+    for adl in adls:
+        administrative_level = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "administrative_id": adl["administrative_region"]
+            }
+        )[:][0]
+        adl['administrative_region'] = administrative_level['_id']
+        docs_to_update.append(adl)
+    docs_updated = len(bulk_update(eadl_db, docs_to_update))
+    print(docs_updated)
+    return 'DONE'
