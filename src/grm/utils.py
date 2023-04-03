@@ -2,6 +2,8 @@ from datetime import datetime
 from operator import itemgetter
 from django.utils.text import slugify
 from client import bulk_update, get_db
+from django.contrib.auth import get_user_model
+
 
 from django.template.defaultfilters import date as _date
 
