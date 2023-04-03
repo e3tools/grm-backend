@@ -86,3 +86,16 @@ def create_government_workers():
             except Exception as e:
                 print(e)
                 pass
+
+
+def get_facilitators_with_code():
+    eadl_db = get_db()
+
+    adls = eadl_db.get_query_result(
+        {
+            "type": 'adl'
+        }
+    )
+
+    for adl in adls:
+        print(adl['representative']['email'], get_validation_code(adl['representative']['email']))

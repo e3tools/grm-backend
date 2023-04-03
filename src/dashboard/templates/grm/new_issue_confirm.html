@@ -61,7 +61,7 @@
                                 {% bootstrap_field form.citizen_age_group layout='horizontal' %}
                                 {% bootstrap_field form.gender layout='horizontal' %}
                                 {% bootstrap_field form.citizen_group_1 layout='horizontal' %}
-                                {% bootstrap_field form.citizen_group_2 layout='horizontal' %}
+{#                                {% bootstrap_field form.citizen_group_2 layout='horizontal' %}#}
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label for="id_intake_date" class="label-align">
@@ -151,14 +151,14 @@
             allowClear: true
         });
         {% translate 'Click to select religion, nationality' as empty_group_msg %}
-        $("#id_citizen_group_1").select2({
-            placeholder: "{{ empty_group_msg }}",
-            allowClear: true
-        });
-        $("#id_citizen_group_2").select2({
-            placeholder: "{{ empty_group_msg }}",
-            allowClear: true
-        });
+        {#$("#id_citizen_group_1").select2({#}
+        {#    placeholder: "{{ empty_group_msg }}",#}
+        {#    allowClear: true#}
+        {#});#}
+        {#$("#id_citizen_group_2").select2({#}
+        {#    placeholder: "{{ empty_group_msg }}",#}
+        {#    allowClear: true#}
+        {#});#}
         $("#id_issue_type").select2({
             placeholder: "{% translate 'Click to select the report' %}",
             allowClear: true
