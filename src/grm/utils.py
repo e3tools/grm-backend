@@ -349,3 +349,28 @@ def fix_administrative_id():
     docs_updated = len(bulk_update(eadl_db, docs_to_update))
     print(docs_updated)
     return 'DONE'
+
+
+def fix_district_administration():
+    eadl_db = get_db()
+    adls = eadl_db.get_query_result(
+        {
+            "type": 'administrative_level',
+            "administrative_level": "DISRICT",
+        }
+    )
+
+    docs_to_update = []
+    i = 0
+    for adl in adls:
+        i = i + 1
+        print(adl)
+        adl['administrative_level'] = "DISTRICT"
+        docs_to_update.append(adl)
+        print(adl)
+    docs_updated = len(bulk_update(eadl_db, docs_to_update))
+    print(docs_updated)
+
+    return '> DONE '
+
+

@@ -30,10 +30,6 @@ def create_government_workers():
     for district in districts:
         try:
             user_1 = User.objects.create(
-				# TODO:
-				# Fix this email for doh_ that are all prepended with rusizi
-				# This can be done by deleting all of the existing and recreating
-				
                 email='doh.' + slugify(district["name"]) + '@rbc.gov.rw', 
                 phone_number='0788888888',
                 password='123Qwerty',
