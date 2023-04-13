@@ -1,11 +1,11 @@
 from datetime import datetime
 from operator import itemgetter
-from django.utils.text import slugify
-from client import bulk_update, get_db
+
 from django.contrib.auth import get_user_model
-
-
 from django.template.defaultfilters import date as _date
+from django.utils.text import slugify
+
+from client import bulk_update, get_db
 
 
 def sort_dictionary_list_by_field(list_to_be_sorted, field, reverse=False):
@@ -245,7 +245,7 @@ def create_facilitators_per_administrative_level():
         district = eadl_db.get_query_result(
             {
                 "type": 'administrative_level',
-                "administrative_level": "DISRICT",
+                "administrative_level": "DISTRICT",
                 "administrative_id": sector["parent_id"]
             }
         )[:][0]

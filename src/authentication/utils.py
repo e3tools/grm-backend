@@ -1,9 +1,11 @@
 import os
 import zlib
-from django.utils.text import slugify
+
 import shortuuid as uuid
-from client import bulk_update, get_db
+from django.utils.text import slugify
+
 from authentication.models import GovernmentWorker, User
+from client import bulk_update, get_db
 
 
 def photo_path(instance, filename):
@@ -21,14 +23,18 @@ def create_government_workers():
     districts = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
-            "administrative_level": "DISRICT",
+            "administrative_level": "DISTRICT",
         }
     )
 
     for district in districts:
         try:
             user_1 = User.objects.create(
-                email='doh_rusizi.' + slugify(district["name"]) + '@rbc.gov.rw',
+				# TODO:
+				# Fix this email for doh_ that are all prepended with rusizi
+				# This can be done by deleting all of the existing and recreating
+				
+                email='doh.' + slugify(district["name"]) + '@rbc.gov.rw', 
                 phone_number='0788888888',
                 password='123Qwerty',
             )

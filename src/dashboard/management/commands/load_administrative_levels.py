@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 reader = csv.reader(csvfile, delimiter=';', quotechar='"')
                 headers = []
                 for row in reader:
-                    headers = ['Latitude', 'Longitude', 'DISRICT', 'SECTOR', 'CELL']
+                    headers = ['Latitude', 'Longitude', 'DISTRICT', 'SECTOR', 'CELL']
                     break
                 created = 0
                 docs_to_update = []
