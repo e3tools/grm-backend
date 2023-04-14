@@ -255,7 +255,7 @@ def create_facilitators_per_administrative_level():
 
         doc_pres = {
               "type": "adl",
-              "administrative_region": cell["_id"],
+              "administrative_region": cell["administrative_id"],
               "name": cell["name"],
               "photo": "",
               "location": {
@@ -279,7 +279,7 @@ def create_facilitators_per_administrative_level():
 
         doc_vice = {
             "type": "adl",
-            "administrative_region": cell["_id"],
+            "administrative_region": cell["administrative_id"],
             "name": cell["name"],
             "photo": "",
             "location": {
