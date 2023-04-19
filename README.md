@@ -1,9 +1,7 @@
 # grm-backend
-
-
 Run the App
 `cd grm-backend	`
-### Setup 
+## Setup 
 Activate Python environment
 `python3.10 -m venv venv`
 
@@ -16,3 +14,20 @@ Install application
 Start Application
 `python3.10 src/manage.py runserver`
 
+
+## Key functions
+### Create Administrative levels in CouchDB
+Run `python3.10 src/manage.py shell`
+Run `from grm.utils import create_facilitators_per_administrative_level`
+Run `create_facilitators_per_administrative_level()`
+
+### Create Goverment Workers
+Run `python3.10 src/manage.py shell`
+Run `from authentication.utils import create_government_workers`
+Run `create_government_workers()`
+
+
+### Download full list of App User with Activation Code
+Ru  `python3.10 src/manage.py shell`
+Run `from authentication.utils import get_facilitators_with_code`
+RUn `get_facilitators_with_code()`
