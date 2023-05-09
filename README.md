@@ -16,6 +16,11 @@ Start Application
 
 
 ## Key functions
+
+### Run Manual CELERY Jobs
+Run `python3.10 src/manage.py shell`
+Run `from dashboard.tasks import check_issues`
+Run `check_issues()`
 ### Create Administrative levels in CouchDB
 Run `python3.10 src/manage.py shell`
 Run `from grm.utils import create_facilitators_per_administrative_level`

@@ -99,5 +99,6 @@ def get_facilitators_with_code():
         }
     )
 
-    for adl in adls:
-        print(adl['representative']['email'], get_validation_code(adl['representative']['email']))
+    with open(os.path.expanduser('~/facilitators_with_code.txt'), 'w') as f:
+        for adl in adls:
+            f.write(f"{adl['representative']['email']} {get_validation_code(adl['representative']['email'])}\n")

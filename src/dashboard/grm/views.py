@@ -12,20 +12,23 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication.models import Cdata, GovernmentWorker, Pdata, anonymize_issue_data, get_assignee
+from authentication.models import (Cdata, GovernmentWorker, Pdata,
+                                   anonymize_issue_data, get_assignee)
 from client import get_db, upload_file
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
-from dashboard.grm.forms import (
-    IssueCommentForm, IssueDetailsForm, IssueRejectReasonForm, IssueResearchResultForm, MAX_LENGTH, NewIssueConfirmForm,
-    NewIssueContactForm, NewIssueDetailsForm, NewIssueLocationForm, NewIssuePersonForm, SearchIssueForm
-)
-from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
-from grm.utils import (
-    get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_regions,
-    get_parent_administrative_level
-)
+from dashboard.grm.forms import (MAX_LENGTH, IssueCommentForm,
+                                 IssueDetailsForm, IssueRejectReasonForm,
+                                 IssueResearchResultForm, NewIssueConfirmForm,
+                                 NewIssueContactForm, NewIssueDetailsForm,
+                                 NewIssueLocationForm, NewIssuePersonForm,
+                                 SearchIssueForm)
+from dashboard.mixins import (AJAXRequestMixin, JSONResponseMixin,
+                              ModalFormMixin, PageMixin)
+from grm.utils import (get_administrative_level_descendants,
+                       get_auto_increment_id, get_child_administrative_regions,
+                       get_parent_administrative_level)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -733,6 +736,7 @@ class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequired
                 "id": self.doc['status']['id'],
                 "type": 'issue_status'
             })[0][0]
+            print(">>>><<<<<", doc_status, doc_status['open_status'], doc_status['initial_status'] , doc_status['rejected_status'])
         except Exception:
             raise Http404
         context['doc_status'] = doc_status
