@@ -3,8 +3,8 @@
 Run the App
 `cd grm-backend	`
 ### Setup 
-Activate Python environment
-`python3.10 -m venv venv`
+Activate Python environment (use python 3)
+`python -m venv venv`
 
 Activate Python Environment
 `source venv/bin/activate`
