@@ -1,0 +1,76 @@
+{% extends 'layouts/base.html' %}
+{% load bootstrap4 static i18n %}
+
+{% block progress-bar %}
+    {% include 'common/progress_bar.html' with percentage=66 %}
+{% endblock progress-bar %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <img src="{% static 'images/bg-left-horizontal-waves.png' %}" class="bg-left-horizontal-waves"/>
+                <form method="post">{% csrf_token %}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="fs20 lh46 mb-1 text-regular-family">
+                                    {% translate 'Enter New Issue' %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="fs56 lh46 text-primary text-bold-family mb-4">
+                                    {% translate 'Step' %} 4
+                                </div>
+                                <div class="fs35 lh35 text-bold-family ">
+                                    {% translate 'Location of Issue or Feedback' %}
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                {% bootstrap_form form layout='horizontal' %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer mb-2" style="margin-top: 120px">
+                        <button id="next" type="submit" class="btn btn-primary btn-sm rounded-xl float-right" disabled>
+                            {% translate "SAVE & NEXT" %}
+                        </button>
+                        <a href="{% url 'dashboard:grm:new_issue_step_3' doc.auto_increment_id %}"
+                           class="btn btn-primary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
+                            <i class="fa fa-chevron-left mr-2"></i>
+                            {% translate "BACK" %}
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block select2 %}
+    <script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
+    <script type="text/javascript">
+        $("#id_administrative_region").select2({
+            placeholder: "{% translate 'Click to select location' %}",
+            allowClear: true
+        });
+        $('b[role="presentation"]').hide();
+        $('.select2-selection__arrow').append(
+            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
+
+    </script>
+{% endblock select2 %}
+
+
+{% block javascript %}
+    {{ block.super }}
+    <script type="text/javascript">
+        let get_ancestors_url = '{% url 'dashboard:grm:get_ancestor_administrative_levels' %}';
+        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
+        let choice_placeholder = "{% translate 'Click to select location' %}";
+        changeRegionTrigger(get_choices_url, choice_placeholder);
+        loadRegionSelectors(get_ancestors_url);
+    </script>
+{% endblock javascript %}
