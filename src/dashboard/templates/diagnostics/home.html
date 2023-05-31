@@ -404,6 +404,7 @@
                     });
 
                     if (Object.keys(region_stats).length > 0) {
+						console.log(">>>>>><<<???", data)
                         let level = region_stats[Object.keys(region_stats)[0]].level;
                         administrative_level_label.html(level);
 
@@ -415,10 +416,10 @@
                             el.textContent = region.percentage + '%';
 
                             // create the marker
-                            let marker = new mapboxgl.Marker(el)
-                                .setLngLat([region.longitude, region.latitude])
-                                .addTo(map);
-                            markers.push(marker);
+                            // let marker = new mapboxgl.Marker(el)
+                            //     .setLngLat([region.longitude, region.latitude])
+                            //     .addTo(map);
+                            // markers.push(marker);
 
                         });
 

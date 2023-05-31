@@ -224,7 +224,11 @@ def get_auto_increment_id(grm_db):
     return max_auto_increment_id + 1
 
 
-def create_facilitators_per_administrative_level():
+def create_facilitators_per_administrative_level(email_domain):
+    if not email_domain:
+        print("Please specify Email Domain")
+        return False
+
     eadl_db = get_db()
     cells = eadl_db.get_query_result(
         {
@@ -250,8 +254,13 @@ def create_facilitators_per_administrative_level():
             }
         )[:][0]
 
-        username_press = 'press.' + slugify(cell["name"]) + '.' + slugify(sector["name"]) + '.' + slugify(district["name"])
+        username_press = 'pres.' + slugify(cell["name"]) + '.' + slugify(sector["name"]) + '.' + slugify(district["name"])
         username_vice = 'vice.' + slugify(cell["name"]) + '.' + slugify(sector["name"]) + '.' + slugify(district["name"])
+
+        email_press = f"{username_press}@{email_domain}"
+        email_vice = f"{username_vice}@{email_domain}"
+
+
 
         doc_pres = {
               "type": "adl",
@@ -263,7 +272,7 @@ def create_facilitators_per_administrative_level():
                 "long": "null"
               },
               "representative": {
-                "email": username_press + "@rbc.gov.rw",
+                "email": email_press,
                 "password": "",
                 "is_active": True,
                 "name": username_press,
@@ -287,7 +296,7 @@ def create_facilitators_per_administrative_level():
                 "long": "null"
             },
             "representative": {
-                "email": username_vice + "@rbc.gov.rw",
+                "email": email_vice,
                 "password": "",
                 "is_active": True,
                 "name": username_vice,
@@ -300,12 +309,16 @@ def create_facilitators_per_administrative_level():
             "unique_region": 1,
             "village_secretary": 0
         }
-        print("Cell: " + str(i))
+        print("Cell: " + str(i), email_vice, cell["name"])
         print(eadl_db.get_query_result(
-            doc_vice
+            {
+                "representative.email": email_press
+            }
         )[:])
         if not eadl_db.get_query_result(
-            doc_vice
+            {
+                "representative.email": email_vice
+            }
         )[:]:
             print("Creating vice")
             eadl_db.create_document(doc_vice)
@@ -313,7 +326,9 @@ def create_facilitators_per_administrative_level():
             print("Vice already exists")
 
         if not eadl_db.get_query_result(
-            doc_pres
+            {
+                "representative.email": email_press
+            }
         )[:]:
             print("Creating press")
             eadl_db.create_document(doc_pres)

@@ -8,7 +8,8 @@ from django.views import generic
 from client import get_db
 from dashboard.grm.forms import SearchIssueForm
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
-from grm.utils import get_administrative_level_descendants, get_base_administrative_id
+from grm.utils import (get_administrative_level_descendants,
+                       get_base_administrative_id)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -33,6 +34,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
 
 class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
+        print("******* START HERE *******")
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         eadl_db = get_db()
 
@@ -93,6 +95,8 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 stats[k]['issues'] = stats[k]['count']
 
         for doc in issues:
+            if 'administrative_region' not in doc or 'administrative_id' not in doc['administrative_region']:
+                continue
             region_key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
             fill_count(region_key, region_stats)
 
@@ -134,4 +138,5 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             'type_stats': type_stats,
             'category_stats': category_stats,
         }
+        print('\n\n\n >>>> \n\n\n', statistics)
         return self.render_to_json_response(statistics)
