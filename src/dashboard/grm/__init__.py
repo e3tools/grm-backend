@@ -9,14 +9,14 @@ MEDIUM_CHOICES = [
     (CHOICE_CONTACT, _('Receive updates directly')),
 ]
 
-CHOICE_EMAIL = 'email'
-CHOICE_PHONE = 'phone_number'
-CHOICE_WHATSAPP = 'whatsapp'
+CHOICE_EMAIL = _('email')
+CHOICE_PHONE = _('phone number')
+CHOICE_WHATSAPP = _('whatsapp')
 CONTACT_CHOICES = [
     ('', ''),
     (CHOICE_EMAIL, _('email')),
     (CHOICE_PHONE, _('phone number')),
-    (CHOICE_WHATSAPP, 'whatsapp'),
+    (CHOICE_WHATSAPP, _('whatsapp')),
 ]
 
 CHOICE_1 = 1
@@ -36,15 +36,15 @@ CITIZEN_TYPE_CHOICES_ALT = [
     (CHOICE_3, _('Organization on behalf of others')),
 ]
 
-CHOICE_MALE = "Male"
-CHOICE_FEMALE = "Female"
-CHOICE_OTHER = "Other"
-CHOICE_RNS = "Rather not say"
+CHOICE_MALE = _("Male")
+CHOICE_FEMALE = _("Female")
+CHOICE_OTHER = _("Other")
+CHOICE_RNS = _("Rather not say")
 
 GENDER_CHOICES = [
     ('', ''),
-    (CHOICE_MALE, _(CHOICE_MALE)),
-    (CHOICE_FEMALE, _(CHOICE_FEMALE)),
-    (CHOICE_OTHER, _(CHOICE_OTHER)),
-    (CHOICE_RNS, _(CHOICE_RNS)),
+    (CHOICE_MALE, CHOICE_MALE),
+    (CHOICE_FEMALE, CHOICE_FEMALE),
+#    (CHOICE_OTHER, CHOICE_OTHER),
+#    (CHOICE_RNS, CHOICE_RNS),
 ]

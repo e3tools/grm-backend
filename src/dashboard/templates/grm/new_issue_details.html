@@ -66,7 +66,19 @@
             allowClear: true
         });
         $("#id_category").select2({
-            placeholder: "{% translate 'Click to select the type of grievance' %}",
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_issue_sub_type").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_sub_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
             allowClear: true
         });
     </script>
@@ -76,8 +88,31 @@
     {{ block.super }}
     <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
     <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+    <script src="{% static 'js/dynamicOptionSelector.js' %}"></script>
     <script type="text/javascript">
         let load_attachments_spin = $('#load-attachments-spin');
+
+        let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
+        $("#id_issue_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                var data = {'type': 'issue_sub_type', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_issue_sub_type');
+            }
+        });
+
+        $("#id_issue_sub_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                var data = {'type': 'issue_category', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_category');
+            }
+        });
+
+        $("#id_component").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                var data = {'type': 'issue_sub_component', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_sub_component');
+            }
+        });
 
         function loadAttachments() {
             load_attachments_spin.show();

@@ -83,7 +83,10 @@
                                     </div>
                                 </div>
                                 {% bootstrap_field form.issue_type layout='horizontal' %}
+                                {% bootstrap_field form.issue_sub_type layout='horizontal' %}
                                 {% bootstrap_field form.category layout='horizontal' %}
+                                {% bootstrap_field form.component layout='horizontal' %}
+                                {% bootstrap_field form.sub_component layout='horizontal' %}
                                 <div class="row">
                                     <div class="col-md-3">
                                         <label for="id_description" class="label-align">
@@ -163,8 +166,20 @@
             placeholder: "{% translate 'Click to select the report' %}",
             allowClear: true
         });
+        $("#id_issue_sub_type").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
         $("#id_category").select2({
-            placeholder: "{% translate 'Click to select the type of grievance' %}",
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_sub_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
             allowClear: true
         });
         $("#id_administrative_region").select2({
