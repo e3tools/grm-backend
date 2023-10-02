@@ -1,0 +1,22 @@
+2023-09-23 11:18:00,610 - INFO: Created ADL for Bitunguramye Jean Damascene, email: 782903471@domain.com
+2023-09-23 11:18:00,655 - INFO: Created ADL for Bucyana Jean Bosco, email: 782903470@domain.com
+2023-09-23 11:18:00,697 - INFO: Created ADL for Hakizimana Vianney, email: 782903504@domain.com
+2023-09-23 11:18:00,790 - INFO: Created ADL for Gatabazi Felicien, email: 782903486@domain.com
+2023-09-23 11:18:00,846 - INFO: Created ADL for Ndayisaba Alphonse, email: 782903439@domain.com
+2023-09-23 11:18:00,894 - INFO: Created ADL for Hakizayaremye Viateur, email: 782903445@domain.com
+2023-09-23 11:18:00,949 - INFO: Created ADL for Habimana Abel, email: 782903423@domain.com
+2023-09-23 11:18:01,003 - INFO: Created ADL for Musoni Daniel, email: 782903409@domain.com
+2023-09-23 11:18:01,061 - INFO: Created ADL for Mukamuhirwa Fortunee, email: 782903450@domain.com
+2023-09-23 11:18:01,114 - INFO: Created ADL for Niyonkuru Liberatus, email: 780214742@domain.com
+2023-09-23 11:18:01,152 - INFO: Created ADL for Magenzi Gashema Solange, email: 780959162@domain.com
+2023-09-23 11:18:01,228 - INFO: Created ADL for Nsengiyumva Ngabonziza Eric, email: 783596057@domain.com
+2023-09-23 11:18:01,300 - INFO: Created ADL for Mukagakwaya Pelagie, email: 783173295@domain.com
+2023-09-23 11:18:01,368 - INFO: Created ADL for Hakizimana Jean Paul, email: 782457523@domain.com
+2023-09-23 11:18:01,410 - INFO: Created ADL for Sekamana Narcisse, email: 782903547@domain.com
+2023-09-23 11:18:01,465 - INFO: Created ADL for Twagirimana Vestine, email: 782903540@domain.com
+2023-09-23 11:18:01,532 - INFO: Created ADL for Mukamurera Theopiste, email: 782903627@domain.com
+2023-09-23 11:18:01,596 - INFO: Created ADL for Ntanshuti  Emmanuel, email: 782903609@domain.com
+2023-09-23 11:18:01,666 - INFO: Created ADL for Mayira  Augustin, email: 782903524@domain.com
+2023-09-23 11:20:51,173 - INFO: Created ADL for Bitunguramye Jean Damascene, email: 782903471@domain.com
+2023-09-23 11:20:51,250 - INFO: Created ADL for Bucyana Jean Bosco, email: 782903470@domain.com
+2023-09-23 11:20:51,313 - INFO: Created ADL for Hakizimana Vianney, email: 782903504@domain.com

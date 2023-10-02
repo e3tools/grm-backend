@@ -26,11 +26,12 @@ def create_government_workers(email_domain):
     districts = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
-            "administrative_level": "DISTRICT",
+            "administrative_level": "District",
         }
     )
 
     for district in districts:
+        print('>>>> ', district["name"], district["administrative_id"])
         try:
             user_1 = User.objects.create(
                 email='doh.' + slugify(district["name"]) + '@' + email_domain, 
@@ -39,7 +40,7 @@ def create_government_workers(email_domain):
             )
             user_1.set_password('123Qwerty')
             user_2 = User.objects.create(
-                email='hpro.' + slugify(district["name"]) + '@' + email_domain,
+                email='hprom.' + slugify(district["name"]) + '@' + email_domain,
                 phone_number='0788888888',
                 password='123Qwerty',
             )
@@ -60,7 +61,7 @@ def create_government_workers(email_domain):
         sectors = eadl_db.get_query_result(
             {
                 "type": 'administrative_level',
-                "administrative_level": "SECTOR",
+                "administrative_level": "Sector",
                 "parent_id": district["administrative_id"]
             }
         )

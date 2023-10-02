@@ -80,7 +80,7 @@ run `sudo nginx -t` to check if your nginx config if fine
 
 
 #### change user for Nginx to avoid error 403 when loading DJANGO Static Files
-##### sudo nano /etc/nginx/nginx.conf
+`sudo nano /etc/nginx/nginx.conf`
 
 Look for the following line.
 
@@ -153,6 +153,39 @@ Enable Gunicorn on startup `sudo systemctl enable gunicorn.socket`
 Status Gunicor `sudo systemctl status gunicorn.socket`
 
 Restart Nginx `sudo systemctl restart nginx`
+
+## Setup Celery Workers
+`sudo apt-get install rabbitmq-server`
+
+
+cd `/root/grm-backend`
+
+Activate the python environment
+`source venv/bin/activate`
+
+
+Configure RabbitMQ for Celery. Create a virtual host, user and set permissions: Add a user with a password:
+`sudo rabbitmqctl add_user grm_redis rbc159`
+
+Add virtual host:
+`sudo rabbitmqctl add_vhost grm_vhost`
+
+Set user tag:
+`sudo rabbitmqctl set_user_tags grm_redis grm_redis_tags`
+
+Set permission for user:
+`sudo rabbitmqctl set_permissions -p grm_vhost grm_redis ".*" ".*" ".*"`
+
+update .env
+
+`CELERY_BROKER_URL=amqp://grm_redis:rbc159@localhost/grm_vhost`
+
+Test Celery
+
+`celery -A grm worker --loglevel=info`
+
+`sudo systemctl daemon-reload &&  sudo systemctl restart gunicorn.socket &&  sudo systemctl restart gunicorn`
+
 
 ## Key functions
 
