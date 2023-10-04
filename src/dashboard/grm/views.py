@@ -12,20 +12,24 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication.models import Cdata, GovernmentWorker, Pdata, anonymize_issue_data, get_assignee
+from authentication.models import (Cdata, GovernmentWorker, Pdata,
+                                   anonymize_issue_data, get_assignee)
 from client import get_db, upload_file
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
 from dashboard.grm import CHOICE_CONTACT
-from dashboard.grm.forms import (
-    IssueCommentForm, IssueDetailsForm, IssueRejectReasonForm, IssueResearchResultForm, MAX_LENGTH, NewIssueConfirmForm,
-    NewIssueContactForm, NewIssueDetailsForm, NewIssueLocationForm, NewIssuePersonForm, SearchIssueForm
-)
-from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
-from grm.utils import (
-    get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_regions,
-    get_parent_administrative_level, get_issue_select_options_choices
-)
+from dashboard.grm.forms import (MAX_LENGTH, IssueCommentForm,
+                                 IssueDetailsForm, IssueRejectReasonForm,
+                                 IssueResearchResultForm, NewIssueConfirmForm,
+                                 NewIssueContactForm, NewIssueDetailsForm,
+                                 NewIssueLocationForm, NewIssuePersonForm,
+                                 SearchIssueForm)
+from dashboard.mixins import (AJAXRequestMixin, JSONResponseMixin,
+                              ModalFormMixin, PageMixin)
+from grm.utils import (get_administrative_level_descendants,
+                       get_auto_increment_id, get_child_administrative_regions,
+                       get_issue_select_options_choices,
+                       get_parent_administrative_level)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -417,18 +421,22 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         }
 
     def set_assignee(self):
+        assignee = ''
 
         try:
             assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
-        except Exception:
-            print('failed here....')
-            raise Http404
+        except Exception as e:
+            error_msg = _(f"An error occurred while retrieving the assignee {e}")
+            #traceback_msg = traceback.format_exc()  # Get the traceback information
+            # error_msg_with_traceback = f"{error_msg}\n\nTraceback:\n{traceback_msg}"
+            messages.add_message(self.request, messages.ERROR, error_msg, extra_tags='danger')
 
         if assignee == "":
             msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags='danger')
 
-        self.doc['assignee'] = assignee
+        if assignee != "":
+            self.doc['assignee'] = assignee
 
     def set_contact_fields(self, data):
         self.doc['contact_medium'] = data['contact_medium']
@@ -501,7 +509,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         self.set_location_fields(data)
         self.set_assignee()
         self.doc.save()
-        if not self.doc['assignee']:
+        if not self.doc.get('assignee'):
             return HttpResponseRedirect(
                 reverse('dashboard:grm:new_issue_step_4', kwargs={'issue': self.kwargs['issue']}))
         return HttpResponseRedirect(reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
@@ -526,7 +534,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         except Exception as e:
             raise e
 
-        if not self.doc['assignee']:
+        if not self.doc.get('assignee'):
             return HttpResponseRedirect(
                 reverse('dashboard:grm:new_issue_step_5', kwargs={'issue': self.kwargs['issue']}))
 
