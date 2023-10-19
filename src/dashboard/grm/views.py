@@ -503,6 +503,12 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
     form_class = NewIssueLocationForm
     fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
                        'ongoing_issue', 'issue_sub_type')
+    
+    def get_form_kwargs(self):
+        self.initial = {'doc_id': self.doc['_id']}
+        kwargs = super().get_form_kwargs()
+        kwargs['request_user'] = self.request.user 
+        return kwargs
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -522,6 +528,12 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
     form_class = NewIssueConfirmForm
     fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
                        'ongoing_issue', 'assignee', 'administrative_region', 'issue_sub_type')
+    
+    def get_form_kwargs(self):
+        self.initial = {'doc_id': self.doc['_id']}
+        kwargs = super().get_form_kwargs()
+        kwargs['request_user'] = self.request.user 
+        return kwargs
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -576,6 +588,12 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     form_class = NewIssueConfirmForm
     permissions = ('read_only_by_reporter',)
 
+    def get_form_kwargs(self):
+        self.initial = {'doc_id': self.doc['_id']}
+        kwargs = super().get_form_kwargs()
+        kwargs['request_user'] = self.request.user 
+        return kwargs
+
     def get_query_result(self, **kwargs):
         return self.grm_db.get_query_result({
             "auto_increment_id": kwargs['issue'],
@@ -599,6 +617,11 @@ class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
             'title': title
         }
     ]
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request_user'] = self.request.user 
+        return kwargs
 
 
 class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):

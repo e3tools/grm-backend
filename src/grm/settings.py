@@ -155,7 +155,7 @@ LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
 django.conf.locale.LANG_INFO = LANG_INFO
 
 # Languages using BiDi (right-to-left) layout
-LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI + ["rw"]
+LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI
 
 LOCALE_PATHS = [
     BASE_DIR / "locale",

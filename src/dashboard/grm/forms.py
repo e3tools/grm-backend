@@ -166,10 +166,11 @@ class NewIssueLocationForm(forms.Form):
     administrative_region = forms.ChoiceField()
     administrative_region_value = forms.CharField(label='', required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, request_user, *args, **kwargs):
         initial = kwargs.get('initial')
         doc_id = initial.get('doc_id')
         super().__init__(*args, **kwargs)
+        self.request_user = request_user
 
         eadl_db = get_db()
         label = get_administrative_regions_by_level(eadl_db)[0]['administrative_level'].title()
@@ -181,6 +182,20 @@ class NewIssueLocationForm(forms.Form):
         self.fields['administrative_region'].widget.attrs['class'] = "region"
         self.fields['administrative_region_value'].widget.attrs['class'] = "hidden"
 
+        country_id = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "parent_id": None,
+            }
+        )[:][0]['administrative_id']
+        # Prefill region with Current Logged in User
+        if hasattr(self.request_user, 'governmentworker') and self.request_user.governmentworker.administrative_id != country_id:
+            current_user_region = self.request_user.governmentworker.administrative_id
+            self.fields['administrative_region_value'].initial = current_user_region
+            base_administrative_id = get_base_administrative_id(eadl_db, current_user_region)
+            self.fields['administrative_region'].widget.choices = [item for item in administrative_region_choices if item[0] == base_administrative_id]
+            self.fields['administrative_region'].initial = base_administrative_id
+
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         document = grm_db[doc_id]
         if 'administrative_region' in document and document['administrative_region']:
@@ -191,11 +206,11 @@ class NewIssueLocationForm(forms.Form):
 
 class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, request_user, *args, **kwargs):
         NewIssueContactForm.__init__(self, *args, **kwargs)
         NewIssuePersonForm.__init__(self, *args, **kwargs)
         NewIssueDetailsForm.__init__(self, *args, **kwargs)
-        NewIssueLocationForm.__init__(self, *args, **kwargs)
+        NewIssueLocationForm.__init__(self, request_user, *args, **kwargs)
 
 
 class SearchIssueForm(forms.Form):
@@ -207,9 +222,11 @@ class SearchIssueForm(forms.Form):
     type = forms.ChoiceField()
     status = forms.ChoiceField()
     administrative_region = forms.ChoiceField()
+    administrative_region_value = forms.CharField(label='', required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, request_user, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.request_user = request_user
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
 
@@ -227,6 +244,19 @@ class SearchIssueForm(forms.Form):
         self.fields['administrative_region'].label = label
         self.fields['administrative_region'].widget.choices = get_administrative_region_choices(eadl_db)
         self.fields['administrative_region'].widget.attrs['class'] = "region"
+        self.fields['administrative_region_value'].widget.attrs['class'] = "hidden"
+
+        country_id = eadl_db.get_query_result(
+            {
+                "type": 'administrative_level',
+                "parent_id": None,
+            }
+        )[:][0]['administrative_id']
+        # Prefill region with Current Logged in User
+        if hasattr(self.request_user, 'governmentworker') and self.request_user.governmentworker.administrative_id != country_id:
+            current_user_region = self.request_user.governmentworker.administrative_id
+            self.fields['administrative_region_value'].initial = current_user_region
+            self.fields['administrative_region'].initial = get_base_administrative_id(eadl_db, current_user_region)
 
 
 class IssueDetailsForm(forms.Form):

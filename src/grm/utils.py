@@ -216,7 +216,6 @@ def get_related_region_with_specific_level(eadl_db, region_doc, level):
         region_doc = get_parent_administrative_level(eadl_db, administrative_id)
         if region_doc:
             administrative_id = region_doc['administrative_id']
-            print('/////', administrative_id, level)
         else:
             has_parent = False
     
