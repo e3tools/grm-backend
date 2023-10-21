@@ -138,3 +138,7 @@ class RegisterSerializer(serializers.Serializer):
 
 class ADLActiveResponseSerializer(serializers.Serializer):
     is_active = serializers.BooleanField()
+
+
+class ADLAdministrativeRegionResponseSerializer(serializers.Serializer):
+    levels = serializers.ListField()

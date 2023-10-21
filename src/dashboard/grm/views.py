@@ -24,7 +24,7 @@ from dashboard.grm.forms import (
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, ModalFormMixin, PageMixin
 from grm.utils import (
     get_administrative_level_descendants, get_auto_increment_id, get_child_administrative_regions,
-    get_parent_administrative_level
+    get_parent_administrative_level, get_issue_select_options_choices
 )
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -156,6 +156,19 @@ class UploadIssueAttachmentFormView(IssueMixin, AJAXRequestMixin, ModalFormMixin
                 }
                 attachments.append(attachment)
                 self.doc['attachments'] = attachments
+
+                # Add a comment relative to the action: Add new attachment to the issue.
+                user_id = self.request.user.id
+                comments = self.doc['comments'] if 'comments' in self.doc else list()
+                comment = _("A new attachment %s has been added to the issue.") % data["file"].name
+                comment_obj = {
+                    "name": f"{self.request.user.name}",
+                    "id": f"{user_id}",
+                    "comment": f"{comment}",
+                    "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}"
+                }
+                comments.insert(0, comment_obj)
+                self.doc["comments"] = comments
                 self.doc.save()
                 msg = _("The attachment was successfully uploaded.")
                 messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
@@ -177,6 +190,7 @@ class IssueAttachmentDeleteView(IssueMixin, AJAXRequestMixin, ModalFormMixin, Lo
 
     def delete(self, request, *args, **kwargs):
         if 'attachments' in self.doc:
+            attachment_name = None
             attachments = self.doc['attachments']
             grm_attachment_db = get_db(COUCHDB_GRM_ATTACHMENT_DATABASE)
             for attachment in attachments:
@@ -185,8 +199,22 @@ class IssueAttachmentDeleteView(IssueMixin, AJAXRequestMixin, ModalFormMixin, Lo
                         grm_attachment_db[attachment['bd_id']].delete()
                     except Exception:
                         pass
+                    attachment_name = attachment['name']
                     attachments.remove(attachment)
                     break
+
+            # Add a comment relative to the action: Attachment deletion
+            user_id = request.user.id
+            comments = self.doc['comments'] if 'comments' in self.doc else list()
+            comment = _("The attachment %s has been deleted to the issue.") % attachment_name
+            comment_obj = {
+                "name": f"{request.user.name}",
+                "id": f"{user_id}",
+                "comment": f"{comment}",
+                "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}"
+            }
+            comments.insert(0, comment_obj)
+            self.doc["comments"] = comments
             self.doc.save()
             msg = _("The attachment was successfully deleted.")
             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
@@ -263,6 +291,21 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
                 "id": int(data['category']),
                 "type": 'issue_category'
             })[0][0]
+            if 'issue_sub_type' in data:
+                doc_sub_type = self.grm_db.get_query_result({
+                    "id": int(data['issue_sub_type']),
+                    "type": 'issue_sub_type'
+                })[0][0]
+            if 'component' in data:
+                doc_component = self.grm_db.get_query_result({
+                    "id": int(data['component']),
+                    "type": 'issue_component'
+                })[0][0]
+            if 'sub_component' in data:
+                doc_sub_component = self.grm_db.get_query_result({
+                    "id": int(data['sub_component']),
+                    "type": 'issue_sub_component'
+                })[0][0]
             department_id = doc_category['assigned_department']['id']
         except Exception:
             raise Http404
@@ -280,6 +323,24 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             "assigned_department": department_id,
             "administrative_level": assigned_department,
         }
+
+        if doc_sub_type:
+            self.doc['issue_sub_type'] = {
+                "id": doc_sub_type['id'],
+                "name": doc_sub_type['name'],
+            }
+
+        if doc_component:
+            self.doc['component'] = {
+                "id": doc_component['id'],
+                "name": doc_component['name'],
+            }
+
+        if doc_sub_component:
+            self.doc['sub_component'] = {
+                "id": doc_sub_component['id'],
+                "name": doc_sub_component['name'],
+            }
         self.doc['ongoing_issue'] = data['ongoing_issue']
 
         self.doc.save()
@@ -360,6 +421,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         try:
             assignee = get_assignee(self.grm_db, self.eadl_db, self.doc)
         except Exception:
+            print('failed here....')
             raise Http404
 
         if assignee == "":
@@ -432,7 +494,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
     active_level1 = 'grm'
     form_class = NewIssueLocationForm
     fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
-                       'ongoing_issue')
+                       'ongoing_issue', 'issue_sub_type')
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -451,7 +513,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
     active_level1 = 'grm'
     form_class = NewIssueConfirmForm
     fields_to_check = ('contact_medium', 'intake_date', 'issue_date', 'issue_type', 'category', 'description',
-                       'ongoing_issue', 'assignee', 'administrative_region')
+                       'ongoing_issue', 'assignee', 'administrative_region', 'issue_sub_type')
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -821,7 +883,19 @@ class SubmitIssueResearchResultFormView(AJAXRequestMixin, ModalFormMixin, LoginR
             "name": doc_status['name'],
             "id": doc_status['id']
         }
+        user_id = self.request.user.id
+        comments = self.doc['comments'] if 'comments' in self.doc else list()
+        comment = _("The complaint has been resolved")
+        comment_obj = {
+            "name": f"{self.request.user.name}",
+            "id": f"{user_id}",
+            "comment": f"{comment}",
+            "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}"
+        }
+        comments.insert(0, comment_obj)
+        self.doc["comments"] = comments
         self.doc.save()
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
 
@@ -868,6 +942,19 @@ class SubmitIssueRejectReasonFormView(AJAXRequestMixin, ModalFormMixin, LoginReq
             "name": doc_status['name'],
             "id": doc_status['id']
         }
+
+        user_id = self.request.user.id
+        comments = self.doc['comments'] if 'comments' in self.doc else list()
+        comment = _("The complaint has been rejected")
+        comment_obj = {
+            "name": self.request.user.name,
+            "id": user_id,
+            "comment": comment,
+            "due_at": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        }
+        comments.insert(0, comment_obj)
+        self.doc['comments'] = comments
+
         self.doc.save()
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags='success')
@@ -875,6 +962,14 @@ class SubmitIssueRejectReasonFormView(AJAXRequestMixin, ModalFormMixin, LoginReq
         context = {'msg': render(self.request, 'common/messages.html').content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
+
+class GetChoicesForOptionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+    def get(self, request, *args, **kwargs):
+        type = request.GET.get('type')
+        parent_id = int(request.GET.get('parent_id'))
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+        data = get_issue_select_options_choices(grm_db, type, parent_id)
+        return render(self.request, 'common/options.html', {'values': data})
 
 class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):

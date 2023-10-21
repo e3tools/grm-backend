@@ -9,6 +9,7 @@ function changeRegionTrigger(url, placeholder) {
 
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
+    console.log({ url })
     console.log('current_level_val para cargar proximo selector: ' + current_level_val);
     if (current_level_val !== '') {
         let select_region = $(".region");
@@ -20,6 +21,7 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                 parent_id: current_level_val,
             },
             success: function (data) {
+                console.log(data)
                 if (data.length > 0) {
                     let id_select = 'id_' + data[0].administrative_level;
                     let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
@@ -55,21 +57,30 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                         '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
 
                     let options = '<option value></option>';
-                    $.each(data, function (index, value) {
-                        let administrative_id = value.administrative_id;
-                        let option = '<option value="' + administrative_id;
-                        if (ancestors.includes(administrative_id)) {
-                            option += '" selected="selected">';
-                            ancestors = ancestors.filter(function (ancestor) {
-                                return ancestor !== administrative_id;
-                            });
-                        } else {
-                            option += '">';
-                        }
-                        option += value.name + '</option>';
-                        options += option
 
+                    // Prevent user from selecting regions they don't belong by prefilling their region and the only selectable option
+                    let found = false;
+                    $.each(data, function (index, value) {
+                        // Check if the administrative_id exists in the ancestors array
+                        if (ancestors.includes(value.administrative_id)) {
+                            // If it exists, create and append the option
+                            options += '<option value="' + value.administrative_id + '" selected>' + value.name + '</option>';
+                            found = true;
+
+                            ancestors = ancestors.filter(function (ancestor) {
+                                return ancestor !== value.administrative_id;
+                            });
+                            return false;
+                        }
                     });
+
+                    // If the region doesn;t exist in ancestor, create options for all other values
+                    if (!found) {
+                        $.each(data, function (index, value) {
+                            options += '<option value="' + value.administrative_id + '">' + value.name + '</option>';
+                        });
+                    }
+
                     child.html(options);
                     child.trigger('change');
                     let child_val = child.val();
@@ -82,11 +93,12 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                 alert(error_server_message + "Error " + data.status);
             }
         }).done(function () {
-                if (ancestors.length <= 1) {
-                    select_region.attr('disabled', false);
-                    $('#next').prop('disabled', false);
-                }
+            console.log('*********', ancestors)
+            if (ancestors.length <= 1) {
+                select_region.attr('disabled', false);
+                $('#next').prop('disabled', false);
             }
+        }
         );
     } else {
         let next_selects = current_level.closest('.form-group').nextAll('.dynamic-select');
