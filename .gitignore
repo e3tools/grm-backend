@@ -28,11 +28,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-src/staticfiles
-src/authentication/migrations/
-src/dashboard/static/*
-!src/dashboard/static/images
-!src/dashboard/static/js
 
 
 
