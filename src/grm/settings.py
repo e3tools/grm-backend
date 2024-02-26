@@ -155,7 +155,7 @@ LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
 django.conf.locale.LANG_INFO = LANG_INFO
 
 # Languages using BiDi (right-to-left) layout
-LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI + ["rw"]
+LANGUAGES_BIDI = global_settings.LANGUAGES_BIDI
 
 LOCALE_PATHS = [
     BASE_DIR / "locale",
@@ -244,3 +244,18 @@ TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
 
 TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER')
+
+COUNTRY_CALLING_CODE = env('COUNTRY_CALLING_CODE')
+
+# Mail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_HOST = env('EMAIL_HOST')
+
+EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+
+EMAIL_PORT = env('EMAIL_PORT')
+
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')

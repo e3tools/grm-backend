@@ -4,12 +4,11 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #: dashboard/grm/forms.py:49
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-23 23:35+0200\n"
+"POT-Creation-Date: 2023-10-02 15:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +19,7 @@ msgstr ""
 
 #: attachments/serializers.py:22
 msgid "Unauthorized access with the credentials provided."
-msgstr ""
+msgstr "Ntiwemerewe kwinjira hakoreshejwe iyi myirondoro"
 
 #: attachments/serializers.py:40 dashboard/forms/forms.py:11
 #, python-format
@@ -28,403 +27,502 @@ msgid ""
 "Select a file size less than or equal to %(max_size)s. The selected file "
 "size is %(size)s."
 msgstr ""
+"Hitamo dokima itangeje %(max_size)s. Iyo wahisemo"
+"ifite %(size)s."
 
-#: authentication/models.py:21
+#: authentication/models.py:22
 msgid "email address"
-msgstr ""
+msgstr "Emayili"
 
-#: authentication/models.py:22 dashboard/grm/__init__.py:18
+#: authentication/models.py:23 dashboard/grm/__init__.py:13
+#: dashboard/grm/__init__.py:18
 msgid "phone number"
-msgstr ""
+msgstr "Nimero ya telefoni"
 
-#: authentication/models.py:23
+#: authentication/models.py:24
 msgid "photo"
-msgstr ""
+msgstr "Ifoto"
 
-#: authentication/models.py:40
+#: authentication/models.py:65
 msgid "department"
-msgstr ""
+msgstr "Deparitoma"
 
-#: authentication/models.py:42
+#: authentication/models.py:67
 msgid "administrative level"
-msgstr ""
+msgstr "urwego rw'ubuyobozi"
 
-#: authentication/models.py:45
+#: authentication/models.py:70
 msgid "Government Worker"
-msgstr ""
+msgstr "Umukozi wa leta"
 
-#: authentication/models.py:46
+#: authentication/models.py:71
 msgid "Government Workers"
-msgstr ""
+msgstr "Abakozi ba leta"
 
 #: authentication/serializers.py:19 dashboard/authentication/forms.py:11
 #: dashboard/templates/adls/profile.html:51
 msgid "Email"
-msgstr ""
+msgstr "Emayili"
 
 #: authentication/serializers.py:21
 msgid "Password"
-msgstr ""
+msgstr "Ijambo ry'ibanga"
 
 #: authentication/serializers.py:28 authentication/serializers.py:75
 #, python-brace-format
 msgid "Invalid data. Expected a dictionary, but got {datatype}."
-msgstr ""
+msgstr "Amakuru atemewe. Witeze inkoranyamagambo, ariko yabonye {datatype}."
 
 #: authentication/serializers.py:29
 msgid "Unable to log in with provided credentials."
-msgstr ""
+msgstr "Ntibishobotse kwinjira hakoreshejwe imyirondoro yatanzwe"
 
 #: authentication/serializers.py:63
 msgid "Must include \"email\" and \"password\"."
-msgstr ""
+msgstr "Hagomba kubamo \"email\" na \"password\"."
 
 #: authentication/serializers.py:76
 msgid "Unable to register with provided credentials."
-msgstr ""
+msgstr "Ntushobora kwiyandikisha ukoresheje Imyirondoro yatanzwe"
 
 #: authentication/serializers.py:77
 msgid "A user with that email is already registered."
-msgstr ""
+msgstr "Undi muntu akoresha iyi Imeri"
 
 #: authentication/serializers.py:78
 msgid "Unable to register with provided validation code."
-msgstr ""
+msgstr "Ntushobora kwiyandikisha ukoresheje iyi kode"
 
 #: dashboard/adls/forms.py:14 dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:77
 msgid "Name"
-msgstr ""
+msgstr "Izina"
 
 #: dashboard/adls/forms.py:15 dashboard/templates/adls/profile.html:49
 msgid "Tel"
-msgstr ""
+msgstr "Tel"
 
 #: dashboard/adls/forms.py:50
 msgid "This email is already registered."
-msgstr ""
+msgstr "Iyi Imeri yamaze kwiyandikisha"
 
 #: dashboard/adls/views.py:22 dashboard/adls/views.py:59
 #: dashboard/templates/layouts/sidebar.html:42
 msgid "Administrative Levels"
-msgstr ""
+msgstr "Inzego z'ubuyobozi"
 
 #: dashboard/adls/views.py:53
 msgid "Facilitator Profile"
-msgstr ""
+msgstr "Umwirondoro w;umukangurambaga"
 
 #: dashboard/adls/views.py:98
 msgid "The account was successfully deactivated."
-msgstr ""
+msgstr "Konti yarahagaritswe neza"
 
 #: dashboard/adls/views.py:103
 msgid "The account was activated successfully."
-msgstr ""
+msgstr "Konti Yemejwe neza"
 
-#: dashboard/adls/views.py:107
+#: dashboard/adls/views.py:107 dashboard/grm/views.py:1025
 msgid "The password was not correct, we could not proceed with action."
-msgstr ""
+msgstr "Ijambobanga ntabwo ariryo, ntidushobora gukomeza ibikorwa"
 
 #: dashboard/adls/views.py:118
 msgid "Profile information"
-msgstr ""
+msgstr "Umwirondoro"
 
-#: dashboard/adls/views.py:121 dashboard/grm/views.py:779
-#: dashboard/grm/views.py:826 dashboard/templates/grm/issue_detail.html:171
+#: dashboard/adls/views.py:121 dashboard/grm/views.py:852
+#: dashboard/grm/views.py:911 dashboard/templates/grm/issue_detail.html:199
 msgid "Save"
-msgstr ""
+msgstr "Bika"
 
 #: dashboard/adls/views.py:151
 msgid ""
 "An error has occurred that did not allow the profile picture to be uploaded "
 "to the database. Please report to IT staff."
 msgstr ""
+"Habayeho ikosa ritemerera  ifoto y'umwirondoro gushyirwa"
+"mu bubiko. Nyamuneka bimenyeshe kubakozi ba IT."
 
 #: dashboard/adls/views.py:159
 msgid ""
 "Please note that the Facilitator Code has changed due to the email change."
-msgstr ""
+msgstr "Nyamuneka menya ko Code y'umukangurambaga yahindutse kubera imeri yahinduwe."
 
 #: dashboard/adls/views.py:164
 msgid "The profile information was successfully edited."
-msgstr ""
+msgstr "Umwirondoro wahinduwe neza"
 
 #: dashboard/diagnostics/views.py:19
 #: dashboard/templates/layouts/sidebar.html:35
 msgid "Diagnostics"
-msgstr ""
+msgstr "Isuzumabikorwa"
 
 #: dashboard/forms/forms.py:8
 msgid "Allowed file size less than or equal to 2 MB"
-msgstr ""
+msgstr "Ingano ya dosiye yemewe igomba kuba iri cyangwa ingana na 2 MB"
 
 #: dashboard/grm/__init__.py:7
 msgid "Remain anonymous"
-msgstr ""
+msgstr "Hisha Imyirondoro"
 
 #: dashboard/grm/__init__.py:8
 msgid "Receive updates from facilitator"
-msgstr ""
+msgstr "Kwakira amakuru ku kibazo binyuze k'umukangurambaga"
 
 #: dashboard/grm/__init__.py:9
 msgid "Receive updates directly"
-msgstr ""
+msgstr "Kohererezwa amakuru"
 
-#: dashboard/grm/__init__.py:17
+#: dashboard/grm/__init__.py:12 dashboard/grm/__init__.py:17
 msgid "email"
-msgstr ""
+msgstr "Imeri"
+
+#: dashboard/grm/__init__.py:14 dashboard/grm/__init__.py:19
+msgid "whatsapp"
+msgstr "Wastapu"
 
 #: dashboard/grm/__init__.py:26
 msgid ""
 "Keep name confidential. Only the person resolving the issue will see the "
 "name."
 msgstr ""
+"Hisha Amazina. Umuntu uzakemura ikibazo azabasha kubona "
+"izina."
 
 #: dashboard/grm/__init__.py:27
 msgid "This is an individual filing on behalf of someone else."
-msgstr ""
+msgstr "Uyu muntu ari kuzuriza ikibazo undi muntu."
 
 #: dashboard/grm/__init__.py:28
 msgid "This is an organization filing on behalf of someone else."
-msgstr ""
+msgstr "Ikigo kiri kuzuriza ikibazo undi muntu."
 
 #: dashboard/grm/__init__.py:31
 msgid "Complainant"
-msgstr ""
+msgstr "Utanze ikibazo"
 
 #: dashboard/grm/__init__.py:35
 msgid "Citizen on behalf of others"
-msgstr ""
+msgstr "Umuturage uri kuzuriza ikibazo abandi bantu."
 
 #: dashboard/grm/__init__.py:36
 msgid "Organization on behalf of others"
-msgstr ""
+msgstr "Ikigo cyuzurije abandi bantu."
+
+#: dashboard/grm/__init__.py:39
+msgid "Male"
+msgstr "Gabo"
+
+#: dashboard/grm/__init__.py:40
+msgid "Female"
+msgstr "Gore"
+
+#: dashboard/grm/__init__.py:41
+msgid "Other"
+msgstr "Ibindi"
+
+#: dashboard/grm/__init__.py:42
+msgid "Rather not say"
+msgstr "Sinshaka Kubivuga"
 
 #: dashboard/grm/forms.py:20
 msgid "How does the citizen wish to be contacted?"
-msgstr ""
+msgstr "Uko umuturage yifuza kumenyeshwa amakuru"
 
 #: dashboard/grm/forms.py:32
 msgid "Please type the contact information"
-msgstr ""
+msgstr "Injizamo amakuru y'itumanaho"
 
 #: dashboard/grm/forms.py:47
 msgid "Enter name of the citizen"
-msgstr ""
+msgstr "Injizamo izina ry'umuturage"
 
 #: dashboard/grm/forms.py:48 dashboard/grm/forms.py:50
 #: dashboard/grm/forms.py:52 dashboard/grm/forms.py:53
 #: dashboard/grm/forms.py:56 dashboard/grm/forms.py:58
+#: dashboard/grm/forms.py:109 dashboard/grm/forms.py:110
 msgid "This is an optional field"
-msgstr ""
+msgstr "Aha singombwa"
 
 #: dashboard/grm/forms.py:51
 msgid "Enter age group"
-msgstr ""
+msgstr "Shyiramo ikiciro cy'imyaka"
 
 #: dashboard/grm/forms.py:53
 msgid "Choose gender"
-msgstr ""
+msgstr "Hitamo igitsina"
 
-#: dashboard/grm/forms.py:55 dashboard/grm/forms.py:57
-msgid "Religion, Nationality"
-msgstr ""
+#: dashboard/grm/forms.py:55
+msgid "Occupancy status"
+msgstr "Icyo akora"
 
-#: dashboard/grm/forms.py:101
+#: dashboard/grm/forms.py:57
+msgid "Educational level"
+msgstr "Urwego rw'uburezi"
+
+#: dashboard/grm/forms.py:102
 msgid "Date of intake"
-msgstr ""
+msgstr "Igihe cyakiriwe"
 
-#: dashboard/grm/forms.py:103
+#: dashboard/grm/forms.py:104
 msgid "Date of issue"
-msgstr ""
-
-#: dashboard/grm/forms.py:105
-msgid "What are you reporting"
-msgstr ""
+msgstr "Igihe cyabereye"
 
 #: dashboard/grm/forms.py:106
-msgid "Choose type of grievance"
-msgstr ""
+msgid "What are you reporting"
+msgstr "Niki utangamo raporo"
 
 #: dashboard/grm/forms.py:107
-msgid "Briefly describe the issue"
-msgstr ""
+msgid "The sub type of grievance"
+msgstr "Ubwoko bw'akababaro"
 
 #: dashboard/grm/forms.py:108
-msgid "Please describe the issue"
-msgstr ""
+msgid "The category of grievance"
+msgstr "Icyiciro cy'akababaro"
 
 #: dashboard/grm/forms.py:109
+#: dashboard/templates/grm/new_issue_confirmation.html:169
+msgid "Component"
+msgstr "Component"
+
+#: dashboard/grm/forms.py:110
+#: dashboard/templates/grm/new_issue_confirmation.html:177
+msgid "Sub Component"
+msgstr "Sub Component"
+
+#: dashboard/grm/forms.py:111
+msgid "Briefly describe the issue"
+msgstr "Vuga muri make ikibazo"
+
+#: dashboard/grm/forms.py:112
+msgid "Please describe the issue"
+msgstr "Nyamuneka sobanura ikibazo"
+
+#: dashboard/grm/forms.py:113
 msgid "Current event or multiple occurrences"
-msgstr ""
+msgstr "Byabaye rimwe cyangwa inshuro nyinshi"
 
-#: dashboard/grm/forms.py:178
+#: dashboard/grm/forms.py:202
 msgid "Start Date"
-msgstr ""
+msgstr "Itariki yo gutangiriraho"
 
-#: dashboard/grm/forms.py:179
+#: dashboard/grm/forms.py:203
 msgid "End Date"
-msgstr ""
+msgstr "Itariki yo kurangiriraho"
 
-#: dashboard/grm/forms.py:180
+#: dashboard/grm/forms.py:204
 msgid "ID Number / Access Code"
-msgstr ""
+msgstr "Inomero y'ikibazo / Kode y'ikibazo"
 
-#: dashboard/grm/forms.py:209 dashboard/templates/grm/issue_list.html:9
+#: dashboard/grm/forms.py:233 dashboard/templates/grm/issue_list.html:9
 #: dashboard/templates/grm/review_issues.html:212
 msgid "Assigned to"
-msgstr ""
+msgstr "Byashinzwe"
 
-#: dashboard/grm/forms.py:225
+#: dashboard/grm/forms.py:260
 msgid "Add comment"
-msgstr ""
+msgstr "Ongeraho igitekerezo"
 
-#: dashboard/grm/views.py:33 dashboard/grm/views.py:377
-#: dashboard/grm/views.py:393 dashboard/grm/views.py:410
-#: dashboard/grm/views.py:424 dashboard/grm/views.py:443
-#: dashboard/grm/views.py:494 dashboard/grm/views.py:515
-#: dashboard/grm/views.py:613 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:36 dashboard/grm/views.py:446
+#: dashboard/grm/views.py:462 dashboard/grm/views.py:479
+#: dashboard/grm/views.py:493 dashboard/grm/views.py:512
+#: dashboard/grm/views.py:566 dashboard/grm/views.py:587
+#: dashboard/grm/views.py:685 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
-msgstr ""
+msgstr "GRM"
 
-#: dashboard/grm/views.py:134
+#: dashboard/grm/views.py:139
 msgid "Add attachment"
-msgstr ""
+msgstr "Ongeraho umugereka"
 
-#: dashboard/grm/views.py:135
+#: dashboard/grm/views.py:140
 msgid "Upload"
-msgstr ""
+msgstr "Kuramo"
 
-#: dashboard/grm/views.py:155
+#: dashboard/grm/views.py:163
+#, python-format
+msgid "A new attachment %s has been added to the issue."
+msgstr "Umugereka mushya %s wongewe ku kibazo."
+
+#: dashboard/grm/views.py:173
 msgid "The attachment was successfully uploaded."
-msgstr ""
+msgstr "Umugereka washyizweho neza"
 
-#: dashboard/grm/views.py:158
+#: dashboard/grm/views.py:176
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
+"Habayeho ikibazo cyatumye umugereka udashyirwa "
+"mu bubiko. menyesha abakozi ba IT."
 
-#: dashboard/grm/views.py:162
+#: dashboard/grm/views.py:180
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
+"Umugereka ntiwabashije gushyirwaho kuko warengeje umubare wemewe"
+"%(max)d w'imigereka."
 
-#: dashboard/grm/views.py:186
+#: dashboard/grm/views.py:209
+#, python-format
+msgid "The attachment %s has been deleted to the issue."
+msgstr "Umugereka %s wasibwe ku kibazo"
+
+#: dashboard/grm/views.py:219
 msgid "The attachment was successfully deleted."
-msgstr ""
+msgstr "Umugereka wasibwe neza."
 
-#: dashboard/grm/views.py:359
+#: dashboard/grm/views.py:428
 msgid ""
 "There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
+"Nta mukozi wo guha iki kibazo. Nyamuneka tanga raporo kubakozi ba IT."
 
-#: dashboard/grm/views.py:510 dashboard/grm/views.py:617
+#: dashboard/grm/views.py:582 dashboard/grm/views.py:689
 msgid "Review Issues"
-msgstr ""
+msgstr "Genzura Ibibazo"
 
-#: dashboard/grm/views.py:608
+#: dashboard/grm/views.py:680
 msgid "Issue Detail"
-msgstr ""
+msgstr "Amakuru ku kibazo"
 
-#: dashboard/grm/views.py:665
+#: dashboard/grm/views.py:738
 msgid "The issue was successfully edited."
-msgstr ""
+msgstr "Ikibazo cyahinduwe neza."
 
-#: dashboard/grm/views.py:697
+#: dashboard/grm/views.py:770
 msgid "The comment was sent successfully."
-msgstr ""
+msgstr "Igitekerezo cyoherejwe neza"
 
-#: dashboard/grm/views.py:700
+#: dashboard/grm/views.py:773
 msgid "Comment cannot be empty."
-msgstr ""
+msgstr "Igitekerezo ntigishobora kuba ubusa."
 
-#: dashboard/grm/views.py:768 dashboard/grm/views.py:814
-#: dashboard/grm/views.py:861
+#: dashboard/grm/views.py:841 dashboard/grm/views.py:899
+#: dashboard/grm/views.py:959
 msgid "The issue status was successfully updated."
-msgstr ""
+msgstr "Imiterere yikibazo yavuguruwe neza"
 
-#: dashboard/grm/views.py:778
+#: dashboard/grm/views.py:851
 msgid "Please enter the resolution reached for this issue"
-msgstr ""
+msgstr "Nyamuneka andika imyanzuro yagezweho kuri iki kibazo"
 
-#: dashboard/grm/views.py:825
+#: dashboard/grm/views.py:888
+msgid "The complaint has been resolved"
+msgstr "Ikirego cyarakemutse"
+
+#: dashboard/grm/views.py:910
 msgid "Enter the reason for rejecting this issue"
-msgstr ""
+msgstr "Injiza impamvu yo kwanga iki kibazo"
 
-#: dashboard/logs/views.py:10 dashboard/templates/layouts/sidebar.html:75
+#: dashboard/grm/views.py:948
+msgid "The complaint has been rejected"
+msgstr "Ikirego cyanzwe"
+
+#: dashboard/logs/views.py:10
 msgid "Logs"
-msgstr ""
+msgstr "Amakuru ya sisiteme"
 
 #: dashboard/participatory_budget/forms.py:22
 msgid "Show:"
-msgstr ""
+msgstr "Erekana:"
 
 #: dashboard/participatory_budget/forms.py:32
 msgid "This month"
-msgstr ""
+msgstr "Uku kwezi"
 
 #: dashboard/participatory_budget/views.py:13
 msgid "Participatory Budget"
-msgstr ""
+msgstr "Ingengo y'Imari"
 
 #: dashboard/subprojects/views.py:10
 msgid "Subprojects"
-msgstr ""
+msgstr "Subprojects"
 
-#: dashboard/tasks.py:202
+#: dashboard/tasks.py:165
+#, python-format
+msgid "The issue has been assigned to %s."
+msgstr "Ikibazo cyahawe %s."
+
+#: dashboard/tasks.py:247
 #, python-format
 msgid ""
 "Your issue submitted has been accepted into the system with the code "
 "%s(tracking_code)s"
 msgstr ""
+"Ikibazo cyawe cyatanzwe cyakiriwe muri sisitemu hamwe na kode "
+"%s(tracking_code)s"
 
-#: dashboard/tasks.py:204
+#: dashboard/tasks.py:249
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been rejected with the following response: "
 "%s(reason)s"
 msgstr ""
+"Ikibazo cyawe %s(tracking_code)s cyanzwe. Igisubizo ni:"
+"%s(reason)s"
 
-#: dashboard/tasks.py:206
+#: dashboard/tasks.py:251
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been resolved with the following response: "
 "%s(resolution)s"
 msgstr ""
+"Ikibazo cyawe %s(tracking_code)s cyakemutse Igisubizo ni: "
+"%s(resolution)s"
+
+#: dashboard/tasks.py:380
+#, python-format
+msgid ""
+"Your issue submitted has been accepted into the system with the tracking "
+"code %s"
+msgstr ""
+"Ikibazo watanze cyemewe muri sisiteme hamwe na kode: "
+"code %s"
+
+#: dashboard/tasks.py:382
+#, python-format
+msgid "Your issue %s has been rejected with the following response: %s"
+msgstr "Ikibazo cyawe %s cyanzwe. Igisubizo ni: %s"
+
+#: dashboard/tasks.py:384
+#, python-format
+msgid "Ikibazo cyawe %s hcyakemitse. Igisubizo ni: %s"
+msgstr ""
 
 #: dashboard/templates/adls/list.html:11
 #: dashboard/templates/participatory_budget/dashboard.html:97
 msgid "Search"
-msgstr ""
+msgstr "Shakisha"
 
 #: dashboard/templates/adls/list.html:15
 msgid "Export complete list"
-msgstr ""
+msgstr "Kuramo urutonde rwuzuye"
 
 #: dashboard/templates/adls/list.html:23
 #: dashboard/templates/adls/profile.html:40
 msgid "Administrative Level"
-msgstr ""
+msgstr "Urwego rw'Ubuyobozi"
 
 #: dashboard/templates/adls/list.html:24
 msgid "Photo"
-msgstr ""
+msgstr "Ifoto"
 
 #: dashboard/templates/adls/list.html:26
 msgid "Last activity"
-msgstr ""
+msgstr "Igikorwa giheruka"
 
 #: dashboard/templates/adls/list.html:28
 msgid "Action"
-msgstr ""
+msgstr "Igikorwa"
 
 #: dashboard/templates/adls/list.html:50
 msgid "See profile"
-msgstr ""
+msgstr "Reba Umwirondoro"
 
 #: dashboard/templates/adls/phase_detail.html:37
 #: dashboard/templates/adls/task_detail.html:28
@@ -433,13 +531,13 @@ msgstr ""
 #: dashboard/templates/participatory_budget/statement.html:3
 #: dashboard/templates/participatory_budget/task_list.html:27
 msgid "Completed"
-msgstr ""
+msgstr "Byarangiye"
 
 #: dashboard/templates/adls/phase_detail.html:39
 #: dashboard/templates/adls/task_detail.html:30
 #: dashboard/templates/participatory_budget/task_list.html:29
 msgid "In progress"
-msgstr ""
+msgstr "Biracyakorwa"
 
 #: dashboard/templates/adls/phase_detail.html:41
 #: dashboard/templates/adls/task_detail.html:32
@@ -450,73 +548,73 @@ msgstr ""
 #: dashboard/templates/adls/phase_detail.html:50
 #: dashboard/templates/adls/task_detail.html:12
 msgid "Estimated Date"
-msgstr ""
+msgstr "Bitegereje"
 
 #: dashboard/templates/adls/phase_detail.html:56
 #: dashboard/templates/adls/task_detail.html:15
 msgid "indefinite date"
-msgstr ""
+msgstr "itariki itazwi"
 
 #: dashboard/templates/adls/phase_detail.html:62
 msgid "Document Task"
-msgstr ""
+msgstr "Inshingano"
 
 #: dashboard/templates/adls/profile.html:29
 msgid "Facilitator not assigned"
-msgstr ""
+msgstr "Ibidafite Umukangurambaga"
 
 #: dashboard/templates/adls/profile.html:45
 msgid "No administrative level assigned"
-msgstr ""
+msgstr "Ibidafite urwego rw'ubuyobozi"
 
 #: dashboard/templates/adls/profile.html:57
-#: dashboard/templates/adls/profile.html:258
+#: dashboard/templates/adls/profile.html:256
 msgid "Deactivate Account"
-msgstr ""
+msgstr "Kuraho Konti"
 
 #: dashboard/templates/adls/profile.html:64
 msgid "Activate Account"
-msgstr ""
+msgstr "Emeza Konti"
 
 #: dashboard/templates/adls/profile.html:77
 msgid "Last Activity"
-msgstr ""
+msgstr "Igikorwa giheruka"
 
 #: dashboard/templates/adls/profile.html:83
 msgid "Facilitator Code"
-msgstr ""
+msgstr "Kode y'umukangurambaga"
 
 #: dashboard/templates/adls/profile.html:127
 msgid "Participatory monitoring"
-msgstr ""
+msgstr "Gukurikirana uruhare"
 
 #: dashboard/templates/adls/profile.html:143
 msgid "Participatory diagnostics"
 msgstr ""
 
-#: dashboard/templates/adls/profile.html:251
+#: dashboard/templates/adls/profile.html:249
 msgid "Please enter your password to deactivate the facilitator account!"
-msgstr ""
+msgstr "Nyamuneka andika ijambo ryibanga kugirango uhagarike konti y'umukangurambaga"
 
-#: dashboard/templates/adls/profile.html:297
+#: dashboard/templates/adls/profile.html:294
 msgid "Expand / Collapse"
 msgstr ""
 
-#: dashboard/templates/adls/profile.html:301
+#: dashboard/templates/adls/profile.html:298
 msgid "Initial position"
-msgstr ""
+msgstr "AHo bitangirira"
 
-#: dashboard/templates/adls/profile.html:347
+#: dashboard/templates/adls/profile.html:344
 msgid "Zoom in"
 msgstr ""
 
-#: dashboard/templates/adls/profile.html:349
+#: dashboard/templates/adls/profile.html:346
 msgid "Zoom out"
 msgstr ""
 
-#: dashboard/templates/adls/profile.html:406
+#: dashboard/templates/adls/profile.html:403
 msgid "Edit Profile Picture"
-msgstr ""
+msgstr "Hindura Ifoto"
 
 #: dashboard/templates/adls/task_detail.html:9
 msgid "Go to the phase"
@@ -533,13 +631,13 @@ msgstr ""
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:7
 #: dashboard/templates/grm/issue_attachments_column1.html:7
-#: dashboard/templates/grm/new_issue_confirmation.html:176
+#: dashboard/templates/grm/new_issue_confirmation.html:202
 msgid "Attachments"
-msgstr ""
+msgstr "Imigereka"
 
 #: dashboard/templates/adls/task_detail.html:45
 msgid "No attachments"
-msgstr ""
+msgstr "Nta migereka iriho"
 
 #: dashboard/templates/adls/task_detail.html:48
 msgid "Notes"
@@ -551,19 +649,19 @@ msgstr ""
 
 #: dashboard/templates/adls/task_detail.html:56
 #: dashboard/templates/diagnostics/home.html:196
-#: dashboard/templates/grm/issue_detail.html:108
-#: dashboard/templates/grm/new_issue_confirmation.html:195
+#: dashboard/templates/grm/issue_detail.html:112
+#: dashboard/templates/grm/new_issue_confirmation.html:221
 msgid "Location"
 msgstr ""
 
 #: dashboard/templates/authentication/login.html:17
 #: dashboard/templates/authentication/login.html:54
 msgid "Log in"
-msgstr ""
+msgstr "Injira"
 
 #: dashboard/templates/authentication/login.html:45
 msgid "Log in to start your session"
-msgstr ""
+msgstr "Injira kugirango utangire"
 
 #: dashboard/templates/common/400.html:10
 msgid "BAD REQUEST"
@@ -614,15 +712,15 @@ msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:17
 msgid "Number"
-msgstr ""
+msgstr "Nimero"
 
 #: dashboard/templates/diagnostics/home.html:18
 msgid "Percentage"
-msgstr ""
+msgstr "Ijanisha"
 
 #: dashboard/templates/diagnostics/home.html:20
 #: dashboard/templates/diagnostics/home.html:192
-#: dashboard/templates/grm/issue_detail.html:132
+#: dashboard/templates/grm/issue_detail.html:136
 #: dashboard/templates/grm/issue_list.html:12
 #: dashboard/templates/grm/review_issues.html:220
 msgid "Type"
@@ -630,7 +728,7 @@ msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:21
 #: dashboard/templates/diagnostics/home.html:188
-#: dashboard/templates/grm/issue_detail.html:122
+#: dashboard/templates/grm/issue_detail.html:126
 #: dashboard/templates/grm/issue_list.html:11
 #: dashboard/templates/grm/review_issues.html:216
 msgid "Category"
@@ -639,49 +737,49 @@ msgstr ""
 #: dashboard/templates/diagnostics/home.html:29
 #: dashboard/templates/grm/review_issues.html:24
 msgid "Filter by"
-msgstr ""
+msgstr "Muyunguruzi ya"
 
 #: dashboard/templates/diagnostics/home.html:49
 #: dashboard/templates/grm/review_issues.html:42
 msgid "Clear all filters"
-msgstr ""
+msgstr "Hanagura muyunguruzi zose"
 
-#: dashboard/templates/diagnostics/home.html:447
+#: dashboard/templates/diagnostics/home.html:432
 #: dashboard/templates/grm/issue_list.html:34
 msgid "No issues found"
-msgstr ""
+msgstr "Nta bibazo byabonywe"
 
-#: dashboard/templates/diagnostics/home.html:477
-#: dashboard/templates/grm/new_issue_confirm.html:171
-#: dashboard/templates/grm/new_issue_confirm.html:336
+#: dashboard/templates/diagnostics/home.html:462
+#: dashboard/templates/grm/new_issue_confirm.html:186
+#: dashboard/templates/grm/new_issue_confirm.html:351
 #: dashboard/templates/grm/new_issue_location.html:56
-#: dashboard/templates/grm/new_issue_location.html:69
+#: dashboard/templates/grm/new_issue_location.html:72
 msgid "Click to select location"
-msgstr ""
+msgstr "Kanda kugirango uhitemo"
 
 #: dashboard/templates/grm/dashboard.html:13
 msgid "Resources & Announcements"
-msgstr ""
+msgstr "Amatangazo"
 
 #: dashboard/templates/grm/dashboard.html:22
 msgid ""
 "- We have added new codes for classifying issues. Click here for more "
 "information."
-msgstr ""
+msgstr "Nta matangazo ahari"
 
 #: dashboard/templates/grm/dashboard.html:26
 msgid ""
 "- We’re getting great feedback! Click here to see some articles about how "
 "well our work is being received."
-msgstr ""
+msgstr "Nta matangazo ahari"
 
 #: dashboard/templates/grm/dashboard.html:37
 msgid "ENTER NEW ISSUES"
-msgstr ""
+msgstr "SHYIRAMO IBIBAZO BISHYA"
 
 #: dashboard/templates/grm/dashboard.html:45
 msgid "REVIEW ISSUES"
-msgstr ""
+msgstr "SHAKISHA RAPORO"
 
 #: dashboard/templates/grm/issue_attachments.html:10
 #: dashboard/templates/grm/issue_attachments_column1.html:10
@@ -693,74 +791,102 @@ msgid ""
 msgstr ""
 
 #: dashboard/templates/grm/issue_attachments.html:44
-#: dashboard/templates/grm/issue_attachments_column1.html:43
+#: dashboard/templates/grm/issue_attachments_column1.html:56
 msgid "Add attachments"
-msgstr ""
+msgstr "Shyiraho umugereka"
+
+#: dashboard/templates/grm/issue_attachments_column1.html:34
+msgid "Synchronized"
+msgstr "Byahujwe"
+
+#: dashboard/templates/grm/issue_attachments_column1.html:38
+msgid "Not synchronized"
+msgstr "Ntabwo byahujwe"
 
 #: dashboard/templates/grm/issue_comments.html:31
 msgid "No comments found"
-msgstr ""
+msgstr "Nta Bitekrezo byabonetse"
 
 #: dashboard/templates/grm/issue_detail.html:18
 #: dashboard/templates/grm/issue_list.html:8
 msgid "Summary"
-msgstr ""
+msgstr "Incamake"
 
 #: dashboard/templates/grm/issue_detail.html:46
 msgid "Reporter"
-msgstr ""
+msgstr "Gitanzwe"
 
 #: dashboard/templates/grm/issue_detail.html:56
 msgid "Reported"
-msgstr ""
+msgstr "Cyatanzwe"
 
 #: dashboard/templates/grm/issue_detail.html:66
 msgid "Lodged by"
-msgstr ""
+msgstr "Cyashyizwemo na:"
 
 #: dashboard/templates/grm/issue_detail.html:82
-#: dashboard/templates/grm/issue_detail.html:98
-#: dashboard/templates/grm/issue_detail.html:113
+#: dashboard/templates/grm/issue_detail.html:102
+#: dashboard/templates/grm/issue_detail.html:117
 msgid "Confidential"
-msgstr ""
+msgstr "Ni Ibanga"
 
-#: dashboard/templates/grm/issue_detail.html:93
-#: dashboard/templates/grm/new_issue_confirmation.html:88
+#: dashboard/templates/grm/issue_detail.html:87
+msgid "Show sensitive data"
+msgstr "Garagaza amakuru y'ibanga"
+
+#: dashboard/templates/grm/issue_detail.html:97
+#: dashboard/templates/grm/new_issue_confirmation.html:90
 msgid "Age"
-msgstr ""
+msgstr "Imayaka"
 
-#: dashboard/templates/grm/issue_detail.html:149
+#: dashboard/templates/grm/issue_detail.html:147
+msgid "Resolution"
+msgstr "Umwanzuro"
+
+#: dashboard/templates/grm/issue_detail.html:159
+msgid "Rejection reason"
+msgstr "Impamvu yo kwangwa"
+
+#: dashboard/templates/grm/issue_detail.html:177
 msgid "Steps Taken"
-msgstr ""
+msgstr "Intambwe Zatewe"
+
+#: dashboard/templates/grm/issue_detail.html:243
+msgid "Please enter your password to show sensitive data"
+msgstr "Nyamuneka andika ijambo ryibanga kugirango werekane amakuru yihariye"
+
+#: dashboard/templates/grm/issue_detail.html:249
+msgid "Check password"
+msgstr "Reba ijambo ryibanga"
 
 #: dashboard/templates/grm/issue_list.html:6
 #: dashboard/templates/grm/new_issue_confirmation.html:34
 msgid "ID Number"
-msgstr ""
+msgstr "Nomero iranga"
 
 #: dashboard/templates/grm/issue_list.html:7
 msgid "Access Code"
-msgstr ""
+msgstr "Nimero y'ikibazo"
 
 #: dashboard/templates/grm/issue_list.html:10
 msgid "Days Open"
-msgstr ""
+msgstr "Iminsi kimaze gifunguye"
 
 #: dashboard/templates/grm/issue_status_buttons.html:15
 msgid "Accept Issue"
-msgstr ""
+msgstr "Emeza ikibazo"
 
 #: dashboard/templates/grm/issue_status_buttons.html:29
 msgid "Record Resolution"
-msgstr ""
+msgstr "Shyiramo imyanzuro"
 
 #: dashboard/templates/grm/issue_status_buttons.html:42
 msgid "Reject Issue"
-msgstr ""
+msgstr "Anga ikibazo"
 
 #: dashboard/templates/grm/new_issue_confirm.html:9
 msgid "Edit"
-msgstr ""
+msgstr "Hindura"
 
 #: dashboard/templates/grm/new_issue_confirm.html:19
 #: dashboard/templates/grm/new_issue_confirmation.html:18
@@ -768,7 +894,7 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_location.html:18
 #: dashboard/templates/grm/new_issue_person.html:18
 msgid "Enter New Issue"
-msgstr ""
+msgstr "SHyiramo ikibazo gishya"
 
 #: dashboard/templates/grm/new_issue_confirm.html:26
 #: dashboard/templates/grm/new_issue_confirmation.html:25
@@ -777,92 +903,95 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_location.html:25
 #: dashboard/templates/grm/new_issue_person.html:25
 msgid "Step"
-msgstr ""
+msgstr "Intambwe"
 
 #: dashboard/templates/grm/new_issue_confirm.html:29
 msgid "Confirm & Submit"
-msgstr ""
+msgstr "Emeza wohereze"
 
-#: dashboard/templates/grm/new_issue_confirm.html:119
+#: dashboard/templates/grm/new_issue_confirm.html:122
 #: dashboard/templates/grm/new_issue_contact.html:51
 #: dashboard/templates/grm/new_issue_details.html:44
 #: dashboard/templates/grm/new_issue_location.html:38
 #: dashboard/templates/grm/new_issue_person.html:38
 msgid "SAVE & NEXT"
-msgstr ""
+msgstr "Bika Ukomeze"
 
-#: dashboard/templates/grm/new_issue_confirm.html:124
+#: dashboard/templates/grm/new_issue_confirm.html:127
 #: dashboard/templates/grm/new_issue_details.html:49
 #: dashboard/templates/grm/new_issue_location.html:43
 #: dashboard/templates/grm/new_issue_person.html:43
 msgid "BACK"
-msgstr ""
+msgstr "Subira inyuma"
 
-#: dashboard/templates/grm/new_issue_confirm.html:141
+#: dashboard/templates/grm/new_issue_confirm.html:144
 #: dashboard/templates/grm/new_issue_contact.html:63
 msgid "Click to select contact method"
-msgstr ""
+msgstr "Hitamo uburyo bw'itumanaho"
 
-#: dashboard/templates/grm/new_issue_confirm.html:146
+#: dashboard/templates/grm/new_issue_confirm.html:149
 #: dashboard/templates/grm/new_issue_person.html:55
 msgid "Click to select age group"
-msgstr ""
-
-#: dashboard/templates/grm/new_issue_confirm.html:150
-#: dashboard/templates/grm/new_issue_person.html:59
-msgid "Click to select gender"
-msgstr ""
+msgstr "Kanda uhitemo ikiciro cy'imyaka"
 
 #: dashboard/templates/grm/new_issue_confirm.html:153
+#: dashboard/templates/grm/new_issue_person.html:59
+msgid "Click to select gender"
+msgstr "Hitamo igitsina"
+
+#: dashboard/templates/grm/new_issue_confirm.html:156
 #: dashboard/templates/grm/new_issue_person.html:62
 msgid "Click to select religion, nationality"
-msgstr ""
+msgstr "Kanda uhitemo idini, ubwenegihugu"
 
-#: dashboard/templates/grm/new_issue_confirm.html:163
+#: dashboard/templates/grm/new_issue_confirm.html:166
 #: dashboard/templates/grm/new_issue_details.html:65
 msgid "Click to select the report"
-msgstr ""
+msgstr "Kanda uhitemo raporo"
 
-#: dashboard/templates/grm/new_issue_confirm.html:167
+#: dashboard/templates/grm/new_issue_confirm.html:170
+#: dashboard/templates/grm/new_issue_confirm.html:174
+#: dashboard/templates/grm/new_issue_confirm.html:178
+#: dashboard/templates/grm/new_issue_confirm.html:182
 #: dashboard/templates/grm/new_issue_details.html:69
-msgid "Click to select the type of grievance"
-msgstr ""
+#: dashboard/templates/grm/new_issue_details.html:73
+#: dashboard/templates/grm/new_issue_details.html:77
+#: dashboard/templates/grm/new_issue_details.html:81
+msgid "Click to select an item"
+msgstr "Kanda uhitemo ikintu"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:28
 msgid "Confirmation"
-msgstr ""
+msgstr "Emeza"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:42
 msgid "Citizen contact"
-msgstr ""
+msgstr "Itumanaho ry'umuturage"
 
-#: dashboard/templates/grm/new_issue_confirmation.html:68
-msgid "Citizen name"
-msgstr ""
-
-#: dashboard/templates/grm/new_issue_confirmation.html:98
+#: dashboard/templates/grm/new_issue_confirmation.html:100
 msgid "Gender"
-msgstr ""
+msgstr "Igitsina"
 
-#: dashboard/templates/grm/new_issue_confirmation.html:143
+#: dashboard/templates/grm/new_issue_confirmation.html:145
 msgid "Report"
-msgstr ""
+msgstr "Raporo"
 
-#: dashboard/templates/grm/new_issue_confirmation.html:151
+#: dashboard/templates/grm/new_issue_confirmation.html:153
+#: dashboard/templates/grm/new_issue_confirmation.html:161
 msgid "Type of grievance"
-msgstr ""
+msgstr "Ubwoko bw'ikibazo"
 
-#: dashboard/templates/grm/new_issue_confirmation.html:159
+#: dashboard/templates/grm/new_issue_confirmation.html:185
 msgid "Description"
 msgstr ""
 
-#: dashboard/templates/grm/new_issue_confirmation.html:207
+#: dashboard/templates/grm/new_issue_confirmation.html:233
 msgid "Done"
 msgstr ""
 
 #: dashboard/templates/grm/new_issue_contact.html:28
 msgid "Preferred Method of Contact"
-msgstr ""
+msgstr "Uburyo bw'itumanaho"
 
 #: dashboard/templates/grm/new_issue_details.html:18
 msgid "Details of issue of Feedback"
@@ -870,14 +999,22 @@ msgstr ""
 
 #: dashboard/templates/grm/new_issue_details.html:28
 msgid "Basic Information"
-msgstr ""
+msgstr "Amakuru y'ibanze"
 
 #: dashboard/templates/grm/new_issue_location.html:28
 msgid "Location of Issue or Feedback"
-msgstr ""
+msgstr "Aho byabereye"
 
 #: dashboard/templates/grm/new_issue_person.html:28
 msgid "Name of Person or Group"
+msgstr "Izina ry'umuntu cyangwa Itsinda"
+
+#: dashboard/templates/grm/new_issue_person.html:71
+msgid "Click to select occupation status"
+msgstr ""
+
+#: dashboard/templates/grm/new_issue_person.html:76
+msgid "Click to select educational level"
 msgstr ""
 
 #: dashboard/templates/grm/review_issues.html:12
@@ -902,19 +1039,11 @@ msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:21
 msgid "Welcome"
-msgstr ""
-
-#: dashboard/templates/layouts/navbar.html:30
-msgid "Resources"
-msgstr ""
-
-#: dashboard/templates/layouts/navbar.html:35
-msgid "Help / FAQ"
-msgstr ""
+msgstr "Urakaza Neza"
 
 #: dashboard/templates/layouts/navbar.html:63
 msgid "Logout"
-msgstr ""
+msgstr "Sohoka"
 
 #: dashboard/templates/layouts/sidebar.html:86
 msgid "Toggle Sidebar"
@@ -974,4 +1103,8 @@ msgstr ""
 
 #: grm/settings.py:133
 msgid "Kinyarwanda"
+msgstr ""
+
+#: grm/settings.py:134
+msgid "Ethiopia"
 msgstr ""

@@ -151,7 +151,31 @@
                                         {% translate "Type of grievance" %}:
                                     </label>
                                     <div class="col-9 text-regular-family">
+                                        {{ doc.issue_sub_type.name }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <label class="col-3 label-align">
+                                        {% translate "Type of grievance" %}:
+                                    </label>
+                                    <div class="col-9 text-regular-family">
                                         {{ doc.category.name }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <label class="col-3 label-align">
+                                        {% translate "Component" %}:
+                                    </label>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.component.name }}
+                                    </div>
+                                </div>
+                                <div class="row mr-2 mb-2">
+                                    <label class="col-3 label-align">
+                                        {% translate "Sub Component" %}:
+                                    </label>
+                                    <div class="col-9 text-regular-family">
+                                        {{ doc.sub_component.name }}
                                     </div>
                                 </div>
                                 <div class="row mr-2">

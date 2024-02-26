@@ -6,7 +6,8 @@
     }
   },
   "filters": {
-    "by_user_email": "function (doc, req) {\n return doc._id === '_design/eadl' || (doc.representative && doc.representative.email === req.query.email); \n}"
+    "by_user_email": "function (doc, req) {\n return doc._id === '_design/eadl' || (doc.representative && doc.representative.email === req.query.email); \n}",
+    "by_user_administrative_region": "function (doc, req) {\n return doc.type === 'administrative_level' && req.query.ids.includes('$'+doc.administrative_id+'$'); \n}"
   },
   "language": "javascript"
 }

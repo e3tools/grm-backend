@@ -2,12 +2,15 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
-from authentication.models import anonymize_issue_data, get_assignee, get_assignee_to_escalate
+from authentication.models import anonymize_issue_data, get_assignee, get_assignee_to_escalate, Cdata
 from client import get_db
-from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE
+from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE, CHOICE_EMAIL
 from grm.celery import app
-from grm.utils import get_auto_increment_id
+from grm.utils import get_auto_increment_id, normalize_phone_number
 from sms_client import send_sms
+from mail_client import send_mail_notification
+import cryptocode
+from datetime import datetime
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -156,6 +159,18 @@ def check_issues():
                 if assignee:
                     assignee_updated = True
                     result['assignee_updated'].append(issue_id)
+
+                    # Add comment to the issue
+                    comments = issue_doc['comments'] if 'comments' in issue_doc else list()
+                    comment = _("The issue has been assigned to %s.") % assignee['name']
+                    comment_obj = {
+                        "name": "eGRM",
+                        "id": f"egrm-20230714-ML",
+                        "comment": f"{comment}",
+                        "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}"
+                    }
+                    comments.insert(0, comment_obj)
+                    issue_doc["comments"] = comments
             except Exception:
                 error = f'Error trying to set assignee for issue document with id {issue_id}'
                 result['errors'].append(error)
@@ -241,8 +256,18 @@ def send_sms_message():
         "confirmed": True,
         "assignee": {"$ne": ""},
         "tracking_code": {"$ne": ""},
-        "contact_medium": CHOICE_CONTACT,
-        "contact_information.type": CHOICE_PHONE,
+        "contact_medium": {
+            "$in" : [
+                f"{CHOICE_CONTACT}",
+                "channel-alert"
+            ]
+        },
+        "contact_information.type": {
+            "$in" : [
+                f"{CHOICE_PHONE}",
+                "phone_number"
+            ]
+        },
         "contact_information.contact": {"$ne": ""},
         "$or": [
             {
@@ -276,6 +301,7 @@ def send_sms_message():
     result = {
         'errors': [],
         'notified_issues': [],
+        'updated_issues': 0
     }
     updated_issues = 0
     for issue in issues:
@@ -301,11 +327,16 @@ def send_sms_message():
         tracking_code = issue_doc['tracking_code']
         phone = issue_doc['contact_information']['contact']
 
+        if phone == '*':
+            contact = Cdata.objects.get(key=issue_id) if Cdata.objects.filter(key=issue_id).exists() else None
+            phone = cryptocode.decrypt(contact.data, issue_id) if contact else None
+
+        phone = normalize_phone_number(phone)
         no_alert = 'accepted_alert_message' not in issue_doc or not issue_doc['accepted_alert_message']
         if no_alert and doc_status['open_status']:
-            msg = messages['accepted_alert_message'] % {'tracking_code': tracking_code}
+            msg = messages['accepted_alert_message'] % (tracking_code)
             try:
-                send_sms(phone, msg)
+                send_sms(to=phone, body=msg)
                 notified_issues = True
                 issue_doc['accepted_alert_message'] = True
             except TwilioRestException as e:
@@ -313,12 +344,10 @@ def send_sms_message():
 
         no_alert = 'rejected_alert_message' not in issue_doc or not issue_doc['rejected_alert_message']
         if no_alert and doc_status['rejected_status']:
-            msg = messages['rejected_alert_message'] % {
-                'tracking_code': tracking_code,
-                'reason': issue_doc['rejected_alert_message'] if 'rejected_alert_message' in issue_doc else ''
-            }
+            reason = issue_doc['rejected_alert_message'] if 'rejected_alert_message' in issue_doc else ''
+            msg = messages['rejected_alert_message'] % (tracking_code, reason)
             try:
-                send_sms(phone, msg)
+                send_sms(to=phone, body=msg)
                 notified_issues = True
                 issue_doc['rejected_alert_message'] = True
             except TwilioRestException as e:
@@ -326,15 +355,148 @@ def send_sms_message():
 
         no_alert = 'closed_alert_message' not in issue_doc or not issue_doc['closed_alert_message']
         if no_alert and doc_status['final_status']:
-            msg = messages['closed_alert_message'] % {
-                'tracking_code': tracking_code,
-                'resolution': issue_doc['research_result'] if 'research_result' in issue_doc else ''
-            }
+            resolution = issue_doc['research_result'] if 'research_result' in issue_doc else ''
+            msg = messages['closed_alert_message'] % (tracking_code, resolution)
             try:
-                send_sms(phone, msg)
+                send_sms(to=phone, body=msg)
                 notified_issues = True
                 issue_doc['closed_alert_message'] = True
             except TwilioRestException as e:
+                result['errors'].append(e.msg)
+
+        if notified_issues:
+            issue_doc.save()
+            updated_issues += 1
+            grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
+
+    result['updated_issues'] = updated_issues
+    return result
+
+
+@app.task
+def send_mail_message():
+    messages = {
+        'accepted_alert_message': _(
+            "Your issue submitted has been accepted into the system with the tracking code %s"),
+        'rejected_alert_message': _(
+            "Your issue %s has been rejected with the following response: %s"),
+        'closed_alert_message': _(
+            "Your issue %s has been resolved with the following response: %s"),
+    }
+    grm_db = get_db(COUCHDB_GRM_DATABASE)
+    selector = {
+        "type": "issue",
+        "confirmed": True,
+        "assignee": {"$ne": ""},
+        "tracking_code": {"$ne": ""},
+        "contact_medium": {
+            "$in" : [
+                f"{CHOICE_CONTACT}",
+                "channel-alert"
+            ]
+        },
+        "contact_information.type": {
+            "$in" : [
+                f"{CHOICE_EMAIL}",
+                "email"
+            ]
+        },
+        "contact_information.contact": {"$ne": ""},
+        "$or": [
+            {
+                "accepted_alert_message": False
+            },
+            {
+                "accepted_alert_message": {
+                    "$exists": False
+                }
+            },
+            {
+                "rejected_alert_message": False
+            },
+            {
+                "rejected_alert_message": {
+                    "$exists": False
+                }
+            },
+            {
+                "closed_alert_message": False
+            },
+            {
+                "closed_alert_message": {
+                    "$exists": False
+                }
+            }
+        ]
+    }
+
+    issues = grm_db.get_query_result(selector)
+    result = {
+        'errors': [],
+        'notified_issues': [],
+        'updated_issues': 0
+    }
+    updated_issues = 0
+    for issue in issues:
+        notified_issues = False
+        issue_id = issue['_id']
+        try:
+            issue_doc = grm_db[issue_id]
+        except Exception:
+            error = f'Error trying to get issue document with id {issue_id}'
+            result['errors'].append(error)
+            continue
+        try:
+            status_id = issue_doc['status']['id']
+            doc_status = grm_db.get_query_result({
+                "id": status_id,
+                "type": 'issue_status'
+            })[0][0]
+        except Exception:
+            error = f'Error trying to get issue_status document with id {status_id}'
+            result['errors'].append(error)
+            continue
+
+        tracking_code = issue_doc['tracking_code']
+        recipient = issue_doc['contact_information']['contact']
+
+        if recipient == '*':
+            contact = Cdata.objects.get(key=issue_id) if Cdata.objects.filter(key=issue_id).exists() else None
+            recipient = cryptocode.decrypt(contact.data, issue_id) if contact else None
+
+        no_alert = 'accepted_alert_message' not in issue_doc or not issue_doc['accepted_alert_message']
+        if no_alert and doc_status['open_status']:
+            msg = messages['accepted_alert_message'] % (tracking_code)
+            try:
+                subject = 'open_status'
+                send_mail_notification(subject, msg, recipient)
+                notified_issues = True
+                issue_doc['accepted_alert_message'] = True
+            except Exception as e:
+                result['errors'].append(e.msg)
+
+        no_alert = 'rejected_alert_message' not in issue_doc or not issue_doc['rejected_alert_message']
+        if no_alert and doc_status['rejected_status']:
+            reason = issue_doc['rejected_alert_message'] if 'rejected_alert_message' in issue_doc else ''
+            msg = messages['rejected_alert_message'] % (tracking_code, reason)
+            try:
+                subject = 'rejected_status'
+                send_mail_notification(subject, msg, recipient)
+                notified_issues = True
+                issue_doc['rejected_alert_message'] = True
+            except Exception as e:
+                result['errors'].append(e.msg)
+
+        no_alert = 'closed_alert_message' not in issue_doc or not issue_doc['closed_alert_message']
+        if no_alert and doc_status['final_status']:
+            resolution = issue_doc['research_result'] if 'research_result' in issue_doc else ''
+            msg = messages['closed_alert_message'] % (tracking_code, resolution)
+            try:
+                subject = 'final_status'
+                send_mail_notification(subject, msg, recipient)
+                notified_issues = True
+                issue_doc['closed_alert_message'] = True
+            except Exception as e:
                 result['errors'].append(e.msg)
 
         if notified_issues:
@@ -356,3 +518,6 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Calls send_sms_message() every 5 minutes.
     sender.add_periodic_task(300, send_sms_message.s(), name='send sms every 5 minutes')
+
+    # Calls send_mail_message() every 5 minutes.
+    sender.add_periodic_task(300, send_mail_message.s(), name='send mail every 5 minutes')
