@@ -415,11 +415,12 @@
                             el.textContent = region.percentage + '%';
 
                             // create the marker
-                            let marker = new mapboxgl.Marker(el)
-                                .setLngLat([region.longitude, region.latitude])
-                                .addTo(map);
-                            markers.push(marker);
-
+                            if (region.longitude && region.latitude) {
+                                let marker = new mapboxgl.Marker(el)
+                                    .setLngLat([region.longitude, region.latitude])
+                                    .addTo(map);
+                                markers.push(marker);
+                            }
                         });
 
                         fillStats(region_stats, $('#region-stats'));
