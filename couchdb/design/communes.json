@@ -12,6 +12,9 @@
     "updated_tasks": {
       "reduce": "_count",
       "map": "function (doc) {\n  if(doc.type == 'adl') {\n    doc.phases.forEach(function(phase){\n      phase.tasks.forEach(function(task){\n        if(task.updated_at) {\n          emit([doc.administrative_region, doc.name], 1);\n        }\n      });\n    });\n  }\n}"
+    },
+    "by_type": {
+      "map": "function(doc) {\n    if (doc.type) {\n        emit(doc.type, doc.name);\n    }\n}"
     }
   },
   "language": "javascript"

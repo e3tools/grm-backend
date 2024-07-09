@@ -2,13 +2,124 @@ import os
 import zlib
 
 import shortuuid as uuid
+from django.utils.text import slugify
+
+from authentication.models import GovernmentWorker, User
+from client import bulk_update, get_db
 
 
 def photo_path(instance, filename):
     filename, file_extension = os.path.splitext(filename)
-    filename = '{}{}'.format(uuid.uuid(), file_extension)
-    return 'photos/{}'.format(filename)
+    filename = "{}{}".format(uuid.uuid(), file_extension)
+    return "photos/{}".format(filename)
 
 
 def get_validation_code(seed):
-    return str(zlib.adler32(str(seed).encode('utf-8')))[:6]
+    return str(zlib.adler32(str(seed).encode("utf-8")))[:6]
+
+
+def create_government_workers(email_domain):
+    if not email_domain:
+        print("Please specify Email Domain")
+        return False
+    eadl_db = get_db()
+    # working with district
+    districts = eadl_db.get_query_result(
+        {
+            "type": "administrative_level",
+            "administrative_level": "District",
+        }
+    )
+
+    for district in districts:
+        print(">>>> ", district["name"], district["administrative_id"])
+        try:
+            user_1 = User.objects.create(
+                email="doh." + slugify(district["name"]) + "@" + email_domain,
+                phone_number="0788888888",
+                password="123Qwerty",
+            )
+            user_1.set_password("123Qwerty")
+            user_2 = User.objects.create(
+                email="hprom." + slugify(district["name"]) + "@" + email_domain,
+                phone_number="0788888888",
+                password="123Qwerty",
+            )
+            user_2.set_password("123Qwerty")
+            GovernmentWorker.objects.create(
+                user=user_1,
+                department=1,
+                administrative_id=district["administrative_id"],
+            )
+            GovernmentWorker.objects.create(
+                user=user_2,
+                department=1,
+                administrative_id=district["administrative_id"],
+            )
+        except Exception as e:
+            print(e)
+            pass
+        sectors = eadl_db.get_query_result(
+            {
+                "type": "administrative_level",
+                "administrative_level": "Sector",
+                "parent_id": district["administrative_id"],
+            }
+        )
+
+        for sector in sectors:
+            try:
+                print(sector["name"], district["name"])
+                user_sector_1 = User.objects.create(
+                    email="hohc."
+                    + slugify(sector["name"])
+                    + "."
+                    + slugify(district["name"])
+                    + "@"
+                    + email_domain,
+                    phone_number="0788888888",
+                )
+                user_sector_1.set_password("123Qwerty")
+                user_sector_2 = User.objects.create(
+                    email="ceho."
+                    + slugify(sector["name"])
+                    + "."
+                    + slugify(district["name"])
+                    + "@"
+                    + email_domain,
+                    phone_number="0788888888",
+                )
+                user_sector_2.set_password("123Qwerty")
+                GovernmentWorker.objects.create(
+                    user=user_sector_1,
+                    department=1,
+                    administrative_id=sector["administrative_id"],
+                )
+                GovernmentWorker.objects.create(
+                    user=user_sector_2,
+                    department=1,
+                    administrative_id=sector["administrative_id"],
+                )
+            except Exception as e:
+                print(e)
+                pass
+
+
+def get_facilitators_with_code():
+    eadl_db = get_db()
+
+    adls = eadl_db.get_query_result({"type": "adl"})
+
+    with open(os.path.expanduser("~/Downloads/facilitators_with_code.txt"), "w") as f:
+        for adl in adls:
+            f.write(
+                f"{adl['representative']['email']} {get_validation_code(adl['representative']['email'])}\n"
+            )
+
+def update_all_passwords(new_password):    
+    # Update all users' passwords
+    users = User.objects.all()
+    for user in users:
+        user.set_password(new_password)
+        user.save()
+    print(f"Updated passwords for {users.count()} users.")
