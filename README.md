@@ -1,6 +1,12 @@
 # grm-backend
+## Setup Using Docker Locally
+Create your Environment Variable
+`cp src/grm/.env.example  src/grm/.env`
 
-Run the App
+## Run Docker 
+`docker compose up -d`
+
+### Run the App Without Docker
 `cd grm-backend	`
 ### Setup 
 Activate Python environment (use python 3)

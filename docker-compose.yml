@@ -1,54 +1,110 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
   web:
-    build: .
-    command: python src/manage.py runserver 0.0.0.0:8000
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    working_dir: /app/src
+    command: python manage.py runserver 0.0.0.0:${APP_PORT}
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "${APP_PORT}:${APP_PORT}"
     env_file:
-      - .env
+      - ./src/grm/.env
     depends_on:
-      - db
-      - couchdb
-      - redis
+      grm_db:
+        condition: service_healthy
+      couchdb:
+        condition: service_healthy
+    networks:
+      - grm_network
 
-  db:
+  grm_db:
     image: postgres:13
+    env_file:
+      - ./src/grm/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=grm_database_name
-      - POSTGRES_USER=grm_db_user
-      - POSTGRES_PASSWORD=Your_Postgres_Pwd
+    ports:
+      - "${DB_PORT}:5432"
+    networks:
+      - grm_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   couchdb:
-    image: couchdb:3.1.1
+    build:
+      context: .
+      dockerfile: Dockerfile.couchdb
+      args:
+        COUCHDB_USER: ${COUCHDB_USERNAME}
+        COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+        COUCHDB_PORT: ${COUCHDB_PORT}
+    env_file:
+      - ./src/grm/.env
     volumes:
       - couchdb_data:/opt/couchdb/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:${COUCHDB_PORT}/_up"
+        ]
+      interval: 5s
+      timeout: 30s
+      retries: 6
+    restart: always
     ports:
-      - "5984:5984"
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=password
-
-  redis:
-    image: redis:6
+      - "${COUCHDB_PORT}:5984"
+    networks:
+      - grm_network
 
   celery:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    working_dir: /app/src
     command: celery -A grm worker --loglevel=info
     volumes:
       - .:/app
     env_file:
-      - .env
+      - ./src/grm/.env
     depends_on:
-      - web
-      - redis
+      web:
+        condition: service_started
+      grm_db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    networks:
+      - grm_network
+
+  rabbitmq:
+    image: rabbitmq:latest
+    networks:
+      - grm_network
+    ports:
+      - "5672:5672"
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
 
 volumes:
   postgres_data:
   couchdb_data:
+
+
+networks:
+  grm_network:
