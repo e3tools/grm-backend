@@ -10,7 +10,7 @@ from authentication.models import (
 )
 from client import get_db
 from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE, CHOICE_EMAIL
-from grm.celery import app
+from grm.celery_app import app
 from grm.utils import get_auto_increment_id, normalize_phone_number
 from sms_client import send_sms
 from mail_client import send_mail_notification
@@ -93,9 +93,9 @@ def check_issues():
                 administrative_id = issue_doc["administrative_region"][
                     "administrative_id"
                 ]
-                issue_doc[
-                    "internal_code"
-                ] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
+                issue_doc["internal_code"] = (
+                    f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
+                )
                 internal_code_updated = True
                 result["internal_code_updated"].append(issue_id)
             except Exception:

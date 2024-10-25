@@ -110,9 +110,9 @@ class UploadIssueAttachmentAPIView(generics.GenericAPIView):
         for attachment in attachments:
             if attachment["id"] == data["attachment_id"]:
                 response = upload_file(data["file"], COUCHDB_GRM_ATTACHMENT_DATABASE)
-                attachment[
-                    "url"
-                ] = f'/grm_attachments/{response["id"]}/{data["file"].name}'
+                attachment["url"] = (
+                    f'/grm_attachments/{response["id"]}/{data["file"].name}'
+                )
                 attachment["uploaded"] = True
                 attachment["bd_id"] = response["id"]
                 doc.save()

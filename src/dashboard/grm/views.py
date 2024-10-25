@@ -719,9 +719,9 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         except Exception:
             raise Http404
         administrative_id = self.doc["administrative_region"]["administrative_id"]
-        self.doc[
-            "internal_code"
-        ] = f'{doc_category["abbreviation"]}-{administrative_id}-{self.doc["auto_increment_id"]}'
+        self.doc["internal_code"] = (
+            f'{doc_category["abbreviation"]}-{administrative_id}-{self.doc["auto_increment_id"]}'
+        )
 
         try:
             doc_status = self.grm_db.get_query_result(

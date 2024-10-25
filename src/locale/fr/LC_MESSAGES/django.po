@@ -234,7 +234,7 @@ msgstr "Préfère ne pas préciser"
 
 #: dashboard/grm/forms.py:36
 msgid "How does the citizen wish to be contacted?"
-msgstr "Comment le citoyenne souhaite-t-il être contacté?"
+msgstr "Comment le citoyen souhaite-t-il être contacté?"
 
 #: dashboard/grm/forms.py:51
 msgid "Please type the contact information"

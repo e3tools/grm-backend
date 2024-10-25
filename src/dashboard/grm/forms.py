@@ -291,9 +291,9 @@ class NewIssueLocationForm(forms.Form):
         self.fields["administrative_region"].label = label
 
         administrative_region_choices = get_administrative_region_choices(eadl_db)
-        self.fields[
-            "administrative_region"
-        ].widget.choices = administrative_region_choices
+        self.fields["administrative_region"].widget.choices = (
+            administrative_region_choices
+        )
         self.fields["administrative_region"].choices = administrative_region_choices
         self.fields["administrative_region"].widget.attrs["class"] = "region"
         self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
@@ -348,9 +348,9 @@ class SearchIssueForm(forms.Form):
             "administrative_level"
         ].title()
         self.fields["administrative_region"].label = label
-        self.fields[
-            "administrative_region"
-        ].widget.choices = get_administrative_region_choices(eadl_db)
+        self.fields["administrative_region"].widget.choices = (
+            get_administrative_region_choices(eadl_db)
+        )
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
