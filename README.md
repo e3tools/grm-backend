@@ -1,17 +1,24 @@
 # GRM-benin
 
+Requirements
+- Python version : `python3.10`
+- Database : `postgresql`
+
 Run the App
 `cd GRM-Web-App-Benin/src`
 
 ## Setup
 
 Activate Python environment (use python 3)
-`python3 -m venv venv`
+`python3.10 -m venv venv`
 
 Activate Python Environment
 `source venv/bin/activate`
 
-Install application
+Upgrade pip
+`pip install --upgrade pip`
+
+Install packages
 
 - `pip install -r requirements.txt`
 - `pip install -r requirements.dev.txt`
