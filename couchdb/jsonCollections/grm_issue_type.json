@@ -18,5 +18,10 @@
    "id": 4,
    "name": "Dénonciation",
    "type": "issue_type"
- }
+ },
+ {
+  "id": 5,
+  "name": "Autre",
+  "type": "issue_type"
+}
 ]}

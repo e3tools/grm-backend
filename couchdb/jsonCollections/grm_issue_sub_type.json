@@ -35,6 +35,12 @@
       "name": "Dénonciation",
       "type": "issue_sub_type",
       "parent_id": 4
+    },
+    {
+      "id": 7,
+      "name": "Autre",
+      "type": "issue_sub_type",
+      "parent_id": 5
     }
   ]
 }

@@ -13,8 +13,8 @@
       "representative": 
         {
           "id": 1,
-          "name": "Florentin ABOE",
-          "email": "aboesec@gmail.com",
+          "name": "Commité National",
+          "email": "setco@gmail.com",
           "phone": "+229 66 39 08 06",
           "photo": "https://via.placeholder.com/150",
           "is_active": true,
@@ -41,8 +41,8 @@
       "representative": 
         {
           "id": 2,
-          "name": "Head Dept",
-          "email": "depthead@gmail.com",
+          "name": "Commité Commune",
+          "email": "commune@gmail.com",
           "phone": "+229 66 66 66 66",
           "photo": "https://via.placeholder.com/150",
           "is_active": true,
@@ -67,8 +67,8 @@
     },
     "representative": {
       "id": 3,
-      "name": "Kajèrè Respo",
-      "email": "mgp1@gmail.com",
+      "name": "Commité village",
+      "email": "village@gmail.com",
       "phone": "+229 97 97 97 97",
       "photo": "https://via.placeholder.com/150",
       "is_active": true,

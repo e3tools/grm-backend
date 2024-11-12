@@ -28,5 +28,10 @@
    "id": 6,
    "name": "Salariés",
    "type": "issue_citizen_group"
- }
+ },
+ {
+  "id": 7,
+  "name": "Autre",
+  "type": "issue_citizen_group"
+}
 ]}

@@ -1,0 +1,37 @@
+version: '3'
+services:
+  mysql-db:
+    image: mysql:8-debian
+    restart: always
+    environment:
+      MYSQL_DATABASE: '${MYSQL_DEFAULT_DB}'
+      MYSQL_USER: '${MYSQL_ADMIN_USER}'
+      MYSQL_PASSWORD: '${MYSQL_ADMIN_PASS}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASS}'
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+
+  couch-db:
+    image: couchdb:3.3
+    restart: always
+    environment:
+      COUCHDB_USER: '${COUCHDB_USER}'
+      COUCHDB_PASSWORD: '${COUCHDB_PASSWORD}'
+    ports:
+      - "5984:5984"
+    volumes:
+      - ./couch-data:/opt/couchdb/data
+
+  minio:
+    image: minio/minio:RELEASE.2023-06-23T20-26-00Z
+    command: minio server --quiet --address ":9000" --console-address ":9001" /data
+    volumes:
+        - ./minio-data:/data
+    ports:
+        - "9000:9000"
+        - "9001:9001"
+    environment:
+        MINIO_ROOT_USER: '${MINIO_ROOT_USER}'
+        MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD}'
