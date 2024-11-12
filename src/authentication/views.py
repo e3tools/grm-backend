@@ -149,10 +149,10 @@ class ADLAdministrativeRegionAPIView(generics.GenericAPIView):
         ids = [f"${administrative_id}$"]
         while True:
             parent = get_parent_administrative_level(eadl_db, administrative_id)
-            ids.append("$%s$" % parent["administrative_id"])
-            administrative_id = parent["administrative_id"]
             if parent["parent_id"] is None:
                 break
+            ids.append("$%s$" % parent["administrative_id"])
+            administrative_id = parent["administrative_id"]
 
         if administrative_level != "village":
             descendants = get_administrative_level_descendants(

@@ -16,6 +16,7 @@ from sms_client import send_sms
 from mail_client import send_mail_notification
 import cryptocode
 from datetime import datetime
+from celery import shared_task
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -117,7 +118,12 @@ def check_issues():
         if "assignee" not in issue_doc or not issue_doc["assignee"]:
             try:
                 eadl_db = get_db()
-                assignee = get_assignee(grm_db, eadl_db, issue_doc, result["errors"])
+                adm_lvl_id = issue_doc["location_info"]["issue_location"][
+                    "administrative_id"
+                ]
+                assignee = get_assignee(
+                    grm_db, eadl_db, issue_doc, adm_lvl_id, result["errors"]
+                )
                 issue_doc["assignee"] = assignee
                 if assignee:
                     assignee_updated = True
@@ -129,8 +135,8 @@ def check_issues():
                     )
                     comment = _("The issue has been assigned to %s.") % assignee["name"]
                     comment_obj = {
-                        "name": "eGRM",
-                        "id": f"egrm-20230714-ML",
+                        "name": "eMGP",
+                        "id": f"emgp-2024-BJ",
                         "comment": f"{comment}",
                         "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
                     }
@@ -482,3 +488,16 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
         300, send_mail_message.s(), name="send mail every 5 minutes"
     )
+
+
+# test tasks
+@app.task
+def task_one():
+    print(" task one called and worker is running good")
+    return "success"
+
+
+@shared_task
+def task_two(x, y):
+    print(f" task two called with the arguments {x} and {y}. Worker is running good")
+    return x + y

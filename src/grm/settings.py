@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_beat",
 ]
 
 CREATED_APPS = [
@@ -220,6 +221,10 @@ COUCHDB_PASSWORD = env("COUCHDB_PASSWORD")
 
 # Celery settings
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)

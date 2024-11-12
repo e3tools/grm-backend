@@ -273,18 +273,40 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
             }
         except Exception:
             pass
+    if (
+        doc_category["confidentiality_level"] == "Confidential"
+        and doc_category["redirection_protocol"] == 0
+    ):
+        try:
+            adl_user = eadl_db.get_query_result(
+                {
+                    "administrative_region": "country",
+                    "village_secretary": 1,
+                    "type": "adl",
+                }
+            )[0][0]
+            print("assignee")
+            assignee = {
+                "id": adl_user["_id"],
+                "name": adl_user["representative"]["name"],
+            }
+            print("condidential assignee ok")
+        except Exception:
+            pass
     return assignee
 
 
 def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
     try:
         parent = get_parent_administrative_level(eadl_db, administrative_id)
+        # if parent["administrative_level"] and parent["administrative_level"] in ["département", "arrondissement"] :
+        #     parent = get_parent_administrative_level(eadl_db, parent["administrative_id"])
     except Exception:
         raise
 
     administrative_id = parent["administrative_id"]
     worker = GovernmentWorker.objects.filter(
-        department=department_id, administrative_id=administrative_id
+        department=int(department_id + 1), administrative_id=administrative_id
     ).first()
     if worker:
         assignee = {"id": worker.user.id, "name": worker.name}
