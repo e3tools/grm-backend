@@ -35,7 +35,7 @@ case "$1" in
 
         # Lancer Gunicorn
         echo "Starting Gunicorn server..."
-        gunicorn cdd.wsgi:application \
+        gunicorn grm.wsgi:application \
         --bind 0.0.0.0:9000 \
         --workers 4 \
         --timeout 600

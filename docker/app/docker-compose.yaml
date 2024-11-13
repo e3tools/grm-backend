@@ -1,6 +1,6 @@
 services:
   django-app:
-    image: cosobenin/grm-app:latest
+    image: cosobenin/grm-app:v.1.0.0
     restart: always
     ports:
       - '9000:9000'
@@ -21,7 +21,7 @@ services:
       S3_SECRET: '${S3_SECRET}'
       KOBO_TOKEN: '${KOBO_TOKEN}'
       CELERY_BROKER_URL: 'redis://redis:6379/0' 
-      CELERY_RESULT_BACKEND: 'redis://redis:6379/1'
+      CELERY_RESULT_BACKEND: 'redis://redis:6379/0'
       MAPBOX_ACCESS_TOKEN: '${MAPBOX_ACCESS_TOKEN}'
       DIAGNOSTIC_MAP_LATITUDE: '${DIAGNOSTIC_MAP_LATITUDE}'
       DIAGNOSTIC_MAP_LONGITUDE: '${DIAGNOSTIC_MAP_LONGITUDE}'
@@ -41,7 +41,20 @@ services:
     volumes:
       - static-content:/usr/appserver/static
     depends_on:
+      - db
       - redis
+
+  db:
+    image: postgres:17.0
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
 
   nginx:
     image: nginx:alpine
@@ -60,10 +73,12 @@ services:
   redis:
     image: redis:alpine
     restart: always
-    network_mode: "host"  # share network with Django and Nginx
+    network_mode: "host"
+    ports:
+      - '6379:6379'
 
   celery-worker:
-    image: cosobenin/grm-app:latest
+    image: cosobenin/grm-app:v.1.0.0
     restart: always
     command: celery -A grm worker -l info
     environment:
@@ -71,12 +86,13 @@ services:
       CELERY_RESULT_BACKEND: 'redis://redis:6379/1'
     depends_on:
       - django-app
+      - db
       - redis
     volumes:
       - static-content:/usr/appserver/static
 
   celery-beat:
-    image: cosobenin/grm-app:latest
+    image: cosobenin/grm-app:v.1.0.0
     restart: always
     command: celery -A grm beat -l info
     environment:
@@ -84,9 +100,11 @@ services:
       CELERY_RESULT_BACKEND: 'redis://redis:6379/1'
     depends_on:
       - django-app
+      - db
       - redis
     volumes:
       - static-content:/usr/appserver/static
 
 volumes:
   static-content:
+  pg_data:
