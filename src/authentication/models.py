@@ -309,8 +309,24 @@ def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
         department=int(department_id + 1), administrative_id=administrative_id
     ).first()
     if worker:
-        assignee = {"id": worker.user.id, "name": worker.name}
-        return assignee
+        # assignee = {"id": worker.user.id, "name": worker.name}
+        # return assignee
+        try:
+            adl_user = eadl_db.get_query_result(
+                {
+                    "id": worker.user.id,
+                    "name": worker.name,
+                    "type": "adl",
+                }
+            )[0][0]
+            print("escalate assignee")
+            assignee = {
+                "id": adl_user["_id"],
+                "name": adl_user["representative"]["name"],
+            }
+            return assignee
+        except Exception:
+            pass
     elif parent:
         return get_assignee_to_escalate(eadl_db, department_id, administrative_id)
 
