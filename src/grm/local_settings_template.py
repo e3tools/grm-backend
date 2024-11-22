@@ -16,4 +16,5 @@ INTERNAL_IPS = [
     "localhost",
 ]
 
-# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*"]
+CSRF_TRUSTED_ORIGINS = ["https://*.mgp.coso.gouv.bj","https://*.127.0.0.1"]
