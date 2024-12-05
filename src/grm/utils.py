@@ -1,6 +1,8 @@
+import string
 from datetime import datetime
 from operator import itemgetter
 
+from django.conf import settings
 from django.template.defaultfilters import date as _date
 
 
@@ -50,6 +52,15 @@ def get_choices(query_result, empty_choice=True):
         choices = [('', '')] + choices
     return choices
 
+def get_choices_v1(query_result, empty_choice=True):
+    choices = [{'id': i['id'], 'value': i['name']} for i in query_result]
+    if empty_choice:
+        choices = [{'id': '', 'value': ''}] + choices
+    return choices
+
+def get_issue_select_options_choices(grm_db, type, parent_id=None, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": type, 'parent_id': parent_id})
+    return get_choices_v1(query_result, empty_choice)
 
 def get_issue_age_group_choices(grm_db, empty_choice=True):
     query_result = grm_db.get_query_result({"type": 'issue_age_group'})
@@ -75,11 +86,14 @@ def get_issue_category_choices(grm_db, empty_choice=True):
     query_result = grm_db.get_query_result({"type": 'issue_category'})
     return get_choices(query_result, empty_choice)
 
+def get_issue_options_choices(grm_db, type, empty_choice=True):
+    query_result = grm_db.get_query_result({"type": type})
+    return get_choices(query_result, empty_choice)
+
 
 def get_issue_status_choices(grm_db, empty_choice=True):
     query_result = grm_db.get_query_result({"type": 'issue_status'})
     return get_choices(query_result, empty_choice)
-
 
 def get_administrative_region_name(eadl_db, administrative_id):
     not_found_message = f'[Missing region with administrative_id "{administrative_id}"]'
@@ -153,14 +167,18 @@ def get_administrative_level_descendants(eadl_db, parent_id, ids):
     data = eadl_db.get_query_result(
         {
             "type": 'administrative_level',
-            "parent_id": parent_id,
+            "parent_id": {
+                "$in": parent_id if isinstance(parent_id, list) else [parent_id]
+            },
         }
     )
+
     data = [doc for doc in data]
-    descendants_ids = [region["administrative_id"] for region in data]
-    for descendant_id in descendants_ids:
-        get_administrative_level_descendants(eadl_db, descendant_id, ids)
-        ids.append(descendant_id)
+    if len(data) > 0:
+        descendants_ids = [region["administrative_id"] for region in data]
+        for descendant in descendants_ids:
+            ids.append(descendant)
+        get_administrative_level_descendants(eadl_db, descendants_ids, ids)
 
     return ids
 
@@ -200,7 +218,7 @@ def get_related_region_with_specific_level(eadl_db, region_doc, level):
             administrative_id = region_doc['administrative_id']
         else:
             has_parent = False
-
+    
     return region_doc
 
 
@@ -218,3 +236,13 @@ def get_auto_increment_id(grm_db):
     except Exception:
         max_auto_increment_id = 0
     return max_auto_increment_id + 1
+
+def normalize_phone_number(phone_number):
+    contact = phone_number.translate({ord(c): None for c in string.whitespace})
+    if contact.startswith("00"):
+        contact = contact.replace("00", "+", 1)
+
+    country_calling_code = settings.COUNTRY_CALLING_CODE
+    if not contact.startswith(country_calling_code):
+        contact = f"{country_calling_code}{contact}"
+    return contact

@@ -17,15 +17,28 @@
         <div class="col-12">
             {% for attachment in attachments %}
                 <div class="row">
-                    <div class="col-6 border-bottom">
+                    <div class="col-12 border-bottom">
                         <div class="d-inline-block padding-6-0">
-                            <a href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
+                            <a {% if attachment.bd_id %}
+                               href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
+                               {% else %}
+                               href="#"
+                               {% endif %}
                                target="_blank">
                                 <i class="fas fa-paperclip mr-2"></i>
                                 {{ attachment.name }}
                             </a>
                         </div>
-                        <a class="btn pull-right delete-attachment {% if not permission_to_edit %}disabled{% endif %}"
+                        {% if attachment.bd_id %}
+                        <span class="badge badge-success attachment-sync-badge">
+                            {% translate 'Synchronized' %}
+                        </span>
+                        {% else %}
+                        <span class="badge badge-warning attachment-sync-badge">
+                            {% translate 'Not synchronized' %}
+                        </span>
+                        {% endif %}
+                        <a class="btn pull-right delete-attachment {% if not permission_to_edit or not attachment.bd_id %}disabled{% endif %}"
                            data-url="{% url 'dashboard:grm:delete_issue_attachment' doc.auto_increment_id attachment.id %}">
                             <i class="far fa-trash-alt text-danger"></i>
                         </a>

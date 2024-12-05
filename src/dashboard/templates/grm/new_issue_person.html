@@ -68,6 +68,16 @@
             placeholder: "{{ empty_group_msg }}",
             allowClear: true
         });
+        {% translate 'Click to select occupation status' as empty_group_msg_occupation %}
+        $("#id_citizen_occupation").select2({
+            placeholder: "{{ empty_group_msg_occupation }}",
+            allowClear: true
+        });
+        {% translate 'Click to select educational level' as empty_group_msg_educational_level %}
+        $("#id_citizen_educational_level").select2({
+            placeholder: "{{ empty_group_msg_educational_level }}",
+            allowClear: true
+        });
     </script>
 {% endblock select2 %}
 

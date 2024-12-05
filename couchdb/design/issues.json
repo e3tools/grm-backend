@@ -12,6 +12,25 @@
     "group_by_assignee": {
       "reduce": "_count",
       "map": "function (doc) {\n  if(doc.type == 'issue' && doc.confirmed && doc.status.name != 'Closed' && doc.assignee && doc.category) {\n    emit([doc.category.assigned_department, doc.assignee.id, doc.assignee.name]);\n  }\n}"
+    },
+    "group_by_administrative_region": {
+      "reduce": "_count",
+      "map": "function (doc) {\n  if(doc.type == 'issue' && doc.confirmed && doc.administrative_region.administrative_id) {\n    emit(doc.administrative_region.administrative_id, 1);\n  }\n}"
+    },
+    "by_type": {
+      "map": "function(doc) {\n    if (doc.type) {\n        emit(doc.type, doc.name);\n    }\n}"
+    },
+    "by_type_and_user": {
+      "map": "function(doc) { \n  if (doc.type === 'issue') { \n    if (doc.reporter && doc.reporter.id) {\n      emit([doc.type, doc.reporter.id], null);\n    }\n    if (doc.assignee && doc.assignee.id) {\n      emit([doc.type, doc.assignee.id], null);\n    }\n  }\n}"
+    },
+    "by_type_and_id": {
+      "map": "function(doc) { \n  if (doc.type && doc.id) {\n    emit([doc.type, doc.id], doc.name);\n  }\n}"
+    },
+    "by_representative_email": {
+      "map": "function(doc) { \n  if (doc.representative && doc.representative.email) {\n    emit(doc.representative.email, null);\n  }\n}"
+    },
+    "all_issue_types": {
+      "map": "function(doc) { \n  const issueTypes = ['issue_status', 'issue_age_group', 'issue_citizen_group_1', 'issue_citizen_group_2', 'issue_category', 'issue_type', 'issue_component', 'issue_sub_component', 'issue_sub_type'];\n  if (issueTypes.includes(doc.type)) {\n    emit([doc.type, doc._id], null);\n  }\n}"
     }
   },
   "language": "javascript"

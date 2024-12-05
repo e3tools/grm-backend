@@ -140,6 +140,30 @@
                             {{ doc.issue_type.name }}
                         </div>
                     </div>
+                    {% if doc.research_result %}
+                    <div class="row mr-2 mb-2">
+                        <div class="col-3">
+                            <label class="label-align text-primary">
+                                {% translate 'Resolution' %}
+                            </label>
+                        </div>
+                        <div class="col-9 text-regular-family">
+                            {{ doc.research_result }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if doc.reject_reason %}
+                    <div class="row mr-2 mb-2">
+                        <div class="col-3">
+                            <label class="label-align text-danger">
+                                {% translate 'Rejection reason' %}
+                            </label>
+                        </div>
+                        <div class="col-9 text-regular-family">
+                            {{ doc.reject_reason }}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -2,11 +2,28 @@
   "_id": "_design/eadl",
   "views": {
     "all_communes": {
-      "map": "function (doc) {\n  if(doc.type === 'administrative_level' && doc.administrative_level === 'commune')\n    emit(doc._id, doc);\n}"
+      "map": "function (doc) {\n  if(doc.type === 'administrative_level')\n    emit(doc._id, doc);\n}"
+    },
+    "all_administrative_levels": {
+      "map": "function (doc) {\n  if(doc.type === 'administrative_level')\n    emit(doc._id, doc);\n}"
+    },
+    "by_representative_email": {
+      "map": "function(doc) { \n  if (doc.representative && doc.representative.email) {\n    emit(doc.representative.email, null);\n  }\n}"
     }
   },
   "filters": {
-    "by_user_email": "function (doc, req) {\n return doc._id === '_design/eadl' || (doc.representative && doc.representative.email === req.query.email); \n}"
+    "by_user_email": "function (doc, req) {\n return doc._id === '_design/eadl' || (doc.representative && doc.representative.email === req.query.email); \n}",
+    "by_user_administrative_region": "function (doc, req) {\n return doc.type === 'administrative_level' && req.query.ids.includes('$'+doc.administrative_id+'$'); \n}"
   },
-  "language": "javascript"
+  "language": "javascript",
+  "history": [
+    {
+      "last_seq": "19843-g1AAAACheJzLYWBgYMpgTmEQTM4vTc5ISXIwNDLXMwBCwxyQVCJDUv3___-zMpiTGBjUU3OBYuyJqUaGhgaJ2PTgMSmPBUgyNACp_3AD1eTABloYGyWlpCRj05oFAPLoKW0",
+      "session_id": "fa842702-c041-4aa5-925a-93ce39971d88"
+    }
+  ],
+  "version": 1,
+  "replicator": "pouchdb",
+  "session_id": "fa842702-c041-4aa5-925a-93ce39971d88",
+  "last_seq": "19843-g1AAAACheJzLYWBgYMpgTmEQTM4vTc5ISXIwNDLXMwBCwxyQVCJDUv3___-zMpiTGBjUU3OBYuyJqUaGhgaJ2PTgMSmPBUgyNACp_3AD1eTABloYGyWlpCRj05oFAPLoKW0"
 }

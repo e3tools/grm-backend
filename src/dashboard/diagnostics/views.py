@@ -19,6 +19,11 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     title = _('Diagnostics')
     active_level1 = 'diagnostics'
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request_user'] = self.request.user 
+        return kwargs
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['access_token'] = settings.MAPBOX_ACCESS_TOKEN

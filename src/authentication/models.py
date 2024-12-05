@@ -101,6 +101,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, errors=None):
             "id": issue_doc['category']['id'],
             "type": 'issue_category'
         })[0][0]
+        
     except Exception:
         if errors:
             error = 'Error trying to get issue_category document in get_assignee function'
@@ -110,11 +111,13 @@ def get_assignee(grm_db, eadl_db, issue_doc, errors=None):
     assigned_department = doc_category['assigned_department']
     department_id = assigned_department['id']
 
+
     if doc_category['redirection_protocol']:
         assigned_department_level = assigned_department[
             'administrative_level'] if 'administrative_level' in assigned_department else None
         assigned_department_level = assigned_department_level.strip() if assigned_department_level else None
         administrative_id = None
+
 
         if not assigned_department_level:
             try:
@@ -141,6 +144,8 @@ def get_assignee(grm_db, eadl_db, issue_doc, errors=None):
         related_workers = set(
             GovernmentWorker.objects.filter(
                 department=department_id, administrative_id=administrative_id).values_list('user', flat=True))
+
+        
 
         startkey = [department_id, None, None]
         endkey = [department_id, {}, {}]
