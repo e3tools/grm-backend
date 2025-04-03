@@ -166,6 +166,63 @@ def check_issues():
 
 
 @app.task
+def escalate_issues():
+    grm_db = get_db(COUCHDB_GRM_DATABASE)
+    eadl_db = get_db()
+    selector = {
+        "type": "issue",
+        "confirmed": True,
+        "escalate_flag": True,
+        "assignee": {"$ne": ""},
+    }
+
+    issues = grm_db.get_query_result(selector)
+    result = {
+        "errors": [],
+        "issues_updated": [],
+        "scale_is_not_available": [],
+    }
+    updated_issues = 0
+    for issue in issues:
+        issues_updated = False
+        issue_id = issue["_id"]
+        try:
+            issue_doc = grm_db[issue_id]
+        except Exception:
+            error = f"Error trying to get issue document with id {issue_id}"
+            result["errors"].append(error)
+            continue
+        try:
+            old_assignee_id = issue_doc["assignee"]["id"]
+            escalate_old_issues_doc = eadl_db.get_query_result(
+                {"_id": old_assignee_id, "type": "adl"}
+            )[0][0]
+            department_id = escalate_old_issues_doc["department"]
+            administrative_id = issue_doc["administrative_region"]["administrative_id"]
+            assignee = get_assignee_to_escalate(
+                eadl_db, department_id, administrative_id
+            )
+            if assignee:
+                issue_doc["assignee"] = assignee
+                issue_doc["escalate_flag"] = False
+                result["issues_updated"].append(issue_id)
+                issues_updated = True
+            else:
+                result["scale_is_not_available"].append(issue_id)
+
+        except Exception:
+            error = f"Error trying to escalate for issue document with id {issue_id}"
+            result["errors"].append(error)
+        if issues_updated:
+            issue_doc.save()
+            updated_issues += 1
+            grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
+
+    result["updated_issues"] = updated_issues
+    return result
+
+
+@app.task
 def escalate_old_issues():
     """
     Browse confirmed issues. If an issue is not closed (status.id != 4 or status.name != 'Terminée')
@@ -262,93 +319,6 @@ def escalate_old_issues():
                 updated_issues += 1
             except Exception:
                 errors.append(f"Error updating issue {issue_id}")
-
-    return {"updated_issues": updated_issues, "errors": errors}
-
-
-@app.task
-def escalate_old_issues():
-    """
-    Browse confirmed issues. If an issue is not closed (status.id != 4 or status.name != 'Terminée')
-    and was created or last escalated more than 3.5 days ago, it is marked for escalation
-    by adding `escalate_flag: True` and updating `escalated_date`.
-    """
-    grm_db = get_db(COUCHDB_GRM_DATABASE)
-
-    selector = {"type": "issue", "confirmed": True}
-    issues = grm_db.get_query_result(selector)
-
-    now = datetime.now(timezone.utc)
-    threshold = now - timedelta(days=3, hours=12)
-
-    updated_issues = 0
-    errors = []
-
-    for issue in issues:
-        issue_id = issue["_id"]
-        try:
-            issue_doc = grm_db[issue_id]
-        except Exception:
-            errors.append(f"Error retrieving issue {issue_id}")
-            continue
-
-        # Check if the issue is already closed
-        # and skip closed issues
-        status = issue_doc.get("status", {})
-        if status.get("id") == 4 and status.get("name") == "Terminée":
-            continue
-
-        # Retrieve the issue creation date
-        created_date_str = issue_doc.get("created_date")
-        if not created_date_str:
-            errors.append(f"Issue {issue_id} has no valid created_date.")
-            continue
-
-        try:
-            created_date = datetime.strptime(
-                created_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).replace(tzinfo=timezone.utc)
-        except ValueError:
-            errors.append(
-                f"Issue {issue_id} has a poorly formatted creation date: {created_date_str}"
-            )
-            continue
-
-        # Retrieve the last escalation date, if any
-        escalated_date_str = issue_doc.get("escalated_date")
-        escalated_date = None
-
-        if escalated_date_str:
-            try:
-                escalated_date = datetime.strptime(
-                    escalated_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-                ).replace(tzinfo=timezone.utc)
-            except ValueError:
-                errors.append(
-                    f"Issue {issue_id} has a poorly formatted escalated_date: {escalated_date_str}"
-                )
-                continue
-
-        if escalated_date:
-            # Check if 3.5 days have passed since last escalation
-            if escalated_date < threshold:
-                issue_doc["escalated_date"] = now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                issue_doc["escalate_flag"] = True
-            else:
-                continue
-        else:
-            # First escalation
-            if created_date < threshold:
-                issue_doc["escalated_date"] = now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                issue_doc["escalate_flag"] = True
-            else:
-                continue
-
-        try:
-            issue_doc.save()
-            updated_issues += 1
-        except Exception:
-            errors.append(f"Error updating issue {issue_id}")
 
     return {"updated_issues": updated_issues, "errors": errors}
 
