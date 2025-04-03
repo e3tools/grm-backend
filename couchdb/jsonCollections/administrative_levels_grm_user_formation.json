@@ -21,6 +21,7 @@
           "last_active": "03-01-2024",
           "password": "pbkdf2_sha256$600000$0LO9PPoBMJBa4iE9mWRux4$9bY4dzLEKUXg3jIyZvxejoVi+vCss/cia63du+TvmNU="
         },
+      "representative_id": 1,
       "phases": [],
       "administrative_level": null,
       "administrative_region": "country",
@@ -49,6 +50,7 @@
           "last_active": "04-01-2024",
           "password": "pbkdf2_sha256$600000$tN6KnAMvIhlwEFIHFY86vb$p9edTbOfIQEqRuPmYnXlS3hXcpD+hw+CbVpFdy2lvCg="
         },
+      "representative_id": 2,
       "phases": [],
       "administrative_level": "commune",
       "administrative_region": "6",
@@ -75,6 +77,7 @@
       "last_active": "04-01-2024",
       "password": "pbkdf2_sha256$600000$cHv6qj0RHzWzlrjKSSoSrO$bJ3AGHPHU9tOcgtlcqiRSQfvZ+djIqmr3AaK/n9AJL8="
     },
+    "representative_id": 3,
     "phases": [],
     "administrative_level": "village",
     "administrative_region": "90",

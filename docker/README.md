@@ -2,8 +2,8 @@
 
 ```bash
 cd src/
-docker build . -t cosobenin/grm-app:v.1.0.0
-docker push cosobenin/grm-app:v.1.0.0
+sudo docker build . -t cosobenin/grm-app:v.1.0.0
+sudo docker push cosobenin/grm-app:v.1.0.0
 ```
 
 ## Deploying the app
