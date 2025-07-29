@@ -870,10 +870,16 @@ class IssueCommentsContextMixin:
             "danger",
         ]
         comments = self.doc["comments"] if "comments" in self.doc else list()
-        users = {c["id"] for c in comments} | {
-            self.doc["assignee"]["id"],
-            self.doc_department["head"]["id"],
-        }
+        users = {c["id"] for c in comments} | {self.doc["assignee"]["id"]}
+        head_id = self.doc_department["head"].get('id')
+        if head_id:
+            users |= head_id
+        else:
+            msg = _(
+                f"There is no head member for {self.doc_department["name"]}. Please report to IT staff."
+            )
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
         indexed_users = {}
         for index, user_id in enumerate(users):
             indexed_users[user_id] = index
@@ -913,10 +919,9 @@ class IssueDetailsFormView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user_id = self.request.user.id
-        context["enable_add_comment"] = (
-            user_id == self.doc["assignee"]["id"]
-            or user_id == self.doc_department["head"]["id"]
-        )
+        head_id = self.doc_department["head"].get('id')
+        context["enable_add_comment"] = user_id == self.doc["assignee"]["id"] or user_id == head_id
+
         context["comment_form"] = IssueCommentForm()
         try:
             doc_status = self.grm_db.get_query_result(
@@ -964,7 +969,7 @@ class AddCommentToIssueView(
         user_id = request.user.id
         if (
             user_id != self.doc["assignee"]["id"]
-            and user_id != doc_department["head"]["id"]
+            and user_id != doc_department["head"].get('id')
         ):
             raise PermissionDenied()
 
