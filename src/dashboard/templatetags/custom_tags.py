@@ -3,7 +3,6 @@ from datetime import datetime
 from django import template
 
 from authentication.utils import get_validation_code
-from client import get_db
 from dashboard.grm import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
@@ -144,5 +143,6 @@ def get_hour(date_time):
 
 @register.simple_tag
 def get_administrative_region_name(administrative_id):
+    from client import get_db
     eadl_db = get_db()
     return get_region_name(eadl_db, administrative_id)
