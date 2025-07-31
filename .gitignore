@@ -135,3 +135,6 @@ dmypy.json
 
 # static
 staticfiles/
+
+# Exception: Include AdminLTE dist directory
+!src/dashboard/static/AdminLTE/dist/
