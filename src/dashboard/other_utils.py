@@ -1,8 +1,8 @@
 from openpyxl import load_workbook
 from itertools import zip_longest
 from pathlib import Path
-from spire.xls import *
-from spire.xls.common import *
+# from spire.xls import *
+# from spire.xls.common import *
 
 
 # excel functions

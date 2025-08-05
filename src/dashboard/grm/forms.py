@@ -24,7 +24,7 @@ from grm.utils import (
     get_issue_subproject_group_choices,
     get_issue_status_choices,
     get_issue_type_choices,
-    get_issue_options_choices,
+    get_issue_options_choices, new_get_administrative_regions_by_level, new_get_administrative_region_choices,
 )
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -353,6 +353,38 @@ class SearchIssueForm(forms.Form):
         )
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
+
+# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
+class NewSearchIssueForm(forms.Form):
+    start_date = forms.DateTimeField(label=_("Start Date"))
+    end_date = forms.DateTimeField(label=_("End Date"))
+    code = forms.CharField(label=_("ID Number / Access Code"))
+    assigned_to = forms.ChoiceField()
+    category = forms.ChoiceField()
+    type = forms.ChoiceField()
+    status = forms.ChoiceField()
+    administrative_region = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        grm_db = get_db(COUCHDB_GRM_DATABASE)
+
+        self.fields["start_date"].widget.attrs["class"] = self.fields[
+            "end_date"
+        ].widget.attrs["class"] = "form-control datetimepicker-input"
+        self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
+        self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
+        self.fields["assigned_to"].widget.choices = get_government_worker_choices()
+        self.fields["category"].widget.choices = get_issue_category_choices(grm_db)
+        self.fields["type"].widget.choices = get_issue_type_choices(grm_db)
+        self.fields["status"].widget.choices = get_issue_status_choices(grm_db)
+
+        label = new_get_administrative_regions_by_level()[0].administrative_level.title()
+        self.fields["administrative_region"].label = label
+        self.fields["administrative_region"].widget.choices = new_get_administrative_region_choices()
+
+        self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 # to check
 class IssueDetailsForm(forms.Form):

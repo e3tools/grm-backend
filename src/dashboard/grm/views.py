@@ -49,6 +49,7 @@ from grm.utils import (
     get_parent_administrative_level,
     get_issue_select_options_choices,
 )
+from issues.models import AdministrativeRegion
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -1234,6 +1235,26 @@ class GetChoicesForNextAdministrativeLevelView(
             and not get_child_administrative_regions(
                 eadl_db, data[0]["administrative_id"]
             )
+        ):
+            data = []
+
+        return self.render_to_json_response(data, safe=False)
+
+
+# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
+class NewGetChoicesForNextAdministrativeLevelView(
+    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
+):
+    def get(self, request, *args, **kwargs):
+        parent_id = request.GET.get("parent_id")
+        exclude_lower_level = request.GET.get("exclude_lower_level", None)
+        regions = AdministrativeRegion.objects.filter(parent=parent_id)
+        data = list(regions.values())
+
+        if (
+            data
+            and exclude_lower_level
+            and not regions[0].children.exists()
         ):
             data = []
 

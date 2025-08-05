@@ -100,6 +100,11 @@ urlpatterns = [
         name="get_choices_for_next_administrative_level",
     ),
     path(
+        "new-get-choices-for-next-administrative-level",
+        views.NewGetChoicesForNextAdministrativeLevelView.as_view(),
+        name="new_get_choices_for_next_administrative_level",
+    ),
+    path(
         "get-ancestor-administrative-levels",
         views.GetAncestorAdministrativeLevelsView.as_view(),
         name="get_ancestor_administrative_levels",
