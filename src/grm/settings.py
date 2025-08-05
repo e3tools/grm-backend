@@ -60,6 +60,8 @@ CREATED_APPS = [
     "attachments",
     "authentication",
     "dashboard",
+    "etl",
+    "issues",
 ]
 
 THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", "django_celery_results"]
