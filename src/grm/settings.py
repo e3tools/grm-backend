@@ -123,7 +123,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = env("LANGUAGE_CODE", default="fr")
 LANGUAGE_COOKIE_NAME = "django_language"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = env("TIME_ZONE", default="UTC")
 
 USE_I18N = True
 

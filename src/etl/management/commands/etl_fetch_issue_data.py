@@ -78,6 +78,7 @@ class Command(BaseCommand):
                 "auto_increment_id": {"$ne": ""},
             }
             documents = grm_db.get_query_result(selector)
+
             # process data for bulk create and bulk update
             documents = process_issue_data(documents)
             result = self.fetch_database(documents=documents, model_class=Issue)

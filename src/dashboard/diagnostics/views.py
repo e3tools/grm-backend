@@ -1,14 +1,19 @@
 from datetime import datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from dashboard.grm.forms import NewSearchIssueForm
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
+from etl.models import ETLExecutionLog
 from issues.models import AdministrativeRegion, IssueStatus
 from issues.models import Issue, IssueCategory, IssueType
 
@@ -30,7 +35,39 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         context["ws_bound"] = settings.DIAGNOSTIC_MAP_WS_BOUND
         context["en_bound"] = settings.DIAGNOSTIC_MAP_EN_BOUND
         context["country_iso_code"] = settings.DIAGNOSTIC_MAP_ISO_CODE
+        context["last_update"] = ETLExecutionLog.objects.filter(status='SUCCESS').first()
         return context
+
+
+class UpdateIssuesDataView(
+    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
+):
+
+    def post(self, request, *args, **kwargs):
+        from django.core.management import call_command
+        call_command("etl_fetch_issue_data")
+        log_entry = ETLExecutionLog.objects.first()
+        if log_entry.status == 'SUCCESS':
+            msg = _(f"The data was successfully updated.<br>Records processed: {log_entry.records_processed}")
+            finished_at = log_entry.finished_at
+        else:
+            msg = _(f"Data update failed.<br>Error: {log_entry.error_message}")
+            last_success = ETLExecutionLog.objects.filter.first()
+            finished_at = last_success.finished_at if last_success else None
+
+        if finished_at:
+            # Convert to local time zone based on settings.TIME_ZONE
+            finished_at = timezone.localtime(finished_at)
+
+            # Use Django's format (SHORT_DATETIME_FORMAT by default in templates)
+            finished_at = date_format(finished_at, format='DATETIME_FORMAT', use_l10n=True)
+
+        messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "finished_at": finished_at
+        }
+        return self.render_to_json_response(context, safe=False)
 
 
 class IssuesStatisticsView(
