@@ -45,18 +45,23 @@ class UpdateIssuesDataView(
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
+        last_success = ETLExecutionLog.objects.filter(status='SUCCESS').first()
         call_command("etl_fetch_issue_data")
         log_entry = ETLExecutionLog.objects.first()
-        if log_entry.status == 'SUCCESS':
+        if log_entry and last_success != log_entry and log_entry.status == 'SUCCESS':
             msg = _(f"The data was successfully updated.<br>Records processed: {log_entry.records_processed}")
             level = messages.SUCCESS
             extra_tags = "success"
             finished_at = log_entry.finished_at
         else:
-            msg = _(f"Data update failed.<br>Error: {log_entry.error_message}")
+            if not log_entry or last_success == log_entry or log_entry.status == 'RUNNING':
+                error = _("Internal error while running etl_fetch_issue_data. "
+                          "For more details, check the server logs.")
+            else:
+                error = log_entry.error_message.split("Traceback (most recent call last)")[0].strip()
+            msg = _(f"Data update failed.<br>Error: {error}")
             level = messages.ERROR
             extra_tags = "danger"
-            last_success = ETLExecutionLog.objects.filter.first()
             finished_at = last_success.finished_at if last_success else None
 
         if finished_at:

@@ -544,9 +544,11 @@
                     if (data.finished_at) {
                         $('#last_update').html(data.finished_at);
                     }
-                    enableButton($btn);
                     loadStatistics();
                 })
+				.always(function() {
+                    enableButton($btn);
+				});
 
         });
 
