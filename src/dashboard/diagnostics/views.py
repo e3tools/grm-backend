@@ -49,9 +49,13 @@ class UpdateIssuesDataView(
         log_entry = ETLExecutionLog.objects.first()
         if log_entry.status == 'SUCCESS':
             msg = _(f"The data was successfully updated.<br>Records processed: {log_entry.records_processed}")
+            level = messages.SUCCESS
+            extra_tags = "success"
             finished_at = log_entry.finished_at
         else:
             msg = _(f"Data update failed.<br>Error: {log_entry.error_message}")
+            level = messages.ERROR
+            extra_tags = "danger"
             last_success = ETLExecutionLog.objects.filter.first()
             finished_at = last_success.finished_at if last_success else None
 
@@ -62,7 +66,7 @@ class UpdateIssuesDataView(
             # Use Django's format (SHORT_DATETIME_FORMAT by default in templates)
             finished_at = date_format(finished_at, format='DATETIME_FORMAT', use_l10n=True)
 
-        messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        messages.add_message(self.request, level, msg, extra_tags=extra_tags)
         context = {
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
             "finished_at": finished_at
