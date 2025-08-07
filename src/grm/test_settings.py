@@ -9,13 +9,13 @@ MIDDLEWARE = [
     middleware
     for middleware in MIDDLEWARE
     if middleware
-    not in [  # noqa: F405
-        "django.middleware.security.SecurityMiddleware",
-        "corsheaders.middleware.CorsMiddleware",
-        "django.middleware.common.CommonMiddleware",
-        "django.middleware.csrf.CsrfViewMiddleware",
-        "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    ]
+       not in [  # noqa: F405
+           "django.middleware.security.SecurityMiddleware",
+           "corsheaders.middleware.CorsMiddleware",
+           "django.middleware.common.CommonMiddleware",
+           "django.middleware.csrf.CsrfViewMiddleware",
+           "django.middleware.clickjacking.XFrameOptionsMiddleware",
+       ]
 ]
 
 INSTALLED_APPS = [
@@ -33,3 +33,5 @@ logging.disable(logging.CRITICAL)
 COUCHDB_DATABASE = COUCHDB_GRM_DATABASE = COUCHDB_ATTACHMENT_DATABASE = (
     COUCHDB_GRM_ATTACHMENT_DATABASE
 ) = "test"
+
+LANGUAGE_CODE = "en-us"
