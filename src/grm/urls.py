@@ -33,6 +33,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("attachments/", include("attachments.urls")),
     path("authentication/", include("authentication.urls")),
+    path("issues/", include("issues.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("dashboard.urls")),
 ]
