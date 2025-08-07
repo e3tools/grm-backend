@@ -35,3 +35,13 @@ Start Application
 - With the help of the proper specialists update the files in `couchdb/jsonCollections` folder and create the appropriate docs. The file are named following this structure `database_document_type.json`. For ex `grm_issue_age_group.json` contains multiple documents from `issue_age_group` type that will be created in the `grm` database. You can create the documents mannually or use a script (`Postman` can be useful here).
 
 - Update the appropiate views in `src/dashboard/grm/views.py` and their related forms, templates and used functions. Ex of views : `NewIssueMixin`, `NewIssueContactFormView`, `NewIssuePersonFormView`, `NewIssueDetailsFormView`, `NewIssueLocationFormView`, `NewIssueConfirmFormView`, `NewIssueConfirmationFormView`
+
+## Tests
+
+To run the tests, you must meet the following requirements:
+- You must have a database named test created in CouchDB.
+- Your Postgres database user must have permissions
+  (`ALTER USER your_db_user CREATEDB;`)
+
+Then run the command:
+`pytest`
