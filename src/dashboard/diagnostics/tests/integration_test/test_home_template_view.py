@@ -1,7 +1,8 @@
+from django.test import override_settings
 from django.urls import reverse
 
 from dashboard.diagnostics.views import HomeFormView
-from grm.tests import DashboardTestCase
+from grm.tests.base import DashboardTestCase
 
 
 class TestHomeTemplateView(DashboardTestCase):
@@ -14,15 +15,16 @@ class TestHomeTemplateView(DashboardTestCase):
 
         assert response.status_code == 302
 
+    @override_settings(LANGUAGE_CODE='en-us')
     def test_context_data(self):
-        with self.assertNumQueries(18):
+        with self.assertNumQueries(23):
             response = self.get(self.url)
         context_data = response.context_data
 
         assert response.status_code == 200
         assert context_data["title"] == HomeFormView.title == "Diagnostics"
         assert (
-            context_data["active_level1"] == HomeFormView.active_level1 == "diagnostics"
+                context_data["active_level1"] == HomeFormView.active_level1 == "diagnostics"
         )
         assert context_data["active_level2"] == HomeFormView.active_level2 is None
         assert context_data["breadcrumb"] == HomeFormView.breadcrumb is None

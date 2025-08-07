@@ -22,7 +22,7 @@ from authentication.models import (
 from client import get_db, upload_file
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
-from dashboard.grm import CHOICE_CONTACT
+from dashboard.grm.constants import CHOICE_CONTACT
 from dashboard.grm.forms import (
     IssueCommentForm,
     IssueDetailsForm,

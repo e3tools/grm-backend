@@ -2,10 +2,10 @@ from django.conf import settings
 from parameterized import parameterized
 from rest_framework.reverse import reverse
 
-from authentication import ADL, MAJOR
-from authentication.tests import CouchdbUserFactory
+from authentication.constants import ADL, MAJOR
+from authentication.factories import CouchdbUserFactory
 from authentication.utils import get_validation_code
-from grm.tests import BaseTestCase
+from grm.tests.base import BaseTestCase
 
 
 class TestRegisterAPIView(BaseTestCase):

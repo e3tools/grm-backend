@@ -5,13 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from authentication.models import get_government_worker_choices
 from client import get_db
 from dashboard.forms.widgets import RadioSelect
-from dashboard.grm import (
-    CHOICE_CONTACT,
-    CITIZEN_TYPE_CHOICES,
-    CONTACT_CHOICES,
-    GENDER_CHOICES,
-    MEDIUM_CHOICES,
-)
+from dashboard.grm.constants import CHOICE_CONTACT, MEDIUM_CHOICES, CONTACT_CHOICES, CITIZEN_TYPE_CHOICES, \
+    GENDER_CHOICES
 from grm.utils import (
     get_administrative_region_choices,
     get_base_administrative_id,

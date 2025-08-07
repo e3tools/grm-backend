@@ -1,10 +1,10 @@
 from django.urls import reverse
 from parameterized import parameterized
 
-from authentication.tests import CouchdbUserFactory
+from authentication.factories import CouchdbUserFactory
 from dashboard.adls.views import AdlListView
-from grm.tests import DashboardTestCase
-from authentication import ADL, MAJOR
+from grm.tests.base import DashboardTestCase
+from authentication.constants import ADL, MAJOR
 
 
 class TestAdlListView(DashboardTestCase):

@@ -1,9 +1,9 @@
 from django.urls import reverse, reverse_lazy
 
-from authentication import ADL, MAJOR
-from authentication.tests import CouchdbUserFactory
+from authentication.constants import ADL, MAJOR
+from authentication.factories import CouchdbUserFactory
 from dashboard.adls.views import AdlDetailView
-from grm.tests import DashboardTestCase
+from grm.tests.base import DashboardTestCase
 
 
 class TestAdlDetailView(DashboardTestCase):

@@ -9,7 +9,7 @@ from authentication.models import (
     Cdata,
 )
 from client import get_db
-from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE, CHOICE_EMAIL
+from dashboard.grm.constants import CHOICE_CONTACT, CHOICE_EMAIL, CHOICE_PHONE
 from grm.celery_app import app
 from grm.utils import get_auto_increment_id, normalize_phone_number
 from sms_client import send_sms

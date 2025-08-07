@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from authentication import ADL, MAJOR
+from authentication.constants import ADL, MAJOR
 from client import get_db
 from dashboard.forms.forms import FileForm
 

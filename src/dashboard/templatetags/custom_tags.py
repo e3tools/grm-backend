@@ -3,12 +3,7 @@ from datetime import datetime
 from django import template
 
 from authentication.utils import get_validation_code
-from dashboard.grm import (
-    CITIZEN_TYPE_CHOICES,
-    CITIZEN_TYPE_CHOICES_ALT,
-    CONTACT_CHOICES,
-    MEDIUM_CHOICES,
-)
+from dashboard.grm.constants import MEDIUM_CHOICES, CONTACT_CHOICES, CITIZEN_TYPE_CHOICES, CITIZEN_TYPE_CHOICES_ALT
 from grm.utils import get_administrative_region_name as get_region_name
 
 register = template.Library()
