@@ -3,7 +3,7 @@ from datetime import datetime
 from django import template
 
 from authentication.utils import get_validation_code
-from dashboard.grm import (
+from dashboard.grm.constants import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,

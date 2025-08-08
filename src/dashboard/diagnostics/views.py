@@ -14,8 +14,13 @@ from django.views import generic
 from dashboard.grm.forms import NewSearchIssueForm
 from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
 from etl.models import ETLExecutionLog
-from issues.models import AdministrativeRegion, IssueStatus
-from issues.models import Issue, IssueCategory, IssueType
+from issues.models import (
+    AdministrativeRegion,
+    Issue,
+    IssueCategory,
+    IssueStatus,
+    IssueType,
+)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -43,6 +48,7 @@ class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
+
         last_success = ETLExecutionLog.objects.filter(status='SUCCESS').first()
         call_command("etl_fetch_issue_data")
         log_entry = ETLExecutionLog.objects.first()
@@ -53,8 +59,9 @@ class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             finished_at = log_entry.finished_at
         else:
             if not log_entry or last_success == log_entry or log_entry.status == 'RUNNING':
-                error = _("Internal error while running etl_fetch_issue_data. "
-                          "For more details, check the server logs.")
+                error = _(
+                    "Internal error while running etl_fetch_issue_data. " "For more details, check the server logs."
+                )
             else:
                 error = log_entry.error_message.split("Traceback (most recent call last)")[0].strip()
             msg = _(f"Data update failed.<br>Error: {error}")
@@ -72,7 +79,7 @@ class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         messages.add_message(self.request, level, msg, extra_tags=extra_tags)
         context = {
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
-            "finished_at": finished_at
+            "finished_at": finished_at,
         }
         return self.render_to_json_response(context, safe=False)
 
@@ -115,29 +122,34 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         # Single query to get all statistics using annotations
         issues_stats = Issue.objects.filter(filters).aggregate(
             total_count=Count('id'),
-
             # Status stats
-            **{f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
-               for status in IssueStatus.objects.all()},
-
+            **{
+                f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
+                for status in IssueStatus.objects.all()
+            },
             # Type stats
-            **{f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
-               for issue_type in IssueType.objects.all()},
-
+            **{
+                f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
+                for issue_type in IssueType.objects.all()
+            },
             # Category stats
-            **{f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
-               for cat in IssueCategory.objects.all()}
+            **{
+                f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
+                for cat in IssueCategory.objects.all()
+            },
         )
 
         total_issues = issues_stats['total_count']
 
         if total_issues == 0:
-            return self.render_to_json_response({
-                "region_stats": {},
-                "status_stats": {},
-                "type_stats": {},
-                "category_stats": {},
-            })
+            return self.render_to_json_response(
+                {
+                    "region_stats": {},
+                    "status_stats": {},
+                    "type_stats": {},
+                    "category_stats": {},
+                }
+            )
 
         # Get region stats efficiently - solo regiones con issues
         region_stats = self.get_region_stats_optimized(filters, root_region, total_issues)
@@ -145,18 +157,21 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         # Single query to get all statistics using annotations (for the filtered branch)
         issues_stats = Issue.objects.filter(filters).aggregate(
             total_count=Count('id'),
-
             # Status stats
-            **{f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
-               for status in IssueStatus.objects.all()},
-
+            **{
+                f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
+                for status in IssueStatus.objects.all()
+            },
             # Type stats
-            **{f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
-               for issue_type in IssueType.objects.all()},
-
+            **{
+                f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
+                for issue_type in IssueType.objects.all()
+            },
             # Category stats
-            **{f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
-               for cat in IssueCategory.objects.all()}
+            **{
+                f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
+                for cat in IssueCategory.objects.all()
+            },
         )
 
         # Process other stats from the aggregated data
@@ -181,7 +196,8 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             # Get the real name of the table
             table_name = AdministrativeRegion._meta.db_table
 
-            cursor.execute(f"""
+            cursor.execute(
+                f"""
                 WITH RECURSIVE region_tree AS (
                     SELECT id, parent_id, name
                     FROM {table_name}
@@ -194,7 +210,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                     INNER JOIN region_tree rt ON ar.parent_id = rt.id
                 )
                 SELECT id FROM region_tree
-            """, [root_id])
+            """,
+                [root_id],
+            )
 
             return [row[0] for row in cursor.fetchall()]
 
@@ -231,9 +249,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
 
         # Get the direct children of the target region + the region itself
         target_regions = [target_region.id]  # Include the target region
-        direct_children = list(AdministrativeRegion.objects.filter(
-            parent_id=target_region.id
-        ).values_list('id', flat=True))
+        direct_children = list(
+            AdministrativeRegion.objects.filter(parent_id=target_region.id).values_list('id', flat=True)
+        )
         target_regions.extend(direct_children)
 
         # Get all descendants of the target region (to filter issues that belong to this branch)
@@ -246,17 +264,20 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         branch_filter = filters & Q(administrative_region__in=target_branch_ids)
 
         # Optimized query that only includes regions with issues in this branch
-        region_data = (Issue.objects
-                       .filter(branch_filter)
-                       .select_related('administrative_region')
-                       .values('administrative_region__id',
-                               'administrative_region__name',
-                               'administrative_region__latitude',
-                               'administrative_region__longitude',
-                               'administrative_region__administrative_level',
-                               'administrative_region__parent_id')
-                       .annotate(count=Count('id'))
-                       .order_by('-count'))
+        region_data = (
+            Issue.objects.filter(branch_filter)
+            .select_related('administrative_region')
+            .values(
+                'administrative_region__id',
+                'administrative_region__name',
+                'administrative_region__latitude',
+                'administrative_region__longitude',
+                'administrative_region__administrative_level',
+                'administrative_region__parent_id',
+            )
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
 
         # Create a mapping from each region with issues to its target region (target_region or direct children)
         region_counts = {region_id: 0 for region_id in target_regions}
@@ -293,8 +314,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 # Only show "Global" if it is the target region AND has direct issues
                 if region_id == target_region.id:
                     # Check if there are direct issues in the target region
-                    direct_issues_count = sum(1 for item in region_data
-                                              if item['administrative_region__id'] == target_region.id)
+                    direct_issues_count = sum(
+                        1 for item in region_data if item['administrative_region__id'] == target_region.id
+                    )
                     if direct_issues_count > 0:
                         region_name = "Global"
                     else:
@@ -345,11 +367,13 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             return self._region_ancestry_cache[region_id]
 
         from django.db import connection
+
         table = AdministrativeRegion._meta.db_table
 
         with connection.cursor() as cursor:
             # 1) Try to find the ancestor whose parent is the root (the direct child of root)
-            cursor.execute(f"""
+            cursor.execute(
+                f"""
                 WITH RECURSIVE region_path AS (
                     SELECT id, parent_id, 0 AS lvl
                     FROM {table}
@@ -365,7 +389,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 FROM region_path
                 WHERE parent_id = %s
                 LIMIT 1;
-            """, [region_id, root_region_id])
+            """,
+                [region_id, root_region_id],
+            )
             row = cursor.fetchone()
             if row:
                 target = row[0]
@@ -373,7 +399,8 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 return target
 
             # 2) If none found, maybe region is the root or an error — check if root is in path
-            cursor.execute(f"""
+            cursor.execute(
+                f"""
                 WITH RECURSIVE region_path AS (
                     SELECT id, parent_id
                     FROM {table}
@@ -386,7 +413,9 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                     JOIN region_path rp ON ar.id = rp.parent_id
                 )
                 SELECT 1 FROM region_path WHERE id = %s LIMIT 1;
-            """, [region_id, root_region_id])
+            """,
+                [region_id, root_region_id],
+            )
             row = cursor.fetchone()
             if row:
                 # root is an ancestor (and since we didn't find a direct child, region must be root)

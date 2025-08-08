@@ -44,3 +44,13 @@ Start Application
 - Run from src/ `pre-commit install` to set up the git hook scripts. 
 
 - More info on [pre-commit](https://pre-commit.com/)
+- 
+### Tests
+To run the tests, you must meet the following requirements:
+- You must have a database named test created in CouchDB.
+- Your Postgres database user must have permissions
+  (`ALTER USER your_db_user CREATEDB;`)
+
+Then run the command:
+`pytest`
+

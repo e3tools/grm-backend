@@ -6,7 +6,7 @@ from rest_framework import generics, parsers, renderers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from authentication import ADL, MAJOR
+from authentication.constants import ADL, MAJOR
 from authentication.serializers import (
     ADLActiveResponseSerializer,
     ADLAdministrativeRegionResponseSerializer,

@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from authentication.models import get_government_worker_choices
 from client import get_db
 from dashboard.forms.widgets import RadioSelect
-from dashboard.grm import (
+from dashboard.grm.constants import (
     CHOICE_CONTACT,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
@@ -22,9 +22,8 @@ from grm.utils import (
     get_issue_options_choices,
     get_issue_status_choices,
     get_issue_type_choices,
-    get_issue_options_choices, 
-    new_get_administrative_regions_by_level,
     new_get_administrative_region_choices,
+    new_get_administrative_regions_by_level,
 )
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -90,6 +89,7 @@ class NewIssuePersonForm(forms.Form):
         required=False,
         help_text=_("This is an optional field"),
     )
+
     # citizen_group_1 = forms.ChoiceField(
     #     label=_("Occupancy status"),
     #     required=False,
@@ -340,9 +340,9 @@ class NewSearchIssueForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
 
-        self.fields["start_date"].widget.attrs["class"] = self.fields[
-            "end_date"
-        ].widget.attrs["class"] = "form-control datetimepicker-input"
+        self.fields["start_date"].widget.attrs["class"] = self.fields["end_date"].widget.attrs["class"] = (
+            "form-control datetimepicker-input"
+        )
         self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
         self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
         self.fields["assigned_to"].widget.choices = get_government_worker_choices()
@@ -355,6 +355,7 @@ class NewSearchIssueForm(forms.Form):
         self.fields["administrative_region"].widget.choices = new_get_administrative_region_choices()
 
         self.fields["administrative_region"].widget.attrs["class"] = "region"
+
 
 # to check
 class IssueDetailsForm(forms.Form):

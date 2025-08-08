@@ -1,17 +1,18 @@
 import string
 from datetime import datetime
 from operator import itemgetter
+
 from django.conf import settings
 from django.template.defaultfilters import date as _date
+
+from issues.models import AdministrativeRegion
+
 # from openpyxl import load_workbook
 # from openpyxl.utils.cell import range_boundaries
 # note that we import 'Workbook' from spire
 # keep in mind in case you want to import a class wih the same name from another package
 # from spire.xls import *
 # from spire.xls.common import *
-
-from issues.models import AdministrativeRegion
-
 
 
 def sort_dictionary_list_by_field(list_to_be_sorted, field, reverse=False):

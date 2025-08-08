@@ -13,7 +13,7 @@ from authentication.models import (
     get_assignee_to_escalate,
 )
 from client import get_db
-from dashboard.grm import CHOICE_CONTACT, CHOICE_EMAIL, CHOICE_PHONE
+from dashboard.grm.constants import CHOICE_CONTACT, CHOICE_EMAIL, CHOICE_PHONE
 from grm.celery_app import app
 from grm.utils import get_auto_increment_id, normalize_phone_number
 from mail_client import send_mail_notification

@@ -54,14 +54,14 @@ pluggy==0.13.1
 pre-commit==2.9.3
 prompt-toolkit==3.0.24
 psycopg2-binary==2.8.6
-py==1.10.0
+py==1.11.0
 pycodestyle==2.6.0
 pycparser==2.22
 pycryptodomex==3.15.0
 pyflakes==2.2.0
 PyJWT==2.3.0
 pyparsing==2.4.7
-pytest==6.2.1
+pytest==8.4.1
 pytest-django==4.1.0
 python-crontab==3.2.0
 python-dateutil==2.8.2

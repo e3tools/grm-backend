@@ -2,9 +2,9 @@ from django.conf import settings
 from parameterized import parameterized
 from rest_framework.reverse import reverse
 
-from authentication.tests import CouchdbADLFactory
+from authentication.factories import CouchdbADLFactory
 from client import COUCHDB_PASSWORD, COUCHDB_USERNAME
-from grm.tests import BaseTestCase
+from grm.tests.base import BaseTestCase
 
 
 class TestUploadTaskAttachmentAPIView(BaseTestCase):

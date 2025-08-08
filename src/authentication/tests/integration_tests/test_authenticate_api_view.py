@@ -3,9 +3,9 @@ from django.contrib.auth.hashers import make_password
 from parameterized import parameterized
 from rest_framework.reverse import reverse
 
-from authentication import ADL, MAJOR
-from authentication.tests import CouchdbUserFactory
-from grm.tests import BaseTestCase
+from authentication.constants import ADL, MAJOR
+from authentication.factories import CouchdbUserFactory
+from grm.tests.base import BaseTestCase
 
 
 class TestAuthenticateAPIView(BaseTestCase):

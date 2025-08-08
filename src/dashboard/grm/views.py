@@ -22,7 +22,7 @@ from authentication.models import (
 from client import get_db, upload_file
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
-from dashboard.grm import CHOICE_CONTACT
+from dashboard.grm.constants import CHOICE_CONTACT
 from dashboard.grm.forms import (
     MAX_LENGTH,
     IssueCommentForm,
@@ -1107,11 +1107,7 @@ class NewGetChoicesForNextAdministrativeLevelView(
         regions = AdministrativeRegion.objects.filter(parent=parent_id)
         data = list(regions.values())
 
-        if (
-            data
-            and exclude_lower_level
-            and not regions[0].children.exists()
-        ):
+        if data and exclude_lower_level and not regions[0].children.exists():
             data = []
 
         return self.render_to_json_response(data, safe=False)

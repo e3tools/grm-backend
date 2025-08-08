@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication import ADL
+from authentication.constants import ADL
 from authentication.models import User
 from authentication.utils import get_validation_code
 from client import COUCHDB_ATTACHMENT_DATABASE, get_db, upload_file

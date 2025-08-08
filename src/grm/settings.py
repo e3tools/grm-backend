@@ -64,7 +64,7 @@ CREATED_APPS = [
     "issues",
 ]
 
-THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", "django_celery_results"]
+THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", 'rest_framework.authtoken', "django_celery_results"]
 
 INSTALLED_APPS += CREATED_APPS + THIRD_PARTY_APPS + LOCAL_INSTALLED_APPS
 
@@ -275,3 +275,10 @@ EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}

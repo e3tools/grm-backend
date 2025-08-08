@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from authentication import ADL, MAJOR
+from authentication.constants import ADL, MAJOR
 from authentication.utils import get_validation_code
 from client import get_db
 
