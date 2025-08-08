@@ -16,16 +16,14 @@ from grm.utils import (
 
 def photo_path(instance, filename):
     filename, file_extension = os.path.splitext(filename)
-    filename = "{}{}".format(uuid.uuid(), file_extension)
-    return "photos/{}".format(filename)
+    filename = f"{uuid.uuid()}{file_extension}"
+    return f"photos/{filename}"
 
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name=_("email address"))
     phone_number = models.CharField(max_length=45, verbose_name=_("phone number"))
-    photo = models.ImageField(
-        upload_to=photo_path, blank=True, null=True, verbose_name=_("photo")
-    )
+    photo = models.ImageField(upload_to=photo_path, blank=True, null=True, verbose_name=_("photo"))
 
     def __str__(self):
         return self.email
@@ -70,12 +68,8 @@ class Cdata(AbstractKeyData):
 
 class GovernmentWorker(models.Model):
     user = models.OneToOneField("User", models.PROTECT)
-    department = models.PositiveSmallIntegerField(
-        db_index=True, verbose_name=_("department")
-    )
-    administrative_id = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name=_("administrative level")
-    )
+    department = models.PositiveSmallIntegerField(db_index=True, verbose_name=_("department"))
+    administrative_id = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("administrative level"))
 
     class Meta:
         verbose_name = _("Government Worker")
@@ -87,16 +81,12 @@ class GovernmentWorker(models.Model):
 
     def has_read_permission_for_issue(self, eadl_db, issue):
         try:
-            issue_administrative_id = issue["administrative_region"][
-                "administrative_id"
-            ]
+            issue_administrative_id = issue["administrative_region"]["administrative_id"]
             if issue_administrative_id != self.administrative_id:
                 issue_department_id = issue["category"]["assigned_department"]
                 if self.department != issue_department_id:
                     return False
-            belongs = belongs_to_region(
-                eadl_db, issue_administrative_id, self.administrative_id
-            )
+            belongs = belongs_to_region(eadl_db, issue_administrative_id, self.administrative_id)
             return belongs
         except Exception:
             return False
@@ -112,14 +102,10 @@ def get_government_worker_choices(empty_choice=True):
 
 def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
     try:
-        doc_category = grm_db.get_query_result(
-            {"id": issue_doc["category"]["id"], "type": "issue_category"}
-        )[0][0]
+        doc_category = grm_db.get_query_result({"id": issue_doc["category"]["id"], "type": "issue_category"})[0][0]
     except Exception:
         if errors:
-            error = (
-                "Error trying to get issue_category document in get_assignee function"
-            )
+            error = "Error trying to get issue_category document in get_assignee function"
             errors.append(error)
         raise
 
@@ -128,21 +114,15 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
     assignee = None
     if doc_category["redirection_protocol"]:
         assigned_department_level = (
-            assigned_department["administrative_level"]
-            if "administrative_level" in assigned_department
-            else None
+            assigned_department["administrative_level"] if "administrative_level" in assigned_department else None
         )
-        assigned_department_level = (
-            assigned_department_level.strip() if assigned_department_level else None
-        )
+        assigned_department_level = assigned_department_level.strip() if assigned_department_level else None
         # administrative_id = None
         administrative_id = adm_lvl_id
         if not assigned_department_level:
             print("don't have assigned dep")
             try:
-                reporter = GovernmentWorker.objects.get(
-                    user=issue_doc["reporter"]["id"]
-                )
+                reporter = GovernmentWorker.objects.get(user=issue_doc["reporter"]["id"])
                 administrative_id = reporter.administrative_id
             except Exception:
                 pass
@@ -152,9 +132,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
             try:
                 doc_administrative_level = eadl_db.get_query_result(
                     {
-                        "administrative_id": issue_doc["administrative_region"][
-                            "administrative_id"
-                        ],
+                        "administrative_id": issue_doc["administrative_region"]["administrative_id"],
                         "type": "administrative_level",
                     }
                 )[0][0]
@@ -164,9 +142,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
                     errors.append(error)
                 raise
 
-            related_region = get_related_region_with_specific_level(
-                eadl_db, doc_administrative_level, level.title()
-            )
+            related_region = get_related_region_with_specific_level(eadl_db, doc_administrative_level, level.title())
             administrative_id = related_region["administrative_id"]
 
         if level and administrative_id:
@@ -204,12 +180,8 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
             )
             assignments_result = [doc for doc in assignments_result]
 
-            department_workers_with_assignment = {
-                worker["key"][1] for worker in assignments_result
-            }
-            department_workers_without_assignment = (
-                related_workers - department_workers_with_assignment
-            )
+            department_workers_with_assignment = {worker["key"][1] for worker in assignments_result}
+            department_workers_without_assignment = related_workers - department_workers_with_assignment
 
             if department_workers_without_assignment:
                 worker_id = list(department_workers_without_assignment)[0]
@@ -218,9 +190,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
             else:
                 assignee = ""
                 if assignments_result and related_workers:
-                    assignments_result = sort_dictionary_list_by_field(
-                        assignments_result, "value"
-                    )
+                    assignments_result = sort_dictionary_list_by_field(assignments_result, "value")
                     for assignment in assignments_result:
                         worker_id = assignment["key"][1]
                         if worker_id in related_workers:
@@ -234,9 +204,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
     else:
         print("not supposed to be here")
         try:
-            doc_department = grm_db.get_query_result(
-                {"id": department_id, "type": "issue_department"}
-            )[0][0]
+            doc_department = grm_db.get_query_result({"id": department_id, "type": "issue_department"})[0][0]
         except Exception:
             if errors:
                 error = "Error trying to get issue_department document in get_assignee function"
@@ -248,12 +216,8 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
         try:
             adl_user = eadl_db.get_query_result(
                 {
-                    "administrative_level": issue_doc["category"][
-                        "administrative_level"
-                    ],
-                    "administrative_region": issue_doc["administrative_region"][
-                        "administrative_id"
-                    ],
+                    "administrative_level": issue_doc["category"]["administrative_level"],
+                    "administrative_region": issue_doc["administrative_region"]["administrative_id"],
                     "village_secretary": 1,
                     "type": "adl",
                 }
@@ -264,10 +228,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
             }
         except Exception:
             pass
-    if (
-        doc_category["confidentiality_level"] == "Confidential"
-        and doc_category["redirection_protocol"] == 0
-    ):
+    if doc_category["confidentiality_level"] == "Confidential" and doc_category["redirection_protocol"] == 0:
         try:
             adl_user = eadl_db.get_query_result(
                 {

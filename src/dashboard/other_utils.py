@@ -1,6 +1,6 @@
-from openpyxl import load_workbook
 from itertools import zip_longest
 from pathlib import Path
+from openpyxl import load_workbook
 # from spire.xls import *
 # from spire.xls.common import *
 
@@ -12,7 +12,7 @@ def unmerge_cells_keep_value(file_path):
         sheet = wb[sheet_name]
         merged_cell_ranges = list(sheet.merged_cells.ranges)
         for merged_cell_range in merged_cell_ranges:
-            min_row, min_col, max_row, max_col = (
+            min_row, min_col, _, _ = (
                 merged_cell_range.min_row,
                 merged_cell_range.min_col,
                 merged_cell_range.max_row,
@@ -33,24 +33,24 @@ def unmerge_cells_keep_value(file_path):
     wb.save(f"{Path(file_path).stem}_unmerge.xlsx")
 
 
-def split_excel_sheets_into_files(excel_path):
-    workbook = Workbook()
-    workbook.LoadFromFile(excel_path)
-
-    for worksheet in workbook.Worksheets:
-        new_workbook = Workbook()
-
-        # Clear the default worksheets in the new workbook
-        new_workbook.Worksheets.Clear()
-
-        # Copy the worksheets from the loaded Excel file to the new workbook
-        new_workbook.Worksheets.AddCopy(worksheet)
-
-        output_file_path = f"{worksheet.Name}.xlsx"
-        new_workbook.SaveToFile(output_file_path, FileFormat.Version2016)
-        print(f"***Split {output_file_path}****")
-
-    workbook.Dispose()
+# def split_excel_sheets_into_files(excel_path):
+#     workbook = Workbook()
+#     workbook.LoadFromFile(excel_path)
+#
+#     for worksheet in workbook.Worksheets:
+#         new_workbook = Workbook()
+#
+#         # Clear the default worksheets in the new workbook
+#         new_workbook.Worksheets.Clear()
+#
+#         # Copy the worksheets from the loaded Excel file to the new workbook
+#         new_workbook.Worksheets.AddCopy(worksheet)
+#
+#         output_file_path = f"{worksheet.Name}.xlsx"
+#         new_workbook.SaveToFile(output_file_path, FileFormat.Version2016)
+#         print(f"***Split {output_file_path}****")
+#
+#     workbook.Dispose()
 
 
 def compare_excel_files(excel_path1, excel_path2):
@@ -75,9 +75,7 @@ def compare_excel_files(excel_path1, excel_path2):
             row_sheet1.append(cell_sheet1.value)
             row_sheet2.append(cell_sheet2.value)
 
-        for col_num, (c1, c2) in enumerate(
-            zip_longest(row_sheet1, row_sheet2), start=1
-        ):
+        for col_num, (c1, c2) in enumerate(zip_longest(row_sheet1, row_sheet2), start=1):
             if c1 != c2:
                 print(f"Row {row_num} Col {col_num} - {c1} != {c2}")
                 if is_same:

@@ -50,14 +50,10 @@ class TaskFactory(factory.Factory):
 
     doc_type = "list_activity"
     title = factory.Faker("text")
-    status = factory.Iterator(
-        ["not-stated", "in-progress", "completed"], cycle=True, getter=lambda s: s[0]
-    )
+    status = factory.Iterator(["not-stated", "in-progress", "completed"], cycle=True, getter=lambda s: s[0])
     notes = factory.Faker("paragraph", nb_sentences=3)
     due_at = factory.Faker("iso8601", tzinfo=tzinfo)
-    attachments = factory.List(
-        [factory.SubFactory(AttachmentFactory) for _ in range(3)]
-    )
+    attachments = factory.List([factory.SubFactory(AttachmentFactory) for _ in range(3)])
 
 
 class Phase:
@@ -81,9 +77,7 @@ class PhaseFactory(factory.Factory):
     opened_at = factory.Faker("iso8601", tzinfo=tzinfo)
     closed_at = factory.Faker("iso8601", tzinfo=tzinfo)
     due_at = factory.Faker("iso8601", tzinfo=tzinfo)
-    tasks = factory.List(
-        [factory.SubFactory(TaskFactory, ordinal=ordinal) for ordinal in range(3)]
-    )
+    tasks = factory.List([factory.SubFactory(TaskFactory, ordinal=ordinal) for ordinal in range(3)])
 
 
 class CouchdbUser:
@@ -187,9 +181,7 @@ class CouchdbADLFactory(CouchdbUserFactory):
     class Meta:
         model = CouchdbADL
 
-    phases = factory.List(
-        [factory.SubFactory(PhaseFactory, ordinal=ordinal) for ordinal in range(3)]
-    )
+    phases = factory.List([factory.SubFactory(PhaseFactory, ordinal=ordinal) for ordinal in range(3)])
 
     @factory.lazy_attribute
     def doc(self):
@@ -265,9 +257,7 @@ class IssueFactory(factory.Factory):
         model = Issue
 
     doc_id = factory.Sequence(int)
-    attachments = factory.List(
-        [factory.SubFactory(AttachmentFactory) for _ in range(3)]
-    )
+    attachments = factory.List([factory.SubFactory(AttachmentFactory) for _ in range(3)])
     doc_type = "issue"
 
     @factory.lazy_attribute

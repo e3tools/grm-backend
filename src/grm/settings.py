@@ -10,13 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+# ruff: noqa: F405
 from pathlib import Path
 
 import django.conf.locale
 import environ
 from django.conf import global_settings
 from django.utils.translation import gettext_lazy as _
-
 
 try:
     from .local_settings import *  # noqa: F403
@@ -139,9 +139,7 @@ LANGUAGES = (
     ("rw", _("Kinyarwanda")),
     ("et", _("Ethiopia")),
 )
-LANGUAGES = [
-    lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE
-]
+LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
 
 # Add custom languages not provided by Django
 EXTRA_LANG_INFO = {

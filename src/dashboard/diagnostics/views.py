@@ -39,9 +39,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class UpdateIssuesDataView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
@@ -79,10 +77,7 @@ class UpdateIssuesDataView(
         return self.render_to_json_response(context, safe=False)
 
 
-class IssuesStatisticsView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
-
+class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')

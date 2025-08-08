@@ -14,17 +14,17 @@ from dashboard.grm import (
 )
 from grm.utils import (
     get_administrative_region_choices,
-    get_base_administrative_id,
     get_administrative_regions_by_level,
+    get_base_administrative_id,
     get_issue_age_group_choices,
     get_issue_category_choices,
     get_issue_citizen_group_choices,
-    get_issue_citizen_group_1_choices,
-    get_issue_citizen_group_2_choices,
-    get_issue_subproject_group_choices,
+    get_issue_options_choices,
     get_issue_status_choices,
     get_issue_type_choices,
-    get_issue_options_choices, new_get_administrative_regions_by_level, new_get_administrative_region_choices,
+    get_issue_options_choices, 
+    new_get_administrative_regions_by_level,
+    new_get_administrative_region_choices,
 )
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -47,28 +47,16 @@ class NewIssueContactForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
 
-        self.fields["contact"].widget.attrs["placeholder"] = _(
-            "Please type the contact information"
-        )
+        self.fields["contact"].widget.attrs["placeholder"] = _("Please type the contact information")
 
         document = grm_db[doc_id]
         if "contact_medium" in document:
             self.fields["contact_medium"].initial = document["contact_medium"]
             if document["contact_medium"] == CHOICE_CONTACT:
-                if (
-                    "type" in document["contact_information"]
-                    and document["contact_information"]["type"]
-                ):
-                    self.fields["contact_type"].initial = document[
-                        "contact_information"
-                    ]["type"]
-                if (
-                    "contact" in document["contact_information"]
-                    and document["contact_information"]["contact"]
-                ):
-                    self.fields["contact"].initial = document["contact_information"][
-                        "contact"
-                    ]
+                if "type" in document["contact_information"] and document["contact_information"]["type"]:
+                    self.fields["contact_type"].initial = document["contact_information"]["type"]
+                if "contact" in document["contact_information"] and document["contact_information"]["contact"]:
+                    self.fields["contact"].initial = document["contact_information"]["contact"]
             else:
                 self.fields["contact"].widget.attrs["class"] = "hidden"
 
@@ -156,9 +144,7 @@ class NewIssuePersonForm(forms.Form):
             self.fields["citizen_type"].initial = document["citizen_type"]
 
         if "citizen_age_group" in document and document["citizen_age_group"]:
-            self.fields["citizen_age_group"].initial = document["citizen_age_group"][
-                "id"
-            ]
+            self.fields["citizen_age_group"].initial = document["citizen_age_group"]["id"]
 
         if "gender" in document:
             self.fields["gender"].initial = document["gender"]
@@ -192,9 +178,7 @@ class NewIssueDetailsForm(forms.Form):
     issue_type = forms.ChoiceField(label=_("What are you reporting"))
     issue_sub_type = forms.ChoiceField(label=_("The sub type of grievance"))
     category = forms.ChoiceField(label=_("The category of grievance"))
-    component = forms.ChoiceField(
-        label=_("Component"), required=False, help_text=_("This is an optional field")
-    )
+    component = forms.ChoiceField(label=_("Component"), required=False, help_text=_("This is an optional field"))
     # sub_component = forms.ChoiceField(
     #     label=_("Sub Component"),
     #     required=False,
@@ -208,9 +192,7 @@ class NewIssueDetailsForm(forms.Form):
     description = forms.CharField(
         label=_("Briefly describe the issue"),
         max_length=2000,
-        widget=forms.Textarea(
-            attrs={"rows": "3", "placeholder": _("Please describe the issue")}
-        ),
+        widget=forms.Textarea(attrs={"rows": "3", "placeholder": _("Please describe the issue")}),
     )
     ongoing_issue = forms.BooleanField(
         label=_("Current event or multiple occurrences"),
@@ -249,9 +231,9 @@ class NewIssueDetailsForm(forms.Form):
         self.fields["subproject_group"].widget.choices = subproject_groups
         self.fields["subproject_group"].choices = subproject_groups
 
-        self.fields["intake_date"].widget.attrs["class"] = self.fields[
-            "issue_date"
-        ].widget.attrs["class"] = "form-control datetimepicker-input"
+        self.fields["intake_date"].widget.attrs["class"] = self.fields["issue_date"].widget.attrs["class"] = (
+            "form-control datetimepicker-input"
+        )
         self.fields["intake_date"].widget.attrs["data-target"] = "#intake_date"
         self.fields["issue_date"].widget.attrs["data-target"] = "#issue_date"
 
@@ -285,15 +267,11 @@ class NewIssueLocationForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         eadl_db = get_db()
-        label = get_administrative_regions_by_level(eadl_db)[0][
-            "administrative_level"
-        ].title()
+        label = get_administrative_regions_by_level(eadl_db)[0]["administrative_level"].title()
         self.fields["administrative_region"].label = label
 
         administrative_region_choices = get_administrative_region_choices(eadl_db)
-        self.fields["administrative_region"].widget.choices = (
-            administrative_region_choices
-        )
+        self.fields["administrative_region"].widget.choices = administrative_region_choices
         self.fields["administrative_region"].choices = administrative_region_choices
         self.fields["administrative_region"].widget.attrs["class"] = "region"
         self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
@@ -303,14 +281,10 @@ class NewIssueLocationForm(forms.Form):
         if "administrative_region" in document and document["administrative_region"]:
             administrative_id = document["administrative_region"]["administrative_id"]
             self.fields["administrative_region_value"].initial = administrative_id
-            self.fields["administrative_region"].initial = get_base_administrative_id(
-                eadl_db, administrative_id
-            )
+            self.fields["administrative_region"].initial = get_base_administrative_id(eadl_db, administrative_id)
 
 
-class NewIssueConfirmForm(
-    NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm
-):
+class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
     def __init__(self, *args, **kwargs):
         NewIssueContactForm.__init__(self, *args, **kwargs)
         NewIssuePersonForm.__init__(self, *args, **kwargs)
@@ -333,9 +307,9 @@ class SearchIssueForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
 
-        self.fields["start_date"].widget.attrs["class"] = self.fields[
-            "end_date"
-        ].widget.attrs["class"] = "form-control datetimepicker-input"
+        self.fields["start_date"].widget.attrs["class"] = self.fields["end_date"].widget.attrs["class"] = (
+            "form-control datetimepicker-input"
+        )
         self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
         self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
         self.fields["assigned_to"].widget.choices = get_government_worker_choices()
@@ -344,13 +318,9 @@ class SearchIssueForm(forms.Form):
         self.fields["status"].widget.choices = get_issue_status_choices(grm_db)
 
         eadl_db = get_db()
-        label = get_administrative_regions_by_level(eadl_db)[0][
-            "administrative_level"
-        ].title()
+        label = get_administrative_regions_by_level(eadl_db)[0]["administrative_level"].title()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = (
-            get_administrative_region_choices(eadl_db)
-        )
+        self.fields["administrative_region"].widget.choices = get_administrative_region_choices(eadl_db)
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
@@ -406,9 +376,7 @@ class IssueDetailsForm(forms.Form):
                 is_assignee_to_government_worker = True
 
         if not is_assignee_to_government_worker:
-            self.fields["assignee"].widget.choices = [
-                (document["assignee"]["id"], document["assignee"]["name"])
-            ]
+            self.fields["assignee"].widget.choices = [(document["assignee"]["id"], document["assignee"]["name"])]
 
         self.fields["assignee"].initial = document["assignee"]["id"]
 
@@ -424,9 +392,7 @@ class IssueCommentForm(forms.Form):
 
 # to check
 class IssueResearchResultForm(forms.Form):
-    research_result = forms.CharField(
-        label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
-    )
+    research_result = forms.CharField(label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"}))
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
@@ -435,16 +401,12 @@ class IssueResearchResultForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         document = grm_db[doc_id]
-        self.fields["research_result"].initial = (
-            document["research_result"] if "research_result" in document else ""
-        )
+        self.fields["research_result"].initial = document["research_result"] if "research_result" in document else ""
 
 
 # to check
 class IssueRejectReasonForm(forms.Form):
-    reject_reason = forms.CharField(
-        label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
-    )
+    reject_reason = forms.CharField(label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"}))
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
@@ -453,6 +415,4 @@ class IssueRejectReasonForm(forms.Form):
 
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         document = grm_db[doc_id]
-        self.fields["reject_reason"].initial = (
-            document["reject_reason"] if "reject_reason" in document else ""
-        )
+        self.fields["reject_reason"].initial = document["reject_reason"] if "reject_reason" in document else ""

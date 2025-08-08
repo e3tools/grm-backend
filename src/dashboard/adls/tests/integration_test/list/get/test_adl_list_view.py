@@ -1,10 +1,10 @@
 from django.urls import reverse
 from parameterized import parameterized
 
+from authentication import ADL, MAJOR
 from authentication.tests import CouchdbUserFactory
 from dashboard.adls.views import AdlListView
 from grm.tests import DashboardTestCase
-from authentication import ADL, MAJOR
 
 
 class TestAdlListView(DashboardTestCase):
@@ -33,16 +33,8 @@ class TestAdlListView(DashboardTestCase):
         assert context_data["active_level1"] == AdlListView.active_level1 == "adls"
         assert context_data["active_level2"] == AdlListView.active_level2 is None
         assert len(context_data["breadcrumb"]) == 1
-        assert (
-            context_data["breadcrumb"][0]["url"]
-            == AdlListView.breadcrumb[0]["url"]
-            == ""
-        )
-        assert (
-            context_data["breadcrumb"][0]["title"]
-            == AdlListView.breadcrumb[0]["title"]
-            == AdlListView.title
-        )
+        assert context_data["breadcrumb"][0]["url"] == AdlListView.breadcrumb[0]["url"] == ""
+        assert context_data["breadcrumb"][0]["title"] == AdlListView.breadcrumb[0]["title"] == AdlListView.title
         assert context_data["paginator"] == context_data["page_obj"] is None
         assert context_data["is_paginated"] is False
         assert context_data["object_list"] == context_data["adls"]

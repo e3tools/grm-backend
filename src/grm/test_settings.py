@@ -1,3 +1,4 @@
+# ruff: noqa: F405
 import logging
 
 try:
@@ -18,11 +19,7 @@ MIDDLEWARE = [
     ]
 ]
 
-INSTALLED_APPS = [
-    app
-    for app in INSTALLED_APPS
-    if app not in ["django.contrib.staticfiles"]  # noqa: F405
-]
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in ["django.contrib.staticfiles"]]  # noqa: F405
 
 PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
 
@@ -30,6 +27,4 @@ MEDIA_URL = "/media/"
 
 logging.disable(logging.CRITICAL)
 
-COUCHDB_DATABASE = COUCHDB_GRM_DATABASE = COUCHDB_ATTACHMENT_DATABASE = (
-    COUCHDB_GRM_ATTACHMENT_DATABASE
-) = "test"
+COUCHDB_DATABASE = COUCHDB_GRM_DATABASE = COUCHDB_ATTACHMENT_DATABASE = COUCHDB_GRM_ATTACHMENT_DATABASE = "test"

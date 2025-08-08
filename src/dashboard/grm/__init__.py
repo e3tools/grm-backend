@@ -25,9 +25,7 @@ CHOICE_3 = 3
 CITIZEN_TYPE_CHOICES = [
     (
         CHOICE_1,
-        _(
-            "Keep name confidential. Only the person resolving the issue will see the name."
-        ),
+        _("Keep name confidential. Only the person resolving the issue will see the name."),
     ),
     (CHOICE_2, _("This is an individual filing on behalf of someone else.")),
     (CHOICE_3, _("This is an organization filing on behalf of someone else.")),

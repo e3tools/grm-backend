@@ -26,9 +26,7 @@ class MonthSelectForm(forms.Form):
         phases = get_db().get_view_result("phases", "tasks_by_month", group=True)[0]
         if phases:
             older_phase = phases[0]["key"]
-            start_date = datetime.strptime(
-                f"{older_phase[0]}-{older_phase[1]}", "%Y-%m"
-            )
+            start_date = datetime.strptime(f"{older_phase[0]}-{older_phase[1]}", "%Y-%m")
             month_range = get_month_range(start_date)
             current_month = month_range[0]
             default_option = [(current_month[0], _("This month"))]

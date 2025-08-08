@@ -1,14 +1,14 @@
 from django.http import Http404, JsonResponse
 
 
-class PageMixin(object):
+class PageMixin:
     title = None
     active_level1 = None
     active_level2 = None
     breadcrumb = None
 
     def get_context_data(self, **kwargs):
-        ctx = super(PageMixin, self).get_context_data(**kwargs)
+        ctx = super().get_context_data(**kwargs)
         ctx.setdefault("title", self.title)
         ctx.setdefault("active_level1", self.active_level1)
         ctx.setdefault("active_level2", self.active_level2)
@@ -16,7 +16,7 @@ class PageMixin(object):
         return ctx
 
 
-class ModalFormMixin(object):
+class ModalFormMixin:
     template_name = "common/modal_form.html"
     id_form = "form"
     title = None

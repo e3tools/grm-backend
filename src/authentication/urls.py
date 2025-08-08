@@ -11,9 +11,7 @@ urlpatterns = [
         views.AuthenticateAPIView.as_view(),
         name="obtain_auth_credentials",
     ),
-    path(
-        "check-adl-status/", views.ADLActiveAPIView.as_view(), name="check_adl_status"
-    ),
+    path("check-adl-status/", views.ADLActiveAPIView.as_view(), name="check_adl_status"),
     path(
         "get-adl-administrative-region/",
         views.ADLAdministrativeRegionAPIView.as_view(),

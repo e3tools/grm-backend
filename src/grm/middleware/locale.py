@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.middleware.locale import LocaleMiddleware
 from django.utils import translation
-from django.conf import settings
 
 
 class CustomLocaleMiddleware(LocaleMiddleware):
