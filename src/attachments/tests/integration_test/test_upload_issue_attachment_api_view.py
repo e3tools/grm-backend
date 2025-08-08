@@ -63,9 +63,7 @@ class TestUploadIssueAttachmentAPIView(BaseTestCase):
         assert attachment["uploaded"] is False
 
         with self.assertNumQueries(7):
-            response = self.post(
-                self.url, input_data, authorized=False, format="multipart"
-            )
+            response = self.post(self.url, input_data, authorized=False, format="multipart")
         data = response.data
         file_name = file.name.split("/")[-1]
         doc_attachment = self.eadl_db[data["id"]]

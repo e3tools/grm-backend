@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.forms.fields import EmailField
 
-from authentication.models import GovernmentWorker, User, Pdata, Cdata
+from authentication.models import Cdata, GovernmentWorker, Pdata, User
 
 
 class UserWithEmptyPasswordCreationForm(forms.ModelForm):

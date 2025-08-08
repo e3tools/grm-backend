@@ -17,9 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "key",
-                    models.CharField(
-                        max_length=255, primary_key=True, serialize=False, unique=True
-                    ),
+                    models.CharField(max_length=255, primary_key=True, serialize=False, unique=True),
                 ),
                 ("data", models.CharField(blank=True, max_length=255, null=True)),
             ],
@@ -32,9 +30,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "key",
-                    models.CharField(
-                        max_length=255, primary_key=True, serialize=False, unique=True
-                    ),
+                    models.CharField(max_length=255, primary_key=True, serialize=False, unique=True),
                 ),
                 ("data", models.CharField(blank=True, max_length=255, null=True)),
             ],

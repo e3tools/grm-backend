@@ -12,21 +12,14 @@ class AuthMixinSerializer(serializers.Serializer):
         username = attrs.get("username")
         password = attrs.get("password")
 
-        if (
-            username != settings.COUCHDB_USERNAME
-            or password != settings.COUCHDB_PASSWORD
-        ):
-            raise serializers.ValidationError(
-                self.default_error_messages.get("credentials"), code="authorization"
-            )
+        if username != settings.COUCHDB_USERNAME or password != settings.COUCHDB_PASSWORD:
+            raise serializers.ValidationError(self.default_error_messages.get("credentials"), code="authorization")
 
         return super().validate(attrs)
 
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        self.default_error_messages["credentials"] = _(
-            "Unauthorized access with the credentials provided."
-        )
+        self.default_error_messages["credentials"] = _("Unauthorized access with the credentials provided.")
 
 
 class FileSerializer(serializers.Serializer):

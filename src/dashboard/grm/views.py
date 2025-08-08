@@ -24,11 +24,11 @@ from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
 from dashboard.grm.constants import CHOICE_CONTACT
 from dashboard.grm.forms import (
+    MAX_LENGTH,
     IssueCommentForm,
     IssueDetailsForm,
     IssueRejectReasonForm,
     IssueResearchResultForm,
-    MAX_LENGTH,
     NewIssueConfirmForm,
     NewIssueContactForm,
     NewIssueDetailsForm,
@@ -46,8 +46,8 @@ from grm.utils import (
     get_administrative_level_descendants,
     get_auto_increment_id,
     get_child_administrative_regions,
-    get_parent_administrative_level,
     get_issue_select_options_choices,
+    get_parent_administrative_level,
 )
 from issues.models import AdministrativeRegion
 
@@ -98,35 +98,21 @@ class IssueMixin:
     has_permission = True
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result(
-            {"auto_increment_id": kwargs["issue"], "type": "issue"}
-        )
+        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "type": "issue"})
 
     def check_permissions(self):
         user = self.request.user
         administrative_id = (
-            self.doc["administrative_region"]["administrative_id"]
-            if "administrative_region" in self.doc
-            else None
+            self.doc["administrative_region"]["administrative_id"] if "administrative_region" in self.doc else None
         )
 
         if self.doc["confirmed"]:
-            if (
-                "read_only_by_reporter" in self.permissions
-                and self.doc["reporter"]["id"] != user.id
-            ):
+            if "read_only_by_reporter" in self.permissions and self.doc["reporter"]["id"] != user.id:
                 self.has_permission = False
             else:
                 is_assigned = "assignee" in self.doc and self.doc["assignee"]
-                if (
-                    hasattr(user, "governmentworker")
-                    and is_assigned
-                    and self.doc["assignee"]["id"] != user.id
-                ):
-                    if (
-                        "read" not in self.permissions
-                        and "read_only_by_reporter" not in self.permissions
-                    ):
+                if hasattr(user, "governmentworker") and is_assigned and self.doc["assignee"]["id"] != user.id:
+                    if "read" not in self.permissions and "read_only_by_reporter" not in self.permissions:
                         self.has_permission = False
                     else:
                         if "read_only_by_reporter" in self.permissions:
@@ -134,15 +120,9 @@ class IssueMixin:
                                 self.has_permission = False
                         else:
                             # show user's children administrative level issue
-                            if user.governmentworker.has_read_permission_for_issue(
-                                self.eadl_db, self.doc
-                            ):
+                            if user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
                                 self.has_permission = True
-                            elif (
-                                not user.governmentworker.has_read_permission_for_issue(
-                                    self.eadl_db, self.doc
-                                )
-                            ):
+                            elif not user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
                                 self.has_permission = False
                             if "write" not in self.permissions:
                                 self.has_permission = False
@@ -179,11 +159,7 @@ class IssueMixin:
         permission_to_edit = True
         user = self.request.user
         is_assigned = "assignee" in self.doc and self.doc["assignee"]
-        if (
-            hasattr(user, "governmentworker")
-            and is_assigned
-            and self.doc["assignee"]["id"] != user.id
-        ):
+        if hasattr(user, "governmentworker") and is_assigned and self.doc["assignee"]["id"] != user.id:
             permission_to_edit = False
         context["permission_to_edit"] = permission_to_edit
         return context
@@ -222,10 +198,7 @@ class UploadIssueAttachmentFormView(
                 # Add a comment relative to the action: Add new attachment to the issue.
                 user_id = self.request.user.id
                 comments = self.doc["comments"] if "comments" in self.doc else list()
-                comment = (
-                    _("A new attachment %s has been added to the issue.")
-                    % data["file"].name
-                )
+                comment = _("A new attachment %s has been added to the issue.") % data["file"].name
                 comment_obj = {
                     "name": f"{self.request.user.name}",
                     "id": f"{user_id}",
@@ -236,25 +209,19 @@ class UploadIssueAttachmentFormView(
                 self.doc["comments"] = comments
                 self.doc.save()
                 msg = _("The attachment was successfully uploaded.")
-                messages.add_message(
-                    self.request, messages.SUCCESS, msg, extra_tags="success"
-                )
+                messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
             else:
                 msg = _(
                     "An error has occurred that did not allow the attachment to be uploaded to the database. "
                     "Please report to IT staff."
                 )
-                messages.add_message(
-                    self.request, messages.ERROR, msg, extra_tags="danger"
-                )
+                messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
         else:
             msg = _(
                 "The file could not be uploaded because it has already reached the limit of %(max)d attachments."
             ) % {"max": self.max_attachments}
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
@@ -286,9 +253,7 @@ class IssueAttachmentDeleteView(
             # Add a comment relative to the action: Attachment deletion
             user_id = request.user.id
             comments = self.doc["comments"] if "comments" in self.doc else list()
-            comment = (
-                _("The attachment %s has been deleted to the issue.") % attachment_name
-            )
+            comment = _("The attachment %s has been deleted to the issue.") % attachment_name
             comment_obj = {
                 "name": f"{request.user.name}",
                 "id": f"{user_id}",
@@ -299,22 +264,14 @@ class IssueAttachmentDeleteView(
             self.doc["comments"] = comments
             self.doc.save()
             msg = _("The attachment was successfully deleted.")
-            messages.add_message(
-                self.request, messages.SUCCESS, msg, extra_tags="success"
-            )
-            context = {
-                "msg": render(self.request, "common/messages.html").content.decode(
-                    "utf-8"
-                )
-            }
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+            context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
             return self.render_to_json_response(context, safe=False)
         else:
             raise Http404
 
 
-class IssueAttachmentListView(
-    IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView
-):
+class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
     template_name = "grm/issue_attachments.html"
     context_object_name = "attachments"
 
@@ -373,20 +330,16 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         self.doc["description"] = data["description"]
 
         try:
-            doc_type = self.grm_db.get_query_result(
-                {"id": int(data["issue_type"]), "type": "issue_type"}
-            )[0][0]
-            doc_category = self.grm_db.get_query_result(
-                {"id": int(data["category"]), "type": "issue_category"}
-            )[0][0]
+            doc_type = self.grm_db.get_query_result({"id": int(data["issue_type"]), "type": "issue_type"})[0][0]
+            doc_category = self.grm_db.get_query_result({"id": int(data["category"]), "type": "issue_category"})[0][0]
             if "issue_sub_type" in data:
                 doc_sub_type = self.grm_db.get_query_result(
                     {"id": int(data["issue_sub_type"]), "type": "issue_sub_type"}
                 )[0][0]
             if "component" in data:
-                doc_component = self.grm_db.get_query_result(
-                    {"id": int(data["component"]), "type": "issue_component"}
-                )[0][0]
+                doc_component = self.grm_db.get_query_result({"id": int(data["component"]), "type": "issue_component"})[
+                    0
+                ][0]
             # if "sub_component" in data:
             #     doc_sub_component = self.grm_db.get_query_result(
             #         {"id": int(data["sub_component"]), "type": "issue_sub_component"}
@@ -563,9 +516,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             raise Http404("failed setting assignee....")
 
         if assignee == "":
-            msg = _(
-                "There is no staff member to assign the issue to. Please report to IT staff."
-            )
+            msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         self.doc["assignee"] = assignee
@@ -594,11 +545,7 @@ class NewIssueContactFormView(PageMixin, NewIssueMixin):
         except Exception as e:
             raise e
         self.doc.save()
-        return HttpResponseRedirect(
-            reverse(
-                "dashboard:grm:new_issue_step_2", kwargs={"issue": self.kwargs["issue"]}
-            )
-        )
+        return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_2", kwargs={"issue": self.kwargs["issue"]}))
 
 
 class NewIssuePersonFormView(PageMixin, NewIssueMixin):
@@ -615,11 +562,7 @@ class NewIssuePersonFormView(PageMixin, NewIssueMixin):
         except Exception as e:
             raise e
         self.doc.save()
-        return HttpResponseRedirect(
-            reverse(
-                "dashboard:grm:new_issue_step_3", kwargs={"issue": self.kwargs["issue"]}
-            )
-        )
+        return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_3", kwargs={"issue": self.kwargs["issue"]}))
 
 
 class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
@@ -633,11 +576,7 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
         data = form.cleaned_data
         self.set_details_fields(data)
         self.doc.save()
-        return HttpResponseRedirect(
-            reverse(
-                "dashboard:grm:new_issue_step_4", kwargs={"issue": self.kwargs["issue"]}
-            )
-        )
+        return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_4", kwargs={"issue": self.kwargs["issue"]}))
 
 
 class NewIssueLocationFormView(PageMixin, NewIssueMixin):
@@ -668,11 +607,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
                     kwargs={"issue": self.kwargs["issue"]},
                 )
             )
-        return HttpResponseRedirect(
-            reverse(
-                "dashboard:grm:new_issue_step_5", kwargs={"issue": self.kwargs["issue"]}
-            )
-        )
+        return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_5", kwargs={"issue": self.kwargs["issue"]}))
 
 
 class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
@@ -714,9 +649,9 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
 
         self.set_contact_fields(data)
         try:
-            doc_category = self.grm_db.get_query_result(
-                {"id": self.doc["category"]["id"], "type": "issue_category"}
-            )[0][0]
+            doc_category = self.grm_db.get_query_result({"id": self.doc["category"]["id"], "type": "issue_category"})[
+                0
+            ][0]
         except Exception:
             raise Http404
         administrative_id = self.doc["administrative_region"]["administrative_id"]
@@ -725,9 +660,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         )
 
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"open_status": True, "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"open_status": True, "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
@@ -736,11 +669,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         self.doc["confirmed"] = True
         anonymize_issue_data(self.doc)
         self.doc.save()
-        return HttpResponseRedirect(
-            reverse(
-                "dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}
-            )
-        )
+        return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}))
 
 
 class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
@@ -751,9 +680,7 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     permissions = ("read_only_by_reporter",)
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result(
-            {"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"}
-        )
+        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"})
 
 
 class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
@@ -818,15 +745,11 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
 
         date_range = {}
         if start_date:
-            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime(
-                "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             date_range["$gte"] = start_date
             selector["intake_date"] = date_range
         if end_date:
-            end_date = (
-                datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)
-            ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            end_date = (datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             date_range["$lte"] = end_date
             selector["intake_date"] = date_range
         if code:
@@ -876,9 +799,7 @@ class IssueCommentsContextMixin:
         if head_id:
             users |= head_id
         else:
-            msg = _(
-                f"There is no head member for {self.doc_department["name"]}. Please report to IT staff."
-            )
+            msg = _(f"There is no head member for {self.doc_department["name"]}. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         indexed_users = {}
@@ -913,9 +834,7 @@ class IssueDetailsFormView(
         return super().get_form_kwargs()
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result(
-            {"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"}
-        )
+        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -925,9 +844,7 @@ class IssueDetailsFormView(
 
         context["comment_form"] = IssueCommentForm()
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"id": self.doc["status"]["id"], "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         context["doc_status"] = doc_status
@@ -936,9 +853,7 @@ class IssueDetailsFormView(
         return context
 
 
-class EditIssueView(
-    IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     permissions = ("read",)
 
     def post(self, request, *args, **kwargs):
@@ -948,15 +863,11 @@ class EditIssueView(
         self.doc.save()
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
-class AddCommentToIssueView(
-    IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
         try:
             doc_department = self.grm_db.get_query_result(
@@ -968,10 +879,7 @@ class AddCommentToIssueView(
         except Exception:
             raise Http404
         user_id = request.user.id
-        if (
-            user_id != self.doc["assignee"]["id"]
-            and user_id != doc_department["head"].get('id')
-        ):
+        if user_id != self.doc["assignee"]["id"] and user_id != doc_department["head"].get('id'):
             raise PermissionDenied()
 
         comment = request.POST.get("comment").strip()[:MAX_LENGTH]
@@ -987,15 +895,11 @@ class AddCommentToIssueView(
             self.doc["comments"] = comments
             self.doc.save()
             msg = _("The comment was sent successfully.")
-            messages.add_message(
-                self.request, messages.SUCCESS, msg, extra_tags="success"
-            )
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         else:
             msg = _("Comment cannot be empty.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
@@ -1014,17 +918,13 @@ class IssueCommentListView(
         return self.doc["comments"] if "comments" in self.doc else list()
 
 
-class IssueStatusButtonsTemplateView(
-    IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView
-):
+class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView):
     template_name = "grm/issue_status_buttons.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"id": self.doc["status"]["id"], "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         context["doc_status"] = doc_status
@@ -1032,30 +932,20 @@ class IssueStatusButtonsTemplateView(
         return context
 
 
-class SubmitIssueOpenStatusView(
-    IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class SubmitIssueOpenStatusView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     permissions = ("read",)
 
     def check_permissions(self):
         super().check_permissions()
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"id": self.doc["status"]["id"], "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
         except Exception:
             self.has_permission = False
             return
 
-        open_status = (
-            doc_status["open_status"] if "open_status" in doc_status else False
-        )
-        initial_status = (
-            doc_status["initial_status"] if "initial_status" in doc_status else False
-        )
-        rejected_status = (
-            doc_status["rejected_status"] if "rejected_status" in doc_status else False
-        )
+        open_status = doc_status["open_status"] if "open_status" in doc_status else False
+        initial_status = doc_status["initial_status"] if "initial_status" in doc_status else False
+        rejected_status = doc_status["rejected_status"] if "rejected_status" in doc_status else False
         if open_status or not initial_status or rejected_status:
             self.has_permission = False
 
@@ -1063,18 +953,14 @@ class SubmitIssueOpenStatusView(
         self.doc["research_result"] = ""
         self.doc["reject_reason"] = ""
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"open_status": True, "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"open_status": True, "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
         self.doc.save()
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
@@ -1094,19 +980,13 @@ class SubmitIssueResearchResultFormView(
     def check_permissions(self):
         super().check_permissions()
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"id": self.doc["status"]["id"], "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
         except Exception:
             self.has_permission = False
             return
 
-        open_status = (
-            doc_status["open_status"] if "open_status" in doc_status else False
-        )
-        final_status = (
-            doc_status["final_status"] if "final_status" in doc_status else False
-        )
+        open_status = doc_status["open_status"] if "open_status" in doc_status else False
+        final_status = doc_status["final_status"] if "final_status" in doc_status else False
         if final_status or not open_status:
             self.has_permission = False
 
@@ -1115,9 +995,7 @@ class SubmitIssueResearchResultFormView(
         self.doc["research_result"] = data["research_result"]
         self.doc["reject_reason"] = ""
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"final_status": True, "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"final_status": True, "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
@@ -1137,9 +1015,7 @@ class SubmitIssueResearchResultFormView(
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
@@ -1159,19 +1035,13 @@ class SubmitIssueRejectReasonFormView(
     def check_permissions(self):
         super().check_permissions()
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"id": self.doc["status"]["id"], "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
         except Exception:
             self.has_permission = False
             return
 
-        initial_status = (
-            doc_status["initial_status"] if "initial_status" in doc_status else False
-        )
-        rejected_status = (
-            doc_status["rejected_status"] if "rejected_status" in doc_status else False
-        )
+        initial_status = doc_status["initial_status"] if "initial_status" in doc_status else False
+        rejected_status = doc_status["rejected_status"] if "rejected_status" in doc_status else False
         if rejected_status or not initial_status:
             self.has_permission = False
 
@@ -1180,9 +1050,7 @@ class SubmitIssueRejectReasonFormView(
         self.doc["reject_reason"] = data["reject_reason"]
         self.doc["research_result"] = ""
         try:
-            doc_status = self.grm_db.get_query_result(
-                {"rejected_status": True, "type": "issue_status"}
-            )[0][0]
+            doc_status = self.grm_db.get_query_result({"rejected_status": True, "type": "issue_status"})[0][0]
         except Exception:
             raise Http404
         self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
@@ -1203,15 +1071,11 @@ class SubmitIssueRejectReasonFormView(
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8")
-        }
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
-class GetChoicesForOptionView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class GetChoicesForOptionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         type = request.GET.get("type")
         parent_id = int(request.GET.get("parent_id"))
@@ -1220,22 +1084,14 @@ class GetChoicesForOptionView(
         return render(self.request, "common/options.html", {"values": data})
 
 
-class GetChoicesForNextAdministrativeLevelView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         parent_id = request.GET.get("parent_id")
         exclude_lower_level = request.GET.get("exclude_lower_level", None)
         eadl_db = get_db()
         data = get_child_administrative_regions(eadl_db, parent_id)
 
-        if (
-            data
-            and exclude_lower_level
-            and not get_child_administrative_regions(
-                eadl_db, data[0]["administrative_id"]
-            )
-        ):
+        if data and exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]["administrative_id"]):
             data = []
 
         return self.render_to_json_response(data, safe=False)
@@ -1251,19 +1107,14 @@ class NewGetChoicesForNextAdministrativeLevelView(
         regions = AdministrativeRegion.objects.filter(parent=parent_id)
         data = list(regions.values())
 
-        if (
-            data
-            and exclude_lower_level
-            and not regions[0].children.exists()
-        ):
+        if data and exclude_lower_level and not regions[0].children.exists():
             data = []
 
         return self.render_to_json_response(data, safe=False)
 
 
-class GetAncestorAdministrativeLevelsView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+
     def get(self, request, *args, **kwargs):
         administrative_id = request.GET.get("administrative_id", None)
         ancestors = []
@@ -1281,27 +1132,17 @@ class GetAncestorAdministrativeLevelsView(
         return self.render_to_json_response(ancestors, safe=False)
 
 
-class GetSensitiveIssueDataView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class GetSensitiveIssueDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
         data = None
 
         if self.request.user.check_password(request.POST.get("password")):
             doc_id = request.POST.get("id")
 
-            citizen = (
-                Pdata.objects.get(key=doc_id)
-                if Pdata.objects.filter(key=doc_id).exists()
-                else None
-            )
+            citizen = Pdata.objects.get(key=doc_id) if Pdata.objects.filter(key=doc_id).exists() else None
             citizen = cryptocode.decrypt(citizen.data, doc_id) if citizen else None
 
-            contact = (
-                Cdata.objects.get(key=doc_id)
-                if Cdata.objects.filter(key=doc_id).exists()
-                else None
-            )
+            contact = Cdata.objects.get(key=doc_id) if Cdata.objects.filter(key=doc_id).exists() else None
             contact = cryptocode.decrypt(contact.data, doc_id) if contact else None
 
             data = {

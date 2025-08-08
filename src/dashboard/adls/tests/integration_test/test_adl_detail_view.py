@@ -32,21 +32,9 @@ class TestAdlDetailView(DashboardTestCase):
             == AdlDetailView.breadcrumb[0]["url"]
             == reverse_lazy("dashboard:adls:list")
         )
-        assert (
-            context_data["breadcrumb"][0]["title"]
-            == AdlDetailView.breadcrumb[0]["title"]
-            == "Administrative Levels"
-        )
-        assert (
-            context_data["breadcrumb"][1]["url"]
-            == AdlDetailView.breadcrumb[1]["url"]
-            == ""
-        )
-        assert (
-            context_data["breadcrumb"][1]["title"]
-            == AdlDetailView.breadcrumb[1]["title"]
-            == AdlDetailView.title
-        )
+        assert context_data["breadcrumb"][0]["title"] == AdlDetailView.breadcrumb[0]["title"] == "Administrative Levels"
+        assert context_data["breadcrumb"][1]["url"] == AdlDetailView.breadcrumb[1]["url"] == ""
+        assert context_data["breadcrumb"][1]["title"] == AdlDetailView.breadcrumb[1]["title"] == AdlDetailView.title
         assert context_data["object"] == context_data["adl"] == self.adl
         assert isinstance(context_data["view"], AdlDetailView)
 

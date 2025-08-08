@@ -3,10 +3,10 @@ repos:
   rev: v3.15.0
   hooks:
     - id: pyupgrade
-      args: [ --py311-plus ]  # o tu versión de Python
+      args: [ --py311-plus ]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.4.4  # última versión
+  rev: v0.4.4
   hooks:
     - id: ruff
       args: [ --fix ]

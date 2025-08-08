@@ -69,9 +69,7 @@ class TestUploadTaskAttachmentAPIView(BaseTestCase):
         assert attachment["uploaded"] is False
 
         with self.assertNumQueries(7):
-            response = self.post(
-                self.url, input_data, authorized=False, format="multipart"
-            )
+            response = self.post(self.url, input_data, authorized=False, format="multipart")
         data = response.data
         file_name = file.name.split("/")[-1]
         doc_attachment = self.eadl_db[data["id"]]
@@ -188,9 +186,7 @@ class TestUploadTaskAttachmentAPIView(BaseTestCase):
         assert response.status_code == 400
         assert set(data.keys()) == {"phase", "task"}
         for k in data:
-            assert str(data[k][0]) == self.error_messages["min_value"] % {
-                "min_value": 1
-            }
+            assert str(data[k][0]) == self.error_messages["min_value"] % {"min_value": 1}
 
     def test_empty_field(self):
         input_data = {
