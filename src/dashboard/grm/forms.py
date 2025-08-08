@@ -89,6 +89,7 @@ class NewIssuePersonForm(forms.Form):
         required=False,
         help_text=_("This is an optional field"),
     )
+
     # citizen_group_1 = forms.ChoiceField(
     #     label=_("Occupancy status"),
     #     required=False,
