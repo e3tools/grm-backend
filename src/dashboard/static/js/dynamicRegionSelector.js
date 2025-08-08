@@ -9,7 +9,6 @@ function changeRegionTrigger(url, placeholder) {
 
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
-    console.log('current_level_val para cargar proximo selector: ' + current_level_val);
     if (current_level_val !== '') {
         let select_region = $(".region");
         select_region.attr('disabled', true);
@@ -21,7 +20,7 @@ function loadNextLevelRegions(current_level, url, placeholder) {
             },
             success: function (data) {
                 if (data.length > 0) {
-                    let id_select = 'id_' + data[0].administrative_level;
+                    let id_select = 'id_' + data[0].id;
                     let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
                     let child;
                     let new_input = document.createElement('div');
@@ -56,7 +55,7 @@ function loadNextLevelRegions(current_level, url, placeholder) {
 
                     let options = '<option value></option>';
                     $.each(data, function (index, value) {
-                        let administrative_id = value.administrative_id;
+                        let administrative_id = value.id;
                         let option = '<option value="' + administrative_id;
                         if (ancestors.includes(administrative_id)) {
                             option += '" selected="selected">';

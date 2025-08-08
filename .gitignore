@@ -134,7 +134,7 @@ dmypy.json
 *.xlsx
 
 # static
-staticfiles/
+src/staticfiles/
 
 # Exception: Include AdminLTE dist directory
 !src/dashboard/static/AdminLTE/dist/

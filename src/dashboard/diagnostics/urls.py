@@ -10,4 +10,9 @@ urlpatterns = [
         views.IssuesStatisticsView.as_view(),
         name="issues_statistics",
     ),
+    path(
+        "update-issues-data/",
+        views.UpdateIssuesDataView.as_view(),
+        name="update_issues_data",
+    ),
 ]

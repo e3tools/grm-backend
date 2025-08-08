@@ -111,6 +111,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
 
     assigned_department = doc_category["assigned_department"]
     department_id = assigned_department["id"]
+    assignee = None
     if doc_category["redirection_protocol"]:
         assigned_department_level = (
             assigned_department["administrative_level"] if "administrative_level" in assigned_department else None
@@ -188,7 +189,7 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
                 assignee = {"id": worker_id, "name": worker_without_assignment.name}
             else:
                 assignee = ""
-                if assignments_result:
+                if assignments_result and related_workers:
                     assignments_result = sort_dictionary_list_by_field(assignments_result, "value")
                     for assignment in assignments_result:
                         worker_id = assignment["key"][1]
