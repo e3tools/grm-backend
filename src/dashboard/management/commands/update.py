@@ -1,12 +1,8 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from grm.utils import get_administrative_region_name
 
-from client import (
-    # bulk_delete,
-    bulk_update,
-    get_db,
-)
+from client import bulk_update, get_db  # bulk_delete,
+from grm.utils import get_administrative_region_name
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -24,15 +20,11 @@ class Command(BaseCommand):
         docs_to_update = []
         for doc in docs:
             if "name" not in doc or not doc["name"]:
-                doc["name"] = get_administrative_region_name(
-                    eadl_db, doc["administrative_region"]
-                )
+                doc["name"] = get_administrative_region_name(eadl_db, doc["administrative_region"])
                 docs_to_update.append(doc)
         docs_updated = len(bulk_update(eadl_db, docs_to_update))
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Successfully updated {docs_updated} docs")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Successfully updated {docs_updated} docs"))
 
         # grm_db = get_db(COUCHDB_GRM_DATABASE)
         # issues = [d for d in grm_db if 'commune' in d and 'type' in d and d['type'] == 'issue']

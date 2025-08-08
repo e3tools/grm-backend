@@ -1,17 +1,16 @@
+import string
 from datetime import datetime
 from operator import itemgetter
-import string
-from django.conf import settings
-from pathlib import Path
 
+from django.conf import settings
 from django.template.defaultfilters import date as _date
 
 # from openpyxl import load_workbook
 # from openpyxl.utils.cell import range_boundaries
 # note that we import 'Workbook' from spire
 # keep in mind in case you want to import a class wih the same name from another package
-from spire.xls import *
-from spire.xls.common import *
+# from spire.xls import *
+# from spire.xls.common import *
 
 
 def sort_dictionary_list_by_field(list_to_be_sorted, field, reverse=False):
@@ -39,7 +38,9 @@ def get_administrative_region_choices(eadl_db, empty_choice=True):
             "type": "administrative_level",
             "parent_id": None,
         }
-    )[:][0]["administrative_id"]
+    )[:][
+        0
+    ]["administrative_id"]
     query_result = eadl_db.get_query_result(
         {
             "type": "administrative_level",
@@ -132,9 +133,7 @@ def get_administrative_region_name(eadl_db, administrative_id):
     has_parent = True
 
     while has_parent:
-        docs = eadl_db.get_query_result(
-            {"administrative_id": administrative_id, "type": "administrative_level"}
-        )
+        docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
 
         try:
             doc = eadl_db[docs[0][0]["_id"]]
@@ -194,9 +193,7 @@ def get_administrative_level_descendants(eadl_db, parent_id, ids):
     data = eadl_db.get_query_result(
         {
             "type": "administrative_level",
-            "parent_id": {
-                "$in": parent_id if isinstance(parent_id, list) else [parent_id]
-            },
+            "parent_id": {"$in": parent_id if isinstance(parent_id, list) else [parent_id]},
         }
     )
 
@@ -212,17 +209,13 @@ def get_administrative_level_descendants(eadl_db, parent_id, ids):
 
 def get_parent_administrative_level(eadl_db, administrative_id):
     parent = None
-    docs = eadl_db.get_query_result(
-        {"administrative_id": administrative_id, "type": "administrative_level"}
-    )
+    docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
 
     try:
         doc = eadl_db[docs[0][0]["_id"]]
         if "parent_id" in doc and doc["parent_id"]:
             administrative_id = doc["parent_id"]
-            docs = eadl_db.get_query_result(
-                {"administrative_id": administrative_id, "type": "administrative_level"}
-            )
+            docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
             parent = eadl_db[docs[0][0]["_id"]]
     except Exception:
         pass
@@ -251,17 +244,13 @@ def belongs_to_region(eadl_db, child_administrative_id, parent_administrative_id
     if parent_administrative_id == child_administrative_id:
         belongs = True
     else:
-        belongs = child_administrative_id in get_administrative_level_descendants(
-            eadl_db, parent_administrative_id, []
-        )
+        belongs = child_administrative_id in get_administrative_level_descendants(eadl_db, parent_administrative_id, [])
     return belongs
 
 
 def get_auto_increment_id(grm_db):
     try:
-        max_auto_increment_id = grm_db.get_view_result(
-            "issues", "auto_increment_id_stats"
-        )[0][0]["value"]["max"]
+        max_auto_increment_id = grm_db.get_view_result("issues", "auto_increment_id_stats")[0][0]["value"]["max"]
     except Exception:
         max_auto_increment_id = 0
     return max_auto_increment_id + 1

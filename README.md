@@ -30,8 +30,17 @@ Start Application
 - `python3 manage.py migrate`
 - `python3 manage.py runserver`
 
-## Configuration (for other contry usage)
+## Configuration (for other country usage)
 
-- With the help of the proper specialists update the files in `couchdb/jsonCollections` folder and create the appropriate docs. The file are named following this structure `database_document_type.json`. For ex `grm_issue_age_group.json` contains multiple documents from `issue_age_group` type that will be created in the `grm` database. You can create the documents mannually or use a script (`Postman` can be useful here).
+- With the help of the proper specialists update the files in `couchdb/jsonCollections` folder and create the appropriate docs. The file are named following this structure `database_document_type.json`. For ex `grm_issue_age_group.json` contains multiple documents from `issue_age_group` type that will be created in the `grm` database. You can create the documents manually or use a script (`Postman` can be useful here).
 
-- Update the appropiate views in `src/dashboard/grm/views.py` and their related forms, templates and used functions. Ex of views : `NewIssueMixin`, `NewIssueContactFormView`, `NewIssuePersonFormView`, `NewIssueDetailsFormView`, `NewIssueLocationFormView`, `NewIssueConfirmFormView`, `NewIssueConfirmationFormView`
+- Update the appropriate views in `src/dashboard/grm/views.py` and their related forms, templates and used functions. Ex of views : `NewIssueMixin`, `NewIssueContactFormView`, `NewIssuePersonFormView`, `NewIssueDetailsFormView`, `NewIssueLocationFormView`, `NewIssueConfirmFormView`, `NewIssueConfirmationFormView`
+
+## Development tools
+
+### pre-commit
+- We use pre-commit configurations in this project (black, isort, ...)
+
+- Run from src/ `pre-commit install` to set up the git hook scripts. 
+
+- More info on [pre-commit](https://pre-commit.com/)

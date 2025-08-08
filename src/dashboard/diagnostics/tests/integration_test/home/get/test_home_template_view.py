@@ -21,9 +21,7 @@ class TestHomeTemplateView(DashboardTestCase):
 
         assert response.status_code == 200
         assert context_data["title"] == HomeFormView.title == "Diagnostics"
-        assert (
-            context_data["active_level1"] == HomeFormView.active_level1 == "diagnostics"
-        )
+        assert context_data["active_level1"] == HomeFormView.active_level1 == "diagnostics"
         assert context_data["active_level2"] == HomeFormView.active_level2 is None
         assert context_data["breadcrumb"] == HomeFormView.breadcrumb is None
         assert isinstance(context_data["view"], HomeFormView)

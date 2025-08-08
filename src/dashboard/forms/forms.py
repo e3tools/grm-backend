@@ -5,14 +5,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class FileForm(forms.Form):
-    file = forms.FileField(
-        label="", help_text=_("Allowed file size less than or equal to 2 MB")
-    )
+    file = forms.FileField(label="", help_text=_("Allowed file size less than or equal to 2 MB"))
 
     default_error_messages = {
-        "file_size": _(
-            "Select a file size less than or equal to %(max_size)s. The selected file size is %(size)s."
-        )
+        "file_size": _("Select a file size less than or equal to %(max_size)s. The selected file size is %(size)s.")
     }
 
     def clean_file(self):

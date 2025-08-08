@@ -21,7 +21,9 @@ class Command(BaseCommand):
                     "type": "administrative_level",
                     "parent_id": None,
                 }
-            )[:][0]["administrative_id"]
+            )[
+                :
+            ][0]["administrative_id"]
         except Exception as e:
             raise CommandError(f"Failed to get country administrative level {e}")
 
@@ -44,9 +46,7 @@ class Command(BaseCommand):
                         longitude = float(doc_data["Longitude"].replace(",", "."))
                     except TypeError as e:
                         self.stdout.write(
-                            self.style.ERROR(
-                                f"Invalid value in line {reader.line_num} for latitude/longitude. {e}"
-                            )
+                            self.style.ERROR(f"Invalid value in line {reader.line_num} for latitude/longitude. {e}")
                         )
                         continue
 
@@ -87,16 +87,8 @@ class Command(BaseCommand):
 
                 updated = len(bulk_update(eadl_db, docs_to_update))
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully created {created} administrative levels"
-                )
-            )
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully updated {updated} administrative levels"
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"Successfully created {created} administrative levels"))
+            self.stdout.write(self.style.SUCCESS(f"Successfully updated {updated} administrative levels"))
 
-        except IOError as e:
+        except OSError as e:
             raise CommandError(f"Failed to open file {e}")

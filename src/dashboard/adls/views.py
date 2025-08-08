@@ -35,7 +35,7 @@ class AdlListView(PageMixin, LoginRequiredMixin, generic.ListView):
         return eadl_db.get_query_result({"type": {"$eq": ADL}})
 
 
-class ADLMixin(object):
+class ADLMixin:
     doc = None
 
     def dispatch(self, request, *args, **kwargs):
@@ -94,16 +94,12 @@ class ToggleAdlStatusView(LoginRequiredMixin, generic.View):
                 document["representative"]["is_active"] = False
                 document.save()
                 msg = _("The account was successfully deactivated.")
-                messages.add_message(
-                    request, messages.SUCCESS, msg, extra_tags="success"
-                )
+                messages.add_message(request, messages.SUCCESS, msg, extra_tags="success")
             else:
                 document["representative"]["is_active"] = True
                 document.save()
                 msg = _("The account was activated successfully.")
-                messages.add_message(
-                    request, messages.SUCCESS, msg, extra_tags="success"
-                )
+                messages.add_message(request, messages.SUCCESS, msg, extra_tags="success")
 
         except PermissionDenied:
             msg = _("The password was not correct, we could not proceed with action.")
@@ -129,11 +125,7 @@ class EditAdlProfileFormView(
     submit_button = _("Save")
 
     def get_context_data(self, **kwargs):
-        picture = (
-            self.doc["representative"]["photo"]
-            if "photo" in self.doc["representative"]
-            else ""
-        )
+        picture = self.doc["representative"]["photo"] if "photo" in self.doc["representative"] else ""
         if picture:
             self.picture = picture
         context = super().get_context_data(**kwargs)
@@ -146,9 +138,7 @@ class EditAdlProfileFormView(
     def form_valid(self, form):
         data = form.cleaned_data
         doc = self.doc
-        photo = (
-            doc["representative"]["photo"] if "photo" in doc["representative"] else ""
-        )
+        photo = doc["representative"]["photo"] if "photo" in doc["representative"] else ""
         if data["file"]:
             response = upload_file(data["file"])
             if response["ok"]:
@@ -166,17 +156,13 @@ class EditAdlProfileFormView(
                     "An error has occurred that did not allow the profile picture to be uploaded to the database. "
                     "Please report to IT staff."
                 )
-                messages.add_message(
-                    self.request, messages.ERROR, msg, extra_tags="danger"
-                )
+                messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
         doc["representative"]["name"] = data["name"]
         doc["representative"]["phone"] = data["phone"]
         email = data["email"].lower()
         adl_code = get_validation_code(email)
         if doc["representative"]["email"] != email:
-            msg = _(
-                "Please note that the Facilitator Code has changed due to the email change."
-            )
+            msg = _("Please note that the Facilitator Code has changed due to the email change.")
             messages.add_message(self.request, messages.INFO, msg, extra_tags="info")
         doc["representative"]["email"] = email
         doc.save()

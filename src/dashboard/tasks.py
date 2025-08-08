@@ -1,23 +1,23 @@
+from datetime import datetime, timedelta, timezone
+
+import cryptocode
+from celery import shared_task
 from django.conf import settings
 from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
 from authentication.models import (
+    Cdata,
     anonymize_issue_data,
     get_assignee,
     get_assignee_to_escalate,
-    Cdata,
 )
 from client import get_db
-from dashboard.grm import CHOICE_CONTACT, CHOICE_PHONE, CHOICE_EMAIL
+from dashboard.grm import CHOICE_CONTACT, CHOICE_EMAIL, CHOICE_PHONE
 from grm.celery_app import app
 from grm.utils import get_auto_increment_id, normalize_phone_number
-from sms_client import send_sms
 from mail_client import send_mail_notification
-import cryptocode
-from datetime import datetime
-from celery import shared_task
-from datetime import datetime, timedelta, timezone
+from sms_client import send_sms
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
@@ -81,25 +81,17 @@ def check_issues():
 
         try:
             category_id = issue_doc["category"]["id"]
-            doc_category = grm_db.get_query_result(
-                {"id": category_id, "type": "issue_category"}
-            )[0][0]
+            doc_category = grm_db.get_query_result({"id": category_id, "type": "issue_category"})[0][0]
         except Exception:
-            error = (
-                f"Error trying to get the category of issue document with id {issue_id}"
-            )
+            error = f"Error trying to get the category of issue document with id {issue_id}"
             result["errors"].append(error)
             continue
 
         # set internal_code if needed
         if "internal_code" not in issue_doc or not issue_doc["internal_code"]:
             try:
-                administrative_id = issue_doc["administrative_region"][
-                    "administrative_id"
-                ]
-                issue_doc["internal_code"] = (
-                    f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
-                )
+                administrative_id = issue_doc["administrative_region"]["administrative_id"]
+                issue_doc["internal_code"] = f'{doc_category["abbreviation"]}-{administrative_id}-{auto_increment_id}'
                 internal_code_updated = True
                 result["internal_code_updated"].append(issue_id)
             except Exception:
@@ -108,9 +100,7 @@ def check_issues():
 
         # anonimyzed when indicated
         contact_information = issue_doc["contact_information"]
-        if issue_doc["citizen"] != "*" or (
-            contact_information and contact_information["contact"] != "*"
-        ):
+        if issue_doc["citizen"] != "*" or (contact_information and contact_information["contact"] != "*"):
             try:
                 anonymize_issue_data(issue_doc)
                 anonymized_data = True
@@ -123,25 +113,19 @@ def check_issues():
         if "assignee" not in issue_doc or not issue_doc["assignee"]:
             try:
                 eadl_db = get_db()
-                adm_lvl_id = issue_doc["location_info"]["issue_location"][
-                    "administrative_id"
-                ]
-                assignee = get_assignee(
-                    grm_db, eadl_db, issue_doc, adm_lvl_id, result["errors"]
-                )
+                adm_lvl_id = issue_doc["location_info"]["issue_location"]["administrative_id"]
+                assignee = get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id, result["errors"])
                 issue_doc["assignee"] = assignee
                 if assignee:
                     assignee_updated = True
                     result["assignee_updated"].append(issue_id)
 
                     # Add comment to the issue
-                    comments = (
-                        issue_doc["comments"] if "comments" in issue_doc else list()
-                    )
+                    comments = issue_doc["comments"] if "comments" in issue_doc else list()
                     comment = _("The issue has been assigned to %s.") % assignee["name"]
                     comment_obj = {
                         "name": "eMGP",
-                        "id": f"emgp-2024-BJ",
+                        "id": "emgp-2024-BJ",
                         "comment": f"{comment}",
                         "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
                     }
@@ -151,12 +135,7 @@ def check_issues():
                 error = f"Error trying to set assignee for issue document with id {issue_id}"
                 result["errors"].append(error)
 
-        if (
-            auto_increment_id_updated
-            or internal_code_updated
-            or anonymized_data
-            or assignee_updated
-        ):
+        if auto_increment_id_updated or internal_code_updated or anonymized_data or assignee_updated:
             issue_doc.save()
             updated_issues += 1
             grm_db = get_db(COUCHDB_GRM_DATABASE)  # refresh db
@@ -194,14 +173,10 @@ def escalate_issues():
             continue
         try:
             old_assignee_id = issue_doc["assignee"]["id"]
-            escalate_old_issues_doc = eadl_db.get_query_result(
-                {"_id": old_assignee_id, "type": "adl"}
-            )[0][0]
+            escalate_old_issues_doc = eadl_db.get_query_result({"_id": old_assignee_id, "type": "adl"})[0][0]
             department_id = escalate_old_issues_doc["department"]
             administrative_id = issue_doc["administrative_region"]["administrative_id"]
-            assignee = get_assignee_to_escalate(
-                eadl_db, department_id, administrative_id
-            )
+            assignee = get_assignee_to_escalate(eadl_db, department_id, administrative_id)
             if assignee:
                 issue_doc["assignee"] = assignee
                 issue_doc["escalate_flag"] = False
@@ -262,13 +237,9 @@ def escalate_old_issues():
             continue
 
         try:
-            created_date = datetime.strptime(
-                created_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-            ).replace(tzinfo=timezone.utc)
+            created_date = datetime.strptime(created_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
         except ValueError:
-            errors.append(
-                f"Issue {issue_id} has a poorly formatted creation date: {created_date_str}"
-            )
+            errors.append(f"Issue {issue_id} has a poorly formatted creation date: {created_date_str}")
             continue
 
         # Retrieve the last escalation date, if any
@@ -277,13 +248,11 @@ def escalate_old_issues():
 
         if escalated_date_str:
             try:
-                escalated_date = datetime.strptime(
-                    escalated_date_str, "%Y-%m-%dT%H:%M:%S.%fZ"
-                ).replace(tzinfo=timezone.utc)
-            except ValueError:
-                errors.append(
-                    f"Issue {issue_id} has a poorly formatted escalated_date: {escalated_date_str}"
+                escalated_date = datetime.strptime(escalated_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
+                    tzinfo=timezone.utc
                 )
+            except ValueError:
+                errors.append(f"Issue {issue_id} has a poorly formatted escalated_date: {escalated_date_str}")
                 continue
 
         # Determine if the issue should be escalated
@@ -301,9 +270,7 @@ def escalate_old_issues():
 
             # Add an escalation comment
             comments = issue_doc.get("comments", [])
-            last_comment = (
-                comments[-1] if comments else {"name": "System", "id": "system"}
-            )
+            last_comment = comments[-1] if comments else {"name": "System", "id": "system"}
 
             escalation_comment = {
                 "name": "Système eMGP",
@@ -326,15 +293,9 @@ def escalate_old_issues():
 @app.task
 def send_sms_message():
     messages = {
-        "accepted_alert_message": _(
-            "Your issue submitted has been accepted into the system with the tracking code %s"
-        ),
-        "rejected_alert_message": _(
-            "Your issue %s(tracking_code)s has been rejected with the following response: %s"
-        ),
-        "closed_alert_message": _(
-            "Your issue %s has been resolved with the following response: %s"
-        ),
+        "accepted_alert_message": _("Your issue submitted has been accepted into the system with the tracking code %s"),
+        "rejected_alert_message": _("Your issue %s(tracking_code)s has been rejected with the following response: %s"),
+        "closed_alert_message": _("Your issue %s has been resolved with the following response: %s"),
     }
     grm_db = get_db(COUCHDB_GRM_DATABASE)
     selector = {
@@ -375,9 +336,7 @@ def send_sms_message():
             continue
         try:
             status_id = issue_doc["status"]["id"]
-            doc_status = grm_db.get_query_result(
-                {"id": status_id, "type": "issue_status"}
-            )[0][0]
+            doc_status = grm_db.get_query_result({"id": status_id, "type": "issue_status"})[0][0]
         except Exception:
             error = f"Error trying to get issue_status document with id {status_id}"
             result["errors"].append(error)
@@ -387,18 +346,11 @@ def send_sms_message():
         phone = issue_doc["contact_information"]["contact"]
         if phone:
             if phone == "*":
-                contact = (
-                    Cdata.objects.get(key=issue_id)
-                    if Cdata.objects.filter(key=issue_id).exists()
-                    else None
-                )
+                contact = Cdata.objects.get(key=issue_id) if Cdata.objects.filter(key=issue_id).exists() else None
                 phone = cryptocode.decrypt(contact.data, issue_id) if contact else None
 
             phone = normalize_phone_number(phone)
-            no_alert = (
-                "accepted_alert_message" not in issue_doc
-                or not issue_doc["accepted_alert_message"]
-            )
+            no_alert = "accepted_alert_message" not in issue_doc or not issue_doc["accepted_alert_message"]
             if no_alert and doc_status["open_status"]:
                 msg = messages["accepted_alert_message"] % (tracking_code)
                 try:
@@ -408,16 +360,9 @@ def send_sms_message():
                 except TwilioRestException as e:
                     result["errors"].append(e.msg)
 
-            no_alert = (
-                "rejected_alert_message" not in issue_doc
-                or not issue_doc["rejected_alert_message"]
-            )
+            no_alert = "rejected_alert_message" not in issue_doc or not issue_doc["rejected_alert_message"]
             if no_alert and doc_status["rejected_status"]:
-                reason = (
-                    issue_doc["rejected_alert_message"]
-                    if "rejected_alert_message" in issue_doc
-                    else ""
-                )
+                reason = issue_doc["rejected_alert_message"] if "rejected_alert_message" in issue_doc else ""
                 msg = messages["rejected_alert_message"] % (tracking_code, reason)
                 try:
                     send_sms(to=phone, body=msg)
@@ -426,16 +371,9 @@ def send_sms_message():
                 except TwilioRestException as e:
                     result["errors"].append(e.msg)
 
-            no_alert = (
-                "closed_alert_message" not in issue_doc
-                or not issue_doc["closed_alert_message"]
-            )
+            no_alert = "closed_alert_message" not in issue_doc or not issue_doc["closed_alert_message"]
             if no_alert and doc_status["final_status"]:
-                resolution = (
-                    issue_doc["research_result"]
-                    if "research_result" in issue_doc
-                    else ""
-                )
+                resolution = issue_doc["research_result"] if "research_result" in issue_doc else ""
                 msg = messages["closed_alert_message"] % (tracking_code, resolution)
                 try:
                     send_sms(to=phone, body=msg)
@@ -456,15 +394,9 @@ def send_sms_message():
 @app.task
 def send_mail_message():
     messages = {
-        "accepted_alert_message": _(
-            "Your issue submitted has been accepted into the system with the tracking code %s"
-        ),
-        "rejected_alert_message": _(
-            "Your issue %s has been rejected with the following response: %s"
-        ),
-        "closed_alert_message": _(
-            "Your issue %s has been resolved with the following response: %s"
-        ),
+        "accepted_alert_message": _("Your issue submitted has been accepted into the system with the tracking code %s"),
+        "rejected_alert_message": _("Your issue %s has been rejected with the following response: %s"),
+        "closed_alert_message": _("Your issue %s has been resolved with the following response: %s"),
     }
     grm_db = get_db(COUCHDB_GRM_DATABASE)
     selector = {
@@ -499,9 +431,7 @@ def send_mail_message():
             continue
         try:
             status_id = issue_doc["status"]["id"]
-            doc_status = grm_db.get_query_result(
-                {"id": status_id, "type": "issue_status"}
-            )[0][0]
+            doc_status = grm_db.get_query_result({"id": status_id, "type": "issue_status"})[0][0]
         except Exception:
             error = f"Error trying to get issue_status document with id {status_id}"
             result["errors"].append(error)
@@ -511,17 +441,10 @@ def send_mail_message():
         recipient = issue_doc["contact_information"]["contact"]
 
         if recipient == "*":
-            contact = (
-                Cdata.objects.get(key=issue_id)
-                if Cdata.objects.filter(key=issue_id).exists()
-                else None
-            )
+            contact = Cdata.objects.get(key=issue_id) if Cdata.objects.filter(key=issue_id).exists() else None
             recipient = cryptocode.decrypt(contact.data, issue_id) if contact else None
 
-        no_alert = (
-            "accepted_alert_message" not in issue_doc
-            or not issue_doc["accepted_alert_message"]
-        )
+        no_alert = "accepted_alert_message" not in issue_doc or not issue_doc["accepted_alert_message"]
         if no_alert and doc_status["open_status"]:
             msg = messages["accepted_alert_message"] % (tracking_code)
             try:
@@ -532,16 +455,9 @@ def send_mail_message():
             except Exception as e:
                 result["errors"].append(e.msg)
 
-        no_alert = (
-            "rejected_alert_message" not in issue_doc
-            or not issue_doc["rejected_alert_message"]
-        )
+        no_alert = "rejected_alert_message" not in issue_doc or not issue_doc["rejected_alert_message"]
         if no_alert and doc_status["rejected_status"]:
-            reason = (
-                issue_doc["rejected_alert_message"]
-                if "rejected_alert_message" in issue_doc
-                else ""
-            )
+            reason = issue_doc["rejected_alert_message"] if "rejected_alert_message" in issue_doc else ""
             msg = messages["rejected_alert_message"] % (tracking_code, reason)
             try:
                 subject = "rejected_status"
@@ -551,14 +467,9 @@ def send_mail_message():
             except Exception as e:
                 result["errors"].append(e.msg)
 
-        no_alert = (
-            "closed_alert_message" not in issue_doc
-            or not issue_doc["closed_alert_message"]
-        )
+        no_alert = "closed_alert_message" not in issue_doc or not issue_doc["closed_alert_message"]
         if no_alert and doc_status["final_status"]:
-            resolution = (
-                issue_doc["research_result"] if "research_result" in issue_doc else ""
-            )
+            resolution = issue_doc["research_result"] if "research_result" in issue_doc else ""
             msg = messages["closed_alert_message"] % (tracking_code, resolution)
             try:
                 subject = "final_status"
@@ -596,19 +507,13 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(300, check_issues.s(), name="check issues every 5 minutes")
 
     # Calls escalate_issues() every 5 minutes.
-    sender.add_periodic_task(
-        300, escalate_issues.s(), name="escalate issues every 5 minutes"
-    )
+    sender.add_periodic_task(300, escalate_issues.s(), name="escalate issues every 5 minutes")
 
     # Calls send_sms_message() every 5 minutes.
     sender.add_periodic_task(300, send_sms_message.s(), name="send sms every 5 minutes")
 
     # Calls send_mail_message() every 5 minutes.
-    sender.add_periodic_task(
-        300, send_mail_message.s(), name="send mail every 5 minutes"
-    )
+    sender.add_periodic_task(300, send_mail_message.s(), name="send mail every 5 minutes")
 
     # Calls escalate_old_issues() every day
-    sender.add_periodic_task(
-        86400, escalate_old_issues.s(), name="escalate old issues every day"
-    )
+    sender.add_periodic_task(86400, escalate_old_issues.s(), name="escalate old issues every day")

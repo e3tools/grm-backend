@@ -9,17 +9,16 @@ from rest_framework.views import APIView
 from authentication import ADL, MAJOR
 from authentication.serializers import (
     ADLActiveResponseSerializer,
+    ADLAdministrativeRegionResponseSerializer,
     CredentialSerializer,
     RegisterSerializer,
     UserAuthSerializer,
-    ADLAdministrativeRegionResponseSerializer,
-)
-from grm.utils import (
-    get_administrative_level_descendants,
-    get_base_administrative_id,
-    get_parent_administrative_level,
 )
 from client import get_db
+from grm.utils import (
+    get_administrative_level_descendants,
+    get_parent_administrative_level,
+)
 
 
 class RegisterAPIView(APIView):
@@ -46,9 +45,7 @@ class RegisterAPIView(APIView):
         operation_description="Allowed user types: adl or major",
     )
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         doc_id = serializer.validated_data["doc_id"]
         credentials = {
@@ -70,9 +67,7 @@ class AuthenticateAPIView(RegisterAPIView):
         operation_description="Allowed user types: adl or major",
     )
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
+        serializer = self.serializer_class(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         doc_id = serializer.validated_data["doc_id"]
         credentials = {
@@ -155,16 +150,12 @@ class ADLAdministrativeRegionAPIView(generics.GenericAPIView):
                 break
 
         if administrative_level != "village":
-            descendants = get_administrative_level_descendants(
-                eadl_db, doc["administrative_region"], []
-            )
+            descendants = get_administrative_level_descendants(eadl_db, doc["administrative_region"], [])
             for descendant in descendants:
-                ids.append(("$%s$" % descendant))
+                ids.append("$%s$" % descendant)
 
         reponse_data = {"levels": ids}
-        reponse_serializer = ADLAdministrativeRegionResponseSerializer(
-            data=reponse_data
-        )
+        reponse_serializer = ADLAdministrativeRegionResponseSerializer(data=reponse_data)
         print(f"get-adl-region : {reponse_data}")
         reponse_serializer.is_valid(raise_exception=True)
         return Response(reponse_data, status=status.HTTP_200_OK)
