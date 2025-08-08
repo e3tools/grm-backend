@@ -30,9 +30,7 @@ class AdlProfileForm(FileForm):
 
     def clean_email(self):
         email = self.cleaned_data["email"].lower()
-        selector = {
-            "$and": [{"representative.email": email}, {"type": {"$in": [ADL, MAJOR]}}]
-        }
+        selector = {"$and": [{"representative.email": email}, {"type": {"$in": [ADL, MAJOR]}}]}
         eadl_db = get_db()
 
         docs = eadl_db.get_query_result(selector)

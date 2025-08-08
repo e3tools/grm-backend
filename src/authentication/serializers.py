@@ -45,14 +45,10 @@ class UserAuthSerializer(serializers.Serializer):
         try:
             doc = eadl_db[docs[0][0]["_id"]]
         except Exception:
-            raise serializers.ValidationError(
-                self.default_error_messages.get("credentials")
-            )
+            raise serializers.ValidationError(self.default_error_messages.get("credentials"))
 
         if email and password:
-            if not doc or not check_password(
-                password, doc["representative"]["password"]
-            ):
+            if not doc or not check_password(password, doc["representative"]["password"]):
                 msg = self.default_error_messages["credentials"]
                 raise serializers.ValidationError(msg, code="authorization")
         else:
@@ -94,15 +90,11 @@ class RegisterSerializer(serializers.Serializer):
         try:
             doc = eadl_db[docs[0][0]["_id"]]
         except Exception:
-            raise serializers.ValidationError(
-                self.default_error_messages.get("credentials")
-            )
+            raise serializers.ValidationError(self.default_error_messages.get("credentials"))
 
         # prevents the sign up is used to reset password
         if "password" in doc["representative"] and doc["representative"]["password"]:
-            raise serializers.ValidationError(
-                self.default_error_messages.get("duplicated_email")
-            )
+            raise serializers.ValidationError(self.default_error_messages.get("duplicated_email"))
 
         errors = dict()
         try:
@@ -119,9 +111,7 @@ class RegisterSerializer(serializers.Serializer):
         validation_code = attrs.get("validation_code")
 
         if validation_code != get_validation_code(doc["representative"]["email"]):
-            raise serializers.ValidationError(
-                self.default_error_messages.get("wrong_validation_code")
-            )
+            raise serializers.ValidationError(self.default_error_messages.get("wrong_validation_code"))
         doc["representative"]["password"] = make_password(password)
         doc.save()
 

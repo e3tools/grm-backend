@@ -1,5 +1,5 @@
-from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail
 
 EMAIL_HOST_USER = settings.EMAIL_HOST_USER
 

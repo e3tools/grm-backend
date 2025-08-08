@@ -5,7 +5,7 @@ import pytest
 from rest_framework.test import APITestCase
 
 from authentication.tests import UserFactory
-from client import get_db, bulk_delete
+from client import bulk_delete, get_db
 
 JSON_TYPE = "application/json"
 URLENCODED_TYPE = "application/x-www-form-urlencoded"
@@ -22,11 +22,7 @@ class BaseTestCase(APITestCase):
 
     def tearDown(self):
         super().tearDown()
-        docs_to_delete = [
-            d
-            for d in self.eadl_db
-            if "type" in d and d["type"] != "administrative_level"
-        ]
+        docs_to_delete = [d for d in self.eadl_db if "type" in d and d["type"] != "administrative_level"]
         bulk_delete(self.eadl_db, docs_to_delete)
 
     @staticmethod

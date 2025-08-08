@@ -122,9 +122,7 @@ class TestAuthenticateAPIView(BaseTestCase):
 
     def test_inactive_user(self):
         password = "p4ssw0rd"
-        inactive_user = CouchdbUserFactory(
-            password=make_password(password), is_active=False
-        )
+        inactive_user = CouchdbUserFactory(password=make_password(password), is_active=False)
         input_data = {
             "password": password,
             "email": inactive_user.email,
@@ -152,6 +150,4 @@ class TestAuthenticateAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert data["non_field_errors"][0] == self.error_messages["invalid"].format(
-            datatype=data_type
-        )
+        assert data["non_field_errors"][0] == self.error_messages["invalid"].format(datatype=data_type)

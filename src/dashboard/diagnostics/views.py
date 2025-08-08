@@ -31,9 +31,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class IssuesStatisticsView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
+class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         eadl_db = get_db()
@@ -52,15 +50,11 @@ class IssuesStatisticsView(
 
         date_range = {}
         if start_date:
-            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime(
-                "%Y-%m-%dT%H:%M:%S.%fZ"
-            )
+            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             date_range["$gte"] = start_date
             selector["intake_date"] = date_range
         if end_date:
-            end_date = (
-                datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)
-            ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            end_date = (datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             date_range["$lte"] = end_date
             selector["intake_date"] = date_range
         if category:
@@ -69,12 +63,8 @@ class IssuesStatisticsView(
             selector["issue_type.id"] = int(issue_type)
 
         if region:
-            filter_regions = get_administrative_level_descendants(
-                eadl_db, region, []
-            ) + [region]
-            selector["administrative_region.administrative_id"] = {
-                "$in": filter_regions
-            }
+            filter_regions = get_administrative_level_descendants(eadl_db, region, []) + [region]
+            selector["administrative_region.administrative_id"] = {"$in": filter_regions}
 
         issues = grm_db.get_query_result(selector)
         issues = [doc for doc in issues]
@@ -99,9 +89,7 @@ class IssuesStatisticsView(
                 stats[k]["issues"] = stats[k]["count"]
 
         for doc in issues:
-            region_key = get_base_administrative_id(
-                eadl_db, doc["administrative_region"]["administrative_id"], region
-            )
+            region_key = get_base_administrative_id(eadl_db, doc["administrative_region"]["administrative_id"], region)
             fill_count(region_key, region_stats)
 
             status_key = doc["status"]["id"]

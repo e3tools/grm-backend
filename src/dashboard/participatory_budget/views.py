@@ -17,12 +17,8 @@ class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView)
         context = super().get_context_data(**kwargs)
         eadl_db = get_db()
         communes_served = eadl_db.get_view_result("communes", "served")[0]
-        context["communes_served"] = (
-            communes_served[0]["value"] if communes_served else 0
-        )
-        context["total_communes"] = eadl_db.get_view_result("communes", "total_count")[
-            0
-        ][0]["value"]
+        context["communes_served"] = communes_served[0]["value"] if communes_served else 0
+        context["total_communes"] = eadl_db.get_view_result("communes", "total_count")[0][0]["value"]
         context["commune_select_form"] = CommuneSelectForm()
         context["month_select_form"] = MonthSelectForm()
         return context
@@ -79,9 +75,7 @@ class StatementListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
         month = int(month[1])
         startkey = [year, month, None, None]
         endkey = [year, month, {}, {}]
-        phases = get_db().get_view_result(
-            "phases", "tasks_by_month", group=True, startkey=startkey, endkey=endkey
-        )
+        phases = get_db().get_view_result("phases", "tasks_by_month", group=True, startkey=startkey, endkey=endkey)
         phases = [doc for doc in phases]
         return self.process_result(phases)
 

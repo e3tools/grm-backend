@@ -124,10 +124,7 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert (
-            str(data["non_field_errors"][0])
-            == self.error_messages["wrong_validation_code"]
-        )
+        assert str(data["non_field_errors"][0]) == self.error_messages["wrong_validation_code"]
 
     def test_short_password(self):
         user = CouchdbUserFactory()
@@ -142,9 +139,7 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert str(data["password"][0]) == self.error_messages["min_length"] % {
-            "min_length": 8
-        }
+        assert str(data["password"][0]) == self.error_messages["min_length"] % {"min_length": 8}
 
     def test_long_password(self):
         user = CouchdbUserFactory()
@@ -159,9 +154,7 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert str(data["password"][0]) == self.error_messages["max_length"] % {
-            "max_length": 16
-        }
+        assert str(data["password"][0]) == self.error_messages["max_length"] % {"max_length": 16}
 
     def test_numeric_password(self):
         user = CouchdbUserFactory()
@@ -176,9 +169,7 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert (
-            str(data["password"][0]) == self.error_messages["password_entirely_numeric"]
-        )
+        assert str(data["password"][0]) == self.error_messages["password_entirely_numeric"]
 
     def test_user_is_already_register(self):
         registered_user = CouchdbUserFactory(password="not_empty", doc_type=ADL)
@@ -193,9 +184,7 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert (
-            str(data["non_field_errors"][0]) == self.error_messages["duplicated_email"]
-        )
+        assert str(data["non_field_errors"][0]) == self.error_messages["duplicated_email"]
 
     @parameterized.expand(
         [
@@ -212,6 +201,4 @@ class TestRegisterAPIView(BaseTestCase):
 
         assert response.status_code == 400
         assert len(data) == 1
-        assert data["non_field_errors"][0] == self.error_messages["invalid"].format(
-            datatype=data_type
-        )
+        assert data["non_field_errors"][0] == self.error_messages["invalid"].format(datatype=data_type)
