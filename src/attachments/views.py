@@ -5,6 +5,7 @@ from drf_yasg.openapi import IN_QUERY, Parameter
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, parsers
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from attachments.serializers import (
     AttachmentUpdateStatusSerializer,
@@ -24,7 +25,7 @@ COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
 
 
-class GetAttachmentAPIView(generics.GenericAPIView):
+class GetAttachmentAPIView(APIView):
     @swagger_auto_schema(
         manual_parameters=[
             Parameter(
