@@ -4,15 +4,15 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from issues.models import Issue, IssueStatus
+from issues.models import Issue, IssueStatus, IssueType
 from issues.serializers import (
     IssueCreateSerializer,
     IssueDetailSerializer,
     IssueStatusSerializer,
+    IssueTypeSerializer,
 )
 
 
@@ -129,40 +129,18 @@ class IssueCreateAPIView(CreateAPIView):
             )
 
 
-class IssueStatusPagination(PageNumberPagination):
-    """
-    Custom pagination class for IssueStatus list.
-
-    Provides page-based pagination with customizable page size.
-    Default page size is 20 items per page, with a maximum of 100.
-    """
-
-    page_size = 20
-    page_size_query_param = 'page_size'
-    max_page_size = 100
-    page_query_param = 'page'
-
-
 class IssueStatusListAPIView(ListAPIView):
     """
     API View for listing IssueStatus objects with pagination.
 
     This view provides a paginated read-only list of all available issue statuses.
     It requires Token authentication and returns paginated results.
-
-    Attributes:
-        queryset: IssueStatus queryset ordered by name
-        serializer_class: Serializer used for response formatting
-        authentication_classes: List of authentication classes (TokenAuthentication)
-        permission_classes: List of permission classes (IsAuthenticated)
-        pagination_class: Pagination class for paginated responses
     """
 
-    queryset = IssueStatus.objects.all().order_by('name')
+    queryset = IssueStatus.objects.all()
     serializer_class = IssueStatusSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    pagination_class = IssueStatusPagination
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -179,22 +157,34 @@ class IssueStatusListAPIView(ListAPIView):
         ],
         responses={
             200: openapi.Response(
-                description="Paginated list of Issue Statuses",
+                description="Paginated list of issue statuses",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
                         'count': openapi.Schema(type=openapi.TYPE_INTEGER, description='Total number of items'),
-                        'next': openapi.Schema(type=openapi.TYPE_STRING, description='URL to next page', nullable=True),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description='URL to next page (null if no next page)',
+                            nullable=True,
+                        ),
                         'previous': openapi.Schema(
-                            type=openapi.TYPE_STRING, description='URL to previous page', nullable=True
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description='URL to previous page (null if no previous page)',
+                            nullable=True,
                         ),
                         'results': openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(
                                 type=openapi.TYPE_OBJECT,
                                 properties={
-                                    'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Status ID'),
-                                    'name': openapi.Schema(type=openapi.TYPE_STRING, description='Status name'),
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER, description='Unique identifier for the issue status'
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description='Name of the issue status'
+                                    ),
                                     'final_status': openapi.Schema(
                                         type=openapi.TYPE_BOOLEAN, description='Is final status'
                                     ),
@@ -209,14 +199,15 @@ class IssueStatusListAPIView(ListAPIView):
                                     ),
                                 },
                             ),
+                            description="List of issue statuses for current page",
                         ),
                     },
                 ),
                 examples={
                     "application/json": {
                         "count": 25,
-                        "next": "http://localhost:8000/api/issue-statuses/?page=3",
-                        "previous": "http://localhost:8000/api/issue-statuses/?page=1",
+                        "next": "http://localhost:8000/issues/issue-statuses/?page=3",
+                        "previous": "http://localhost:8000/issues/issue-statuses/?page=1",
                         "results": [
                             {
                                 "id": 1,
@@ -238,35 +229,15 @@ class IssueStatusListAPIView(ListAPIView):
                     }
                 },
             ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
                 examples={"application/json": {"detail": "Invalid token."}},
             ),
+            500: openapi.Response(description="Internal server error"),
         },
-        operation_description="""
-        Retrieve a paginated list of all available Issue Status objects.
-
-        This endpoint returns issue statuses in the system, ordered alphabetically by name.
-        Each status includes information about whether it's:
-        - A final status (issue cannot progress further)
-        - An initial status (new issues start with this status)
-        - A rejected status (issue was rejected)
-        - An open status (issue is still active/open)
-
-        Authentication is required via Token Authentication.
-        Include the token in the Authorization header: "Token <your_token>"
-
-        **Pagination Parameters:**
-        - `page`: Page number (default: 1)
-        - `page_size`: Number of items per page (default: 20, max: 100)
-
-        **Response Format:**
-        - `count`: Total number of items
-        - `next`: URL to the next page (null if no next page)
-        - `previous`: URL to the previous page (null if no previous page)
-        - `results`: Array of status objects for current page
-        """,
         operation_summary="List all issue statuses (paginated)",
+        operation_description="Retrieve a paginated list of all issue statuses ordered by name.",
         tags=['Issue Statuses'],
         security=[{'Token': []}],
     )
@@ -282,5 +253,96 @@ class IssueStatusListAPIView(ListAPIView):
 
         Returns:
             Response: JSON response with paginated list of issue statuses
+        """
+        return super().get(request, *args, **kwargs)
+
+
+class IssueTypeListView(ListAPIView):
+    """
+    API View for listing IssueType objects with pagination.
+
+    This view provides a paginated read-only list of all available issue types.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = IssueType.objects.all()
+    serializer_class = IssueTypeSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of issue types",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER, description="Unique identifier for the issue type"
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the issue type"
+                                    ),
+                                },
+                            ),
+                            description="List of issue types for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+        operation_summary="List Issue Types",
+        operation_description="Retrieve a paginated list of all issue types ordered by name.",
+        tags=['Issue Types'],
+        security=[{'Token': []}],
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of IssueType objects.
+
+        Returns a paginated list of all issue types available in the system.
+        The list is ordered alphabetically by status name.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated list of issue types
         """
         return super().get(request, *args, **kwargs)
