@@ -6,10 +6,15 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from client import get_db
-from etl.management.commands.etl_fetch_administrative_region_data import Command as RegionCommand
+from etl.management.commands.etl_fetch_administrative_region_data import (
+    Command as RegionCommand,
+)
+from etl.management.commands.etl_fetch_issue_department_data import (
+    Command as DepartmentCommand,
+)
 from etl.models import ETLExecutionLog
-from etl.utils import process_issue_data, bulk_create_or_update
-from issues.models import Issue, IssueCategory, IssueType, IssueStatus
+from etl.utils import bulk_create_or_update, process_category_data, process_issue_data
+from issues.models import Issue, IssueCategory, IssueStatus, IssueType
 
 logger = logging.getLogger(__name__)
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -19,8 +24,12 @@ class Command(BaseCommand):
     help = 'Get data from CouchDB documents to update information related to the Issue model'
 
     def add_arguments(self, parser):
-        parser.add_argument("--triggered_by", default='Manual Execution', type=str,
-                            help="Indicates the type of ETL trigger to record a log of the execution.")
+        parser.add_argument(
+            "--triggered_by",
+            default='Manual Execution',
+            type=str,
+            help="Indicates the type of ETL trigger to record a log of the execution.",
+        )
 
     def fetch_database(self, documents, model_class):
         documents = [doc for doc in documents]
@@ -41,10 +50,7 @@ class Command(BaseCommand):
 
         try:
             log_entry = ETLExecutionLog.objects.create(
-                etl_name=etl_name,
-                started_at=timezone.now(),
-                status='RUNNING',
-                triggered_by=triggered_by
+                etl_name=etl_name, started_at=timezone.now(), status='RUNNING', triggered_by=triggered_by
             )
             logger.info(f"Started ETL {etl_name} - Log ID: {log_entry.id}")
 
@@ -52,6 +58,9 @@ class Command(BaseCommand):
 
             # update AdministrativeRegion objects
             RegionCommand().handle()
+
+            # update IssueDepartment objects
+            DepartmentCommand().handle()
 
             grm_db = get_db(COUCHDB_GRM_DATABASE)
 
@@ -63,6 +72,9 @@ class Command(BaseCommand):
             # update IssueCategory objects
             # get issue_category documents from CouchDB
             documents = grm_db.get_query_result({"type": "issue_category"})
+
+            # process data for bulk create and bulk update
+            documents = process_category_data(documents)
             self.fetch_database(documents=documents, model_class=IssueCategory)
 
             # update IssueType objects

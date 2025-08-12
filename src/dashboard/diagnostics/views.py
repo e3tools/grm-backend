@@ -258,7 +258,7 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         if hasattr(self, 'get_descendant_ids_optimized'):
             target_branch_ids = self.get_descendant_ids_optimized(target_region.id)
         else:
-            target_branch_ids = self.get_descendant_ids_fallback(target_region.id)
+            target_branch_ids = self.find_target_region_fallback(target_region.id)
 
         # Filter issues only from the target region branch
         branch_filter = filters & Q(administrative_region__in=target_branch_ids)

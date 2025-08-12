@@ -1,7 +1,11 @@
 import logging
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
+
+from authentication.models import User
+from issues.models import AdministrativeLevel, IssueDepartmentAdministrativeLevel
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +48,19 @@ def process_administrative_region_data(data: list[dict]) -> list[dict]:
           {'id': '1', 'name': 'PARAKOU', 'parent_id': '4', ...}
         ]
     """
+    # Get all unique administrative level names
+    admin_level_names = {item.get('administrative_level') for item in data if item.get('administrative_level')}
+
+    # Load existing levels into a dictionary {name: id}
+    existing_levels = dict(AdministrativeLevel.objects.values_list('name', 'id'))
+
+    # Create the missing ones in a single bulk_create
+    missing_levels = [AdministrativeLevel(name=name) for name in admin_level_names if name not in existing_levels]
+    if missing_levels:
+        AdministrativeLevel.objects.bulk_create(missing_levels, ignore_conflicts=True)
+        # Reload all to get the IDs
+        existing_levels = dict(AdministrativeLevel.objects.filter(name__in=admin_level_names).values_list('name', 'id'))
+
     processed = []
     for item in data:
         new_item = item.copy()
@@ -62,8 +79,62 @@ def process_administrative_region_data(data: list[dict]) -> list[dict]:
         elif parent == 'country':
             new_item['parent_id'] = 1
 
+        # --- Handle administrative_level ---
+        name = new_item.pop('administrative_level', None)
+        if name:
+            new_item['administrative_level_id'] = existing_levels.get(name)
+
         # --- Rename administrative_id → id ---
         new_item['id'] = new_item.pop('administrative_id')
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_issue_department_data(data: list[dict]) -> list[dict]:
+    # Get all unique user ids
+    user_ids = set()
+    user_data = {}
+
+    for item in data:
+        if item.get('head'):
+            user_id = int(item.get('head').get('id'))
+            user_ids |= {user_id}
+            user_data[user_id] = item.get('head').get('name')
+
+    # Load existing users
+    existing_users = User.objects.all().values('id', 'first_name', 'last_name')
+
+    # Create the missing ones in a single bulk_create
+    missing_users = []
+    for user_id, name in user_data.items():
+        if user_id not in existing_users:
+            name_data = name.split(' ')
+            last_name = ''
+            if len(name_data) > 1:
+                last_name = name_data[1]
+            missing_users.append(User(id=user_id, first_name=name_data[0], last_name=last_name))
+
+    if missing_users:
+        User.objects.bulk_create(missing_users, ignore_conflicts=True)
+
+        user_data = {}
+
+        for item in data:
+            if item.get('head'):
+                user_id = int(item.get('head').get('id'))
+                user_ids |= {user_id}
+                user_data[user_id] = item.get('head').get('name')
+
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        # --- Handle head ---
+        head = new_item.pop('head', None)
+        if head:
+            new_item['head_id'] = head['id']
 
         processed.append(new_item)
 
@@ -112,6 +183,56 @@ def process_issue_data(data: list[dict]) -> list[dict]:
 
         # --- Rename auto_increment_id → id ---
         new_item['id'] = new_item.pop('auto_increment_id')
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_category_data(data: list[dict]) -> list[dict]:
+    # Get all unique department level relation ids
+    department_level_relations = set()
+
+    for item in data:
+        for field in ('assigned_department', 'assigned_appeal_department', 'assigned_escalation_department'):
+            department = item.get(field)['id']
+            level = item.get(field)['administrative_level']
+            department_level_relations |= {(department, level)}
+
+    # Load existing department level relations into a dictionary
+    existing_department_levels = {}
+    for item in IssueDepartmentAdministrativeLevel.objects.select_related('administrative_level'):
+        existing_department_levels[f'{item.department}{item.administrative_level.name}'] = item.id
+
+    # Load existing administrative levels {name: id}
+    existing_levels = dict(AdministrativeLevel.objects.values_list('name', 'id'))
+
+    # Create the missing ones in a single bulk_create
+    missing_department_levels = []
+    for item in department_level_relations:
+        if item not in existing_department_levels:
+            missing_department_levels.append(
+                IssueDepartmentAdministrativeLevel(
+                    department_id=item[0], administrative_level_id=existing_levels[item[1]]
+                )
+            )
+
+    if missing_department_levels:
+        IssueDepartmentAdministrativeLevel.objects.bulk_create(missing_department_levels, ignore_conflicts=True)
+        # Reload all to get the IDs
+        for item in IssueDepartmentAdministrativeLevel.objects.select_related('administrative_level'):
+            existing_department_levels[f'{item.department}{item.administrative_level.name}'] = item.id
+
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        for field in ('assigned_department', 'assigned_appeal_department', 'assigned_escalation_department'):
+            # --- Handle field ---
+            field_data = new_item.pop(field, None)
+            new_item[f'{field}_id'] = existing_department_levels.get(
+                f"{field_data['name']}{field_data['administrative_level']}"
+            )
 
         processed.append(new_item)
 
@@ -179,13 +300,14 @@ def bulk_create_or_update(model_class, data_list: list[dict], batch_size: int = 
     total_updated = 0
 
     # Get all model fields except 'id' for update operations (ignore reverse relations & M2M for bulk_create)
-    model_fields = {attr for f in model_class._meta.get_fields() if hasattr(f, 'attname')
-                    for attr in (f.name, f.attname)}
+    model_fields = {
+        attr for f in model_class._meta.get_fields() if hasattr(f, 'attname') for attr in (f.name, f.attname)
+    }
     update_fields = [f for f in model_fields if f != 'id']
 
     # Process data in batches to optimize memory usage and database performance
     for i in range(0, len(data_list), batch_size):
-        batch = data_list[i:i + batch_size]
+        batch = data_list[i : i + batch_size]
 
         try:
             # Use atomic transaction to ensure batch consistency
@@ -197,9 +319,7 @@ def bulk_create_or_update(model_class, data_list: list[dict], batch_size: int = 
                 batch_ids = [int(item['id']) for item in batch if 'id' in item]
 
                 # Query existing IDs in DB
-                existing_ids = set(
-                    model_class.objects.filter(id__in=batch_ids).values_list('id', flat=True)
-                )
+                existing_ids = set(model_class.objects.filter(id__in=batch_ids).values_list('id', flat=True))
 
                 # Validate and prepare objects for bulk operation
                 for data_dict in batch:
@@ -237,5 +357,5 @@ def bulk_create_or_update(model_class, data_list: list[dict], batch_size: int = 
     return {
         'total_created': total_created,
         'total_updated': total_updated,
-        'total_processed': total_created + total_updated
+        'total_processed': total_created + total_updated,
     }

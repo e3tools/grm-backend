@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from client import get_db
-from etl.utils import process_administrative_region_data, bulk_create_or_update
+from etl.utils import bulk_create_or_update, process_administrative_region_data
 from issues.models import AdministrativeRegion
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -32,8 +32,11 @@ class Command(BaseCommand):
 
         if AdministrativeRegion.objects.filter(parent=None).count() > 1:
             # update parent_id to administrative regions
-            self.stdout.write(self.style.NOTICE(
-                "Updating AdministrativeRegion objects if there are new values for the parent_id field"))
+            self.stdout.write(
+                self.style.NOTICE(
+                    "Updating AdministrativeRegion objects if there are new values for the parent_id field"
+                )
+            )
             result = bulk_create_or_update(AdministrativeRegion, regions)
             self.stdout.write(self.style.NOTICE(f"Created {result['total_created']} AdministrativeRegion objects"))
             self.stdout.write(self.style.NOTICE(f"Updated {result['total_updated']} AdministrativeRegion objects"))
