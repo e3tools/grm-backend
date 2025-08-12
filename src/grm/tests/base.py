@@ -5,7 +5,8 @@ import pytest
 from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
-from client import get_db, bulk_delete
+from client import bulk_delete, get_db
+from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
 
 JSON_TYPE = "application/json"
@@ -23,11 +24,7 @@ class BaseTestCase(APITestCase):
 
     def tearDown(self):
         super().tearDown()
-        docs_to_delete = [
-            d
-            for d in self.eadl_db
-            if "type" in d and d["type"] != "administrative_level"
-        ]
+        docs_to_delete = [d for d in self.eadl_db if "type" in d and d["type"] != "administrative_level"]
         bulk_delete(self.eadl_db, docs_to_delete)
 
     @staticmethod
@@ -104,7 +101,10 @@ class BaseTestCase(APITestCase):
 class DashboardTestCase(BaseTestCase):
     rest = False
     content_type = URLENCODED_TYPE
+
     def setUp(self):
-        root_region = AdministrativeRegionFactory.create()
-        AdministrativeRegionFactory.create(parent=root_region)
+        reset_sequences()
+
+        root_region = AdministrativeRegionFactory()
+        AdministrativeRegionFactory(parent=root_region)
         super().setUp()

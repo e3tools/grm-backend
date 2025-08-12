@@ -1,6 +1,14 @@
-from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
-from issues.models import Issue, IssueStatus, IssueCategory, IssueType, AdministrativeRegion
+from rest_framework import serializers
+
+from issues.models import (
+    AdministrativeRegion,
+    Issue,
+    IssueCategory,
+    IssueDepartmentAdministrativeLevel,
+    IssueStatus,
+    IssueType,
+)
 
 
 class IssueStatusSerializer(serializers.ModelSerializer):
@@ -14,15 +22,56 @@ class IssueStatusSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
 
 
+class DepartmentAdministrativeLevelSerializer(serializers.ModelSerializer):
+    """
+    Serializer for IssueDepartmentAdministrativeLevel model.
+
+    This serializer extracts and formats the department and administrative level
+    information for use in IssueCategory serialization.
+    """
+
+    name = serializers.CharField(source='department.name', read_only=True)
+    id = serializers.IntegerField(source='department.id', read_only=True)
+    administrative_level = serializers.CharField(source='administrative_level.name', read_only=True)
+
+    class Meta:
+        model = IssueDepartmentAdministrativeLevel
+        fields = ['name', 'id', 'administrative_level']
+
+
 class IssueCategorySerializer(serializers.ModelSerializer):
     """
-    Serializer for IssueCategory model.
-    Provides read-only representation of issue category information.
+    Serializer for IssueCategory model with custom department serialization.
+
+    This serializer provides detailed information about issue categories including
+    their assigned departments with administrative levels, and adds convenience
+    fields 'label' and 'value' for frontend usage.
     """
+
+    # Custom serialization for department fields
+    assigned_department = DepartmentAdministrativeLevelSerializer(read_only=True)
+    assigned_appeal_department = DepartmentAdministrativeLevelSerializer(read_only=True)
+    assigned_escalation_department = DepartmentAdministrativeLevelSerializer(read_only=True)
+
+    # Additional convenience fields
+    label = serializers.CharField(source='name', read_only=True)
+    value = serializers.IntegerField(source='id', read_only=True)
 
     class Meta:
         model = IssueCategory
-        fields = ['id', 'name']
+        fields = [
+            'id',
+            'name',
+            'abbreviation',
+            'assigned_department',
+            'assigned_appeal_department',
+            'assigned_escalation_department',
+            'confidentiality_level',
+            'redirection_protocol',
+            'label',
+            'value',
+        ]
+        read_only_fields = ['id']
 
 
 class IssueTypeSerializer(serializers.ModelSerializer):
@@ -95,6 +144,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
     Serializer for detailed Issue representation.
     Includes nested serializers for related objects.
     """
+
     status = IssueStatusSerializer(read_only=True)
     category = IssueCategorySerializer(read_only=True)
     issue_type = IssueTypeSerializer(read_only=True)
@@ -102,11 +152,4 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = [
-            'id',
-            'intake_date',
-            'status',
-            'category',
-            'issue_type',
-            'administrative_region'
-        ]
+        fields = ['id', 'intake_date', 'status', 'category', 'issue_type', 'administrative_region']

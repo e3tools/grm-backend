@@ -2,7 +2,14 @@ import factory
 from factory.django import DjangoModelFactory
 
 from authentication.models import User
-from issues.models import Issue, IssueStatus, IssueCategory, IssueType, AdministrativeRegion
+from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType
+
+from .models import (
+    AdministrativeLevel,
+    IssueCategory,
+    IssueDepartment,
+    IssueDepartmentAdministrativeLevel,
+)
 
 
 class UserFactory(DjangoModelFactory):
@@ -39,13 +46,76 @@ class IssueStatusFactory(DjangoModelFactory):
     open_status = True
 
 
+class AdministrativeLevelFactory(DjangoModelFactory):
+    """
+    Factory for creating AdministrativeLevel instances.
+
+    Creates administrative levels with unique names for testing purposes.
+    Common administrative levels include Country, Region, District, County, etc.
+    """
+
+    name = factory.Sequence(lambda n: f"Administrative Level {n}")
+
+    class Meta:
+        model = AdministrativeLevel
+        django_get_or_create = ('name',)  # Avoid duplicates due to unique constraint
+
+
+class IssueDepartmentFactory(DjangoModelFactory):
+    """
+    Factory for creating IssueDepartment instances.
+
+    Creates departments with unique names and optional head assignments.
+    The head field can be set to a User instance if needed.
+    """
+
+    name = factory.Sequence(lambda n: f"Department {n}")
+    head = None  # Can be set to a User instance when needed
+
+    class Meta:
+        model = IssueDepartment
+        django_get_or_create = ('name',)  # Avoid duplicates due to unique constraint
+
+
+class IssueDepartmentAdministrativeLevelFactory(DjangoModelFactory):
+    """
+    Factory for creating IssueDepartmentAdministrativeLevel instances.
+
+    Creates relationships between departments and administrative levels.
+    Uses SubFactory to create related instances if not provided.
+    """
+
+    department = factory.SubFactory(IssueDepartmentFactory)
+    administrative_level = factory.SubFactory(AdministrativeLevelFactory)
+
+    class Meta:
+        model = IssueDepartmentAdministrativeLevel
+        django_get_or_create = ('department', 'administrative_level')  # Avoid duplicates
+
+
 class IssueCategoryFactory(DjangoModelFactory):
-    """Factory for creating IssueCategory instances for testing."""
+    """
+    Factory for creating IssueCategory instances.
+
+    Creates issue categories with all required department assignments.
+    Uses SubFactory to create the necessary department-administrative level relationships.
+    """
+
+    name = factory.Sequence(lambda n: f"Issue Category {n}")
+    abbreviation = factory.LazyAttribute(lambda obj: obj.name[:3].upper())
+
+    # Department assignments - using SubFactory to create relationships
+    assigned_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
+    assigned_appeal_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
+    assigned_escalation_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
+
+    # Optional fields with sensible defaults
+    confidentiality_level = factory.fuzzy.FuzzyChoice(['Public', 'Internal', 'Confidential', 'Restricted', 'Secret'])
+    redirection_protocol = factory.fuzzy.FuzzyInteger(0, 5)
 
     class Meta:
         model = IssueCategory
-
-    name = factory.Sequence(lambda n: f"Category {n}")
+        django_get_or_create = ('name',)  # Avoid duplicates due to unique constraint
 
 
 class IssueTypeFactory(DjangoModelFactory):
@@ -66,7 +136,7 @@ class AdministrativeRegionFactory(DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Region {n}")
     latitude = factory.Faker('latitude')
     longitude = factory.Faker('longitude')
-    administrative_level = "District"
+    administrative_level = factory.SubFactory(AdministrativeLevelFactory)
     parent = None
 
 
