@@ -7,8 +7,9 @@ from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from issues.models import Issue, IssueStatus, IssueType
+from issues.models import Issue, IssueCategory, IssueStatus, IssueType
 from issues.serializers import (
+    IssueCategorySerializer,
     IssueCreateSerializer,
     IssueDetailSerializer,
     IssueStatusSerializer,
@@ -337,12 +338,176 @@ class IssueTypeListView(ListAPIView):
         Retrieve paginated list of IssueType objects.
 
         Returns a paginated list of all issue types available in the system.
-        The list is ordered alphabetically by status name.
+        The list is ordered alphabetically by type name.
 
         Args:
             request: HTTP request object
 
         Returns:
             Response: JSON response with paginated list of issue types
+        """
+        return super().get(request, *args, **kwargs)
+
+
+class IssueCategoryListView(ListAPIView):
+    """
+    API View for listing IssueCategory objects with pagination.
+
+    This view provides a paginated read-only list of all available issue categories.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = IssueCategory.objects.select_related(
+        'assigned_department__department',
+        'assigned_department__administrative_level',
+        'assigned_appeal_department__department',
+        'assigned_appeal_department__administrative_level',
+        'assigned_escalation_department__department',
+        'assigned_escalation_department__administrative_level',
+    ).all()
+    serializer_class = IssueCategorySerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of issue categories",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description="Unique identifier for the issue category",
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the issue category"
+                                    ),
+                                    'abbreviation': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="Abbreviation for the issue category",
+                                        nullable=True,
+                                    ),
+                                    'assigned_department': openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        properties={
+                                            'name': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Department name"
+                                            ),
+                                            'id': openapi.Schema(
+                                                type=openapi.TYPE_INTEGER, description="Department ID"
+                                            ),
+                                            'administrative_level': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Administrative level name"
+                                            ),
+                                        },
+                                        description="Assigned department information",
+                                    ),
+                                    'assigned_appeal_department': openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        properties={
+                                            'name': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Appeal department name"
+                                            ),
+                                            'id': openapi.Schema(
+                                                type=openapi.TYPE_INTEGER, description="Appeal department ID"
+                                            ),
+                                            'administrative_level': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Administrative level name"
+                                            ),
+                                        },
+                                        description="Assigned appeal department information",
+                                    ),
+                                    'assigned_escalation_department': openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        properties={
+                                            'name': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Escalation department name"
+                                            ),
+                                            'id': openapi.Schema(
+                                                type=openapi.TYPE_INTEGER, description="Escalation department ID"
+                                            ),
+                                            'administrative_level': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Administrative level name"
+                                            ),
+                                        },
+                                        description="Assigned escalation department information",
+                                    ),
+                                    'confidentiality_level': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Confidentiality level", nullable=True
+                                    ),
+                                    'redirection_protocol': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER, description="Redirection protocol number"
+                                    ),
+                                    'label': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="Category label (same as name, convenience field)",
+                                    ),
+                                    'value': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description="Category value (same as id, convenience field)",
+                                    ),
+                                },
+                            ),
+                            description="List of issue categories for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+        operation_summary="List Issue Categories",
+        operation_description="Retrieve a paginated list of all issue categories ordered by name.",
+        tags=['Issue Categories'],
+        security=[{'Token': []}],
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of IssueCategory objects.
+
+        Returns a paginated list of all issue categories available in the system.
+        The list is ordered alphabetically by category name.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated issue category data including
+                     detailed department information and convenience fields
         """
         return super().get(request, *args, **kwargs)

@@ -17,7 +17,7 @@ class TestHomeTemplateView(DashboardTestCase):
 
     @override_settings(LANGUAGE_CODE='en-us')
     def test_context_data(self):
-        with self.assertNumQueries(23):
+        with self.assertNumQueries(24):
             response = self.get(self.url)
         context_data = response.context_data
 

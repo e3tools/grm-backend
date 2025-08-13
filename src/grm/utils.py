@@ -3,6 +3,7 @@ from datetime import datetime
 from operator import itemgetter
 
 from django.conf import settings
+from django.db import connection
 from django.template.defaultfilters import date as _date
 
 from issues.models import AdministrativeRegion
@@ -289,3 +290,18 @@ def normalize_phone_number(phone_number):
     if not contact.startswith(country_calling_code):
         contact = f"{country_calling_code}{contact}"
     return contact
+
+
+def reset_sequences():
+    with connection.cursor() as cursor:
+        for table_name in [
+            'issues_administrativelevel',
+            'issues_issuedepartment',
+            'issues_issuedepartmentadministrativelevel',
+        ]:
+            cursor.execute(
+                f"""
+                SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), 
+                              (SELECT COALESCE(MAX(id), 1) FROM {table_name}));
+            """
+            )
