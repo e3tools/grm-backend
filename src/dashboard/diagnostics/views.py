@@ -289,7 +289,7 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
                 'name': region.name,
                 'latitude': region.latitude,
                 'longitude': region.longitude,
-                'level': region.administrative_level.capitalize() if region.administrative_level else '',
+                'level': region.administrative_level.name.capitalize() if region.administrative_level else '',
             }
 
         for item in region_data:
