@@ -17,4 +17,5 @@ urlpatterns = [
         views.ADLAdministrativeRegionAPIView.as_view(),
         name="get_adl_administrative_region",
     ),
+    path('login/', views.LoginView.as_view(), name='auth-login'),
 ]

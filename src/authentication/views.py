@@ -1,16 +1,21 @@
 from django.conf import settings
+from django.contrib.auth import authenticate
 from django.http import Http404
+from drf_yasg import openapi
 from drf_yasg.openapi import IN_QUERY, Parameter
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, parsers, renderers, status
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.constants import ADL, MAJOR
+from authentication.models import User
 from authentication.serializers import (
     ADLActiveResponseSerializer,
     ADLAdministrativeRegionResponseSerializer,
     CredentialSerializer,
+    LoginSerializer,
     RegisterSerializer,
     UserAuthSerializer,
 )
@@ -159,3 +164,119 @@ class ADLAdministrativeRegionAPIView(generics.GenericAPIView):
         print(f"get-adl-region : {reponse_data}")
         reponse_serializer.is_valid(raise_exception=True)
         return Response(reponse_data, status=status.HTTP_200_OK)
+
+
+class LoginView(APIView):
+    """
+    API endpoint for user authentication and token generation.
+
+    This view authenticates users with username/password and returns
+    an authentication token for subsequent API requests.
+
+    Authentication is not required for this endpoint as it's used to obtain tokens.
+    """
+
+    authentication_classes = []  # No authentication required
+    permission_classes = []  # No permissions required
+
+    @swagger_auto_schema(
+        operation_summary="User Login",
+        operation_description="Authenticate user credentials and return authentication token.",
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Login successful",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'token': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Authentication token for API requests"
+                        ),
+                        'user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="Unique identifier for the authenticated user"
+                        ),
+                        'username': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Username of the authenticated user"
+                        ),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad request - Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message describing the validation issue"
+                        ),
+                        'details': openapi.Schema(
+                            type=openapi.TYPE_OBJECT, description="Field-specific validation errors"
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid credentials",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Authentication error message"),
+                    },
+                ),
+            ),
+            403: openapi.Response(
+                description="Forbidden - User account is inactive",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Account status error message"),
+                    },
+                ),
+            ),
+        },
+        tags=['Authentication'],
+    )
+    def post(self, request):
+        """
+        Handle POST request for user authentication.
+
+        Validates user credentials and returns authentication token.
+
+        Args:
+            request: HTTP request containing username and password
+
+        Returns:
+            Response: JSON response with token and user info or error message
+        """
+        serializer = LoginSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                {'error': 'Invalid input data', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+
+        # Authenticate user
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None and not user.is_active:
+            return Response({'error': 'User account is inactive'}, status=status.HTTP_403_FORBIDDEN)
+
+        user = authenticate(username=username, password=password)
+
+        if user is None:
+            return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Get or create token for the user
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {'token': token.key, 'user_id': user.id, 'username': user.username, 'message': 'Login successful'},
+            status=status.HTTP_200_OK,
+        )

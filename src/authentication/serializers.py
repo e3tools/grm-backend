@@ -125,3 +125,17 @@ class ADLActiveResponseSerializer(serializers.Serializer):
 
 class ADLAdministrativeRegionResponseSerializer(serializers.Serializer):
     levels = serializers.ListField()
+
+
+class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for user login credentials.
+
+    This serializer validates username and password for authentication
+    and returns appropriate error messages for invalid credentials.
+    """
+
+    username = serializers.CharField(max_length=150, help_text=_("Username for authentication"))
+    password = serializers.CharField(
+        write_only=True, style={'input_type': 'password'}, help_text=_("Password for authentication")
+    )
