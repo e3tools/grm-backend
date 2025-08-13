@@ -30,7 +30,7 @@
 
 <body class="hold-transition login-page">
     {%  if OTHER_LANGUAGES %}
-        <nav class="main-header navbar navbar-expand">
+        <nav class="main-header navbar navbar-expand" style="border-bottom: none">
             <ul class="navbar-nav ml-auto">
                 {% include 'layouts/language_dropdown.html' %}
             </ul>
@@ -38,7 +38,6 @@
     {% endif %}
     <div class="login-box">
         <div class="login-logo">
-            <b>{% translate "GRM" %}</b>
             <img src="{% static 'images/cosologo.png' %}" width="80" alt="COSO">
         </div>
         <!-- /.login-logo -->
