@@ -799,7 +799,7 @@ class IssueCommentsContextMixin:
         if head_id:
             users |= head_id
         else:
-            msg = _(f"There is no head member for {self.doc_department["name"]}. Please report to IT staff.")
+            msg = _(f"There is no head member for {self.doc_department['name']}. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         indexed_users = {}
