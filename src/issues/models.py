@@ -146,11 +146,15 @@ class IssueType(models.Model):
 
 
 class Issue(models.Model):
+    tracking_code = models.CharField(max_length=255)  # TODO: after ETL refactor add unique=True
+    title = models.CharField(max_length=255)
     intake_date = models.DateTimeField(default=timezone.now, db_index=True)
     status = models.ForeignKey(IssueStatus, on_delete=models.CASCADE, related_name='issues')
     category = models.ForeignKey(IssueCategory, on_delete=models.CASCADE, related_name='issues')
     issue_type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues')
     administrative_region = models.ForeignKey(AdministrativeRegion, on_delete=models.CASCADE, related_name='issues')
+    reporter = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='reporter_issues')
+    assignee = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='assignee_issues')
 
     class Meta:
         verbose_name = _("Issue")
