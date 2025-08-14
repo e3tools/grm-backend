@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.constants import ADL, MAJOR
+from authentication.models import User
 from authentication.utils import get_validation_code
 from client import get_db
 
@@ -139,3 +140,14 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(
         write_only=True, style={'input_type': 'password'}, help_text=_("Password for authentication")
     )
+
+
+class UserBasicSerializer(serializers.ModelSerializer):
+    """
+    Basic serializer for User objects to display minimal user information.
+    """
+
+    class Meta:
+        model = User
+        fields = ['id', 'name']
+        read_only_fields = ['id', 'name']

@@ -1,4 +1,6 @@
 import factory
+from django.utils import timezone
+from factory import fuzzy
 from factory.django import DjangoModelFactory
 
 from authentication.models import User
@@ -110,8 +112,8 @@ class IssueCategoryFactory(DjangoModelFactory):
     assigned_escalation_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
 
     # Optional fields with sensible defaults
-    confidentiality_level = factory.fuzzy.FuzzyChoice(['Public', 'Internal', 'Confidential', 'Restricted', 'Secret'])
-    redirection_protocol = factory.fuzzy.FuzzyInteger(0, 5)
+    confidentiality_level = fuzzy.FuzzyChoice(['Public', 'Internal', 'Confidential', 'Restricted', 'Secret'])
+    redirection_protocol = fuzzy.FuzzyInteger(0, 5)
 
     class Meta:
         model = IssueCategory
@@ -146,7 +148,14 @@ class IssueFactory(DjangoModelFactory):
     class Meta:
         model = Issue
 
+    tracking_code = factory.Sequence(lambda n: f"TRK-{n + 1:05d}")
+    title = factory.Faker("sentence", nb_words=4)
+    intake_date = factory.LazyFunction(timezone.now)
+
     status = factory.SubFactory(IssueStatusFactory)
     category = factory.SubFactory(IssueCategoryFactory)
     issue_type = factory.SubFactory(IssueTypeFactory)
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
+
+    reporter = factory.SubFactory(UserFactory)
+    assignee = factory.SubFactory(UserFactory)
