@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 
@@ -68,6 +69,17 @@ class AdministrativeRegion(models.Model):
             descendant_ids.extend(child.get_all_descendant_ids())
         return descendant_ids
 
+class Component(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class SubComponent(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 class IssueStatus(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -145,16 +157,90 @@ class IssueType(models.Model):
         return self.name
 
 
+class IssueSubType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        verbose_name = _("Issue Subtype")
+        verbose_name_plural = _("Issue Subtypes")
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 class Issue(models.Model):
-    tracking_code = models.CharField(max_length=255)  # TODO: after ETL refactor add unique=True
-    title = models.CharField(max_length=255)
-    intake_date = models.DateTimeField(default=timezone.now, db_index=True)
-    status = models.ForeignKey(IssueStatus, on_delete=models.CASCADE, related_name='issues')
-    category = models.ForeignKey(IssueCategory, on_delete=models.CASCADE, related_name='issues')
-    issue_type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues')
+    CONTACT_MEDIUM = (
+        ('channel-alert', _('channel-alert')),
+        ('facilitator', _('facilitator')),
+        ('anonymous', _('anonymous'))
+    )
+    CONTACT_METHOD = (
+        ('email', _('email')),
+        ('phone_number', _('phone_number')),
+        ('whatsapp', _('whatsapp'))
+    )
+
     administrative_region = models.ForeignKey(AdministrativeRegion, on_delete=models.CASCADE, related_name='issues')
+    assignee = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='assigned_issues')
+    category = models.ForeignKey(IssueCategory, on_delete=models.CASCADE, related_name='issues')
+    citizen = models.CharField(max_length=255, blank=True)
+    citizen_age_group = models.CharField(max_length=50, blank=True)
+    contact_medium = models.CharField(max_length=50, blank=True)
+    citizen_type = models.CharField(max_length=50, blank=True)
+    citizen_group = models.CharField(max_length=50, blank=True)
+    citizen_group_2 = models.CharField(max_length=50, blank=True)
+    contact_info = models.CharField(max_length=255, blank=True)
+    contact_medium: models.CharField(
+        max_length=50,
+        default='anonymous',
+        null=False,
+        blank=False,
+        choices=CONTACT_MEDIUM
+    )
+    contact_method = models.CharField(max_length=255, choices=CONTACT_METHOD, default='email')
+    component = models.ForeignKey(
+        Component,
+        on_delete=models.CASCADE,
+        related_name='issues',
+        null=True
+    )
+    sub_component = models.ForeignKey(
+        SubComponent,
+        on_delete=models.CASCADE,
+        related_name='issues',
+        null=True
+    )
+    created_at = models.DateTimeField(blank=True, editable=False, null=True, auto_now_add=now())
+    description: models.TextField(
+        null=False,
+        blank=False
+    )
+    intake_date = models.DateTimeField(default=timezone.now, db_index=True)
+    issue_at = models.DateTimeField(blank=True, editable=False, null=True)
+    issue_location = models.ForeignKey(
+        AdministrativeRegion,
+        on_delete=models.CASCADE,
+        related_name='located_issues',
+        null=True,
+        blank=True,
+        help_text="The specific administrative location where the issue occurred."
+    )
+    issue_type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues')
+    issue_sub_type = models.ForeignKey(
+        IssueSubType,
+        on_delete=models.CASCADE,
+        related_name='issues',
+        null=True,
+    )
+    location_description = models.TextField(blank=True, help_text="A textual description of the issue's location.")
+    ongoing_issue = models.BooleanField(default=False)
     reporter = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='reporter_issues')
-    assignee = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='assignee_issues')
+    resolution_at = models.DateTimeField(blank=True, editable=False, null=True)
+    status = models.ForeignKey(IssueStatus, on_delete=models.CASCADE, related_name='issues')
+    title = models.CharField(max_length=255)
+    tracking_code = models.CharField(max_length=255)  # TODO: after ETL refactor add unique=True
+    updated_at = models.DateTimeField(blank=True, editable=False, null=True, auto_now=now())
+
 
     class Meta:
         verbose_name = _("Issue")
