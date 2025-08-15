@@ -71,6 +71,11 @@ class AdministrativeRegion(models.Model):
 
 class Component(models.Model):
     name = models.CharField(max_length=100)
+    description = models.TextField(
+        null=False,
+        blank=False,
+        default=None
+    )
 
     def __str__(self):
         return self.name
@@ -159,6 +164,9 @@ class IssueType(models.Model):
 
 class IssueSubType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
+    )
 
     class Meta:
         verbose_name = _("Issue Subtype")
@@ -190,13 +198,6 @@ class Issue(models.Model):
     citizen_group = models.CharField(max_length=50, blank=True)
     citizen_group_2 = models.CharField(max_length=50, blank=True)
     contact_info = models.CharField(max_length=255, blank=True)
-    contact_medium: models.CharField(
-        max_length=50,
-        default='anonymous',
-        null=False,
-        blank=False,
-        choices=CONTACT_MEDIUM
-    )
     contact_method = models.CharField(max_length=255, choices=CONTACT_METHOD, default='email')
     component = models.ForeignKey(
         Component,
@@ -211,9 +212,10 @@ class Issue(models.Model):
         null=True
     )
     created_at = models.DateTimeField(blank=True, editable=False, null=True, auto_now_add=now())
-    description: models.TextField(
+    description = models.TextField(
         null=False,
-        blank=False
+        blank=False,
+        default=None
     )
     intake_date = models.DateTimeField(default=timezone.now, db_index=True)
     issue_at = models.DateTimeField(blank=True, editable=False, null=True)
