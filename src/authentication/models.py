@@ -24,6 +24,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name=_("email address"))
     phone_number = models.CharField(max_length=45, verbose_name=_("phone number"))
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True, verbose_name=_("photo"))
+    # external_id para la migración
 
     def __str__(self):
         return self.email

@@ -4,7 +4,7 @@ from factory import fuzzy
 from factory.django import DjangoModelFactory
 
 from authentication.models import User
-from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType
+from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType, Citizen, CitizenAgeGroup, CitizenGroup
 
 from .models import (
     AdministrativeLevel,
@@ -141,6 +141,24 @@ class AdministrativeRegionFactory(DjangoModelFactory):
     administrative_level = factory.SubFactory(AdministrativeLevelFactory)
     parent = None
 
+class CitizenAgeGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = CitizenAgeGroup
+
+class CitizenGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = CitizenGroup
+
+    name = factory.Sequence(lambda n: f"{n}")
+    type = factory.Sequence(lambda n: f"{n}")
+
+class CitizenFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Citizen
+
+    age_group = factory.SubFactory(CitizenAgeGroupFactory)
+    group = factory.SubFactory(CitizenGroupFactory)
+    group_2 = factory.SubFactory(CitizenGroupFactory)
 
 class IssueFactory(DjangoModelFactory):
     """Factory for creating Issue instances for testing."""

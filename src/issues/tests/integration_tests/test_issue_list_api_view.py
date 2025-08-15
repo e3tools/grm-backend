@@ -11,7 +11,7 @@ from issues.factories import (
     IssueFactory,
     IssueStatusFactory,
     IssueTypeFactory,
-    UserFactory,
+    UserFactory, CitizenFactory, CitizenAgeGroupFactory, CitizenGroupFactory,
 )
 from issues.models import Issue
 
@@ -46,6 +46,14 @@ class TestIssueListAPIView(APITestCase):
         self.category_env = IssueCategoryFactory(name="Environmental")
         self.issue_type_complaint = IssueTypeFactory(name="Complaint")
         self.admin_region = AdministrativeRegionFactory(name="KADJÈRÈ")
+        self.citizen_age_group = CitizenAgeGroupFactory()
+        self.citizen_group = CitizenGroupFactory(name="group", type="citizen_group")
+        self.citizen_group_2 = CitizenGroupFactory(name="group2", type="citizen_group_2")
+        self.citizen = CitizenFactory(
+            age_group=self.citizen_age_group,
+            group=self.citizen_group,
+            group_2=self.citizen_group_2
+        )
 
         # Create issues
         self.issue1 = IssueFactory(
@@ -56,6 +64,8 @@ class TestIssueListAPIView(APITestCase):
             administrative_region=self.admin_region,
             reporter=self.user,
             assignee=self.user,
+            citizen=self.citizen,
+            description="Network connectivity issue"
         )
         self.issue2 = IssueFactory(
             title="Water pollution complaint",
@@ -65,6 +75,8 @@ class TestIssueListAPIView(APITestCase):
             administrative_region=self.admin_region,
             reporter=self.user,
             assignee=self.user,
+            citizen=self.citizen,
+            description="Water pollution complaint"
         )
 
     def authenticate_with_token(self):
@@ -336,7 +348,13 @@ class TestIssueListAPIView(APITestCase):
         # Create many more issues
         categories_batch = []
         for i in range(50):
-            categories_batch.append(IssueFactory(administrative_region=self.admin_region))
+            categories_batch.append(
+                IssueFactory(
+                    administrative_region=self.admin_region,
+                    citizen=self.citizen,
+                    description="Issue description"
+                )
+            )
 
         self.authenticate_with_token()
         response = self.client.get(self.url)
