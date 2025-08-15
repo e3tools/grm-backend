@@ -4,7 +4,8 @@ from factory import fuzzy
 from factory.django import DjangoModelFactory
 
 from authentication.models import User
-from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType, Citizen, CitizenAgeGroup, CitizenGroup
+from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType, Citizen, CitizenAgeGroup, CitizenGroup, \
+    Component, SubComponent
 
 from .models import (
     AdministrativeLevel,
@@ -127,6 +128,19 @@ class IssueTypeFactory(DjangoModelFactory):
         model = IssueType
 
     name = factory.Sequence(lambda n: f"Type {n}")
+
+class ComponentFactory(DjangoModelFactory):
+    """Factory for creating Component instances for testing."""
+
+    class Meta:
+        model = Component
+
+
+class SubComponentFactory(DjangoModelFactory):
+    """Factory for creating SubComponent instances for testing."""
+
+    class Meta:
+        model = SubComponent
 
 
 class AdministrativeRegionFactory(DjangoModelFactory):

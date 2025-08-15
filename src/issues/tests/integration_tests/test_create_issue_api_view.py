@@ -1,307 +1,231 @@
-# import pytest
-# from django.test import override_settings
-# from parameterized import parameterized
-# from rest_framework.authtoken.models import Token
-# from rest_framework.reverse import reverse
-# from rest_framework.test import APITestCase
-#
-# from issues.factories import (
-#     AdministrativeRegionFactory,
-#     IssueCategoryFactory,
-#     IssueStatusFactory,
-#     IssueTypeFactory,
-#     UserFactory
-# )
-# from issues.models import Issue
-#
-#
-# @pytest.mark.django_db
-# @override_settings(LANGUAGE_CODE='en-us')
-# class TestIssueCreateAPIView(APITestCase):
-#     """
-#     Test cases for the Issue creation API endpoint using Token Authentication.
-#
-#     This test class covers various scenarios including successful creation,
-#     validation errors, authentication requirements, and edge cases.
-#     """
-#
-#     error_messages = {
-#         "authentication": "Authentication credentials were not provided.",
-#         "invalid_token": "Invalid token.",
-#         "required_field": "This field is required.",
-#         "does_not_exist": "Invalid pk",
-#         "validation_failed": "Validation failed.",
-#         "creation_success": "Issue created successfully.",
-#     }
-#
-#     def setUp(self):
-#         """Set up test data, user, token, and URL for each test."""
-#         self.url = reverse("issues:create-issue")
-#
-#         # Create test user and token
-#         self.user = UserFactory()
-#         self.token = Token.objects.create(user=self.user)
-#
-#         # Create test data using factories
-#         self.status = IssueStatusFactory()
-#         self.category = IssueCategoryFactory()
-#         self.issue_type = IssueTypeFactory()
-#         self.admin_region = AdministrativeRegionFactory()
-#
-#     def authenticate_with_token(self):
-#         """Helper method to authenticate client with token."""
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-#
-#     def test_authentication_required_no_credentials(self):
-#         """Test that authentication is required when no credentials provided."""
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         response = self.client.post(self.url, data, format='json')
-#
-#         assert response.status_code == 401
-#         assert "detail" in response.data
-#         assert self.error_messages["authentication"] in str(response.data["detail"])
-#
-#     def test_authentication_required_invalid_token(self):
-#         """Test authentication with invalid token."""
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         self.client.credentials(HTTP_AUTHORIZATION='Token invalid_token_123')
-#         response = self.client.post(self.url, data, format='json')
-#
-#         assert response.status_code == 401
-#         assert "detail" in response.data
-#         assert self.error_messages["invalid_token"] in str(response.data["detail"])
-#
-#     def test_successful_issue_creation(self):
-#         """Test successful creation of an issue with valid data and token."""
-#         self.authenticate_with_token()
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         response = self.client.post(self.url, data, format='json')
-#         response_data = response.data
-#
-#         assert response.status_code == 201
-#         assert "message" in response_data
-#         assert "data" in response_data
-#         assert response_data["message"] == self.error_messages["creation_success"]
-#         assert Issue.objects.count() == 1
-#
-#         # Verify the created issue data
-#         created_issue = response_data["data"]
-#         assert created_issue["status"]["id"] == self.status.id
-#         assert created_issue["category"]["id"] == self.category.id
-#         assert created_issue["issue_type"]["id"] == self.issue_type.id
-#         assert created_issue["administrative_region"]["id"] == self.admin_region.id
-#         assert "intake_date" in created_issue
-#
-#     @parameterized.expand([
-#         ("status",),
-#         ("category",),
-#         ("issue_type",),
-#         ("administrative_region",),
-#     ])
-#     def test_missing_required_fields(self, missing_field):
-#         """Test validation error when required fields are missing."""
-#         self.authenticate_with_token()
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         # Remove the specified field
-#         del data[missing_field]
-#
-#         response = self.client.post(self.url, data, format='json')
-#         response_data = response.data
-#
-#         assert response.status_code == 400
-#         assert "message" in response_data
-#         assert "errors" in response_data
-#         assert response_data["message"] == self.error_messages["validation_failed"]
-#         assert missing_field in response_data["errors"]
-#         assert self.error_messages["required_field"] in str(response_data["errors"][missing_field][0])
-#
-#     @parameterized.expand([
-#         ("status", 99999),
-#         ("category", 99999),
-#         ("issue_type", 99999),
-#         ("administrative_region", 99999),
-#     ])
-#     def test_invalid_foreign_key_references(self, field_name, invalid_id):
-#         """Test validation error when providing invalid foreign key references."""
-#         self.authenticate_with_token()
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         # Set invalid ID for the specified field
-#         data[field_name] = invalid_id
-#
-#         response = self.client.post(self.url, data, format='json')
-#         response_data = response.data
-#
-#         assert response.status_code == 400
-#         assert "message" in response_data
-#         assert "errors" in response_data
-#         assert response_data["message"] == self.error_messages["validation_failed"]
-#         assert field_name in response_data["errors"]
-#
-#     def test_empty_payload(self):
-#         """Test validation error when providing empty payload."""
-#         self.authenticate_with_token()
-#
-#         data = {}
-#
-#         response = self.client.post(self.url, data, format='json')
-#         response_data = response.data
-#
-#         assert response.status_code == 400
-#         assert "message" in response_data
-#         assert "errors" in response_data
-#         assert response_data["message"] == self.error_messages["validation_failed"]
-#
-#         # All required fields should have errors
-#         required_fields = ['status', 'category', 'issue_type', 'administrative_region']
-#         for field in required_fields:
-#             assert field in response_data["errors"]
-#
-#     def test_multiple_issues_creation(self):
-#         """Test creating multiple issues with the same data."""
-#         self.authenticate_with_token()
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         # Create first issue
-#         response1 = self.client.post(self.url, data, format='json')
-#         assert response1.status_code == 201
-#         assert Issue.objects.count() == 1
-#
-#         # Create second issue with same data (should be allowed)
-#         response2 = self.client.post(self.url, data, format='json')
-#         assert response2.status_code == 201
-#         assert Issue.objects.count() == 2
-#
-#     def test_issue_creation_response_format(self):
-#         """Test that the response format matches expected structure."""
-#         self.authenticate_with_token()
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         response = self.client.post(self.url, data, format='json')
-#         response_data = response.data
-#
-#         assert response.status_code == 201
-#
-#         # Verify response structure
-#         assert isinstance(response_data, dict)
-#         assert "message" in response_data
-#         assert "data" in response_data
-#
-#         # Verify nested data structure
-#         issue_data = response_data["data"]
-#         assert "id" in issue_data
-#         assert "intake_date" in issue_data
-#         assert "status" in issue_data
-#         assert "category" in issue_data
-#         assert "issue_type" in issue_data
-#         assert "administrative_region" in issue_data
-#
-#         # Verify nested objects have proper structure
-#         assert "name" in issue_data["status"]
-#         assert "name" in issue_data["category"]
-#         assert "name" in issue_data["issue_type"]
-#
-#     def test_different_users_can_create_issues(self):
-#         """Test that different authenticated users can create issues."""
-#         # First user creates an issue
-#         self.authenticate_with_token()
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         response1 = self.client.post(self.url, data, format='json')
-#         assert response1.status_code == 201
-#         assert Issue.objects.count() == 1
-#
-#         # Second user creates an issue
-#         user2 = UserFactory()
-#         token2 = Token.objects.create(user=user2)
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token2.key}')
-#
-#         response2 = self.client.post(self.url, data, format='json')
-#         assert response2.status_code == 201
-#         assert Issue.objects.count() == 2
-#
-#     def test_token_authentication_headers(self):
-#         """Test different ways of providing token authentication."""
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         # Test with proper Token format
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
-#         response = self.client.post(self.url, data, format='json')
-#         assert response.status_code == 201
-#
-#         # Test with Bearer format (should fail with TokenAuthentication)
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token.key}')
-#         response = self.client.post(self.url, data, format='json')
-#         assert response.status_code == 401
-#
-#     def test_inactive_user_authentication(self):
-#         """Test that inactive users cannot authenticate."""
-#         # Create inactive user
-#         inactive_user = UserFactory(is_active=False)
-#         inactive_token = Token.objects.create(user=inactive_user)
-#
-#         data = {
-#             'status': self.status.id,
-#             'category': self.category.id,
-#             'issue_type': self.issue_type.id,
-#             'administrative_region': self.admin_region.id
-#         }
-#
-#         self.client.credentials(HTTP_AUTHORIZATION=f'Token {inactive_token.key}')
-#         response = self.client.post(self.url, data, format='json')
-#
-#         assert response.status_code == 401
+import pytest
+from django.test import override_settings
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.reverse import reverse
+from rest_framework.test import APITestCase
+from unittest.mock import patch
+
+from grm.utils import reset_sequences
+from issues.factories import (
+    AdministrativeRegionFactory,
+    IssueCategoryFactory,
+    IssueStatusFactory,
+    IssueTypeFactory,
+    UserFactory,
+    CitizenFactory,
+    ComponentFactory,
+    SubComponentFactory,
+)
+from issues.models import Issue
+
+
+@pytest.mark.django_db
+class TestIssueCreateAPIView(APITestCase):
+    """
+    Test suite for the IssueCreateAPIView.
+
+    This class tests the API endpoint for creating a new issue,
+    covering successful creation, authentication, validation errors,
+    and server-side error handling.
+    """
+
+    def setUp(self):
+        """
+        Set up the necessary data for the tests.
+        """
+        self.url = reverse("issues:create-issue")
+        reset_sequences()
+
+        # Create user and token for authentication
+        self.user = UserFactory()
+        self.token = Token.objects.create(user=self.user)
+
+        # Create related objects using factories
+        self.status = IssueStatusFactory()
+        self.category = IssueCategoryFactory()
+        self.issue_type = IssueTypeFactory()
+        self.administrative_region = AdministrativeRegionFactory()
+        self.reporter = self.user
+        self.assignee = UserFactory()
+        self.citizen = CitizenFactory()
+        self.component = ComponentFactory(description="This is a description")
+        self.sub_component = SubComponentFactory()
+        self.citizen.id = None
+        # Define a valid payload for a POST request
+        self.valid_payload = {
+            'title': 'Test Issue Title',
+            'description': 'This is a test issue description.',
+            'status': self.status.id,
+            'category': self.category.id,
+            'issue_type': self.issue_type.id,
+            'administrative_region': self.administrative_region.id,
+            'reporter': self.reporter.id,
+            'assignee': self.assignee.id,
+            'citizen': self.citizen,
+            'component': self.component.id,
+            'sub_component': self.sub_component.id,
+            'contact_medium': 'facilitator',
+            'contact_method': 'email',
+            'contact_information': 'test@example.com',
+            'ongoing_issue': False,
+            'tracking_code': 'ABC-123-XYZ'
+        }
+
+    def authenticate_with_token(self):
+        """Helper method to authenticate the client with the user's token."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+    # --- Test Authentication ---
+
+    def test_authentication_required_for_creation(self):
+        """
+        Test that a request without credentials is rejected with 401 Unauthorized.
+        """
+        response = self.client.post(self.url, self.valid_payload)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("Authentication credentials were not provided.", str(response.data))
+
+    def test_invalid_token_rejects_request(self):
+        """
+        Test that a request with an invalid token is rejected with 401 Unauthorized.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION='Token invalid_token_xyz')
+        response = self.client.post(self.url, self.valid_payload)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("Invalid token.", str(response.data))
+
+    def test_inactive_user_cannot_create_issue(self):
+        """
+        Test that an inactive user cannot create an issue.
+        """
+        inactive_user = UserFactory(is_active=False)
+        inactive_token = Token.objects.create(user=inactive_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {inactive_token.key}')
+
+        response = self.client.post(self.url, self.valid_payload)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn("User inactive or deleted.", str(response.data))
+
+    # --- Test Successful Creation ---
+
+    def test_successful_issue_creation(self):
+        """
+        Test that a valid payload successfully creates a new issue.
+        """
+        self.authenticate_with_token()
+
+        # Check the initial count of issues
+        initial_issue_count = Issue.objects.count()
+
+        response = self.client.post(self.url, self.valid_payload, format='json')
+
+        # Check the response status and content
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], 'Issue created successfully.')
+        self.assertIn('data', response.data)
+
+        # Verify that an issue was created in the database
+        self.assertEqual(Issue.objects.count(), initial_issue_count + 1)
+
+        # Verify the data in the database
+        created_issue = Issue.objects.get(title='Test Issue Title')
+        self.assertEqual(created_issue.description, 'This is a test issue description.')
+        self.assertEqual(created_issue.status.id, self.status.id)
+        self.assertEqual(created_issue.category.id, self.category.id)
+        self.assertEqual(created_issue.issue_type.id, self.issue_type.id)
+        self.assertEqual(created_issue.administrative_region.id, self.administrative_region.id)
+        self.assertEqual(created_issue.reporter.id, self.reporter.id)
+        self.assertEqual(created_issue.assignee.id, self.assignee.id)
+
+        # Verify the response data matches the created object
+        response_data = response.data['data']
+        self.assertEqual(response_data['title'], 'Test Issue Title')
+        self.assertEqual(response_data['description'], 'This is a test issue description.')
+        self.assertEqual(response_data['status']['id'], self.status.id)
+        self.assertEqual(response_data['category']['id'], self.category.id)
+        self.assertEqual(response_data['issue_type']['id'], self.issue_type.id)
+        self.assertEqual(response_data['administrative_region']['administrative_id'],
+                         str(self.administrative_region.id))
+
+    # --- Test Validation Errors (400 Bad Request) ---
+
+    def test_missing_required_fields_returns_400(self):
+        """
+        Test that a request with missing required fields returns 400 Bad Request.
+        """
+        self.authenticate_with_token()
+
+        # Create an invalid payload with missing fields
+        invalid_payload = self.valid_payload.copy()
+        del invalid_payload['status']
+        del invalid_payload['category']
+        del invalid_payload['issue_type']
+
+        response = self.client.post(self.url, invalid_payload, format='json')
+
+        # Check the response status and error messages
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['message'], 'Validation failed.')
+        self.assertIn('errors', response.data)
+        self.assertIn('status', response.data['errors'])
+        self.assertIn('category', response.data['errors'])
+        self.assertIn('issue_type', response.data['errors'])
+
+    def test_invalid_foreign_key_id_returns_400(self):
+        """
+        Test that a request with a non-existent foreign key ID returns 400.
+        """
+        self.authenticate_with_token()
+
+        # Use an invalid ID for a foreign key field
+        invalid_payload = self.valid_payload.copy()
+        invalid_payload['status'] = 99999  # A non-existent ID
+
+        response = self.client.post(self.url, invalid_payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('status', response.data['errors'])
+        self.assertIn('Invalid pk', str(response.data['errors']['status']))
+
+    def test_contact_method_validation_error(self):
+        """
+        Test custom validation for contact_method and contact_medium.
+        """
+        self.authenticate_with_token()
+
+        # Case 1: contact_medium is not 'channel-alert' and contact_method is missing
+        invalid_payload = self.valid_payload.copy()
+        invalid_payload['contact_medium'] = 'facilitator'
+        invalid_payload['contact_method'] = None
+
+        response = self.client.post(self.url, invalid_payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('contact_method', response.data['errors'])
+        self.assertIn('You must define the contact method if your contact medium is not channel alert', str(response.data['errors']['contact_method']))
+
+        # Case 2: contact_medium is 'channel-alert' and contact_method is None (this should pass)
+        valid_payload_channel_alert = self.valid_payload.copy()
+        valid_payload_channel_alert['contact_medium'] = 'channel-alert'
+        valid_payload_channel_alert['contact_method'] = None
+
+        response = self.client.post(self.url, valid_payload_channel_alert, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    # --- Test Server-Side Error (500 Internal Server Error) ---
+
+    @patch('issues.serializers.IssueCreateSerializer.save')
+    def test_server_error_returns_500(self, mock_save):
+        """
+        Test that a server-side error during the save process returns 500.
+        """
+        self.authenticate_with_token()
+
+        # Mock the save method to raise an unexpected exception
+        mock_save.side_effect = Exception("Simulated database error")
+
+        response = self.client.post(self.url, self.valid_payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.data['message'], 'An error occurred while creating the issue.')
+        self.assertEqual(response.data['error'], 'Simulated database error')

@@ -1,6 +1,9 @@
+from coreschema.formats import validate_email
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from authentication.models import User
 from authentication.serializers import UserBasicSerializer
 from issues.models import (
     AdministrativeRegion,
@@ -8,7 +11,7 @@ from issues.models import (
     IssueCategory,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
-    IssueType,
+    IssueType, SubComponent, Component, Citizen,
 )
 
 
@@ -167,15 +170,69 @@ class AdministrativeRegionSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'administrative_level', 'parent']
 
 
-class IssueCreateSerializer(serializers.ModelSerializer):
+class CitizenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Citizen
+        fields = '__all__'
+
+
+class IssueStatusSerializer(serializers.ModelSerializer):
     """
-    Serializer for creating Issue objects.
-    Validates required fields and foreign key relationships.
+    Serializer for IssueStatus model.
+    Provides read-only representation of issue status information.
     """
 
     class Meta:
+        model = IssueStatus
+        fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
+
+
+class IssueDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for detailed Issue representation.
+    Includes nested serializers for related objects.
+    """
+
+    status = IssueStatusSerializer(read_only=True)
+    category = IssueCategorySerializer(read_only=True)
+    issue_type = IssueTypeSerializer(read_only=True)
+    administrative_region = AdministrativeRegionSerializer(read_only=True)
+
+    class Meta:
         model = Issue
-        fields = ['status', 'category', 'issue_type', 'administrative_region']
+        fields = ['id', 'intake_date', 'status', 'category', 'issue_type', 'administrative_region']
+
+
+class IssueCreateSerializer(serializers.ModelSerializer):
+    citizen = CitizenSerializer()
+
+    class Meta:
+        model = Issue
+        fields = [
+            'title', 'description', 'status', 'category', 'issue_type',
+            'administrative_region', 'reporter', 'assignee', 'citizen',
+            'component', 'sub_component', 'contact_medium', 'contact_method',
+            'contact_information', 'ongoing_issue', 'tracking_code', 'status',
+            'category', 'issue_type', 'administrative_region'
+        ]
+
+    def create(self, validated_data):
+        citizen_data = validated_data.pop('citizen')
+        citizen = Citizen(
+            name=citizen_data['name'],
+            age_group=citizen_data['age_group'],
+            type=citizen_data['type'],
+            group=citizen_data['group'],
+            group_2=citizen_data['group_2']
+        )
+        citizen.save()
+
+        issue = Issue(
+            citizen_id=citizen.id,
+            **validated_data
+        )
+        issue.save()
+        return issue
 
     def validate_status(self, value):
         """
@@ -209,29 +266,33 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Administrative region is required."))
         return value
 
+    def validate(self, data):
+        """
+        Performs object-level validation for cross-field dependencies.
+        """
+        contact_medium = data.get('contact_medium')
+        contact_method = data.get('contact_method')
+        contact_information = data.get('contact_information')
 
-class IssueStatusSerializer(serializers.ModelSerializer):
-    """
-    Serializer for IssueStatus model.
-    Provides read-only representation of issue status information.
-    """
+        if contact_medium != 'channel-alert' and not contact_method:
+            raise serializers.ValidationError(
+                {"contact_method": "You must define the contact method if your contact medium is not channel alert"}
+            )
+        if contact_method == 'email':
+            try:
+                validate_email(contact_information)
+            except ValidationError:
+                raise serializers.ValidationError(
+                    {"contact_information": "If email contact method is selected, provide a valid email"}
+                )
+        elif contact_method in ['phone_number', 'whatsapp']:
+            try:
+                validate_email(contact_information)
+                raise serializers.ValidationError(
+                    {
+                        "contact_information": "If phone or whatsapp contact method is selected, provide a valid phone number"}
+                )
+            except ValidationError:
+                pass
+        return data
 
-    class Meta:
-        model = IssueStatus
-        fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
-
-
-class IssueDetailSerializer(serializers.ModelSerializer):
-    """
-    Serializer for detailed Issue representation.
-    Includes nested serializers for related objects.
-    """
-
-    status = IssueStatusSerializer(read_only=True)
-    category = IssueCategorySerializer(read_only=True)
-    issue_type = IssueTypeSerializer(read_only=True)
-    administrative_region = AdministrativeRegionSerializer(read_only=True)
-
-    class Meta:
-        model = Issue
-        fields = ['id', 'intake_date', 'status', 'category', 'issue_type', 'administrative_region']
