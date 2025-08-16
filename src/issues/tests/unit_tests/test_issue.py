@@ -5,14 +5,20 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from gevent.testing import TestCase
 
-from authentication.factories import IssueFactory
+from grm.utils import reset_sequences
+from issues.factories import IssueFactory
 
 
 @pytest.mark.django_db
 class TestIssue(TestCase):
     """
-       Tests for the custom methods and properties of the Issue model.
-       """
+    Tests for the custom methods and properties of the Issue model.
+    """
+
+    def setUp(self):
+        reset_sequences()
+        super().setUp()
+
     def test_str_representation(self):
         """
         Tests that the __str__ method returns the correct string format.
@@ -83,45 +89,37 @@ class TestIssue(TestCase):
         Tests that a ValidationError is raised if contact_medium is not 'channel-alert'
         and contact_method is not provided.
         """
-        issue_data = IssueFactory.build(contact_medium='facilitator', contact_method=None)
         with self.assertRaises(ValidationError) as cm:
-            issue_data.save()
-        self.assertIn(
-            "You must define the contact method is your contact medium is not channel alert",
-            str(cm.exception)
-        )
+            IssueFactory(contact_medium='facilitator', contact_method=None)
+            self.assertIn(
+                "You must define the contact method is your contact medium is not channel alert", str(cm.exception)
+            )
 
     def test_contact_information_is_valid_for_email_method(self):
         """
         Tests that a ValidationError is raised if contact_method is 'email' but
         contact_information is not a valid email address.
         """
-        issue_data = IssueFactory.build(
-            contact_method='email',
-            contact_information='not_an_email',
-        )
         with self.assertRaises(ValidationError) as cm:
-            issue_data.save()
-        self.assertIn(
-            "If email contact method is selected provide a valid email",
-            str(cm.exception)
-        )
+            IssueFactory(
+                contact_method='email',
+                contact_information='not_an_email',
+            )
+            self.assertIn("If email contact method is selected provide a valid email", str(cm.exception))
 
     def test_contact_information_is_valid_for_non_email_method(self):
         """
         Tests that a ValidationError is raised if contact_method is not 'email' but
         contact_information is a valid email address.
         """
-        issue_data = IssueFactory.build(
-            contact_method='phone_number',
-            contact_information='valid_email@example.com',
-        )
         with self.assertRaises(ValidationError) as cm:
-            issue_data.save()
-        self.assertIn(
-            "If phone or whatsapp contact method is selected provide a valid phone number",
-            str(cm.exception)
-        )
+            IssueFactory(
+                contact_method='phone_number',
+                contact_information='valid_email@example.com',
+            )
+            self.assertIn(
+                "If phone or whatsapp contact method is selected provide a valid phone number", str(cm.exception)
+            )
 
     def test_valid_issue_saves_correctly(self):
         """

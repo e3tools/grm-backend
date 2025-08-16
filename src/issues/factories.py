@@ -2,9 +2,18 @@ import factory
 from django.utils import timezone
 from factory import fuzzy
 from factory.django import DjangoModelFactory
+from faker import Faker
 
 from authentication.models import User
-from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType, Citizen, CitizenAgeGroup, CitizenGroup
+from issues.models import (
+    AdministrativeRegion,
+    Citizen,
+    CitizenAgeGroup,
+    CitizenGroup,
+    Issue,
+    IssueStatus,
+    IssueType,
+)
 
 from .models import (
     AdministrativeLevel,
@@ -12,6 +21,8 @@ from .models import (
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
 )
+
+fake = Faker()
 
 
 class UserFactory(DjangoModelFactory):
@@ -141,9 +152,11 @@ class AdministrativeRegionFactory(DjangoModelFactory):
     administrative_level = factory.SubFactory(AdministrativeLevelFactory)
     parent = None
 
+
 class CitizenAgeGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CitizenAgeGroup
+
 
 class CitizenGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -151,6 +164,7 @@ class CitizenGroupFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: f"{n}")
     type = factory.Sequence(lambda n: f"{n}")
+
 
 class CitizenFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -160,6 +174,7 @@ class CitizenFactory(factory.django.DjangoModelFactory):
     group = factory.SubFactory(CitizenGroupFactory)
     group_2 = factory.SubFactory(CitizenGroupFactory)
 
+
 class IssueFactory(DjangoModelFactory):
     """Factory for creating Issue instances for testing."""
 
@@ -168,12 +183,11 @@ class IssueFactory(DjangoModelFactory):
 
     tracking_code = factory.Sequence(lambda n: f"TRK-{n + 1:05d}")
     title = factory.Faker("sentence", nb_words=4)
+    description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
     intake_date = factory.LazyFunction(timezone.now)
-
     status = factory.SubFactory(IssueStatusFactory)
     category = factory.SubFactory(IssueCategoryFactory)
     issue_type = factory.SubFactory(IssueTypeFactory)
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
-
     reporter = factory.SubFactory(UserFactory)
     assignee = factory.SubFactory(UserFactory)
