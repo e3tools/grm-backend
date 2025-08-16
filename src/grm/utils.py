@@ -3,10 +3,10 @@ from datetime import datetime
 from operator import itemgetter
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import connection
 from django.template.defaultfilters import date as _date
-
-from issues.models import AdministrativeRegion
 
 # from openpyxl import load_workbook
 # from openpyxl.utils.cell import range_boundaries
@@ -53,17 +53,6 @@ def get_administrative_region_choices(eadl_db, empty_choice=True):
     choices = list()
     for i in query_result:
         choices.append((i["administrative_id"], f"{i['name']}"))
-    if empty_choice:
-        choices = [("", "")] + choices
-    return choices
-
-
-# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
-def new_get_administrative_region_choices(empty_choice=True):
-    query_result = AdministrativeRegion.objects.filter(parent__parent=None)
-    choices = list()
-    for item in query_result:
-        choices.append((item.id, item.name))
     if empty_choice:
         choices = [("", "")] + choices
     return choices
@@ -203,17 +192,6 @@ def get_administrative_regions_by_level(eadl_db, level=None):
     return data
 
 
-# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
-def new_get_administrative_regions_by_level(level=None):
-    filters = {}
-    if level:
-        filters['administrative_level'] = level
-    else:
-        filters['parent_id'] = None
-    parent_id = AdministrativeRegion.objects.filter(**filters).first()
-    return AdministrativeRegion.objects.filter(parent=parent_id)
-
-
 def get_administrative_level_descendants(eadl_db, parent_id, ids):
     data = eadl_db.get_query_result(
         {
@@ -305,3 +283,11 @@ def reset_sequences():
                               (SELECT COALESCE(MAX(id), 1) FROM {table_name}));
             """
             )
+
+
+def email_is_valid(email):
+    try:
+        validate_email(email)
+        return True
+    except ValidationError:
+        return False
