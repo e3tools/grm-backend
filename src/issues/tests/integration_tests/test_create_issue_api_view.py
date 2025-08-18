@@ -29,58 +29,41 @@ class TestIssueCreateAPIView(APITestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
-        """
-        Setup de la clase, se ejecuta una sola vez.
-        Crea las dependencias de datos que serán compartidas por todos los tests.
-        """
-        super().setUpClass()
-
-        # Reset database sequences at the start of setUpClass to prevent primary key
-        # conflicts with pre-existing data from other test classes.
+    def setUp(self):
         reset_sequences()
 
-        # Ensure a clean slate by deleting any pre-existing regions with no parent.
-        # This addresses the "Only one AdministrativeRegion can have no parent" error.
         AdministrativeRegion.objects.filter(parent__isnull=True).delete()
-
-        # Create all necessary factory objects for the payload
-        cls.administrative_level = AdministrativeLevelFactory(name="Country")
-        cls.root_region = AdministrativeRegionFactory(
+        self.administrative_level = AdministrativeLevelFactory(name="Country")
+        self.root_region = AdministrativeRegionFactory(
             name="Root Region",
-            administrative_level=cls.administrative_level,
+            administrative_level=self.administrative_level,
             parent=None,
         )
-        cls.child_region = AdministrativeRegionFactory(
+        self.child_region = AdministrativeRegionFactory(
             name="Child Region",
-            administrative_level=cls.administrative_level,
-            parent=cls.root_region,
+            administrative_level=self.administrative_level,
+            parent=self.root_region,
         )
-        cls.reporter_user = UserFactory()
-        cls.assignee_user = UserFactory()
-        cls.department = IssueDepartmentFactory(name="Test Department")
-        cls.department_admin_level = IssueDepartmentAdministrativeLevelFactory(
-            department=cls.department, administrative_level=cls.administrative_level
+        self.reporter_user = UserFactory()
+        self.assignee_user = UserFactory()
+        self.department = IssueDepartmentFactory(name="Test Department")
+        self.department_admin_level = IssueDepartmentAdministrativeLevelFactory(
+            department=self.department, administrative_level=self.administrative_level
         )
-        cls.issue_category = IssueCategoryFactory(
+        self.issue_category = IssueCategoryFactory(
             name="Test Category",
-            assigned_department=cls.department_admin_level,
-            assigned_appeal_department=cls.department_admin_level,
-            assigned_escalation_department=cls.department_admin_level,
+            assigned_department=self.department_admin_level,
+            assigned_appeal_department=self.department_admin_level,
+            assigned_escalation_department=self.department_admin_level,
         )
-        cls.issue_type = IssueTypeFactory(name="Test Issue Type")
-        cls.initial_status = IssueStatusFactory()
-        cls.component = ComponentFactory()
-        cls.sub_component = SubComponentFactory()
-        cls.age_group = CitizenAgeGroupFactory()
-        cls.group_one = CitizenGroupFactory()
-        cls.group_two = CitizenGroupFactory()
-        cls.citizen = CitizenFactory(age_group=cls.age_group, group=cls.group_one, group_2=cls.group_two)
-
-    def setUp(self):
-        # Reset database sequences before each test to prevent IntegrityError on primary keys
-        reset_sequences()
-        super().setUp()
+        self.issue_type = IssueTypeFactory(name="Test Issue Type")
+        self.initial_status = IssueStatusFactory()
+        self.component = ComponentFactory()
+        self.sub_component = SubComponentFactory()
+        self.age_group = CitizenAgeGroupFactory()
+        self.group_one = CitizenGroupFactory()
+        self.group_two = CitizenGroupFactory()
+        self.citizen = CitizenFactory(age_group=self.age_group, group=self.group_one, group_2=self.group_two)
 
     def test_create_issue_with_valid_data(self):
         """

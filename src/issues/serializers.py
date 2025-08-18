@@ -3,15 +3,15 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from authentication.models import User
 from authentication.serializers import UserBasicSerializer
 from issues.models import (
     AdministrativeRegion,
+    Citizen,
     Issue,
     IssueCategory,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
-    IssueType, SubComponent, Component, Citizen,
+    IssueType,
 )
 
 
@@ -209,11 +209,28 @@ class IssueCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = [
-            'title', 'description', 'status', 'category', 'issue_type',
-            'administrative_region', 'reporter', 'assignee', 'citizen',
-            'component', 'sub_component', 'contact_medium', 'contact_method',
-            'contact_information', 'ongoing_issue', 'tracking_code', 'status',
-            'category', 'issue_type', 'administrative_region'
+            'title',
+            'description',
+            'status',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'reporter',
+            'assignee',
+            'citizen',
+            'component',
+            'sub_component',
+            'contact_medium',
+            'contact_method',
+            'contact_information',
+            'ongoing_issue',
+            'tracking_code',
+            'status',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'intake_date',
+            'issue_sub_type',
         ]
 
     def create(self, validated_data):
@@ -223,14 +240,11 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             age_group=citizen_data['age_group'],
             type=citizen_data['type'],
             group=citizen_data['group'],
-            group_2=citizen_data['group_2']
+            group_2=citizen_data['group_2'],
         )
         citizen.save()
 
-        issue = Issue(
-            citizen_id=citizen.id,
-            **validated_data
-        )
+        issue = Issue(citizen_id=citizen.id, **validated_data)
         issue.save()
         return issue
 
@@ -290,9 +304,9 @@ class IssueCreateSerializer(serializers.ModelSerializer):
                 validate_email(contact_information)
                 raise serializers.ValidationError(
                     {
-                        "contact_information": "If phone or whatsapp contact method is selected, provide a valid phone number"}
+                        "contact_information": "If phone or whatsapp contact method is selected, provide a valid phone number"
+                    }
                 )
             except ValidationError:
                 pass
         return data
-
