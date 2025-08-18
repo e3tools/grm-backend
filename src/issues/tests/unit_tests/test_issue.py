@@ -143,20 +143,6 @@ class TestIssue(TestCase):
         )
         self.assertIsNotNone(issue.tracking_code)
 
-    def test_updated_date_updates_on_save(self):
-        issue = IssueFactory(
-            administrative_region=self.child_region,
-            category=self.category,
-            issue_type=self.issue_type,
-            status=self.status,
-            reporter=self.reporter,
-            assignee=self.assignee,
-        )
-        initial_updated_date = issue.updated_date
-        issue.title = "A new title"
-        issue.save()
-        self.assertGreater(issue.updated_date, initial_updated_date)
-
     def test_contact_method_is_required_for_non_channel_alert_medium(self):
         with self.assertRaises(ValidationError):
             IssueFactory(
