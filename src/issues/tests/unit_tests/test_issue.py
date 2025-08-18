@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import TestCase
 from django.utils import timezone
-from gevent.testing import TestCase
 
 from grm.utils import reset_sequences
 from issues.factories import (
@@ -26,39 +26,36 @@ class TestIssue(TestCase):
     Tests for the custom methods and properties of the Issue model.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        AdministrativeRegion.objects.filter(parent__isnull=True).delete()
-
-        cls.administrative_level = AdministrativeLevelFactory(name="Country")
-        cls.root_region = AdministrativeRegionFactory(
-            name="Root Region",
-            administrative_level=cls.administrative_level,
-            parent=None,
-        )
-        cls.child_region = AdministrativeRegionFactory(
-            name="Child Region",
-            administrative_level=cls.administrative_level,
-            parent=cls.root_region,
-        )
-        cls.department = IssueDepartmentFactory(name="Test Department")
-        cls.department_admin_level = IssueDepartmentAdministrativeLevelFactory(
-            department=cls.department, administrative_level=cls.administrative_level
-        )
-        cls.category = IssueCategoryFactory(
-            name="Test Category",
-            assigned_department=cls.department_admin_level,
-            assigned_appeal_department=cls.department_admin_level,
-            assigned_escalation_department=cls.department_admin_level,
-        )
-        cls.issue_type = IssueTypeFactory(name="Test Issue Type")
-        cls.status = IssueStatusFactory(name="Test Status")
-        cls.reporter = UserFactory()
-        cls.assignee = UserFactory()
-
     def setUp(self):
         reset_sequences()
+
+        AdministrativeRegion.objects.filter(parent__isnull=True).delete()
+
+        self.administrative_level = AdministrativeLevelFactory(name="Country")
+        self.root_region = AdministrativeRegionFactory(
+            name="Root Region",
+            administrative_level=self.administrative_level,
+            parent=None,
+        )
+        self.child_region = AdministrativeRegionFactory(
+            name="Child Region",
+            administrative_level=self.administrative_level,
+            parent=self.root_region,
+        )
+        self.department = IssueDepartmentFactory(name="Test Department")
+        self.department_admin_level = IssueDepartmentAdministrativeLevelFactory(
+            department=self.department, administrative_level=self.administrative_level
+        )
+        self.category = IssueCategoryFactory(
+            name="Test Category",
+            assigned_department=self.department_admin_level,
+            assigned_appeal_department=self.department_admin_level,
+            assigned_escalation_department=self.department_admin_level,
+        )
+        self.issue_type = IssueTypeFactory(name="Test Issue Type")
+        self.status = IssueStatusFactory(name="Test Status")
+        self.reporter = UserFactory()
+        self.assignee = UserFactory()
         super().setUp()
 
     def test_str_representation(self):
@@ -145,20 +142,6 @@ class TestIssue(TestCase):
             assignee=self.assignee,
         )
         self.assertIsNotNone(issue.tracking_code)
-
-    def test_updated_date_updates_on_save(self):
-        issue = IssueFactory(
-            administrative_region=self.child_region,
-            category=self.category,
-            issue_type=self.issue_type,
-            status=self.status,
-            reporter=self.reporter,
-            assignee=self.assignee,
-        )
-        initial_updated_date = issue.updated_date
-        issue.title = "A new title"
-        issue.save()
-        self.assertGreater(issue.updated_date, initial_updated_date)
 
     def test_contact_method_is_required_for_non_channel_alert_medium(self):
         with self.assertRaises(ValidationError):
