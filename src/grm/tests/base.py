@@ -1,7 +1,7 @@
 import json
-import tempfile
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
@@ -33,10 +33,8 @@ class BaseTestCase(APITestCase):
 
     @staticmethod
     def create_file(size=1):
-        fp = tempfile.NamedTemporaryFile()
-        fp.write(bytes(size))
-        fp.seek(0)
-        return fp
+        content = b"x" * size  # Creates file of the desired size
+        return SimpleUploadedFile(f"test_file_{size}B.txt", content)
 
     def authenticate(self, user):
         self.user = self.create_user() if not self.user else self.user
