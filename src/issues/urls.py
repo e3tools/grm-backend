@@ -10,7 +10,7 @@ from issues.views import (
 
 app_name = "issues"
 urlpatterns = [
-    path('push/', IssueCreateAPIView.as_view(), name='create-issue'),
+    path('create/', IssueCreateAPIView.as_view(), name='create-issue'),
     path('list/', IssueListAPIView.as_view(), name='list-issues'),
     path('issue-statuses/', IssueStatusListAPIView.as_view(), name='list-issue-statuses'),
     path('issue-types/', IssueTypeListView.as_view(), name='list-issue-types'),

@@ -22,9 +22,8 @@ from grm.utils import (
     get_issue_options_choices,
     get_issue_status_choices,
     get_issue_type_choices,
-    new_get_administrative_region_choices,
-    new_get_administrative_regions_by_level,
 )
+from issues.models import AdministrativeRegion
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 MAX_LENGTH = 65000
@@ -350,9 +349,9 @@ class NewSearchIssueForm(forms.Form):
         self.fields["type"].widget.choices = get_issue_type_choices(grm_db)
         self.fields["status"].widget.choices = get_issue_status_choices(grm_db)
 
-        label = new_get_administrative_regions_by_level()[0].administrative_level.name.title()
+        label = AdministrativeRegion.get_administrative_regions_by_level()[0].administrative_level.name.title()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = new_get_administrative_region_choices()
+        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_administrative_region_choices()
 
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 

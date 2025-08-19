@@ -2,9 +2,20 @@ import factory
 from django.utils import timezone
 from factory import fuzzy
 from factory.django import DjangoModelFactory
+from faker import Faker
 
 from authentication.models import User
-from issues.models import AdministrativeRegion, Issue, IssueStatus, IssueType
+from issues.models import (
+    AdministrativeRegion,
+    Citizen,
+    CitizenAgeGroup,
+    CitizenGroup,
+    Component,
+    Issue,
+    IssueStatus,
+    IssueType,
+    SubComponent,
+)
 
 from .models import (
     AdministrativeLevel,
@@ -12,6 +23,8 @@ from .models import (
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
 )
+
+fake = Faker()
 
 
 class UserFactory(DjangoModelFactory):
@@ -129,6 +142,20 @@ class IssueTypeFactory(DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Type {n}")
 
 
+class ComponentFactory(DjangoModelFactory):
+    """Factory for creating Component instances for testing."""
+
+    class Meta:
+        model = Component
+
+
+class SubComponentFactory(DjangoModelFactory):
+    """Factory for creating SubComponent instances for testing."""
+
+    class Meta:
+        model = SubComponent
+
+
 class AdministrativeRegionFactory(DjangoModelFactory):
     """Factory for creating AdministrativeRegion instances for testing."""
 
@@ -142,6 +169,28 @@ class AdministrativeRegionFactory(DjangoModelFactory):
     parent = None
 
 
+class CitizenAgeGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = CitizenAgeGroup
+
+
+class CitizenGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = CitizenGroup
+
+    name = factory.Sequence(lambda n: f"{n}")
+    type = factory.Sequence(lambda n: f"{n}")
+
+
+class CitizenFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Citizen
+
+    age_group = factory.SubFactory(CitizenAgeGroupFactory)
+    group = factory.SubFactory(CitizenGroupFactory)
+    group_2 = factory.SubFactory(CitizenGroupFactory)
+
+
 class IssueFactory(DjangoModelFactory):
     """Factory for creating Issue instances for testing."""
 
@@ -150,12 +199,11 @@ class IssueFactory(DjangoModelFactory):
 
     tracking_code = factory.Sequence(lambda n: f"TRK-{n + 1:05d}")
     title = factory.Faker("sentence", nb_words=4)
+    description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
     intake_date = factory.LazyFunction(timezone.now)
-
     status = factory.SubFactory(IssueStatusFactory)
     category = factory.SubFactory(IssueCategoryFactory)
     issue_type = factory.SubFactory(IssueTypeFactory)
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
-
     reporter = factory.SubFactory(UserFactory)
     assignee = factory.SubFactory(UserFactory)

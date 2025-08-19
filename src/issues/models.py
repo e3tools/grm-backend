@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
+from grm.utils import email_is_valid
+
 
 class AdministrativeLevel(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -69,17 +71,41 @@ class AdministrativeRegion(models.Model):
             descendant_ids.extend(child.get_all_descendant_ids())
         return descendant_ids
 
+    @classmethod
+    def get_administrative_region_choices(cls, empty_choice=True):
+        query_result = cls.objects.filter(parent__parent=None)
+        choices = list()
+        for item in query_result:
+            choices.append((item.id, item.name))
+        if empty_choice:
+            choices = [("", "")] + choices
+        return choices
+
+    @classmethod
+    def get_administrative_regions_by_level(cls, level=None):
+        filters = {}
+        if level:
+            filters['administrative_level'] = level
+        else:
+            filters['parent_id'] = None
+        parent_id = cls.objects.filter(**filters).first()
+        return cls.objects.filter(parent=parent_id)
+
+
 class Component(models.Model):
     name = models.CharField(max_length=100)
+    description = models.TextField(null=False, blank=False)
 
     def __str__(self):
         return self.name
+
 
 class SubComponent(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
 
 class IssueStatus(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -159,6 +185,9 @@ class IssueType(models.Model):
 
 class IssueSubType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
+    )
 
     class Meta:
         verbose_name = _("Issue Subtype")
@@ -168,79 +197,91 @@ class IssueSubType(models.Model):
     def __str__(self):
         return self.name
 
+
+class CitizenAgeGroup(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class CitizenGroup(models.Model):
+    CITIZEN_GROUP_TYPE = (
+        ('citizen_group', _('citizen_group')),
+        ('citizen_group_2', _('citizen_group_2')),
+    )
+    name = models.CharField(max_length=255, unique=True)
+    type = models.CharField(max_length=50, blank=True, choices=CITIZEN_GROUP_TYPE)
+
+    def __str__(self):
+        return self.name
+
+
+class Citizen(models.Model):
+    CITIZEN_TYPE = (
+        ('organization_behalf_someone', _('organization_behalf_someone')),
+        ('on_behalf_of_someone', _('on_behalf_of_someone')),
+        ('keep_name_confidential', _('keep_name_confidential')),
+    )
+
+    name = models.CharField(max_length=255)
+    age_group = models.ForeignKey(
+        CitizenAgeGroup, blank=True, on_delete=models.CASCADE, related_name="age_group_citizen"
+    )
+    type = models.CharField(max_length=50, blank=True, choices=CITIZEN_TYPE)
+    group = models.ForeignKey(CitizenGroup, blank=True, on_delete=models.CASCADE, related_name="group_citizen")
+    group_2 = models.ForeignKey(CitizenGroup, blank=True, on_delete=models.CASCADE, related_name="group2_citizen")
+
+
 class Issue(models.Model):
     CONTACT_MEDIUM = (
         ('channel-alert', _('channel-alert')),
         ('facilitator', _('facilitator')),
-        ('anonymous', _('anonymous'))
+        ('anonymous', _('anonymous')),
     )
-    CONTACT_METHOD = (
-        ('email', _('email')),
-        ('phone_number', _('phone_number')),
-        ('whatsapp', _('whatsapp'))
-    )
+    CONTACT_METHOD = (('email', _('email')), ('phone_number', _('phone_number')), ('whatsapp', _('whatsapp')))
 
     administrative_region = models.ForeignKey(AdministrativeRegion, on_delete=models.CASCADE, related_name='issues')
     assignee = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='assigned_issues')
     category = models.ForeignKey(IssueCategory, on_delete=models.CASCADE, related_name='issues')
-    citizen = models.CharField(max_length=255, blank=True)
-    citizen_age_group = models.CharField(max_length=50, blank=True)
-    contact_medium = models.CharField(max_length=50, blank=True)
-    citizen_type = models.CharField(max_length=50, blank=True)
-    citizen_group = models.CharField(max_length=50, blank=True)
-    citizen_group_2 = models.CharField(max_length=50, blank=True)
-    contact_info = models.CharField(max_length=255, blank=True)
-    contact_medium: models.CharField(
-        max_length=50,
-        default='anonymous',
-        null=False,
-        blank=False,
-        choices=CONTACT_MEDIUM
+    citizen = models.ForeignKey(Citizen, blank=True, null=True, on_delete=models.CASCADE, related_name="citizen_issues")
+    contact_information = models.CharField(
+        max_length=255, blank=True, help_text="The contact phone, email, whatsapp or other method data"
     )
-    contact_method = models.CharField(max_length=255, choices=CONTACT_METHOD, default='email')
-    component = models.ForeignKey(
-        Component,
-        on_delete=models.CASCADE,
-        related_name='issues',
-        null=True
+    contact_medium = models.CharField(max_length=50, blank=True, choices=CONTACT_MEDIUM, default='channel-alert')
+    contact_method = models.CharField(max_length=255, choices=CONTACT_METHOD, default=None, null=True)
+    component = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
+    created_date = models.DateTimeField(
+        blank=True, editable=False, null=True, auto_now_add=now(), help_text="When was the issue created in DB"
     )
-    sub_component = models.ForeignKey(
-        SubComponent,
-        on_delete=models.CASCADE,
-        related_name='issues',
-        null=True
-    )
-    created_at = models.DateTimeField(blank=True, editable=False, null=True, auto_now_add=now())
-    description: models.TextField(
-        null=False,
-        blank=False
-    )
-    intake_date = models.DateTimeField(default=timezone.now, db_index=True)
-    issue_at = models.DateTimeField(blank=True, editable=False, null=True)
+    description = models.TextField(null=True, blank=False, default=None)
+    intake_date = models.DateTimeField(default=timezone.now, db_index=True, help_text="When was the issue was reported")
+    issue_date = models.DateTimeField(blank=True, editable=False, null=True, help_text="When was the issue happened")
     issue_location = models.ForeignKey(
         AdministrativeRegion,
         on_delete=models.CASCADE,
         related_name='located_issues',
         null=True,
         blank=True,
-        help_text="The specific administrative location where the issue occurred."
+        help_text="The specific administrative location where the issue occurred.",
     )
     issue_type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues')
     issue_sub_type = models.ForeignKey(
-        IssueSubType,
-        on_delete=models.CASCADE,
-        related_name='issues',
-        null=True,
+        IssueSubType, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
     )
     location_description = models.TextField(blank=True, help_text="A textual description of the issue's location.")
     ongoing_issue = models.BooleanField(default=False)
     reporter = models.ForeignKey('authentication.User', on_delete=models.CASCADE, related_name='reporter_issues')
-    resolution_at = models.DateTimeField(blank=True, editable=False, null=True)
+    resolution_date = models.DateTimeField(
+        blank=True, editable=False, null=True, help_text="When was the issue was resolved"
+    )
     status = models.ForeignKey(IssueStatus, on_delete=models.CASCADE, related_name='issues')
+    sub_component = models.ForeignKey(
+        SubComponent, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
+    )
     title = models.CharField(max_length=255)
-    tracking_code = models.CharField(max_length=255)  # TODO: after ETL refactor add unique=True
-    updated_at = models.DateTimeField(blank=True, editable=False, null=True, auto_now=now())
-
+    tracking_code = models.CharField(max_length=255)
+    updated_date = models.DateTimeField(blank=True, editable=False, null=True, auto_now=now())
 
     class Meta:
         verbose_name = _("Issue")
@@ -258,3 +299,30 @@ class Issue(models.Model):
             f"{self.status.name} - {self.category.name} - {self.issue_type.name} "
             f"({self.intake_date.strftime('%Y-%m-%d %H:%M')})"
         )
+
+    def save(self, *args, **kwargs):
+        self._validate_contact_method_based_on_contact_medium()
+        if self.contact_method:
+            self._validate_contact_information_based_on_contact_method()
+        return super().save(*args, **kwargs)
+
+    def _validate_contact_method_based_on_contact_medium(self):
+        if self.contact_medium != 'channel-alert' and self.contact_method is None:
+            raise ValidationError(
+                _("You must define the contact method is your contact medium is not channel alert"),
+            )
+
+    def _validate_contact_information_based_on_contact_method(self):
+        if self.contact_method == 'email' and not email_is_valid(self.contact_information):
+            raise ValidationError(
+                _("If email contact method is selected provide a valid email"),
+            )
+        if self.contact_method != 'email' and email_is_valid(self.contact_information):
+            raise ValidationError(
+                _("If phone or whatsapp contact method is selected provide a valid phone number"),
+            )
+
+    def resolution_days(self):
+        if self.resolution_date is not None:
+            return abs((self.resolution_date - self.intake_date).days)
+        return None
