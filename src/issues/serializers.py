@@ -1,6 +1,5 @@
 from coreschema.formats import validate_email
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
@@ -248,38 +247,7 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         issue.save()
         return issue
 
-    def validate_status(self, value):
-        """
-        Validate that the provided status exists and is active.
-        """
-        if not value:
-            raise serializers.ValidationError(_("Status is required."))
-        return value
-
-    def validate_category(self, value):
-        """
-        Validate that the provided category exists.
-        """
-        if not value:
-            raise serializers.ValidationError(_("Category is required."))
-        return value
-
-    def validate_issue_type(self, value):
-        """
-        Validate that the provided issue type exists.
-        """
-        if not value:
-            raise serializers.ValidationError(_("Issue type is required."))
-        return value
-
-    def validate_administrative_region(self, value):
-        """
-        Validate that the provided administrative region exists.
-        """
-        if not value:
-            raise serializers.ValidationError(_("Administrative region is required."))
-        return value
-
+    # TODO: tests for validate
     def validate(self, data):
         """
         Performs object-level validation for cross-field dependencies.
