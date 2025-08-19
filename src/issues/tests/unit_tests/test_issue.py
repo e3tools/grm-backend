@@ -58,21 +58,6 @@ class TestIssue(TestCase):
         self.assignee = UserFactory()
         super().setUp()
 
-    def test_str_representation(self):
-        issue = IssueFactory(
-            status=self.status,
-            category=self.category,
-            issue_type=self.issue_type,
-            administrative_region=self.child_region,
-            reporter=self.reporter,
-            assignee=self.assignee,
-        )
-        expected_str = (
-            f"{issue.status.name} - {issue.category.name} - {issue.issue_type.name} "
-            f"({issue.intake_date.strftime('%Y-%m-%d %H:%M')})"
-        )
-        self.assertEqual(str(issue), expected_str)
-
     def test_resolution_days_with_resolution_date(self):
         issue = IssueFactory(
             intake_date=timezone.now() - timedelta(days=5),

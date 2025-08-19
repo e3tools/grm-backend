@@ -6,15 +6,32 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from client import get_db
+from etl.management.commands.etl_fetch_adl_data import Command as ADLCommand
 from etl.management.commands.etl_fetch_administrative_region_data import (
     Command as RegionCommand,
 )
 from etl.management.commands.etl_fetch_issue_department_data import (
     Command as DepartmentCommand,
 )
+from etl.management.commands.etl_fetch_issue_sub_type_data import (
+    Command as SubTypeCommand,
+)
 from etl.models import ETLExecutionLog
-from etl.utils import bulk_create_or_update, process_category_data, process_issue_data
-from issues.models import Issue, IssueCategory, IssueStatus, IssueType
+from etl.utils import (
+    bulk_create_or_update,
+    process_category_data,
+    process_citizen_group_data,
+    process_issue_data,
+)
+from issues.models import (
+    CitizenAgeGroup,
+    CitizenGroup,
+    Component,
+    Issue,
+    IssueCategory,
+    IssueStatus,
+    IssueType,
+)
 
 logger = logging.getLogger(__name__)
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -30,6 +47,12 @@ class Command(BaseCommand):
             type=str,
             help="Indicates the type of ETL trigger to record a log of the execution.",
         )
+        parser.add_argument(
+            "--only_confirmed",
+            default=False,
+            type=bool,
+            help="Filter documents by confirmed field",
+        )
 
     def fetch_database(self, documents, model_class):
         documents = [doc for doc in documents]
@@ -44,6 +67,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         triggered_by = options["triggered_by"]
+        only_confirmed = options["only_confirmed"]
 
         etl_name = 'etl_fetch_issue_data'
         log_entry = None
@@ -59,10 +83,34 @@ class Command(BaseCommand):
             # update AdministrativeRegion objects
             RegionCommand().handle()
 
+            # update User objects
+            ADLCommand().handle()
+
             # update IssueDepartment objects
             DepartmentCommand().handle()
 
+            # update IssueSubType objects
+            SubTypeCommand().handle()
+
             grm_db = get_db(COUCHDB_GRM_DATABASE)
+
+            # update CitizenAgeGroup objects
+            # get issue_age_group documents from CouchDB
+            documents = grm_db.get_query_result({"type": "issue_age_group"})
+            self.fetch_database(documents=documents, model_class=CitizenAgeGroup)
+
+            # update CitizenGroup objects
+            # get issue_citizen_group documents from CouchDB
+            documents = grm_db.get_query_result({"type": "issue_citizen_group"})
+
+            # process data for bulk create and bulk update
+            documents = process_citizen_group_data(documents)
+            self.fetch_database(documents=documents, model_class=CitizenGroup)
+
+            # update Component objects
+            # get issue_component documents from CouchDB
+            documents = grm_db.get_query_result({"type": "issue_component"})
+            self.fetch_database(documents=documents, model_class=Component)
 
             # update IssueStatus objects
             # get issue_status documents from CouchDB
@@ -86,16 +134,17 @@ class Command(BaseCommand):
             # get issue documents from CouchDB
             selector = {
                 "type": "issue",
-                "confirmed": True,
                 "auto_increment_id": {"$ne": ""},
             }
+            if only_confirmed:
+                selector["confirmed"] = True
             documents = grm_db.get_query_result(selector)
 
             # process data for bulk create and bulk update
             documents = process_issue_data(documents)
             result = self.fetch_database(documents=documents, model_class=Issue)
 
-            self.stdout.write(self.style.SUCCESS('Successfully ran ETL process'))
+            self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_issue_data'))
 
             log_entry.status = 'SUCCESS'
             log_entry.finished_at = timezone.now()

@@ -48,4 +48,4 @@ class Command(BaseCommand):
         administrative_levels_db = get_db()
         self.fetch_administrative_region(administrative_levels_db)
 
-        self.stdout.write(self.style.SUCCESS('Successfully ran ETL process'))
+        self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_administrative_region_data'))

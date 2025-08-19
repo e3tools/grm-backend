@@ -50,7 +50,7 @@ class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         from django.core.management import call_command
 
         last_success = ETLExecutionLog.objects.filter(status='SUCCESS').first()
-        call_command("etl_fetch_issue_data")
+        call_command("etl_fetch_issue_data", only_confirmed=True)
         log_entry = ETLExecutionLog.objects.first()
         if log_entry and last_success != log_entry and log_entry.status == 'SUCCESS':
             msg = _(f"The data was successfully updated.<br>Records processed: {log_entry.records_processed}")
@@ -102,7 +102,7 @@ class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
             root_region = AdministrativeRegion.objects.get(parent__isnull=True)
 
         # Build filters for issues
-        filters = Q()
+        filters = Q(confirmed=True)
 
         if start_date:
             filters &= Q(intake_date__gte=make_aware(datetime.strptime(start_date, "%d/%m/%Y")))

@@ -108,6 +108,7 @@ class IssueCreateAPIView(CreateAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class IssueListAPIView(ListAPIView):
     """
     API View for listing Issue objects with pagination.
