@@ -10,9 +10,11 @@ from issues.models import (
     Citizen,
     CitizenAgeGroup,
     CitizenGroup,
+    Component,
     Issue,
     IssueStatus,
     IssueType,
+    SubComponent,
 )
 
 from .models import (
@@ -138,6 +140,20 @@ class IssueTypeFactory(DjangoModelFactory):
         model = IssueType
 
     name = factory.Sequence(lambda n: f"Type {n}")
+
+
+class ComponentFactory(DjangoModelFactory):
+    """Factory for creating Component instances for testing."""
+
+    class Meta:
+        model = Component
+
+
+class SubComponentFactory(DjangoModelFactory):
+    """Factory for creating SubComponent instances for testing."""
+
+    class Meta:
+        model = SubComponent
 
 
 class AdministrativeRegionFactory(DjangoModelFactory):
