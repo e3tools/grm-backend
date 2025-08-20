@@ -32,4 +32,4 @@ class Command(BaseCommand):
         grm_db = get_db(COUCHDB_GRM_DATABASE)
         self.fetch_issue_department(grm_db)
 
-        self.stdout.write(self.style.SUCCESS('Successfully ran ETL process'))
+        self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_issue_department_data'))
