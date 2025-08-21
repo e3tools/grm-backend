@@ -463,7 +463,7 @@
 
         function changeRegionTrigger(url, placeholder) {
             $(document).on("change", ".region", function () {
-                loadNextLevelRegions($(this), url, placeholder);
+                loadNextLevelRegions($(this), url, placeholder, true);
                 let current_input_value = $(this).val();
                 if (current_input_value) {
                     current_region_id = current_input_value;
@@ -527,7 +527,7 @@
             $('.regions-filter select').val(null).trigger('change.select2');
             current_region_id = null;
             loadStatistics();
-            loadNextLevelRegions($("#id_administrative_region"), '', '');
+            loadNextLevelRegions($("#id_administrative_region"), '', '', true);
         });
 
         $(document).on('click', '#update_issue_data', function () {
