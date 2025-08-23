@@ -13,6 +13,7 @@ from issues.models import (
     Component,
     Issue,
     IssueStatus,
+    IssueSubType,
     IssueType,
     SubComponent,
 )
@@ -140,6 +141,15 @@ class IssueTypeFactory(DjangoModelFactory):
         model = IssueType
 
     name = factory.Sequence(lambda n: f"Type {n}")
+
+
+class IssueSubTypeFactory(DjangoModelFactory):
+    """Factory for creating IssueSubTypeFactory instances for testing."""
+
+    class Meta:
+        model = IssueSubType
+
+    name = factory.Sequence(lambda n: f"SubType {n}")
 
 
 class ComponentFactory(DjangoModelFactory):
