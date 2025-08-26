@@ -23,20 +23,3 @@ class StatisticsOfTasksUpdatedByRegionView(AJAXRequestMixin, LoginRequiredMixin,
             stats = {"count": 0}
 
         return self.render_to_json_response(stats, safe=False)
-
-
-class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
-    def get(self, request, *args, **kwargs):
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-
-        if hasattr(self.request.user, "governmentworker"):
-            issues_stats = grm_db.get_view_result("issues", "by_assignee_stats", key=self.request.user.id)
-        else:
-            issues_stats = grm_db.get_view_result("issues", "by_assignee_stats")
-
-        if issues_stats[0]:
-            issues_stats = issues_stats[0][0]["value"]
-        else:
-            issues_stats = {"count": 0}
-
-        return self.render_to_json_response(issues_stats, safe=False)

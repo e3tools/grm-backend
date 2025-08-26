@@ -478,7 +478,7 @@
             loadStatistics();
         });
 
-        let get_choices_url = '{% url 'dashboard:grm:new_get_choices_for_next_administrative_level' %}?exclude_lower_level=true';
+        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}?exclude_lower_level=true';
         let choice_placeholder = "{% translate 'Click to select location' %}";
         changeRegionTrigger(get_choices_url, choice_placeholder);
 
@@ -494,7 +494,7 @@
         $('.datetimepicker-input').inputmask({alias: "datetime", inputFormat: "dd/mm/yyyy"});
 
         let options = {
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             format: "DD/MM/YYYY",
             widgetPositioning: {

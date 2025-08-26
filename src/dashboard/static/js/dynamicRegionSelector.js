@@ -20,8 +20,8 @@ function loadNextLevelRegions(current_level, url, placeholder) {
             },
             success: function (data) {
                 if (data.length > 0) {
-                    let id_select = 'id_' + data[0].id;
-                    let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
+                    let id_select = 'id_' + data[0].administrative_level__name;
+                    let label = data[0].administrative_level__name.replace(/^\w/, (c) => c.toUpperCase());
                     let child;
                     let new_input = document.createElement('div');
                     new_input.className = 'form-group row dynamic-select';
@@ -101,7 +101,7 @@ function loadRegionSelectors(url) {
         type: 'GET',
         url: url,
         data: {
-            administrative_id: administrative_region_value,
+            region_id: administrative_region_value,
         },
         success: function (data) {
             if (data.length > 0) {

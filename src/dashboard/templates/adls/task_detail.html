@@ -13,7 +13,7 @@
             <div class="badge-task-detail navbar-white">
                 <i class="far fa-calendar-alt text-warning mr-2"></i>
                 {% translate "indefinite date" as undefined %}
-                {{ task.due_at|string_to_date|date:'M Y'|default:undefined }}
+                {{ task.due_at|date:'M Y'|default:undefined }}
             </div>
             <div class="task-title mt-4">
                 {{ task.ordinal }}. {{ task.title }}

@@ -54,7 +54,7 @@
                                             </div>
                                             <div class="col-10">
                                                 {% translate "indefinite date" as undefined %}
-                                                {{ task.due_at|string_to_date|date:'M Y'|default:undefined }}
+                                                {{ task.due_at|date:'M Y'|default:undefined }}
                                             </div>
                                         </div>
                                     </div>

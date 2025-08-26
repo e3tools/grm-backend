@@ -3,6 +3,7 @@ from django.urls import reverse  # Import reverse to use named URLs in tests
 from rest_framework import status
 from rest_framework.test import APITestCase  # Use APITestCase for DRF views
 
+from dashboard.grm.constants import CHOICE_FACILITATOR
 from grm.utils import reset_sequences
 from issues.factories import (
     AdministrativeLevelFactory,
@@ -20,7 +21,7 @@ from issues.factories import (
     SubComponentFactory,
     UserFactory,
 )
-from issues.models import AdministrativeRegion, Issue
+from issues.models import Issue
 
 
 @pytest.mark.django_db
@@ -29,11 +30,8 @@ class TestIssueCreateAPIView(APITestCase):
     Tests for the IssueCreateAPIView.
     """
 
-    @classmethod
     def setUp(self):
         reset_sequences()
-
-        AdministrativeRegion.objects.filter(parent__isnull=True).delete()
         self.administrative_level = AdministrativeLevelFactory(name="Country")
         self.root_region = AdministrativeRegionFactory(
             name="Root Region",
@@ -152,7 +150,7 @@ class TestIssueCreateAPIView(APITestCase):
             },
             "component": self.component.pk,
             "sub_component": self.sub_component.pk,
-            "contact_medium": "channel-alert",
+            "contact_medium": CHOICE_FACILITATOR,
             "contact_method": None,
             "contact_information": "aa",
             "ongoing_issue": True,

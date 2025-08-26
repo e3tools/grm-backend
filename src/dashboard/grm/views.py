@@ -5,9 +5,12 @@ import cryptocode
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+
+# from dashboard.forms.forms import FileForm
+from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
@@ -19,12 +22,11 @@ from authentication.models import (
     anonymize_issue_data,
     get_assignee,
 )
-from client import get_db, upload_file
+
+# from client import upload_file
 from dashboard.adls.forms import PasswordConfirmForm
-from dashboard.forms.forms import FileForm
-from dashboard.grm.constants import CHOICE_CONTACT
-from dashboard.grm.forms import (
-    MAX_LENGTH,
+from dashboard.grm.constants import CHOICE_ALERT
+from dashboard.grm.forms import (  # MAX_LENGTH,
     IssueCommentForm,
     IssueDetailsForm,
     IssueRejectReasonForm,
@@ -42,14 +44,8 @@ from dashboard.mixins import (
     ModalFormMixin,
     PageMixin,
 )
-from grm.utils import (
-    get_administrative_level_descendants,
-    get_auto_increment_id,
-    get_child_administrative_regions,
-    get_issue_select_options_choices,
-    get_parent_administrative_level,
-)
-from issues.models import AdministrativeRegion
+from grm.utils import get_issue_select_options_choices
+from issues.models import AdministrativeRegion, Citizen, Issue, IssueStatus
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -66,86 +62,62 @@ class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView)
 
 class StartNewIssueView(LoginRequiredMixin, generic.View):
     def post(self, request, *args, **kwargs):
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        auto_increment_id = get_auto_increment_id(grm_db)
         user = request.user
         sample_words = ["Tree", "Cat", "Dog", "Car", "House"]
-        issue = {
-            "auto_increment_id": auto_increment_id,
-            "reporter": {"id": user.id, "name": user.name},
-            "created_date": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-            "confirmed": False,
-            "escalate_flag": False,
-            "created_by": False,
-            "tracking_code": f"{random.choice(sample_words)}{random.choice(range(1, 1000))}",
-            "type": "issue",
-        }
-        grm_db.create_document(issue)
+        initial_status = IssueStatus.objects.get(initial_status=True)
+        issue = Issue.objects.create(
+            reporter=user,
+            tracking_code=f"{random.choice(sample_words)}{random.choice(range(1, 1000))}",
+            status=initial_status,
+        )
         return HttpResponseRedirect(
             reverse(
                 "dashboard:grm:new_issue_step_1",
-                kwargs={"issue": issue["auto_increment_id"]},
+                kwargs={"issue": issue.id},
             )
         )
 
 
 class IssueMixin:
-    doc = None
-    grm_db = None
-    eadl_db = None
+    obj = None
     max_attachments = 20
     permissions = ("read", "write")
     has_permission = True
 
-    def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "type": "issue"})
-
     def check_permissions(self):
         user = self.request.user
-        administrative_id = (
-            self.doc["administrative_region"]["administrative_id"] if "administrative_region" in self.doc else None
-        )
+        administrative_id = self.obj.administrative_region.id if self.obj.administrative_region else None
 
-        if self.doc["confirmed"]:
-            if "read_only_by_reporter" in self.permissions and self.doc["reporter"]["id"] != user.id:
+        if self.obj.confirmed:
+            if "read_only_by_reporter" in self.permissions and self.obj.reporter != user:
                 self.has_permission = False
             else:
-                is_assigned = "assignee" in self.doc and self.doc["assignee"]
-                if hasattr(user, "governmentworker") and is_assigned and self.doc["assignee"]["id"] != user.id:
+                if hasattr(user, "governmentworker") and self.obj.assignee and self.obj.assignee != user:
                     if "read" not in self.permissions and "read_only_by_reporter" not in self.permissions:
                         self.has_permission = False
                     else:
                         if "read_only_by_reporter" in self.permissions:
-                            if self.doc["reporter"]["id"] != user.id:
+                            if self.obj.reporter != user:
                                 self.has_permission = False
                         else:
                             # show user's children administrative level issue
-                            if user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
+                            if user.governmentworker.has_read_permission_for_issue(self.obj):
                                 self.has_permission = True
-                            elif not user.governmentworker.has_read_permission_for_issue(self.eadl_db, self.doc):
+                            elif not user.governmentworker.has_read_permission_for_issue(self.obj):
                                 self.has_permission = False
                             if "write" not in self.permissions:
                                 self.has_permission = False
         if hasattr(user, "governmentworker"):
             user_adm_id = user.governmentworker.administrative_id
-            eadl_db = get_db()
-            descendants = get_administrative_level_descendants(eadl_db, user_adm_id, [])
-            allowed_regions = descendants + [user_adm_id]
+            administrative_region = AdministrativeRegion.objects.get(id=user_adm_id)
+            allowed_regions = administrative_region.get_descendant_ids()
             if administrative_id in allowed_regions:
                 self.has_permission = True
-        print(f"**************has permission: {self.has_permission} ***************")
 
     def dispatch(self, request, *args, **kwargs):
-        self.grm_db = get_db(COUCHDB_GRM_DATABASE)
-        self.eadl_db = get_db()
-        docs = self.get_query_result(**kwargs)
-        try:
-            self.doc = self.grm_db[docs[0][0]["_id"]]
-        except Exception:
-            raise Http404
+        self.obj = get_object_or_404(Issue, id=kwargs["issue"])
 
         self.check_permissions()
-        print("****************dispatch****************************")
         if not self.has_permission:
             raise PermissionDenied
 
@@ -153,141 +125,140 @@ class IssueMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["doc"] = self.doc
+        context["obj"] = self.obj
         context["max_attachments"] = self.max_attachments
-        context["choice_contact"] = CHOICE_CONTACT
+        context["choice_contact"] = CHOICE_ALERT
         permission_to_edit = True
         user = self.request.user
-        is_assigned = "assignee" in self.doc and self.doc["assignee"]
-        if hasattr(user, "governmentworker") and is_assigned and self.doc["assignee"]["id"] != user.id:
+        if hasattr(user, "governmentworker") and self.obj.assignee and self.obj.assignee != user:
             permission_to_edit = False
         context["permission_to_edit"] = permission_to_edit
         return context
 
 
-class UploadIssueAttachmentFormView(
-    IssueMixin,
-    AJAXRequestMixin,
-    ModalFormMixin,
-    LoginRequiredMixin,
-    JSONResponseMixin,
-    generic.FormView,
-):
-    form_class = FileForm
-    title = _("Add attachment")
-    submit_button = _("Upload")
-    permissions = ("read",)
-
-    def form_valid(self, form):
-        data = form.cleaned_data
-        attachments = self.doc["attachments"] if "attachments" in self.doc else list()
-        if len(attachments) < self.max_attachments:
-            response = upload_file(data["file"], COUCHDB_GRM_ATTACHMENT_DATABASE)
-            if response["ok"]:
-                attachment = {
-                    "name": data["file"].name,
-                    "url": f'/grm_attachments/{response["id"]}/{data["file"].name}',
-                    "local_url": "",
-                    "id": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "uploaded": True,
-                    "bd_id": response["id"],
-                }
-                attachments.append(attachment)
-                self.doc["attachments"] = attachments
-
-                # Add a comment relative to the action: Add new attachment to the issue.
-                user_id = self.request.user.id
-                comments = self.doc["comments"] if "comments" in self.doc else list()
-                comment = _("A new attachment %s has been added to the issue.") % data["file"].name
-                comment_obj = {
-                    "name": f"{self.request.user.name}",
-                    "id": f"{user_id}",
-                    "comment": f"{comment}",
-                    "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
-                }
-                comments.insert(0, comment_obj)
-                self.doc["comments"] = comments
-                self.doc.save()
-                msg = _("The attachment was successfully uploaded.")
-                messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-            else:
-                msg = _(
-                    "An error has occurred that did not allow the attachment to be uploaded to the database. "
-                    "Please report to IT staff."
-                )
-                messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-        else:
-            msg = _(
-                "The file could not be uploaded because it has already reached the limit of %(max)d attachments."
-            ) % {"max": self.max_attachments}
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
-
-
-class IssueAttachmentDeleteView(
-    IssueMixin,
-    AJAXRequestMixin,
-    ModalFormMixin,
-    LoginRequiredMixin,
-    JSONResponseMixin,
-    generic.DeleteView,
-):
-    permissions = ("read",)
-
-    def delete(self, request, *args, **kwargs):
-        if "attachments" in self.doc:
-            attachment_name = None
-            attachments = self.doc["attachments"]
-            grm_attachment_db = get_db(COUCHDB_GRM_ATTACHMENT_DATABASE)
-            for attachment in attachments:
-                if attachment["id"] == kwargs["attachment"]:
-                    try:
-                        grm_attachment_db[attachment["bd_id"]].delete()
-                    except Exception:
-                        pass
-                    attachment_name = attachment["name"]
-                    attachments.remove(attachment)
-                    break
-
-            # Add a comment relative to the action: Attachment deletion
-            user_id = request.user.id
-            comments = self.doc["comments"] if "comments" in self.doc else list()
-            comment = _("The attachment %s has been deleted to the issue.") % attachment_name
-            comment_obj = {
-                "name": f"{request.user.name}",
-                "id": f"{user_id}",
-                "comment": f"{comment}",
-                "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
-            }
-            comments.insert(0, comment_obj)
-            self.doc["comments"] = comments
-            self.doc.save()
-            msg = _("The attachment was successfully deleted.")
-            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-            context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-            return self.render_to_json_response(context, safe=False)
-        else:
-            raise Http404
-
-
-class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
-    template_name = "grm/issue_attachments.html"
-    context_object_name = "attachments"
-
-    def get_queryset(self):
-        return self.doc["attachments"] if "attachments" in self.doc else list()
-
-    def dispatch(self, request, *args, **kwargs):
-        column = self.request.GET.get("column", "")
-        if column:
-            self.template_name = "grm/issue_attachments_column1.html"
-        return super().dispatch(request, *args, **kwargs)
+# class UploadIssueAttachmentFormView(
+#     IssueMixin,
+#     AJAXRequestMixin,
+#     ModalFormMixin,
+#     LoginRequiredMixin,
+#     JSONResponseMixin,
+#     generic.FormView,
+# ):
+#     form_class = FileForm
+#     title = _("Add attachment")
+#     submit_button = _("Upload")
+#     permissions = ("read",)
+#
+#     def form_valid(self, form):
+#         data = form.cleaned_data
+#         attachments = self.doc["attachments"] if "attachments" in self.doc else list()
+#         if len(attachments) < self.max_attachments:
+#             response = upload_file(data["file"], COUCHDB_GRM_ATTACHMENT_DATABASE)
+#             if response["ok"]:
+#                 attachment = {
+#                     "name": data["file"].name,
+#                     "url": f'/grm_attachments/{response["id"]}/{data["file"].name}',
+#                     "local_url": "",
+#                     "id": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+#                     "uploaded": True,
+#                     "bd_id": response["id"],
+#                 }
+#                 attachments.append(attachment)
+#                 self.doc["attachments"] = attachments
+#
+#                 # Add a comment relative to the action: Add new attachment to the issue.
+#                 user_id = self.request.user.id
+#                 comments = self.doc["comments"] if "comments" in self.doc else list()
+#                 comment = _("A new attachment %s has been added to the issue.") % data["file"].name
+#                 comment_obj = {
+#                     "name": f"{self.request.user.name}",
+#                     "id": f"{user_id}",
+#                     "comment": f"{comment}",
+#                     "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
+#                 }
+#                 comments.insert(0, comment_obj)
+#                 self.doc["comments"] = comments
+#                 self.doc.save()
+#                 msg = _("The attachment was successfully uploaded.")
+#                 messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+#             else:
+#                 msg = _(
+#                     "An error has occurred that did not allow the attachment to be uploaded to the database. "
+#                     "Please report to IT staff."
+#                 )
+#                 messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+#         else:
+#             msg = _(
+#                 "The file could not be uploaded because it has already reached the limit of %(max)d attachments."
+#             ) % {"max": self.max_attachments}
+#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+#         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+#         return self.render_to_json_response(context, safe=False)
+#
+#
+# class IssueAttachmentDeleteView(
+#     IssueMixin,
+#     AJAXRequestMixin,
+#     ModalFormMixin,
+#     LoginRequiredMixin,
+#     JSONResponseMixin,
+#     generic.DeleteView,
+# ):
+#     permissions = ("read",)
+#
+#     def delete(self, request, *args, **kwargs):
+#         if "attachments" in self.doc:
+#             attachment_name = None
+#             attachments = self.doc["attachments"]
+#             grm_attachment_db = get_db(COUCHDB_GRM_ATTACHMENT_DATABASE)
+#             for attachment in attachments:
+#                 if attachment["id"] == kwargs["attachment"]:
+#                     try:
+#                         grm_attachment_db[attachment["bd_id"]].delete()
+#                     except Exception:
+#                         pass
+#                     attachment_name = attachment["name"]
+#                     attachments.remove(attachment)
+#                     break
+#
+#             # Add a comment relative to the action: Attachment deletion
+#             user_id = request.user.id
+#             comments = self.doc["comments"] if "comments" in self.doc else list()
+#             comment = _("The attachment %s has been deleted to the issue.") % attachment_name
+#             comment_obj = {
+#                 "name": f"{request.user.name}",
+#                 "id": f"{user_id}",
+#                 "comment": f"{comment}",
+#                 "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
+#             }
+#             comments.insert(0, comment_obj)
+#             self.doc["comments"] = comments
+#             self.doc.save()
+#             msg = _("The attachment was successfully deleted.")
+#             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+#             context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+#             return self.render_to_json_response(context, safe=False)
+#         else:
+#             raise Http404
+#
+#
+# class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+#     template_name = "grm/issue_attachments.html"
+#     context_object_name = "attachments"
+#
+#     def get_queryset(self):
+#         return self.obj["attachments"] if "attachments" in self.obj else list()
+#
+#     def dispatch(self, request, *args, **kwargs):
+#         column = self.request.GET.get("column", "")
+#         if column:
+#             self.template_name = "grm/issue_attachments_column1.html"
+#         return super().dispatch(request, *args, **kwargs)
 
 
 class IssueFormMixin(IssueMixin, generic.FormView):
     def get_form_kwargs(self):
-        self.initial = {"doc_id": self.doc["_id"]}
+        self.initial = {"obj_id": self.obj.id}
         return super().get_form_kwargs()
 
 
@@ -301,235 +272,80 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return dispatch
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result(
-            {
-                "auto_increment_id": kwargs["issue"],
-                "reporter.id": self.request.user.id,
-                "confirmed": False,
-                "type": "issue",
-            }
-        )
-
-    def get_form_kwargs(self):
-        self.initial = {"doc_id": self.doc["_id"]}
-        return super().get_form_kwargs()
+        return Issue.objects.filter(id=kwargs["issue"], reporter=self.request.user, confirmed=False)
 
     def has_required_fields(self):
-        if self.fields_to_check and self.doc:
+        if self.fields_to_check and self.obj:
             for field in self.fields_to_check:
-                if field not in self.doc:
-                    return False
-
-                if field in ("assignee",) and not self.doc[field]:
+                if getattr(self.obj, field) in [None, ""]:
                     return False
         return True
 
     def set_details_fields(self, data):
-        self.doc["intake_date"] = data["intake_date"].strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.doc["issue_date"] = data["issue_date"].strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.doc["description"] = data["description"]
+        self.obj.intake_date = data["intake_date"]
+        self.obj.issue_date = data["issue_date"]
+        self.obj.description = data["description"]
+        self.obj.issue_type_id = int(data["issue_type"])
+        self.obj.category_id = int(data["category"])
 
-        try:
-            doc_type = self.grm_db.get_query_result({"id": int(data["issue_type"]), "type": "issue_type"})[0][0]
-            doc_category = self.grm_db.get_query_result({"id": int(data["category"]), "type": "issue_category"})[0][0]
-            if "issue_sub_type" in data:
-                doc_sub_type = self.grm_db.get_query_result(
-                    {"id": int(data["issue_sub_type"]), "type": "issue_sub_type"}
-                )[0][0]
-            if "component" in data:
-                doc_component = self.grm_db.get_query_result({"id": int(data["component"]), "type": "issue_component"})[
-                    0
-                ][0]
-            # if "sub_component" in data:
-            #     doc_sub_component = self.grm_db.get_query_result(
-            #         {"id": int(data["sub_component"]), "type": "issue_sub_component"}
-            #     )[0][0]
-            if "subproject_group" in data:
-                doc_subproject_group = self.grm_db.get_query_result(
-                    {
-                        "id": int(data["subproject_group"]),
-                        "type": "issue_subproject_group",
-                    }
-                )[0][0]
-            department_id = doc_category["assigned_department"]["id"]
-        except Exception:
-            raise Http404
+        if "issue_sub_type" in data:
+            self.obj.issue_sub_type_id = int(data["issue_sub_type"])
+        if "component" in data:
+            self.obj.component_id = int(data["component"])
+        if "sub_component" in data:
+            self.obj.sub_component_id = int(data["sub_component"])
+        if "subproject_group" in data:
+            self.obj.subproject_group_id = int(data["subproject_group"])
 
-        self.doc["issue_type"] = {
-            "id": doc_type["id"],
-            "name": doc_type["name"],
-        }
-        assigned_department = (
-            doc_category["assigned_department"]["administrative_level"]
-            if "administrative_level" in doc_category["assigned_department"]
-            else None
-        )
-        self.doc["category"] = {
-            "id": doc_category["id"],
-            "name": doc_category["name"],
-            "confidentiality_level": doc_category["confidentiality_level"],
-            "assigned_department": department_id,
-            "administrative_level": assigned_department,
-        }
-
-        if doc_sub_type:
-            self.doc["issue_sub_type"] = {
-                "id": doc_sub_type["id"],
-                "name": doc_sub_type["name"],
-            }
-
-        if doc_component:
-            self.doc["component"] = {
-                "id": doc_component["id"],
-                "name": doc_component["name"],
-            }
-
-        # if doc_sub_component:
-        #     self.doc["sub_component"] = {
-        #         "id": doc_sub_component["id"],
-        #         "name": doc_sub_component["name"],
-        #     }
-
-        if doc_subproject_group:
-            self.doc["subproject_group"] = {
-                "id": doc_subproject_group["id"],
-                "name": doc_subproject_group["name"],
-            }
-
-        self.doc["ongoing_issue"] = data["ongoing_issue"]
-
-        self.doc.save()
+        self.obj.ongoing_issue = data["ongoing_issue"]
 
     def set_person_fields(self, data):
-        self.doc["citizen"] = data["citizen"]
+        citizen_name = data["citizen"].strip()
+        citizen_type = data["citizen_type"]
+        citizen_age_group = data["citizen_age_group"]
+        gender = data["gender"]
+        citizen_group = data["citizen_group"]
+        values = [citizen_name, citizen_type, citizen_age_group, gender, citizen_group]
+        citizen = self.obj.citizen
+        if any(v not in (None, "") for v in values):
+            if citizen:
+                citizen.name = citizen_name
+            else:
+                citizen = Citizen(name=citizen_name)
+                self.obj.citizen = citizen
 
-        citizen_type = int(data["citizen_type"]) if data["citizen_type"] else None
-        self.doc["citizen_type"] = citizen_type
+            citizen.type = data["citizen_type"] if data["citizen_type"] else None
 
-        if data["citizen"] and not citizen_type:
-            self.doc["citizen_type"] = 0
+            citizen.age_group_id = int(data["citizen_age_group"]) if data["citizen_age_group"] else ""
 
-        if data["citizen_age_group"]:
-            try:
-                doc_issue_age_group = self.grm_db.get_query_result(
-                    {"id": int(data["citizen_age_group"]), "type": "issue_age_group"}
-                )[0][0]
-                self.doc["citizen_age_group"] = {
-                    "name": doc_issue_age_group["name"],
-                    "id": doc_issue_age_group["id"],
-                }
-            except Exception:
-                raise Http404
+            citizen.gender = data["gender"]
+
+            citizen.group_id = int(data["citizen_group"]) if data["citizen_group"] else ""
+            citizen.save()
         else:
-            self.doc["citizen_age_group"] = ""
-
-        self.doc["gender"] = data["gender"]
-
-        # if data["religious_affiliation"]:
-        #     try:
-        #         doc_issue_religious_affiliation = self.grm_db.get_query_result(
-        #             {
-        #                 "id": int(data["religious_affiliation"]),
-        #                 "type": "issue_religious_affiliation",
-        #             }
-        #         )[0][0]
-        #         self.doc["religious_affiliation"] = {
-        #             "name": doc_issue_religious_affiliation["name"],
-        #             "id": doc_issue_religious_affiliation["id"],
-        #         }
-        #     except Exception:
-        #         raise Http404
-        # else:
-        #     self.doc["religious_affiliation"] = ""
-
-        if data["citizen_group"]:
-            try:
-                doc_issue_citizen_group = self.grm_db.get_query_result(
-                    {
-                        "id": int(data["citizen_group"]),
-                        "type": "issue_citizen_group",
-                    }
-                )[0][0]
-                self.doc["citizen_group"] = {
-                    "name": doc_issue_citizen_group["name"],
-                    "id": doc_issue_citizen_group["id"],
-                }
-            except Exception:
-                raise Http404
-        else:
-            self.doc["citizen_group"] = ""
-
-        # if data["citizen_group_1"]:
-        #     try:
-        #         doc_issue_citizen_group_1 = self.grm_db.get_query_result(
-        #             {
-        #                 "id": int(data["citizen_group_1"]),
-        #                 "type": "issue_citizen_group_1",
-        #             }
-        #         )[0][0]
-        #         self.doc["citizen_group_1"] = {
-        #             "name": doc_issue_citizen_group_1["name"],
-        #             "id": doc_issue_citizen_group_1["id"],
-        #         }
-        #     except Exception:
-        #         raise Http404
-        # else:
-        #     self.doc["citizen_group_1"] = ""
-
-        # if data["citizen_group_2"]:
-        #     try:
-        #         doc_issue_citizen_group_2 = self.grm_db.get_query_result(
-        #             {
-        #                 "id": int(data["citizen_group_2"]),
-        #                 "type": "issue_citizen_group_2",
-        #             }
-        #         )[0][0]
-        #         self.doc["citizen_group_2"] = {
-        #             "name": doc_issue_citizen_group_2["name"],
-        #             "id": doc_issue_citizen_group_2["id"],
-        #         }
-        #     except Exception:
-        #         raise Http404
-        # else:
-        #     self.doc["citizen_group_2"] = ""
+            if citizen:
+                self.obj.citizen = None
+                return citizen
 
     def set_location_fields(self, data):
-        try:
-            doc_administrative_level = self.eadl_db.get_query_result(
-                {
-                    "administrative_id": data["administrative_region_value"],
-                    "type": "administrative_level",
-                }
-            )[0][0]
-        except Exception:
-            raise Http404
-
-        self.doc["administrative_region"] = {
-            "administrative_id": doc_administrative_level["administrative_id"],
-            "name": doc_administrative_level["name"],
-        }
+        self.obj.administrative_region_id = int(data["administrative_region_value"])
 
     def set_assignee(self, adm_lvl_id=None):
-        try:
-            assignee = get_assignee(self.grm_db, self.eadl_db, self.doc, adm_lvl_id)
-        except Exception:
-            raise Http404("failed setting assignee....")
+        assignee = get_assignee(self.obj, adm_lvl_id)
+        self.obj.assignee = assignee
 
-        if assignee == "":
+        if not assignee:
             msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
-        self.doc["assignee"] = assignee
-
     def set_contact_fields(self, data):
-        self.doc["contact_medium"] = data["contact_medium"]
-        if data["contact_medium"] == CHOICE_CONTACT:
-            self.doc["contact_information"] = {
-                "type": data["contact_type"],
-                "contact": data["contact"],
-            }
+        self.obj.contact_medium = data["contact_medium"]
+        if data["contact_medium"] == CHOICE_ALERT:
+            self.obj.contact_information = data["contact"]
+            self.obj.contact_method = data["contact_type"]
         else:
-            self.doc["contact_information"] = None
+            self.obj.contact_information = None
+            self.obj.contact_method = None
 
 
 class NewIssueContactFormView(PageMixin, NewIssueMixin):
@@ -540,11 +356,18 @@ class NewIssueContactFormView(PageMixin, NewIssueMixin):
 
     def form_valid(self, form):
         data = form.cleaned_data
+        self.set_contact_fields(data)
         try:
-            self.set_contact_fields(data)
-        except Exception as e:
-            raise e
-        self.doc.save()
+            self.obj.save()
+        except ValidationError as e:
+            messages.add_message(self.request, messages.ERROR, e.message, extra_tags="danger")
+            return HttpResponseRedirect(
+                reverse(
+                    "dashboard:grm:new_issue_step_1",
+                    kwargs={"issue": self.kwargs["issue"]},
+                )
+            )
+
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_2", kwargs={"issue": self.kwargs["issue"]}))
 
 
@@ -558,10 +381,12 @@ class NewIssuePersonFormView(PageMixin, NewIssueMixin):
     def form_valid(self, form):
         data = form.cleaned_data
         try:
-            self.set_person_fields(data)
+            citizen_to_delete = self.set_person_fields(data)
+            self.obj.save()
+            if citizen_to_delete:
+                citizen_to_delete.delete()
         except Exception as e:
             raise e
-        self.doc.save()
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_3", kwargs={"issue": self.kwargs["issue"]}))
 
 
@@ -570,12 +395,17 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
     title = _("GRM")
     active_level1 = "grm"
     form_class = NewIssueDetailsForm
-    fields_to_check = ("contact_medium", "citizen")
+    fields_to_check = ("contact_medium",)
+
+    def has_required_fields(self):
+        if self.obj.citizen and self.obj.citizen.name and not self.obj.citizen.type:
+            return False
+        return super().has_required_fields()
 
     def form_valid(self, form):
         data = form.cleaned_data
         self.set_details_fields(data)
-        self.doc.save()
+        self.obj.save()
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_4", kwargs={"issue": self.kwargs["issue"]}))
 
 
@@ -599,8 +429,8 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         data = form.cleaned_data
         self.set_location_fields(data)
         self.set_assignee(adm_lvl_id=data["administrative_region_value"])
-        self.doc.save()
-        if not self.doc["assignee"]:
+        self.obj.save()
+        if not self.obj.assignee:
             return HttpResponseRedirect(
                 reverse(
                     "dashboard:grm:new_issue_step_4",
@@ -623,23 +453,19 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         "category",
         "description",
         "ongoing_issue",
-        "assignee",
         "administrative_region",
         "issue_sub_type",
     )
 
     def form_valid(self, form):
         data = form.cleaned_data
-        try:
-            self.set_contact_fields(data)
-            self.set_person_fields(data)
-            self.set_details_fields(data)
-            self.set_location_fields(data)
-            self.set_assignee(adm_lvl_id=data["administrative_region_value"])
-        except Exception as e:
-            raise e
+        self.set_contact_fields(data)
+        citizen_to_delete = self.set_person_fields(data)
+        self.set_details_fields(data)
+        self.set_location_fields(data)
+        self.set_assignee(adm_lvl_id=data["administrative_region_value"])
 
-        if not self.doc["assignee"]:
+        if not self.obj.assignee:
             return HttpResponseRedirect(
                 reverse(
                     "dashboard:grm:new_issue_step_5",
@@ -648,27 +474,16 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
             )
 
         self.set_contact_fields(data)
-        try:
-            doc_category = self.grm_db.get_query_result({"id": self.doc["category"]["id"], "type": "issue_category"})[
-                0
-            ][0]
-        except Exception:
-            raise Http404
-        administrative_id = self.doc["administrative_region"]["administrative_id"]
-        self.doc["internal_code"] = (
-            f'{doc_category["abbreviation"]}-{administrative_id}-{self.doc["auto_increment_id"]}'
-        )
+        category = self.obj.category
+        region = self.obj.administrative_region
+        self.obj.internal_code = f'{category.abbreviation}-{region.id}-{self.obj.id}'
+        self.obj.status = IssueStatus.objects.get(open_status=True)
 
-        try:
-            doc_status = self.grm_db.get_query_result({"open_status": True, "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
-
-        self.doc["created_date"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self.doc["confirmed"] = True
-        anonymize_issue_data(self.doc)
-        self.doc.save()
+        self.obj.confirmed = True
+        anonymize_issue_data(self.obj)
+        self.obj.save()
+        if citizen_to_delete:
+            citizen_to_delete.delete()
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}))
 
 
@@ -680,7 +495,7 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     permissions = ("read_only_by_reporter",)
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"})
+        return Issue.objects.filter(id=kwargs["issue"], confirmed=True)
 
 
 class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
@@ -694,15 +509,16 @@ class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     ]
 
 
-class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+class IssueListView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     template_name = "grm/issue_list.html"
     context_object_name = "issues"
 
-    def get_queryset(self):
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        eadl_db = get_db()
-        index = int(self.request.GET.get("index"))
-        offset = int(self.request.GET.get("offset"))
+    def get(self, request, *args, **kwargs):
+
+        offset = int(self.request.GET.get("offset", 10))
+        cursor_date = self.request.GET.get("cursor_date")
+        cursor_id = self.request.GET.get("cursor_id")
+        direction = request.GET.get("direction", "next")
         start_date = self.request.GET.get("start_date")
         end_date = self.request.GET.get("end_date")
         code = self.request.GET.get("code")
@@ -711,108 +527,137 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
         issue_type = self.request.GET.get("type")
         status = self.request.GET.get("status")
 
-        selector = {
-            "type": "issue",
-            "confirmed": True,
-            "auto_increment_id": {"$ne": ""},
-        }
+        and_filters = [{"confirmed": True}]
+
+        if start_date:
+            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            and_filters.append({"intake_date__gte": start_date})
+        if end_date:
+            end_date = (datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            and_filters.append({"intake_date__lte": end_date})
+        if assigned_to:
+            and_filters.append({"assignee": int(assigned_to)})
+        if category:
+            and_filters.append({"category": int(category)})
+        if issue_type:
+            and_filters.append({"issue_type": int(issue_type)})
+        if status:
+            and_filters.append({"status": int(status)})
+
+        or_filters = []
 
         user = self.request.user
         if hasattr(user, "governmentworker"):
             parent_id = user.governmentworker.administrative_id
-            descendants = get_administrative_level_descendants(eadl_db, parent_id, [])
-            allowed_regions = descendants + [parent_id]
-            # selector["$or"] = [
-            #     {"assignee.id": user.id},
-            #     {
-            #         "$and": [
-            #             {
-            #                 "category.assigned_department": user.governmentworker.department
-            #             },
-            #             {
-            #                 "administrative_region.administrative_id": {
-            #                     "$in": allowed_regions
-            #                 }
-            #             },
-            #         ]
-            #     },
-            # ]
-            selector["$or"] = [
-                {"assignee.id": user.id},
-                {"category.assigned_department": user.governmentworker.department},
-                {"administrative_region.administrative_id": {"$in": allowed_regions}},
+            region = get_object_or_404(AdministrativeRegion, id=parent_id)
+            allowed_regions = region.get_descendant_ids()
+            or_filters += [
+                {"assignee": user},
+                {"category__assigned_department__department": user.governmentworker.department},
+                {"administrative_region__in": allowed_regions},
             ]
 
-        date_range = {}
-        if start_date:
-            start_date = datetime.strptime(start_date, "%d/%m/%Y").strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            date_range["$gte"] = start_date
-            selector["intake_date"] = date_range
-        if end_date:
-            end_date = (datetime.strptime(end_date, "%d/%m/%Y") + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-            date_range["$lte"] = end_date
-            selector["intake_date"] = date_range
         if code:
-            code_filter = {"$regex": f"^{code}"}
-            selector["$or"] = [
-                {"internal_code": code_filter},
-                {"tracking_code": code_filter},
+            or_filters += [
+                {"internal_code__icontains": code},
+                {"tracking_code__icontains": code},
             ]
-        if assigned_to:
-            selector["assignee.id"] = int(assigned_to)
-        if category:
-            selector["category.id"] = int(category)
-        if issue_type:
-            selector["issue_type.id"] = int(issue_type)
-        if status:
-            selector["status.id"] = int(status)
-        print(f"user is authenticated: {self.request.user.is_authenticated}")
-        return grm_db.get_query_result(selector)[index : index + offset]
+
+        and_query = Q()
+        for f in and_filters:
+            and_query &= Q(**f)
+
+        or_query = Q()
+        for f in or_filters:
+            or_query |= Q(**f)
+
+        final_query = and_query & or_query
+
+        qs = Issue.objects.filter(final_query).order_by('-intake_date', '-id')
+
+        if cursor_date and cursor_id:
+            cursor_date_dt = datetime.fromisoformat(cursor_date)
+            cursor_id = int(cursor_id)
+            if direction == "next":
+                qs = qs.filter(Q(intake_date__lt=cursor_date_dt) | Q(intake_date=cursor_date_dt, id__lt=cursor_id))
+            elif direction == "previous":
+                qs = qs.filter(
+                    Q(intake_date__gt=cursor_date_dt) | Q(intake_date=cursor_date_dt, id__gt=cursor_id)
+                ).order_by("intake_date", "id")
+
+        results = list(qs[: offset + 1])
+        page_results = results[:offset]
+        has_more_forward = False
+        if page_results:
+            remaining_qs = qs.filter(
+                Q(intake_date__lt=page_results[-1].intake_date)
+                | Q(intake_date=page_results[-1].intake_date, id__lt=page_results[-1].id)
+            ).exists()
+            has_more_forward = remaining_qs
+
+        if direction == "previous":
+            page_results = list(reversed(page_results))
+
+        first_issue = page_results[0] if page_results else None
+        last_issue = page_results[-1] if page_results else None
+
+        issues_html = render(request, "grm/issue_list.html", {"issues": page_results}).content.decode("utf-8")
+
+        context = {
+            "html": issues_html,
+            "has_more_forward": has_more_forward,
+            "next_cursor_date": last_issue.intake_date.isoformat() if last_issue else None,
+            "next_cursor_id": last_issue.id if last_issue else None,
+            "prev_cursor_date": first_issue.intake_date.isoformat() if first_issue else None,
+            "prev_cursor_id": first_issue.id if first_issue else None,
+        }
+
+        return self.render_to_json_response(context, safe=False)
 
 
-class IssueCommentsContextMixin:
-    doc_department = None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            self.doc_department = self.grm_db.get_query_result(
-                {
-                    "id": self.doc["category"]["assigned_department"],
-                    "type": "issue_department",
-                }
-            )[0][0]
-        except Exception:
-            raise Http404
-        context["colors"] = [
-            "warning",
-            "mediumslateblue",
-            "gray",
-            "mediumpurple",
-            "plum",
-            "primary",
-            "danger",
-        ]
-        comments = self.doc["comments"] if "comments" in self.doc else list()
-        users = {c["id"] for c in comments} | {self.doc["assignee"]["id"]}
-        head_id = self.doc_department["head"].get('id')
-        if head_id:
-            users |= head_id
-        else:
-            msg = _(f"There is no head member for {self.doc_department['name']}. Please report to IT staff.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-
-        indexed_users = {}
-        for index, user_id in enumerate(users):
-            indexed_users[user_id] = index
-        context["indexed_users"] = indexed_users
-        return context
+# class IssueCommentsContextMixin:
+#     doc_department = None
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         try:
+#             self.doc_department = self.grm_db.get_query_result(
+#                 {
+#                     "id": self.doc["category"]["assigned_department"],
+#                     "type": "issue_department",
+#                 }
+#             )[0][0]
+#         except Exception:
+#             raise Http404
+#         context["colors"] = [
+#             "warning",
+#             "mediumslateblue",
+#             "gray",
+#             "mediumpurple",
+#             "plum",
+#             "primary",
+#             "danger",
+#         ]
+#         comments = self.doc["comments"] if "comments" in self.doc else list()
+#         users = {c["id"] for c in comments} | {self.doc["assignee"]["id"]}
+#         head_id = self.doc_department["head"].get('id')
+#         if head_id:
+#             users |= head_id
+#         else:
+#             msg = _(f"There is no head member for {self.doc_department['name']}. Please report to IT staff.")
+#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+#
+#         indexed_users = {}
+#         for index, user_id in enumerate(users):
+#             indexed_users[user_id] = index
+#         context["indexed_users"] = indexed_users
+#         return context
 
 
 class IssueDetailsFormView(
     PageMixin,
     IssueMixin,
-    IssueCommentsContextMixin,
+    # IssueCommentsContextMixin,
     LoginRequiredMixin,
     generic.FormView,
 ):
@@ -830,24 +675,23 @@ class IssueDetailsFormView(
     ]
 
     def get_form_kwargs(self):
-        self.initial = {"doc_id": self.doc["_id"]}
+        self.initial = {"obj_id": self.obj.id}
         return super().get_form_kwargs()
 
     def get_query_result(self, **kwargs):
-        return self.grm_db.get_query_result({"auto_increment_id": kwargs["issue"], "confirmed": True, "type": "issue"})
+        return Issue.objects.filter(id=kwargs["issue"], confirmed=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_id = self.request.user.id
-        head_id = self.doc_department["head"].get('id')
-        context["enable_add_comment"] = user_id == self.doc["assignee"]["id"] or user_id == head_id
+        user = self.request.user.id
+        try:
+            head = self.obj.category.assigned_department.department.head
+        except Exception:
+            head = None
+        context["enable_add_comment"] = user == self.obj.assignee or user == head
 
         context["comment_form"] = IssueCommentForm()
-        try:
-            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        context["doc_status"] = doc_status
+        context["status"] = self.obj.status
         context["password_confirm_form"] = PasswordConfirmForm()
 
         return context
@@ -859,63 +703,63 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
     def post(self, request, *args, **kwargs):
         assignee = int(request.POST.get("assignee"))
         worker = GovernmentWorker.objects.get(user=assignee)
-        self.doc["assignee"] = {"id": worker.user.id, "name": worker.name}
-        self.doc.save()
+        self.obj.assignee = worker.user
+        self.obj.save()
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
 
 
-class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
-    def post(self, request, *args, **kwargs):
-        try:
-            doc_department = self.grm_db.get_query_result(
-                {
-                    "id": self.doc["category"]["assigned_department"],
-                    "type": "issue_department",
-                }
-            )[0][0]
-        except Exception:
-            raise Http404
-        user_id = request.user.id
-        if user_id != self.doc["assignee"]["id"] and user_id != doc_department["head"].get('id'):
-            raise PermissionDenied()
-
-        comment = request.POST.get("comment").strip()[:MAX_LENGTH]
-        if comment:
-            comments = self.doc["comments"] if "comments" in self.doc else list()
-            comment_obj = {
-                "name": request.user.name,
-                "id": user_id,
-                "comment": comment,
-                "due_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-            }
-            comments.insert(0, comment_obj)
-            self.doc["comments"] = comments
-            self.doc.save()
-            msg = _("The comment was sent successfully.")
-            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-        else:
-            msg = _("Comment cannot be empty.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
-
-
-class IssueCommentListView(
-    IssueMixin,
-    IssueCommentsContextMixin,
-    AJAXRequestMixin,
-    LoginRequiredMixin,
-    generic.ListView,
-):
-    template_name = "grm/issue_comments.html"
-    context_object_name = "comments"
-    permissions = ("read",)
-
-    def get_queryset(self):
-        return self.doc["comments"] if "comments" in self.doc else list()
+# class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             doc_department = self.grm_db.get_query_result(
+#                 {
+#                     "id": self.obj["category"]["assigned_department"],
+#                     "type": "issue_department",
+#                 }
+#             )[0][0]
+#         except Exception:
+#             raise Http404
+#         user_id = request.user.id
+#         if user_id != self.obj["assignee"]["id"] and user_id != doc_department["head"].get('id'):
+#             raise PermissionDenied()
+#
+#         comment = request.POST.get("comment").strip()[:MAX_LENGTH]
+#         if comment:
+#             comments = self.obj["comments"] if "comments" in self.obj else list()
+#             comment_obj = {
+#                 "name": request.user.name,
+#                 "id": user_id,
+#                 "comment": comment,
+#                 "due_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+#             }
+#             comments.insert(0, comment_obj)
+#             self.obj["comments"] = comments
+#             self.obj.save()
+#             msg = _("The comment was sent successfully.")
+#             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+#         else:
+#             msg = _("Comment cannot be empty.")
+#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+#         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+#         return self.render_to_json_response(context, safe=False)
+#
+#
+# # class IssueCommentListView(
+#     IssueMixin,
+#     IssueCommentsContextMixin,
+#     AJAXRequestMixin,
+#     LoginRequiredMixin,
+#     generic.ListView,
+# ):
+#     template_name = "grm/issue_comments.html"
+#     context_object_name = "comments"
+#     permissions = ("read",)
+#
+#     def get_queryset(self):
+#         return self.obj["comments"] if "comments" in self.obj else list()
 
 
 class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView):
@@ -923,11 +767,7 @@ class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequired
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        context["doc_status"] = doc_status
+        context["status"] = self.obj.status
 
         return context
 
@@ -937,27 +777,15 @@ class SubmitIssueOpenStatusView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin
 
     def check_permissions(self):
         super().check_permissions()
-        try:
-            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
-        except Exception:
-            self.has_permission = False
-            return
-
-        open_status = doc_status["open_status"] if "open_status" in doc_status else False
-        initial_status = doc_status["initial_status"] if "initial_status" in doc_status else False
-        rejected_status = doc_status["rejected_status"] if "rejected_status" in doc_status else False
-        if open_status or not initial_status or rejected_status:
+        status = self.obj.status
+        if status.open_status or not status.initial_status or status.rejected_status:
             self.has_permission = False
 
     def post(self, request, *args, **kwargs):
-        self.doc["research_result"] = ""
-        self.doc["reject_reason"] = ""
-        try:
-            doc_status = self.grm_db.get_query_result({"open_status": True, "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
-        self.doc.save()
+        self.obj.research_result = ""
+        self.obj.reject_reason = ""
+        self.obj.status = IssueStatus.objects.get(open_status=True)
+        self.obj.save()
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
@@ -979,38 +807,24 @@ class SubmitIssueResearchResultFormView(
 
     def check_permissions(self):
         super().check_permissions()
-        try:
-            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
-        except Exception:
-            self.has_permission = False
-            return
-
-        open_status = doc_status["open_status"] if "open_status" in doc_status else False
-        final_status = doc_status["final_status"] if "final_status" in doc_status else False
-        if final_status or not open_status:
+        status = self.obj.status
+        if status.final_status or not status.open_status:
             self.has_permission = False
 
     def form_valid(self, form):
         data = form.cleaned_data
-        self.doc["research_result"] = data["research_result"]
-        self.doc["reject_reason"] = ""
-        try:
-            doc_status = self.grm_db.get_query_result({"final_status": True, "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
-        user_id = self.request.user.id
-        comments = self.doc["comments"] if "comments" in self.doc else list()
-        comment = _("The complaint has been resolved")
-        comment_obj = {
-            "name": f"{self.request.user.name}",
-            "id": f"{user_id}",
-            "comment": f"{comment}",
-            "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
-        }
-        comments.insert(0, comment_obj)
-        self.doc["comments"] = comments
-        self.doc.save()
+        self.obj.research_result = data["research_result"]
+        self.obj.reject_reason = ""
+        self.obj.status = IssueStatus.objects.get(final_status=True)
+
+        # TODO: complete code for issue comment
+        # Add comment to the issue
+        # comment = Comment.objects.create(
+        #     user=self.request.user,
+        #     comment=_("The complaint has been resolved")
+        # )
+        # issue.comments.add(comment)
+        self.obj.save()
 
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
@@ -1034,40 +848,25 @@ class SubmitIssueRejectReasonFormView(
 
     def check_permissions(self):
         super().check_permissions()
-        try:
-            doc_status = self.grm_db.get_query_result({"id": self.doc["status"]["id"], "type": "issue_status"})[0][0]
-        except Exception:
-            self.has_permission = False
-            return
-
-        initial_status = doc_status["initial_status"] if "initial_status" in doc_status else False
-        rejected_status = doc_status["rejected_status"] if "rejected_status" in doc_status else False
-        if rejected_status or not initial_status:
+        status = self.obj.status
+        if status.rejected_status or not status.initial_status:
             self.has_permission = False
 
     def form_valid(self, form):
         data = form.cleaned_data
-        self.doc["reject_reason"] = data["reject_reason"]
-        self.doc["research_result"] = ""
-        try:
-            doc_status = self.grm_db.get_query_result({"rejected_status": True, "type": "issue_status"})[0][0]
-        except Exception:
-            raise Http404
-        self.doc["status"] = {"name": doc_status["name"], "id": doc_status["id"]}
+        self.obj.reject_reason = data["reject_reason"]
+        self.obj.research_result = ""
+        self.obj.status = IssueStatus.objects.get(rejected_status=True)
 
-        user_id = self.request.user.id
-        comments = self.doc["comments"] if "comments" in self.doc else list()
-        comment = _("The complaint has been rejected")
-        comment_obj = {
-            "name": self.request.user.name,
-            "id": user_id,
-            "comment": comment,
-            "due_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-        }
-        comments.insert(0, comment_obj)
-        self.doc["comments"] = comments
+        # TODO: complete code for issue comment
+        # Add comment to the issue
+        # comment = Comment.objects.create(
+        #     user=self.request.user,
+        #     comment= _("The complaint has been rejected")
+        # )
+        # issue.comments.add(comment)
+        self.obj.save()
 
-        self.doc.save()
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
@@ -1077,37 +876,20 @@ class SubmitIssueRejectReasonFormView(
 
 class GetChoicesForOptionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
-        type = request.GET.get("type")
+        model_class = request.GET.get("model_class")
         parent_id = int(request.GET.get("parent_id"))
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        data = get_issue_select_options_choices(grm_db, type, parent_id)
+        data = get_issue_select_options_choices(model_class, parent_id)
         return render(self.request, "common/options.html", {"values": data})
 
 
 class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
-        parent_id = request.GET.get("parent_id")
+        region = get_object_or_404(AdministrativeRegion, id=request.GET.get("parent_id"))
         exclude_lower_level = request.GET.get("exclude_lower_level", None)
-        eadl_db = get_db()
-        data = get_child_administrative_regions(eadl_db, parent_id)
+        children = region.children.all()
+        data = list(children.values("id", "name", "administrative_level__name"))
 
-        if data and exclude_lower_level and not get_child_administrative_regions(eadl_db, data[0]["administrative_id"]):
-            data = []
-
-        return self.render_to_json_response(data, safe=False)
-
-
-# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
-class NewGetChoicesForNextAdministrativeLevelView(
-    AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
-):
-    def get(self, request, *args, **kwargs):
-        parent_id = request.GET.get("parent_id")
-        exclude_lower_level = request.GET.get("exclude_lower_level", None)
-        regions = AdministrativeRegion.objects.filter(parent=parent_id)
-        data = list(regions.values())
-
-        if data and exclude_lower_level and not regions[0].children.exists():
+        if children and exclude_lower_level and not children[0].children.exists():
             data = []
 
         return self.render_to_json_response(data, safe=False)
@@ -1116,19 +898,11 @@ class NewGetChoicesForNextAdministrativeLevelView(
 class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
 
     def get(self, request, *args, **kwargs):
-        administrative_id = request.GET.get("administrative_id", None)
+        region_id = request.GET.get("region_id")
         ancestors = []
-        if administrative_id:
-            eadl_db = get_db()
-            has_parent = True
-            while has_parent:
-                parent = get_parent_administrative_level(eadl_db, administrative_id)
-                if parent:
-                    administrative_id = parent["administrative_id"]
-                    ancestors.insert(0, administrative_id)
-                else:
-                    has_parent = False
-
+        if region_id:
+            region = get_object_or_404(AdministrativeRegion, id=region_id)
+            ancestors = region.get_full_hierarchy_ids()[1:]
         return self.render_to_json_response(ancestors, safe=False)
 
 
