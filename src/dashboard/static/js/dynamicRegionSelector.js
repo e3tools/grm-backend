@@ -7,7 +7,7 @@ function changeRegionTrigger(url, placeholder) {
     });
 }
 
-function loadNextLevelRegions(current_level, url, placeholder, new_version=false) {
+function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
     if (current_level_val !== '') {
         let select_region = $(".region");
@@ -20,8 +20,8 @@ function loadNextLevelRegions(current_level, url, placeholder, new_version=false
             },
             success: function (data) {
                 if (data.length > 0) {
-                    let id_select = 'id_' + data[0].administrative_level;
-                    let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
+                    let id_select = 'id_' + data[0].administrative_level__name;
+                    let label = data[0].administrative_level__name.replace(/^\w/, (c) => c.toUpperCase());
                     let child;
                     let new_input = document.createElement('div');
                     new_input.className = 'form-group row dynamic-select';
@@ -55,12 +55,7 @@ function loadNextLevelRegions(current_level, url, placeholder, new_version=false
 
                     let options = '<option value></option>';
                     $.each(data, function (index, value) {
-                        let administrative_id;
-                        if (new_version) {
-                            administrative_id = value.id;
-                        } else {
-                            administrative_id = value.administrative_id;
-                        }
+                        let administrative_id = value.id;
                         let option = '<option value="' + administrative_id;
                         if (ancestors.includes(administrative_id)) {
                             option += '" selected="selected">';
@@ -106,7 +101,7 @@ function loadRegionSelectors(url) {
         type: 'GET',
         url: url,
         data: {
-            administrative_id: administrative_region_value,
+            region_id: administrative_region_value,
         },
         success: function (data) {
             if (data.length > 0) {

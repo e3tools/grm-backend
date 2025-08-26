@@ -165,6 +165,8 @@ class SubComponentFactory(DjangoModelFactory):
     class Meta:
         model = SubComponent
 
+    parent = factory.SubFactory(ComponentFactory)
+
 
 class AdministrativeRegionFactory(DjangoModelFactory):
     """Factory for creating AdministrativeRegion instances for testing."""

@@ -30,9 +30,9 @@
                         </thead>
                         <tbody>
                         {% for doc in adls %}
-                            {% with doc.representative as adl %}
+                            {% with obj.representative as adl %}
                                 <tr>
-                                    <td>{{ doc.name }}</td>
+                                    <td>{{ obj.name }}</td>
                                     <td>
                                         {% if adl.photo %}
                                             <img src="{{ adl.photo }}" class="profile-user-img-list"/>

@@ -4,7 +4,16 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
 
-from authentication.models import User
+from authentication.models import Facilitator, User
+from dashboard.grm.constants import (
+    CHOICE_ALERT,
+    CHOICE_CONFIDENTIAL,
+    CHOICE_FEMALE,
+    CHOICE_INDIVIDUAL,
+    CHOICE_MALE,
+    CHOICE_ORGANIZATION,
+    CHOICE_PHONE,
+)
 from issues.models import (
     AdministrativeLevel,
     Citizen,
@@ -155,8 +164,21 @@ def process_issue_department_data(data: list[dict]) -> list[dict]:
 
 def process_issue_data(data: list[dict]) -> list[dict]:
     # Load users into a dictionary {external_id: id}
-    external_users = dict(User.objects.exclude(external_id=None).values_list('external_id', 'id'))
+    external_users = dict(User.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))
     all_users = list(User.objects.values_list('id', flat=True))
+
+    citizen_type_values = {
+        1: CHOICE_CONFIDENTIAL,
+        2: CHOICE_INDIVIDUAL,
+        3: CHOICE_ORGANIZATION,
+    }
+
+    citizen_gender_values = {
+        "Male": CHOICE_MALE,
+        "Masculin": CHOICE_MALE,
+        "Female": CHOICE_FEMALE,
+        "Femelle": CHOICE_FEMALE,
+    }
 
     def datetime_field_process(item_dict, name):
         field_data = item_dict.get(name)
@@ -169,6 +191,7 @@ def process_issue_data(data: list[dict]) -> list[dict]:
 
     def user_field_process(item_dict, name):
         field_data = item_dict.get(name)
+        user_id = None
         if field_data and field_data.get('id'):
             user_id = field_data.get('id')
             if str(user_id).isdigit():
@@ -196,7 +219,8 @@ def process_issue_data(data: list[dict]) -> list[dict]:
                     external_users[user_id] = new_user.id
                     user_id = new_user.id
 
-            item_dict[f'{name}_id'] = user_id
+        item_dict[f'{name}_id'] = user_id
+        if name in item_dict:
             item_dict.pop(name)
 
     processed = []
@@ -244,15 +268,17 @@ def process_issue_data(data: list[dict]) -> list[dict]:
         citizen_name = new_item.get('citizen')
         if citizen_name:
             citizen_type = new_item.get('citizen_type')
+            gender = new_item.get('gender')
             citizen_age_group = new_item.get('citizen_age_group')
             citizen_age_group = citizen_age_group.get('id') if citizen_age_group else None
             citizen_group = new_item.get('citizen_group')
             citizen_group = citizen_group.get('id') if citizen_group else None
-            citizen_group_2 = new_item.get('citizen_group')
+            citizen_group_2 = new_item.get('citizen_group_2')
             citizen_group_2 = citizen_group_2.get('id') if citizen_group_2 else None
             citizen, _ = Citizen.objects.get_or_create(
                 name=citizen_name,
-                type=citizen_type,
+                type=citizen_type_values[citizen_type] if citizen_type else None,
+                gender=citizen_gender_values[gender] if gender else None,
                 age_group_id=citizen_age_group,
                 group_id=citizen_group,
                 group_2_id=citizen_group_2,
@@ -284,6 +310,12 @@ def process_issue_data(data: list[dict]) -> list[dict]:
             new_item['sub_component_id'] = component.get('id')
             new_item.pop("sub_component")
 
+        # --- Handle subproject_group ---
+        subproject_group = new_item.get('subproject_group')
+        if subproject_group and subproject_group.get('id'):
+            new_item['subproject_group_id'] = subproject_group.get('id')
+            new_item.pop("subproject_group")
+
         # --- Handle issue_sub_type ---
         issue_sub_type = new_item.get('issue_sub_type')
         if issue_sub_type and issue_sub_type.get('id'):
@@ -300,10 +332,27 @@ def process_issue_data(data: list[dict]) -> list[dict]:
         contact_information = new_item.get('contact_information')
         if contact_information:
             new_item['contact_information'] = contact_information.get('contact')
-            new_item['contact_method'] = contact_information.get('type')
+            contact_type = contact_information.get('type')
+            new_item['contact_method'] = CHOICE_PHONE if contact_type == "phone number" else contact_type
+
+        # --- Handle contact_medium ---
+        contact_medium = new_item.get('contact_medium')
+        if contact_medium:
+            new_item['contact_medium'] = CHOICE_ALERT if contact_medium == "contact" else contact_medium
 
         # --- Rename auto_increment_id → id ---
         new_item['id'] = new_item.pop('auto_increment_id')
+
+        # --- Handle external_id ---
+        new_item['external_id'] = new_item.get('_id')
+
+        # --- Handle alert_message_status ---
+        alert_message_status = ""
+        for field_name in ['accepted_alert_message', 'rejected_alert_message', 'closed_alert_message']:
+            value = new_item.get(field_name)
+            if value:
+                alert_message_status = field_name.split('_')[0]
+        new_item['alert_message_status'] = alert_message_status
 
         processed.append(new_item)
 
@@ -354,6 +403,116 @@ def process_category_data(data: list[dict]) -> list[dict]:
             new_item[f'{field}_id'] = existing_department_levels.get(
                 f"{field_data['name']}{field_data['administrative_level']}"
             )
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_citizen_group_data(data: list[dict]) -> list[dict]:
+
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        # TODO: ask about citizen_group_2
+        # --- Handle type ---
+        new_item['type'] = 'citizen_group'
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_sub_component_data(data: list[dict]) -> list[dict]:
+
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        # --- Handle component ---
+        new_item['component_id'] = new_item.get('parent_id')
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_user_data(data: list[dict]) -> list[dict]:
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        # --- Handle external_id ---
+        new_item['external_id'] = new_item.get('_id')
+
+        representative_data = new_item.get('representative')
+
+        # --- Handle id ---
+        new_item['id'] = representative_data.get('id')
+
+        # --- Handle first_name and last_name ---
+        name_data = representative_data.get('name').split(' ') if representative_data.get('name') else ['']
+        new_item['first_name'] = name_data[0]
+        if len(name_data) > 1:
+            new_item['last_name'] = name_data[1]
+
+        # --- Handle username and email ---
+        email = representative_data.get('email')
+        new_item['username'] = email
+        new_item['email'] = email
+
+        # --- Handle phone_number ---
+        new_item['phone_number'] = representative_data.get('phone')
+
+        # --- Handle is_active ---
+        new_item['is_active'] = representative_data.get('is_active')
+
+        # --- Handle password ---
+        new_item['password'] = representative_data.get('password')
+
+        processed.append(new_item)
+
+    return processed
+
+
+def process_facilitator_data(data: list[dict]) -> list[dict]:
+    # Load users into a dictionary {external_id: id}
+    external_users = dict(User.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))
+
+    # Load facilitators into a dictionary {external_id: id}
+    facilitators = dict(Facilitator.objects.values_list('user', 'id'))
+
+    processed = []
+    for item in data:
+        new_item = item.copy()
+
+        # --- Handle id ---
+        user_id = external_users[new_item.get('_id')]
+        if user_id in facilitators:
+            new_item['id'] = facilitators.get(user_id)
+
+        # --- Handle user ---
+        new_item['user_id'] = external_users[new_item.get('_id')]
+
+        # --- Handle department ---
+        new_item['department_id'] = new_item.get('department')
+        new_item.pop("department")
+
+        # --- Handle administrative_region ---
+        administrative_region = new_item.get('administrative_region')
+        if administrative_region:
+            if isinstance(administrative_region, str) and administrative_region.isdigit():
+                new_item['administrative_region_id'] = int(administrative_region) + 1
+            elif administrative_region == 'country':
+                new_item['administrative_region_id'] = 1
+            new_item.pop("administrative_region")
+
+        # --- Handle unique_region ---
+        new_item['unique_region'] = new_item.get('unique_region') == 1
+
+        # --- Handle village_secretary ---
+        new_item['village_secretary'] = new_item.get('village_secretary') == 1
 
         processed.append(new_item)
 
@@ -437,10 +596,11 @@ def bulk_create_or_update(
     total_created = 0
     total_updated = 0
 
-    # Get all model fields except 'id' for update operations (ignore reverse relations & M2M for bulk_create)
-    model_fields = {
-        attr for f in model_class._meta.get_fields() if hasattr(f, 'attname') for attr in (f.name, f.attname)
-    }
+    # Get all model fields for update operations (ignore M2M for bulk_create)
+    concrete_fields = [f for f in model_class._meta.get_fields() if f.concrete and not f.many_to_many]
+    model_fields = {attr for f in concrete_fields for attr in (f.name, getattr(f, "attname", f.name))}
+
+    # Exclude 'id' for updates
     update_fields = [f for f in model_fields if f != 'id']
 
     # Process data in batches to optimize memory usage and database performance
@@ -508,53 +668,13 @@ def bulk_create_or_update(
     }
 
 
-def process_adl_data(data: list[dict]) -> list[dict]:
-    processed = []
-    for item in data:
-        new_item = item.copy()
+def fetch_database(cmd, result, model_class):
+    documents = [doc for doc in result]
 
-        # --- Handle external_id ---
-        new_item['external_id'] = new_item.get('_id')
-
-        representative_data = new_item.get('representative')
-
-        # --- Handle id ---
-        new_item['id'] = representative_data.get('id')
-
-        # --- Handle first_name and last_name ---
-        name_data = representative_data.get('name').split(' ') if representative_data.get('name') else ['']
-        new_item['first_name'] = name_data[0]
-        if len(name_data) > 1:
-            new_item['last_name'] = name_data[1]
-
-        # --- Handle username and email ---
-        email = representative_data.get('email')
-        new_item['username'] = email
-        new_item['email'] = email
-
-        # --- Handle phone_number ---
-        new_item['phone_number'] = representative_data.get('phone')
-
-        # --- Handle is_active ---
-        new_item['is_active'] = representative_data.get('is_active')
-
-        # --- Handle password ---
-        new_item['password'] = representative_data.get('password')
-
-        processed.append(new_item)
-
-    return processed
-
-
-def process_citizen_group_data(data: list[dict]) -> list[dict]:
-
-    processed = []
-    for item in data:
-        new_item = item.copy()
-
-        # --- Handle type ---
-        new_item['type'] = 'citizen_group'
-
-        processed.append(new_item)
-
-    return processed
+    # create or update database
+    model_name = model_class.__name__
+    result = bulk_create_or_update(model_class, documents)
+    cmd.stdout.write(cmd.style.NOTICE(f"Created {result['total_created']} {model_name} objects"))
+    cmd.stdout.write(cmd.style.NOTICE(f"Updated {result['total_updated']} {model_name}  objects"))
+    cmd.stdout.write(cmd.style.NOTICE(f"Processed {result['total_processed']} {model_name}  objects"))
+    return result

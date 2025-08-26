@@ -1,31 +1,30 @@
 from django import forms
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from authentication.models import get_government_worker_choices
-from client import get_db
+from authentication.models import GovernmentWorker
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm.constants import (
-    CHOICE_CONTACT,
+    CHOICE_ALERT,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
     GENDER_CHOICES,
     MEDIUM_CHOICES,
 )
-from grm.utils import (
-    get_administrative_region_choices,
-    get_administrative_regions_by_level,
-    get_base_administrative_id,
-    get_issue_age_group_choices,
-    get_issue_category_choices,
-    get_issue_citizen_group_choices,
-    get_issue_options_choices,
-    get_issue_status_choices,
-    get_issue_type_choices,
+from grm.utils import email_is_valid
+from issues.models import (
+    AdministrativeRegion,
+    CitizenAgeGroup,
+    CitizenGroup,
+    Component,
+    Issue,
+    IssueCategory,
+    IssueStatus,
+    IssueSubType,
+    IssueType,
+    SubComponent,
+    SubProjectGroup,
 )
-from issues.models import AdministrativeRegion
 
-COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 MAX_LENGTH = 65000
 
 
@@ -40,23 +39,34 @@ class NewIssueContactForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
-
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
 
         self.fields["contact"].widget.attrs["placeholder"] = _("Please type the contact information")
 
-        document = grm_db[doc_id]
-        if "contact_medium" in document:
-            self.fields["contact_medium"].initial = document["contact_medium"]
-            if document["contact_medium"] == CHOICE_CONTACT:
-                if "type" in document["contact_information"] and document["contact_information"]["type"]:
-                    self.fields["contact_type"].initial = document["contact_information"]["type"]
-                if "contact" in document["contact_information"] and document["contact_information"]["contact"]:
-                    self.fields["contact"].initial = document["contact_information"]["contact"]
+        obj = Issue.objects.get(id=obj_id)
+        if obj.contact_medium:
+            self.fields["contact_medium"].initial = obj.contact_medium
+            if obj.contact_medium == CHOICE_ALERT:
+                if obj.contact_method:
+                    self.fields["contact_type"].initial = obj.contact_method
+                if obj.contact_information:
+                    self.fields["contact"].initial = obj.contact_information
             else:
                 self.fields["contact"].widget.attrs["class"] = "hidden"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contact_type = cleaned_data.get("contact_type")
+        contact = cleaned_data.get("contact")
+
+        if contact_type == "email" and not email_is_valid(contact):
+            self.add_error("contact", _("If email contact method is selected provide a valid email"))
+
+        if contact_type != "email" and email_is_valid(contact):
+            self.add_error("contact", _("If phone or whatsapp contact method is selected provide a valid phone number"))
+
+        return cleaned_data
 
 
 class NewIssuePersonForm(forms.Form):
@@ -89,78 +99,30 @@ class NewIssuePersonForm(forms.Form):
         help_text=_("This is an optional field"),
     )
 
-    # citizen_group_1 = forms.ChoiceField(
-    #     label=_("Occupancy status"),
-    #     required=False,
-    #     help_text=_("This is an optional field"),
-    # )
-    # citizen_group_2 = forms.ChoiceField(
-    #     label=_("Educational level"),
-    #     required=False,
-    #     help_text=_("This is an optional field"),
-    # )
-    # religious_affiliation = forms.ChoiceField(
-    #     label=_("Religious affiliation"),
-    #     required=False,
-    #     help_text=_("This is an optional field"),
-    # )
-
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
+        obj = Issue.objects.get(id=obj_id)
 
-        citizen_age_groups = get_issue_age_group_choices(grm_db)
+        citizen_age_groups = CitizenAgeGroup.get_choices()
         self.fields["citizen_age_group"].widget.choices = citizen_age_groups
         self.fields["citizen_age_group"].choices = citizen_age_groups
 
-        citizen_group_choices = get_issue_citizen_group_choices(grm_db)
+        citizen_group_choices = CitizenGroup.get_choices()
         self.fields["citizen_group"].widget.choices = citizen_group_choices
         self.fields["citizen_group"].choices = citizen_group_choices
 
-        # citizen_group_1_choices = get_issue_citizen_group_1_choices(grm_db)
-        # self.fields["citizen_group_1"].widget.choices = citizen_group_1_choices
-        # self.fields["citizen_group_1"].choices = citizen_group_1_choices
-
-        # citizen_group_2_choices = get_issue_citizen_group_2_choices(grm_db)
-        # self.fields["citizen_group_2"].widget.choices = citizen_group_2_choices
-        # self.fields["citizen_group_2"].choices = citizen_group_2_choices
-
-        # religious_affiliation_choices = get_issue_religious_affiliation(grm_db)
-        # self.fields[
-        #     "religious_affiliation"
-        # ].widget.choices = religious_affiliation_choices
-        # self.fields["religious_affiliation"].choices = religious_affiliation_choices
-
-        document = grm_db[doc_id]
-
-        if "citizen" in document:
-            self.fields["citizen"].initial = document["citizen"]
-
-        if "citizen_type" in document:
-            self.fields["citizen_type"].initial = document["citizen_type"]
-
-        if "citizen_age_group" in document and document["citizen_age_group"]:
-            self.fields["citizen_age_group"].initial = document["citizen_age_group"]["id"]
-
-        if "gender" in document:
-            self.fields["gender"].initial = document["gender"]
-
-        if "citizen_group" in document and document["citizen_group"]:
-            self.fields["citizen_group"].initial = document["citizen_group"]["id"]
-
-        # if "religious_affiliation" in document and document["religious_affiliation"]:
-        #     self.fields["religious_affiliation"].initial = document[
-        #         "religious_affiliation"
-        #     ]["id"]
-
-        # if "citizen_group_1" in document and document["citizen_group_1"]:
-        #     self.fields["citizen_group_1"].initial = document["citizen_group_1"]["id"]
-
-        # if "citizen_group_2" in document and document["citizen_group_2"]:
-        #     self.fields["citizen_group_2"].initial = document["citizen_group_2"]["id"]
+        citizen = obj.citizen
+        if citizen:
+            self.fields["citizen"].initial = citizen.name
+            self.fields["citizen_type"].initial = citizen.type
+            if citizen.age_group:
+                self.fields["citizen_age_group"].initial = citizen.age_group.id
+            self.fields["gender"].initial = citizen.gender
+            if citizen.group:
+                self.fields["citizen_group"].initial = citizen.group.id
 
 
 class NewIssueDetailsForm(forms.Form):
@@ -178,11 +140,11 @@ class NewIssueDetailsForm(forms.Form):
     issue_sub_type = forms.ChoiceField(label=_("The sub type of grievance"))
     category = forms.ChoiceField(label=_("The category of grievance"))
     component = forms.ChoiceField(label=_("Component"), required=False, help_text=_("This is an optional field"))
-    # sub_component = forms.ChoiceField(
-    #     label=_("Sub Component"),
-    #     required=False,
-    #     help_text=_("This is an optional field"),
-    # )
+    sub_component = forms.ChoiceField(
+        label=_("Sub Component"),
+        required=False,
+        help_text=_("This is an optional field"),
+    )
     subproject_group = forms.ChoiceField(
         label=_("Subproject/ investment type"),
         required=False,
@@ -201,32 +163,30 @@ class NewIssueDetailsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-
-        types = get_issue_type_choices(grm_db)
+        types = IssueType.get_choices()
         self.fields["issue_type"].widget.choices = types
         self.fields["issue_type"].choices = types
 
-        categories = get_issue_category_choices(grm_db)
+        categories = IssueCategory.get_choices()
         self.fields["category"].widget.choices = categories
         self.fields["category"].choices = categories
 
-        sub_categories = get_issue_options_choices(grm_db, "issue_sub_type")
-        self.fields["issue_sub_type"].widget.choices = sub_categories
-        self.fields["issue_sub_type"].choices = sub_categories
+        issue_sub_types = IssueSubType.get_choices()
+        self.fields["issue_sub_type"].widget.choices = issue_sub_types
+        self.fields["issue_sub_type"].choices = issue_sub_types
 
-        components = get_issue_options_choices(grm_db, "issue_component")
+        components = Component.get_choices()
         self.fields["component"].widget.choices = components
         self.fields["component"].choices = components
 
-        # sub_components = get_issue_options_choices(grm_db, "issue_sub_component")
-        # self.fields["sub_component"].widget.choices = sub_components
-        # self.fields["sub_component"].choices = sub_components
+        sub_components = SubComponent.get_choices()
+        self.fields["sub_component"].widget.choices = sub_components
+        self.fields["sub_component"].choices = sub_components
 
-        subproject_groups = get_issue_options_choices(grm_db, "issue_subproject_group")
+        subproject_groups = SubProjectGroup.get_choices()
         self.fields["subproject_group"].widget.choices = subproject_groups
         self.fields["subproject_group"].choices = subproject_groups
 
@@ -236,23 +196,27 @@ class NewIssueDetailsForm(forms.Form):
         self.fields["intake_date"].widget.attrs["data-target"] = "#intake_date"
         self.fields["issue_date"].widget.attrs["data-target"] = "#issue_date"
 
-        document = grm_db[doc_id]
-        if "description" in document and document["description"]:
-            self.fields["description"].initial = document["description"]
-        if "issue_type" in document and document["issue_type"]:
-            self.fields["issue_type"].initial = document["issue_type"]["id"]
-        if "category" in document and document["category"]:
-            self.fields["category"].initial = document["category"]["id"]
-        if "issue_sub_type" in document and document["issue_sub_type"]:
-            self.fields["issue_sub_type"].initial = document["issue_sub_type"]["id"]
-        if "component" in document and document["component"]:
-            self.fields["component"].initial = document["component"]["id"]
-        # if "sub_component" in document and document["sub_component"]:
-        #     self.fields["sub_component"].initial = document["sub_component"]["id"]
-        if "subproject_group" in document and document["subproject_group"]:
-            self.fields["subproject_group"].initial = document["subproject_group"]["id"]
-        if "ongoing_issue" in document:
-            self.fields["ongoing_issue"].initial = document["ongoing_issue"]
+        obj = Issue.objects.get(id=obj_id)
+        if obj.intake_date:
+            self.fields["intake_date"].initial = obj.intake_date.strftime("%d/%m/%Y")
+        if obj.issue_date:
+            self.fields["issue_date"].initial = obj.issue_date.strftime("%d/%m/%Y")
+        if obj.description:
+            self.fields["description"].initial = obj.description
+        if obj.issue_type:
+            self.fields["issue_type"].initial = obj.issue_type.id
+        if obj.category:
+            self.fields["category"].initial = obj.category.id
+        if obj.issue_sub_type:
+            self.fields["issue_sub_type"].initial = obj.issue_sub_type.id
+        if obj.component:
+            self.fields["component"].initial = obj.component.id
+        if obj.sub_component:
+            self.fields["sub_component"].initial = obj.sub_component.id
+        if obj.subproject_group:
+            self.fields["subproject_group"].initial = obj.subproject_group.id
+        if obj.ongoing_issue:
+            self.fields["ongoing_issue"].initial = obj.ongoing_issue
 
 
 # to check
@@ -262,25 +226,23 @@ class NewIssueLocationForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        eadl_db = get_db()
-        label = get_administrative_regions_by_level(eadl_db)[0]["administrative_level"].title()
+        label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
 
-        administrative_region_choices = get_administrative_region_choices(eadl_db)
+        administrative_region_choices = AdministrativeRegion.get_choices()
         self.fields["administrative_region"].widget.choices = administrative_region_choices
         self.fields["administrative_region"].choices = administrative_region_choices
         self.fields["administrative_region"].widget.attrs["class"] = "region"
         self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        document = grm_db[doc_id]
-        if "administrative_region" in document and document["administrative_region"]:
-            administrative_id = document["administrative_region"]["administrative_id"]
-            self.fields["administrative_region_value"].initial = administrative_id
-            self.fields["administrative_region"].initial = get_base_administrative_id(eadl_db, administrative_id)
+        obj = Issue.objects.get(id=obj_id)
+        administrative_region = obj.administrative_region
+        if administrative_region:
+            self.fields["administrative_region_value"].initial = administrative_region.id
+            self.fields["administrative_region"].initial = administrative_region.get_base_region_id()
 
 
 class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
@@ -304,22 +266,19 @@ class SearchIssueForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-
         self.fields["start_date"].widget.attrs["class"] = self.fields["end_date"].widget.attrs["class"] = (
             "form-control datetimepicker-input"
         )
         self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
         self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
-        self.fields["assigned_to"].widget.choices = get_government_worker_choices()
-        self.fields["category"].widget.choices = get_issue_category_choices(grm_db)
-        self.fields["type"].widget.choices = get_issue_type_choices(grm_db)
-        self.fields["status"].widget.choices = get_issue_status_choices(grm_db)
+        self.fields["assigned_to"].widget.choices = GovernmentWorker.get_choices()
+        self.fields["category"].widget.choices = IssueCategory.get_choices()
+        self.fields["type"].widget.choices = IssueType.get_choices()
+        self.fields["status"].widget.choices = IssueStatus.get_choices()
 
-        eadl_db = get_db()
-        label = get_administrative_regions_by_level(eadl_db)[0]["administrative_level"].title()
+        label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = get_administrative_region_choices(eadl_db)
+        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_choices()
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
@@ -337,21 +296,19 @@ class NewSearchIssueForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-
         self.fields["start_date"].widget.attrs["class"] = self.fields["end_date"].widget.attrs["class"] = (
             "form-control datetimepicker-input"
         )
         self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
         self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
-        self.fields["assigned_to"].widget.choices = get_government_worker_choices()
-        self.fields["category"].widget.choices = get_issue_category_choices(grm_db)
-        self.fields["type"].widget.choices = get_issue_type_choices(grm_db)
-        self.fields["status"].widget.choices = get_issue_status_choices(grm_db)
+        self.fields["assigned_to"].widget.choices = GovernmentWorker.get_choices()
+        self.fields["category"].widget.choices = IssueCategory.get_choices()
+        self.fields["type"].widget.choices = IssueType.get_choices()
+        self.fields["status"].widget.choices = IssueStatus.get_choices()
 
-        label = AdministrativeRegion.get_administrative_regions_by_level()[0].administrative_level.name.title()
+        label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_administrative_region_choices()
+        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_choices()
 
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
@@ -362,23 +319,22 @@ class IssueDetailsForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        government_workers = get_government_worker_choices(False)
+        government_workers = GovernmentWorker.get_choices(False)
         self.fields["assignee"].widget.choices = government_workers
 
-        document = grm_db[doc_id]
+        obj = Issue.objects.get(id=obj_id)
         is_assignee_to_government_worker = False
         for worker in government_workers:
-            if worker[1] == document["assignee"]["id"]:
+            if worker[1] == obj.assignee.id:
                 is_assignee_to_government_worker = True
 
         if not is_assignee_to_government_worker:
-            self.fields["assignee"].widget.choices = [(document["assignee"]["id"], document["assignee"]["name"])]
+            self.fields["assignee"].widget.choices = [(obj.assignee.id, obj.assignee.name)]
 
-        self.fields["assignee"].initial = document["assignee"]["id"]
+        self.fields["assignee"].initial = obj.assignee.id
 
 
 # to check
@@ -396,12 +352,11 @@ class IssueResearchResultForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        document = grm_db[doc_id]
-        self.fields["research_result"].initial = document["research_result"] if "research_result" in document else ""
+        obj = Issue.objects.get(id=obj_id)
+        self.fields["research_result"].initial = obj.research_result
 
 
 # to check
@@ -410,9 +365,8 @@ class IssueRejectReasonForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
-        doc_id = initial.get("doc_id")
+        obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        document = grm_db[doc_id]
-        self.fields["reject_reason"].initial = document["reject_reason"] if "reject_reason" in document else ""
+        obj = Issue.objects.get(id=obj_id)
+        self.fields["reject_reason"].initial = obj.reject_reason

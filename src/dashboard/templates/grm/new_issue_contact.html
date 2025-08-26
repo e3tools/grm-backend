@@ -62,7 +62,7 @@
         $("#id_contact_type").select2({
             placeholder: "{% translate 'Click to select contact method' %}",
             allowClear: true,
-            disabled: {% if doc.contact_information %}false{% else %}true{% endif %}
+            disabled: {% if obj.contact_information %}false{% else %}true{% endif %}
         });
     </script>
 {% endblock select2 %}

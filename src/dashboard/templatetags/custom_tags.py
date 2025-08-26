@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from django import template
+from django.utils import timezone
 
 from authentication.utils import get_validation_code
 from dashboard.grm.constants import (
@@ -9,7 +8,7 @@ from dashboard.grm.constants import (
     CONTACT_CHOICES,
     MEDIUM_CHOICES,
 )
-from grm.utils import get_administrative_region_name as get_region_name
+from issues.models import AdministrativeRegion
 
 register = template.Library()
 
@@ -62,23 +61,9 @@ def get_date(date_time):
     return data
 
 
-@register.filter(expects_localtime=True)
-def string_to_date(date_time, date_format="%Y-%m-%dT%H:%M:%S.%fZ"):
-    if date_time:
-        return datetime.strptime(date_time, date_format)
-
-
 @register.simple_tag
 def get_days_until_today(date_time):
-    date = datetime.strptime(date_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-    delta = datetime.now() - date
-    return delta.days
-
-
-@register.simple_tag
-def get_days_until_date(date_time):
-    date = datetime.strptime(date_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-    delta = date - datetime.now()
+    delta = timezone.now() - date_time
     return delta.days
 
 
@@ -142,8 +127,5 @@ def get_hour(date_time):
 
 
 @register.simple_tag
-def get_administrative_region_name(administrative_id):
-    from client import get_db
-
-    eadl_db = get_db()
-    return get_region_name(eadl_db, administrative_id)
+def get_administrative_region_name(region_id):
+    return AdministrativeRegion.objects.get(id=region_id).name

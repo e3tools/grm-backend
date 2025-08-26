@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from authentication.models import Cdata, Pdata
 from client import get_db
 from etl.management.commands.etl_fetch_adl_data import Command as ADLCommand
 from etl.management.commands.etl_fetch_administrative_region_data import (
@@ -18,10 +19,11 @@ from etl.management.commands.etl_fetch_issue_sub_type_data import (
 )
 from etl.models import ETLExecutionLog
 from etl.utils import (
-    bulk_create_or_update,
+    fetch_database,
     process_category_data,
     process_citizen_group_data,
     process_issue_data,
+    process_sub_component_data,
 )
 from issues.models import (
     CitizenAgeGroup,
@@ -31,6 +33,8 @@ from issues.models import (
     IssueCategory,
     IssueStatus,
     IssueType,
+    SubComponent,
+    SubProjectGroup,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,16 +58,24 @@ class Command(BaseCommand):
             help="Filter documents by confirmed field",
         )
 
-    def fetch_database(self, documents, model_class):
-        documents = [doc for doc in documents]
+    def update_cripto_models(self):
+        # Load issues into a dictionary {external_id: id}
+        external_issues = dict(Issue.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))
 
-        # create or update database
-        model_name = model_class.__name__
-        result = bulk_create_or_update(model_class, documents)
-        self.stdout.write(self.style.NOTICE(f"Created {result['total_created']} {model_name} objects"))
-        self.stdout.write(self.style.NOTICE(f"Updated {result['total_updated']} {model_name}  objects"))
-        self.stdout.write(self.style.NOTICE(f"Processed {result['total_processed']} {model_name}  objects"))
-        return result
+        def update_keys(model_class):
+            model_name = model_class.__name__
+            items_to_update = []
+            objs = model_class.objects.filter(key__in=external_issues.keys())
+            for obj in objs:
+                obj.key = external_issues[obj.key]
+                items_to_update.append(obj)
+
+            if items_to_update:
+                model_class.objects.bulk_update(items_to_update, ["key"])
+                self.stdout.write(self.style.NOTICE(f"Updated {len(items_to_update)} {model_name} objects"))
+
+        update_keys(Cdata)
+        update_keys(Pdata)
 
     def handle(self, *args, **options):
         triggered_by = options["triggered_by"]
@@ -96,39 +108,52 @@ class Command(BaseCommand):
 
             # update CitizenAgeGroup objects
             # get issue_age_group documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_age_group"})
-            self.fetch_database(documents=documents, model_class=CitizenAgeGroup)
+            result = grm_db.get_query_result({"type": "issue_age_group"})
+            fetch_database(self, result=result, model_class=CitizenAgeGroup)
 
             # update CitizenGroup objects
             # get issue_citizen_group documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_citizen_group"})
+            result = grm_db.get_query_result({"type": "issue_citizen_group"})
 
             # process data for bulk create and bulk update
-            documents = process_citizen_group_data(documents)
-            self.fetch_database(documents=documents, model_class=CitizenGroup)
+            result = process_citizen_group_data(result)
+            fetch_database(self, result=result, model_class=CitizenGroup)
 
             # update Component objects
             # get issue_component documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_component"})
-            self.fetch_database(documents=documents, model_class=Component)
+            result = grm_db.get_query_result({"type": "issue_component"})
+            fetch_database(self, result=result, model_class=Component)
+
+            # update SubComponent objects
+            # get issue_sub_component documents from CouchDB
+            result = grm_db.get_query_result({"type": "issue_sub_component"})
+
+            # process data for bulk create and bulk update
+            result = process_sub_component_data(result)
+            fetch_database(self, result=result, model_class=SubComponent)
+
+            # update SubProjectGroup objects
+            # get issue_subproject_group documents from CouchDB
+            result = grm_db.get_query_result({"type": "issue_subproject_group"})
+            fetch_database(self, result=result, model_class=SubProjectGroup)
 
             # update IssueStatus objects
             # get issue_status documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_status"})
-            self.fetch_database(documents=documents, model_class=IssueStatus)
+            result = grm_db.get_query_result({"type": "issue_status"})
+            fetch_database(self, result=result, model_class=IssueStatus)
 
             # update IssueCategory objects
             # get issue_category documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_category"})
+            result = grm_db.get_query_result({"type": "issue_category"})
 
             # process data for bulk create and bulk update
-            documents = process_category_data(documents)
-            self.fetch_database(documents=documents, model_class=IssueCategory)
+            result = process_category_data(result)
+            fetch_database(self, result=result, model_class=IssueCategory)
 
             # update IssueType objects
             # get issue_type documents from CouchDB
-            documents = grm_db.get_query_result({"type": "issue_type"})
-            self.fetch_database(documents=documents, model_class=IssueType)
+            result = grm_db.get_query_result({"type": "issue_type"})
+            fetch_database(self, result=result, model_class=IssueType)
 
             # update Issue objects
             # get issue documents from CouchDB
@@ -138,11 +163,11 @@ class Command(BaseCommand):
             }
             if only_confirmed:
                 selector["confirmed"] = True
-            documents = grm_db.get_query_result(selector)
+            result = grm_db.get_query_result(selector)
 
             # process data for bulk create and bulk update
-            documents = process_issue_data(documents)
-            result = self.fetch_database(documents=documents, model_class=Issue)
+            result = process_issue_data(result)
+            result = fetch_database(self, result=result, model_class=Issue)
 
             self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_issue_data'))
 
@@ -152,6 +177,9 @@ class Command(BaseCommand):
             log_entry.save()
 
             logger.info(f"ETL {etl_name} completed successfully. Processed {result['total_processed']} records")
+
+            # update Cdata and Pdata objects
+            self.update_cripto_models()
         except Exception as e:
             error_message = f"ETL failed: {str(e)}\n{traceback.format_exc()}"
             logger.error(error_message)

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
+from dashboard.grm.constants import CHOICE_ALERT
 from issues.models import (
     AdministrativeRegion,
     Citizen,
@@ -284,9 +285,9 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         contact_method = data.get('contact_method')
         contact_information = data.get('contact_information')
 
-        if contact_medium != 'channel-alert' and not contact_method:
+        if contact_medium == CHOICE_ALERT and not contact_method:
             raise serializers.ValidationError(
-                {"contact_method": "You must define the contact method if your contact medium is not channel alert"}
+                {"contact_method": "You must define the contact method is your contact medium is channel alert"}
             )
         if contact_method == 'email':
             try:

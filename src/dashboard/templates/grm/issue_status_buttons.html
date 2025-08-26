@@ -6,7 +6,7 @@
         </label>
     </div>
     <div class="col-9 text-regular-family" id="#status_name">
-        {{ doc.status.name }}
+        {{ status.name }}
     </div>
 </div>
 <div class="row mb-2">
@@ -17,7 +17,7 @@
     </div>
     <div class="col-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="accept_issue"
-                {% if doc_status.open_status or not doc_status.initial_status or doc_status.rejected_status %}
+                {% if status.open_status or not status.initial_status or status.rejected_status %}
                 disabled{% endif %}>
             <span aria-hidden="true"><i class="fa fa-chevron-right"></i></span>
         </button>
@@ -31,7 +31,7 @@
     </div>
     <div class="col-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="record_resolution"
-                {% if doc_status.final_status or not doc_status.open_status %}disabled{% endif %}>
+                {% if status.final_status or not status.open_status %}disabled{% endif %}>
             <span aria-hidden="true"><i class="fa fa-chevron-right"></i></span>
         </button>
     </div>
@@ -44,7 +44,7 @@
     </div>
     <div class="col-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="reject_issue"
-                {% if doc_status.rejected_status or not doc_status.initial_status %}disabled{% endif %}>
+                {% if status.rejected_status or not status.initial_status %}disabled{% endif %}>
             <span aria-hidden="true"><i class="fa fa-chevron-right"></i></span>
         </button>
     </div>

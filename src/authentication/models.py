@@ -4,14 +4,10 @@ import cryptocode
 import shortuuid as uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
-from grm.utils import (
-    belongs_to_region,
-    get_parent_administrative_level,
-    get_related_region_with_specific_level,
-    sort_dictionary_list_by_field,
-)
+from issues.models import AdministrativeRegion, IssueDepartment
 
 
 def photo_path(instance, filename):
@@ -24,7 +20,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name=_("email address"))
     phone_number = models.CharField(max_length=45, verbose_name=_("phone number"))
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True, verbose_name=_("photo"))
-    external_id = models.CharField(max_length=255, verbose_name=_("couch DB ID"), default=None, null=True)
+    external_id = models.CharField(max_length=255, verbose_name="couchDB document _id", default=None, null=True)
 
     def __str__(self):
         return self.email
@@ -80,88 +76,45 @@ class GovernmentWorker(models.Model):
     def name(self):
         return self.user.name
 
-    def has_read_permission_for_issue(self, eadl_db, issue):
+    def has_read_permission_for_issue(self, issue):
         try:
-            issue_administrative_id = issue["administrative_region"]["administrative_id"]
-            if issue_administrative_id != self.administrative_id:
-                issue_department_id = issue["category"]["assigned_department"]
-                if self.department != issue_department_id:
-                    return False
-            belongs = belongs_to_region(eadl_db, issue_administrative_id, self.administrative_id)
+            administrative_region = issue.administrative_region
+            if (
+                administrative_region.id != self.administrative_id
+                and self.department != issue.category.assigned_department.id
+            ):
+                return False
+            belongs = issue.administrative_region.belongs_to_region(self.administrative_id)
             return belongs
         except Exception:
             return False
 
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        query = cls.objects.select_related("user")
+        choices = [(i.user.id, f"{i.user.first_name} {i.user.last_name}") for i in query]
+        if empty_choice:
+            choices = [("", "")] + choices
+        return choices
 
-def get_government_worker_choices(empty_choice=True):
-    query = GovernmentWorker.objects.select_related("user")
-    choices = [(i.user.id, f"{i.user.first_name} {i.user.last_name}") for i in query]
-    if empty_choice:
-        choices = [("", "")] + choices
-    return choices
 
-
-def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
-    try:
-        doc_category = grm_db.get_query_result({"id": issue_doc["category"]["id"], "type": "issue_category"})[0][0]
-    except Exception:
-        if errors:
-            error = "Error trying to get issue_category document in get_assignee function"
-            errors.append(error)
-        raise
-
-    assigned_department = doc_category["assigned_department"]
-    department_id = assigned_department["id"]
+def get_assignee(issue, administrative_id=None):
+    category = issue.category
+    assigned_department = category.assigned_department
+    department_id = assigned_department.id
     assignee = None
-    if doc_category["redirection_protocol"]:
-        assigned_department_level = (
-            assigned_department["administrative_level"] if "administrative_level" in assigned_department else None
-        )
-        assigned_department_level = assigned_department_level.strip() if assigned_department_level else None
-        # administrative_id = None
-        administrative_id = adm_lvl_id
-        if not assigned_department_level:
-            print("don't have assigned dep")
-            try:
-                reporter = GovernmentWorker.objects.get(user=issue_doc["reporter"]["id"])
-                administrative_id = reporter.administrative_id
-            except Exception:
-                pass
-        level = issue_doc["category"]["administrative_level"]
+    if category.redirection_protocol:
         if not administrative_id:
-            print("don't have adm_id")
-            try:
-                doc_administrative_level = eadl_db.get_query_result(
-                    {
-                        "administrative_id": issue_doc["administrative_region"]["administrative_id"],
-                        "type": "administrative_level",
-                    }
-                )[0][0]
-            except Exception:
-                if errors:
-                    error = "Error trying to get administrative_level document in get_assignee function"
-                    errors.append(error)
-                raise
+            level = issue.category.assigned_department.administrative_level
+            related_region = issue.administrative_region.get_ancestor_with_level(level)
+            administrative_id = related_region.administrative_id
 
-            related_region = get_related_region_with_specific_level(eadl_db, doc_administrative_level, level.title())
-            administrative_id = related_region["administrative_id"]
-
-        if level and administrative_id:
-            try:
-                adl_user = eadl_db.get_query_result(
-                    {
-                        "administrative_level": level,
-                        "administrative_region": administrative_id,
-                        "village_secretary": 1,
-                        "type": "adl",
-                    }
-                )[0][0]
-                assignee = {
-                    "id": adl_user["_id"],
-                    "name": adl_user["representative"]["name"],
-                }
-            except Exception:
-                pass
+        if administrative_id:
+            facilitator = Facilitator.objects.filter(
+                administrative_region=administrative_id, village_secretary=1
+            ).first()
+            if facilitator:
+                assignee = facilitator.user
 
         if not assignee:
             related_workers = set(
@@ -170,139 +123,110 @@ def get_assignee(grm_db, eadl_db, issue_doc, adm_lvl_id=None, errors=None):
                 ).values_list("user", flat=True)
             )
 
-            startkey = [department_id, None, None]
-            endkey = [department_id, {}, {}]
-            assignments_result = grm_db.get_view_result(
-                "issues",
-                "group_by_assignee",
-                group=True,
-                startkey=startkey,
-                endkey=endkey,
+            assignees = (
+                User.objects.filter(assigned_issues__category__assigned_department_id=department_id)
+                .annotate(issue_count=Count('assigned_issues', distinct=True))
+                .order_by('issue_count')
+                .distinct()
             )
-            assignments_result = [doc for doc in assignments_result]
 
-            department_workers_with_assignment = {worker["key"][1] for worker in assignments_result}
+            department_workers_with_assignment = {worker.id for worker in assignees}
             department_workers_without_assignment = related_workers - department_workers_with_assignment
 
             if department_workers_without_assignment:
                 worker_id = list(department_workers_without_assignment)[0]
-                worker_without_assignment = GovernmentWorker.objects.get(user=worker_id)
-                assignee = {"id": worker_id, "name": worker_without_assignment.name}
+                assignee = GovernmentWorker.objects.get(user=worker_id)
             else:
-                assignee = ""
-                if assignments_result and related_workers:
-                    assignments_result = sort_dictionary_list_by_field(assignments_result, "value")
-                    for assignment in assignments_result:
-                        worker_id = assignment["key"][1]
-                        if worker_id in related_workers:
-                            assignee = {"id": worker_id, "name": assignment["key"][2]}
+                if assignees and related_workers:
+                    for worker in assignees:
+                        if worker.id in related_workers:
+                            assignee = worker
                             break
                 elif related_workers:
-                    worker = GovernmentWorker.objects.filter(
+                    assignee = GovernmentWorker.objects.filter(
                         department=department_id, administrative_id=administrative_id
                     ).first()
-                    assignee = {"id": worker.user.id, "name": worker.name}
     else:
         print("not supposed to be here")
-        try:
-            doc_department = grm_db.get_query_result({"id": department_id, "type": "issue_department"})[0][0]
-        except Exception:
-            if errors:
-                error = "Error trying to get issue_department document in get_assignee function"
-                errors.append(error)
-            raise
-        assignee = doc_department["head"]
+        assignee = assigned_department.department.head
     if not assignee:
         print(" definitively not supposed to be here")
-        try:
-            adl_user = eadl_db.get_query_result(
-                {
-                    "administrative_level": issue_doc["category"]["administrative_level"],
-                    "administrative_region": issue_doc["administrative_region"]["administrative_id"],
-                    "village_secretary": 1,
-                    "type": "adl",
-                }
-            )[0][0]
-            assignee = {
-                "id": adl_user["_id"],
-                "name": adl_user["representative"]["name"],
-            }
-        except Exception:
-            pass
-    if doc_category["confidentiality_level"] == "Confidential" and doc_category["redirection_protocol"] == 0:
-        try:
-            adl_user = eadl_db.get_query_result(
-                {
-                    "administrative_region": "country",
-                    "village_secretary": 1,
-                    "type": "adl",
-                }
-            )[0][0]
-            assignee = {
-                "id": adl_user["_id"],
-                "name": adl_user["representative"]["name"],
-            }
-            print("condidential assignee ok")
-        except Exception:
-            pass
+        # TODO: ask about this repeated case
+        facilitator = Facilitator.objects.filter(administrative_region=administrative_id, village_secretary=1).first()
+        if facilitator:
+            assignee = facilitator.user
+
+    if category.confidentiality_level == "Confidential" and category.redirection_protocol == 0:
+        facilitator = Facilitator.objects.filter(administrative_region=1, village_secretary=1).first()
+        if facilitator:
+            assignee = facilitator.user
+        print("confidential assignee ok")
     return assignee
 
 
-def get_assignee_to_escalate(eadl_db, department_id, administrative_id):
-    try:
-        parent = get_parent_administrative_level(eadl_db, administrative_id)
-        # if parent["administrative_level"] and parent["administrative_level"] in ["département", "arrondissement"] :
-        #     parent = get_parent_administrative_level(eadl_db, parent["administrative_id"])
-    except Exception:
-        raise
-
-    administrative_id = parent["administrative_id"]
+def get_assignee_to_escalate(department_id, administrative_id):
+    parent = AdministrativeRegion.objects.get(id=administrative_id).parent
+    administrative_id = parent.id
+    # TODO: ask why department=int(department_id + 1)
     worker = GovernmentWorker.objects.filter(
         department=int(department_id + 1), administrative_id=administrative_id
     ).first()
     if worker:
-        try:
-            adl_user = eadl_db.get_query_result(
-                {
-                    "representative_id": worker.user.id,
-                    "administrative_region": worker.administrative_id,
-                    "department": worker.department,
-                    "type": "adl",
-                }
-            )[0][0]
-            assignee = {
-                "id": adl_user["_id"],
-                "name": adl_user["representative"]["name"],
-            }
-            return assignee
-        except Exception:
-            pass
+        # adl_user = eadl_db.get_query_result(
+        #     {
+        #         "representative_id": worker.user.id,
+        #         "administrative_region": worker.administrative_id,
+        #         "department": worker.department,
+        #         "type": "adl",
+        #     }
+        # )[0][0]
+        assignee = worker.user
+        return assignee
+
     elif parent:
-        return get_assignee_to_escalate(eadl_db, department_id, administrative_id)
+        return get_assignee_to_escalate(department_id, administrative_id)
 
 
-def anonymize_issue_data(issue_doc):
-    key = issue_doc["_id"]
-    citizen = issue_doc["citizen"]
+def anonymize_issue_data(issue):
+    key = str(issue.id)
+    citizen = issue.citizen
     if citizen:
         pdata, _ = Pdata.objects.get_or_create(key=key)
-        data_encoded = cryptocode.encrypt(citizen, key)
+        data_encoded = cryptocode.encrypt(citizen.name, key)
         pdata.data = data_encoded
         pdata.save()
-        issue_doc["citizen"] = "*"
+        citizen.name = "*"
+        citizen.save()
     else:
         Pdata.objects.filter(key=key).delete()
 
-    contact_information = issue_doc["contact_information"]
+    contact_information = issue.contact_information
     if contact_information:
-        contact = contact_information["contact"]
+        contact = contact_information
         cdata, _ = Cdata.objects.get_or_create(key=key)
         data_encoded = cryptocode.encrypt(contact, key)
         cdata.data = data_encoded
         cdata.save()
-        issue_doc["contact_information"] = {
-            "type": contact_information["type"],
-            "contact": "*",
-        }
+        issue.contact_information = "*"
     else:
         Cdata.objects.filter(key=key).delete()
+
+
+class Facilitator(models.Model):
+    user = models.OneToOneField("User", models.PROTECT)
+    department = models.ForeignKey(
+        IssueDepartment, blank=True, null=True, on_delete=models.CASCADE, related_name='departments'
+    )
+    administrative_region = models.ForeignKey(
+        AdministrativeRegion, blank=True, null=True, on_delete=models.CASCADE, related_name='facilitators'
+    )
+    unique_region = models.BooleanField(null=True)
+    village_secretary = models.BooleanField(null=True)
+
+    class Meta:
+        verbose_name = _("Facilitator")
+        verbose_name_plural = _("Facilitators")
+
+    @property
+    def name(self):
+        return self.user.name

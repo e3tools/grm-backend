@@ -1,10 +1,19 @@
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import connection, models
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
-from grm.utils import email_is_valid
+from dashboard.grm.constants import (
+    ALERT_CHOICES,
+    CHOICE_ALERT,
+    CHOICE_ANONYMOUS,
+    CITIZEN_TYPE_CHOICES,
+    CONTACT_CHOICES,
+    GENDER_CHOICES,
+    MEDIUM_CHOICES,
+)
+from grm.utils import get_choices
 
 
 class AdministrativeLevel(models.Model):
@@ -64,15 +73,74 @@ class AdministrativeRegion(models.Model):
             parent = parent.parent
         return " > ".join(reversed(hierarchy))
 
-    def get_all_descendant_ids(self):
-        descendant_ids = [self.id]
-        children = list(self.children.all())
-        for child in children:
-            descendant_ids.extend(child.get_all_descendant_ids())
-        return descendant_ids
+    def get_full_hierarchy_ids(self):
+        hierarchy_ids = [self.id]
+        parent = self.parent
+        while parent:
+            hierarchy_ids.append(parent.id)
+            parent = parent.parent
+        return hierarchy_ids[::-1]
+
+    def get_descendant_ids(self, include_self=True):
+        """
+        Returns the IDs of all descendants in this region
+        using a recursive CTE in PostgreSQL.
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH RECURSIVE descendants AS (
+                    SELECT id, parent_id
+                    FROM {table}
+                    WHERE id = %s
+                    UNION ALL
+                    SELECT ar.id, ar.parent_id
+                    FROM {table} ar
+                    INNER JOIN descendants d ON ar.parent_id = d.id
+                )
+                SELECT id FROM descendants
+                """.format(
+                    table=self._meta.db_table
+                ),
+                [self.id],
+            )
+            ids = [row[0] for row in cursor.fetchall()]
+
+        if not include_self:
+            ids.remove(self.id)
+
+        return ids
+
+    def belongs_to_region(self, parent_id):
+        if parent_id == self.id:
+            belongs = True
+        else:
+            parent = self.__class__.objects.get(id=parent_id)
+            belongs = self.id in parent.get_descendant_ids()
+        return belongs
+
+    def get_base_region_id(self):
+        base_region_id = self.id
+        parent = self.parent
+        while parent.parent:
+            base_region_id = parent.id
+            parent = parent.parent
+        return base_region_id
+
+    def get_ancestor_with_level(self, level):
+        """
+        Returns the ancestor with administrative_level=level.
+        If it is not found, return self.
+        """
+        region_base = region = self
+        while region.parent and region.administrative_level != level:
+            region = region.parent
+        if region.administrative_level != level:
+            region = region_base
+        return region
 
     @classmethod
-    def get_administrative_region_choices(cls, empty_choice=True):
+    def get_choices(cls, empty_choice=True):
         query_result = cls.objects.filter(parent__parent=None)
         choices = list()
         for item in query_result:
@@ -82,14 +150,10 @@ class AdministrativeRegion(models.Model):
         return choices
 
     @classmethod
-    def get_administrative_regions_by_level(cls, level=None):
-        filters = {}
-        if level:
-            filters['administrative_level'] = level
-        else:
-            filters['parent_id'] = None
-        parent_id = cls.objects.filter(**filters).first()
-        return cls.objects.filter(parent=parent_id)
+    def get_first_child_level_name(cls):
+        first_child = cls.objects.filter(parent__parent=None).first()
+        if first_child:
+            return first_child.administrative_level.name.title()
 
 
 class Component(models.Model):
@@ -99,12 +163,33 @@ class Component(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
 
 class SubComponent(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=False, blank=False)
+    parent = models.ForeignKey(Component, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
+
+class SubProjectGroup(models.Model):
     name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
 
 
 class IssueStatus(models.Model):
@@ -121,6 +206,10 @@ class IssueStatus(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
 
 
 class IssueDepartment(models.Model):
@@ -170,6 +259,10 @@ class IssueCategory(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
 
 class IssueType(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -181,6 +274,10 @@ class IssueType(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
 
 
 class IssueSubType(models.Model):
@@ -197,12 +294,20 @@ class IssueSubType(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
 
 class CitizenAgeGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
 
 
 class CitizenGroup(models.Model):
@@ -216,19 +321,18 @@ class CitizenGroup(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
 
 class Citizen(models.Model):
-    CITIZEN_TYPE = (
-        ('organization_behalf_someone', _('organization_behalf_someone')),
-        ('on_behalf_of_someone', _('on_behalf_of_someone')),
-        ('keep_name_confidential', _('keep_name_confidential')),
-    )
-
     name = models.CharField(max_length=255)
     age_group = models.ForeignKey(
         CitizenAgeGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="age_group_citizen"
     )
-    type = models.CharField(max_length=50, null=True, blank=True, choices=CITIZEN_TYPE)
+    type = models.CharField(max_length=50, null=True, blank=True, choices=CITIZEN_TYPE_CHOICES)
+    gender = models.CharField(max_length=50, null=True, blank=True, choices=GENDER_CHOICES)
     group = models.ForeignKey(
         CitizenGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="group_citizen"
     )
@@ -238,13 +342,9 @@ class Citizen(models.Model):
 
 
 class Issue(models.Model):
-    CONTACT_MEDIUM = (
-        ('channel-alert', _('channel-alert')),
-        ('facilitator', _('facilitator')),
-        ('anonymous', _('anonymous')),
+    external_id = models.CharField(
+        max_length=255, verbose_name="couchDB document _id", default=None, null=True, blank=True
     )
-    CONTACT_METHOD = (('email', _('email')), ('phone_number', _('phone_number')), ('whatsapp', _('whatsapp')))
-
     administrative_region = models.ForeignKey(
         AdministrativeRegion, blank=True, null=True, on_delete=models.CASCADE, related_name='issues'
     )
@@ -256,13 +356,15 @@ class Issue(models.Model):
     contact_information = models.CharField(
         max_length=255, blank=True, null=True, help_text="The contact phone, email, whatsapp or other method data"
     )
-    contact_medium = models.CharField(max_length=50, blank=True, choices=CONTACT_MEDIUM, default='channel-alert')
-    contact_method = models.CharField(max_length=255, choices=CONTACT_METHOD, default=None, null=True, blank=True)
+    contact_medium = models.CharField(max_length=50, blank=True, choices=MEDIUM_CHOICES, default=CHOICE_ANONYMOUS)
+    contact_method = models.CharField(max_length=255, choices=CONTACT_CHOICES, default=None, null=True, blank=True)
     component = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
     created_date = models.DateTimeField(
         blank=True, editable=False, null=True, auto_now_add=now(), help_text="When was the issue created in DB"
     )
     description = models.TextField(null=True, blank=True, default=None)
+    research_result = models.TextField(blank=True, default="")
+    reject_reason = models.TextField(blank=True, default="")
     intake_date = models.DateTimeField(
         null=True, blank=True, default=timezone.now, db_index=True, help_text="When was the issue was reported"
     )
@@ -291,6 +393,9 @@ class Issue(models.Model):
     sub_component = models.ForeignKey(
         SubComponent, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
     )
+    subproject_group = models.ForeignKey(
+        SubProjectGroup, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
+    )
     title = models.CharField(max_length=255, null=True, blank=True)
     tracking_code = models.CharField(max_length=255)
     internal_code = models.CharField(max_length=255, null=True, blank=True)
@@ -298,6 +403,7 @@ class Issue(models.Model):
     confirmed = models.BooleanField(default=False)
     escalated_date = models.DateTimeField(blank=True, editable=False, null=True)
     escalate_flag = models.BooleanField(default=False)
+    alert_message_status = models.CharField(max_length=50, blank=True, default="", choices=ALERT_CHOICES)
 
     class Meta:
         verbose_name = _("Issue")
@@ -315,24 +421,12 @@ class Issue(models.Model):
 
     def save(self, *args, **kwargs):
         self._validate_contact_method_based_on_contact_medium()
-        if self.contact_method:
-            self._validate_contact_information_based_on_contact_method()
         return super().save(*args, **kwargs)
 
     def _validate_contact_method_based_on_contact_medium(self):
-        if self.contact_medium != 'channel-alert' and self.contact_method is None:
+        if self.contact_medium == CHOICE_ALERT and not self.contact_method:
             raise ValidationError(
-                _("You must define the contact method is your contact medium is not channel alert"),
-            )
-
-    def _validate_contact_information_based_on_contact_method(self):
-        if self.contact_method == 'email' and not email_is_valid(self.contact_information):
-            raise ValidationError(
-                _("If email contact method is selected provide a valid email"),
-            )
-        if self.contact_method != 'email' and email_is_valid(self.contact_information):
-            raise ValidationError(
-                _("If phone or whatsapp contact method is selected provide a valid phone number"),
+                _("You must define the contact method is your contact medium is channel alert"),
             )
 
     def resolution_days(self):

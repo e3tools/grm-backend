@@ -30,20 +30,22 @@
                             </div>
                             <div class="col-6">
                                 {% bootstrap_form form layout='horizontal' %}
-                                <div class="overlay-wrapper">
-                                    <div id="attachments"></div>
-                                    <div class="overlay" id="load-attachments-spin">
-                                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                                    </div>
-                                </div>
-                            </div>
+                                {% comment %}
+								<div class="overlay-wrapper">
+									<div id="attachments"></div>
+									<div class="overlay" id="load-attachments-spin">
+										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+									</div>
+								</div>
+								{% endcomment %}
+							</div>
                         </div>
                     </div>
                     <div class="card-footer mb-2">
                         <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
                             {% translate "SAVE & NEXT" %}
                         </button>
-                        <a href="{% url 'dashboard:grm:new_issue_step_2' doc.auto_increment_id %}"
+                        <a href="{% url 'dashboard:grm:new_issue_step_2' obj.id %}"
                            class="btn btn-primary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
                             <i class="fa fa-chevron-left mr-2"></i>
                             {% translate "BACK" %}
@@ -60,7 +62,7 @@
 {% endblock modals %}
 
 {% block select2 %}
-    <script type="text/javascript">
+    <script type="text/javascript">	
         $("#id_issue_type").select2({
             placeholder: "{% translate 'Click to select the report' %}",
             allowClear: true
@@ -74,6 +76,10 @@
             allowClear: true
         });
         $("#id_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true
+        });
+        $("#id_sub_component").select2({
             placeholder: "{% translate 'Click to select an item' %}",
             allowClear: true
         });
@@ -95,45 +101,25 @@
         let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
         $("#id_issue_type").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'type': 'issue_sub_type', 'parent_id': $(this).val()};
+                var data = {'model_class': 'IssueSubType', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_issue_sub_type');
             }
         });
 
         $("#id_issue_sub_type").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'type': 'issue_category', 'parent_id': $(this).val()};
+                var data = {'model_class': 'IssueCategory', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_category');
             }
         });
 
-        {% comment %} $("#id_component").change(function () {
+        $("#id_component").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'type': 'issue_sub_component', 'parent_id': $(this).val()};
+                var data = {'model_class': 'SubComponent', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_sub_component');
             }
-        }); {% endcomment %}
-
-        function loadAttachments() {
-            load_attachments_spin.show();
-            $('#attachments').load("{% url 'dashboard:grm:issue_attachments' doc.auto_increment_id %}", function (
-                response, status, xhr) {
-                if (status === "error") {
-                    alert(error_server_message + "Error " + response.status);
-                }
-                load_attachments_spin.hide();
-                $('#add_attachment').click(function () {
-                    let url = "{% url 'dashboard:grm:upload_issue_attachment' doc.auto_increment_id %}";
-                    file_form_ajax.load_form('#form', modal, url, false, true);
-                });
-            });
-        }
-
-        $(document).ready(function () {
-            loadAttachments();
         });
-
-
+		{% comment %}
         class FileFormAjaxSubmit extends FormAjaxSubmit {
             submitted_form() {
                 loadAttachments();
@@ -142,6 +128,26 @@
 
         let file_form_ajax = new FileFormAjaxSubmit();
         let modal = $('#formModal');
+
+        function loadAttachments() {
+            load_attachments_spin.show();
+            $('#attachments').load("{% url 'dashboard:grm:issue_attachments' obj.id %}", function (
+                response, status, xhr) {
+                if (status === "error") {
+                    alert(error_server_message + "Error " + response.status);
+                }
+                load_attachments_spin.hide();
+                $('#add_attachment').click(function () {
+                    let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
+                    file_form_ajax.load_form('#form', modal, url, false, true);
+                });
+            });
+        }
+
+        $(document).ready(function () {
+            loadAttachments();
+        });
+        {% endcomment %}
 
         $('b[role="presentation"]').hide();
         $('.select2-selection__arrow').append(
@@ -165,23 +171,23 @@
         //Datemask dd/mm/yyyy
         $('.datetimepicker-input').inputmask({alias: "datetime", inputFormat: "dd/mm/yyyy"});
 
-        let defaultDate = Date.now();
-        {% if doc.intake_date %}
-            defaultDate = moment("{{ doc.intake_date }}", "YYYY-MM-DD");
+        let defaultDate = moment();
+        {% if obj.intake_date %}
+            defaultDate = moment("{{ obj.intake_date|date:"d/m/Y" }}", "DD/MM/YYYY");
         {% endif %}
         $('#intake_date').datetimepicker({
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             defaultDate: defaultDate,
             format: "DD/MM/YYYY",
         });
-        {% if doc.issue_date %}
-            defaultDate = moment("{{ doc.issue_date }}", "YYYY-MM-DD");
+        {% if obj.issue_date %}
+            defaultDate = moment("{{ obj.issue_date|date:"d/m/Y" }}", "DD/MM/YYYY");
         {% else %}
             defaultDate = false;
         {% endif %}
         $('#issue_date').datetimepicker({
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             defaultDate: defaultDate,
             format: "DD/MM/YYYY",

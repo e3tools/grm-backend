@@ -6,21 +6,21 @@ app_name = "grm"
 urlpatterns = [
     path("", views.DashboardTemplateView.as_view(), name="dashboard"),
     path("start-new-issue", views.StartNewIssueView.as_view(), name="start_new_issue"),
-    path(
-        "upload-issue-attachment/<int:issue>/",
-        views.UploadIssueAttachmentFormView.as_view(),
-        name="upload_issue_attachment",
-    ),
-    path(
-        "delete-issue-attachment/<int:issue>/<str:attachment>/",
-        views.IssueAttachmentDeleteView.as_view(),
-        name="delete_issue_attachment",
-    ),
-    path(
-        "issue-attachments/<int:issue>/",
-        views.IssueAttachmentListView.as_view(),
-        name="issue_attachments",
-    ),
+    # path(
+    #     "upload-issue-attachment/<int:issue>/",
+    #     views.UploadIssueAttachmentFormView.as_view(),
+    #     name="upload_issue_attachment",
+    # ),
+    # path(
+    #     "delete-issue-attachment/<int:issue>/<str:attachment>/",
+    #     views.IssueAttachmentDeleteView.as_view(),
+    #     name="delete_issue_attachment",
+    # ),
+    # path(
+    #     "issue-attachments/<int:issue>/",
+    #     views.IssueAttachmentListView.as_view(),
+    #     name="issue_attachments",
+    # ),
     path(
         "new-issue-step-1/<int:issue>/",
         views.NewIssueContactFormView.as_view(),
@@ -64,16 +64,16 @@ urlpatterns = [
         name="get_sensitive_issue_data",
     ),
     path("edit-issue/<int:issue>/", views.EditIssueView.as_view(), name="edit_issue"),
-    path(
-        "add-comment-to-issue/<int:issue>/",
-        views.AddCommentToIssueView.as_view(),
-        name="add_comment_to_issue",
-    ),
-    path(
-        "issue-comments/<int:issue>/",
-        views.IssueCommentListView.as_view(),
-        name="issue_comments",
-    ),
+    # path(
+    #     "add-comment-to-issue/<int:issue>/",
+    #     views.AddCommentToIssueView.as_view(),
+    #     name="add_comment_to_issue",
+    # ),
+    # path(
+    #     "issue-comments/<int:issue>/",
+    #     views.IssueCommentListView.as_view(),
+    #     name="issue_comments",
+    # ),
     path(
         "issue-status-buttons/<int:issue>/",
         views.IssueStatusButtonsTemplateView.as_view(),
@@ -98,11 +98,6 @@ urlpatterns = [
         "get-choices-for-next-administrative-level",
         views.GetChoicesForNextAdministrativeLevelView.as_view(),
         name="get_choices_for_next_administrative_level",
-    ),
-    path(
-        "new-get-choices-for-next-administrative-level",
-        views.NewGetChoicesForNextAdministrativeLevelView.as_view(),
-        name="new_get_choices_for_next_administrative_level",
     ),
     path(
         "get-ancestor-administrative-levels",

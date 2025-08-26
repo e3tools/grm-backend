@@ -29,17 +29,15 @@ class Command(BaseCommand):
         result = bulk_create_or_update(IssueSubType, sub_types_without_parent_id)
         self.stdout.write(self.style.NOTICE(f"Created {result['total_created']} IssueSubType objects"))
 
-        # if IssueSubType.objects.filter(parent=None).count() > 1:
-        #     # update parent_id to issue subtypes
-        #     self.stdout.write(
-        #         self.style.NOTICE(
-        #             "Updating IssueSubType objects if there are new values for the parent_id field"
-        #         )
-        #     )
-        #     result = bulk_create_or_update(IssueSubType, sub_types)
-        #     self.stdout.write(self.style.NOTICE(f"Created {result['total_created']} IssueSubType objects"))
-        #     self.stdout.write(self.style.NOTICE(f"Updated {result['total_updated']} IssueSubType objects"))
-        #     self.stdout.write(self.style.NOTICE(f"Processed {result['total_processed']} IssueSubType objects"))
+        if IssueSubType.objects.filter(parent=None).count() > 1:
+            # update parent_id to issue subtypes
+            self.stdout.write(
+                self.style.NOTICE("Updating IssueSubType objects if there are new values for the parent_id field")
+            )
+            result = bulk_create_or_update(IssueSubType, sub_types)
+            self.stdout.write(self.style.NOTICE(f"Created {result['total_created']} IssueSubType objects"))
+            self.stdout.write(self.style.NOTICE(f"Updated {result['total_updated']} IssueSubType objects"))
+            self.stdout.write(self.style.NOTICE(f"Processed {result['total_processed']} IssueSubType objects"))
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Running: etl_fetch_issue_sub_type_data'))

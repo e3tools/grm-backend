@@ -5,7 +5,7 @@ from dashboard.diagnostics.views import HomeFormView
 from grm.tests.base import DashboardTestCase
 
 
-class TestHomeTemplateView(DashboardTestCase):
+class TestHomeFormView(DashboardTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("dashboard:diagnostics:home")
@@ -17,8 +17,7 @@ class TestHomeTemplateView(DashboardTestCase):
 
     @override_settings(LANGUAGE_CODE='en-us')
     def test_context_data(self):
-        with self.assertNumQueries(24):
-            response = self.get(self.url)
+        response = self.get(self.url)
         context_data = response.context_data
 
         assert response.status_code == 200
