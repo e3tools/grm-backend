@@ -101,21 +101,21 @@
         let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
         $("#id_issue_type").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'model_class': 'IssueSubType', 'parent_id': $(this).val()};
+                let data = {'model_class': 'IssueSubType', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_issue_sub_type');
             }
         });
 
         $("#id_issue_sub_type").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'model_class': 'IssueCategory', 'parent_id': $(this).val()};
+                let data = {'model_class': 'IssueCategory', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_category');
             }
         });
 
         $("#id_component").change(function () {
             if ($(this).val() && $(this).val() !== '') {
-                var data = {'model_class': 'SubComponent', 'parent_id': $(this).val()};
+                let data = {'model_class': 'SubComponent', 'parent_id': $(this).val()};
                 loadData(get_choices_url, data, 'id_sub_component');
             }
         });

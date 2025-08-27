@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.forms.fields import EmailField
 
-from authentication.models import Cdata, GovernmentWorker, Pdata, User
+from authentication.models import Cdata, Facilitator, GovernmentWorker, Pdata, User
 
 
 class UserWithEmptyPasswordCreationForm(forms.ModelForm):
@@ -68,24 +68,64 @@ class GovernmentWorkerAdmin(admin.ModelAdmin):
     fields = (
         "user",
         "department",
-        "administrative_id",
+        "administrative_region",
     )
-    raw_id_fields = ("user",)
+    raw_id_fields = (
+        "user",
+        "department",
+        "administrative_region",
+    )
     list_display = (
         "id",
         "user",
         "department",
-        "administrative_id",
+        "administrative_region",
     )
     search_fields = (
         "id",
         "user__email",
-        "department",
-        "administrative_id",
+        "department__name",
+        "administrative_region__name",
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("user")
+        return super().get_queryset(request).select_related("user", "department", "administrative_region")
+
+
+class FacilitatorAdmin(admin.ModelAdmin):
+    fields = (
+        "user",
+        "department",
+        "administrative_region",
+        "unique_region",
+        "village_secretary",
+    )
+    raw_id_fields = (
+        "user",
+        "department",
+        "administrative_region",
+    )
+    list_display = (
+        "id",
+        "user",
+        "department",
+        "administrative_region",
+        "unique_region",
+        "village_secretary",
+    )
+    list_filter = (
+        "unique_region",
+        "village_secretary",
+    )
+    search_fields = (
+        "id",
+        "user__email",
+        "department__name",
+        "administrative_region__name",
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user", "department", "administrative_region")
 
 
 class LogEntryAdmin(admin.ModelAdmin):
@@ -107,6 +147,7 @@ class LogEntryAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(GovernmentWorker, GovernmentWorkerAdmin)
+admin.site.register(Facilitator, FacilitatorAdmin)
 admin.site.register(Pdata)
 admin.site.register(Cdata)
 admin.site.register(LogEntry, LogEntryAdmin)

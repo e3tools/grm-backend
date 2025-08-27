@@ -23,7 +23,7 @@ from dashboard.grm.constants import (
 )
 from grm.celery_app import app
 from grm.utils import normalize_phone_number
-from issues.models import Issue
+from issues.models import Comment, Issue
 from mail_client import send_mail_notification
 from sms_client import send_sms
 
@@ -44,7 +44,7 @@ def check_issues():
             | ~Q(contact_information__in=[None, "", "*"])
             | Q(assignee_in=[None, ""])
         )
-    )
+    ).select_related('administrative_region', 'category')
     result = {
         "errors": [],
         "internal_code_updated": [],
@@ -56,12 +56,10 @@ def check_issues():
         internal_code_updated = False
         anonymized_data = False
         assignee_updated = False
-        category = issue.category
-        region = issue.administrative_region
 
         # set internal_code if needed
         if not issue.internal_code:
-            issue.internal_code = f'{category.abbreviation}-{region.id}-{issue.id}'
+            issue.internal_code = issue.get_internal_code()
             internal_code_updated = True
             result["internal_code_updated"].append(issue.id)
 
@@ -87,14 +85,12 @@ def check_issues():
                     assignee_updated = True
                     result["assignee_updated"].append(issue.id)
 
-                    # TODO: complete code for issue comment
                     # Add comment to the issue
-                    # system_user = None  # take none like user system or create a user system with name "Système eMGP"
-                    # comment = Comment.objects.create(
-                    #     user=system_user,
-                    #     comment=_("The issue has been assigned to %s.") % assignee.name,
-                    # )
-                    # issue.comments.add(comment)
+                    Comment.objects.create(
+                        user=None,  # take None like user system
+                        comment=_("The issue has been assigned to %s.") % assignee.name,
+                        issue=issue,
+                    )
             except Exception:
                 error = f"Error trying to set assignee for issue document with id {issue.id}"
                 result["errors"].append(error)
@@ -119,8 +115,8 @@ def escalate_issues():
     for issue in issues:
         issues_updated = False
         department_id = issue.assignee.governmentworker.department
-        administrative_id = issue.administrative_region.id
-        assignee = get_assignee_to_escalate(department_id, administrative_id)
+        region_id = issue.administrative_region.id
+        assignee = get_assignee_to_escalate(department_id, region_id)
         if assignee:
             issue.assignee = assignee
             issue.escalate_flag = False
@@ -179,14 +175,11 @@ def escalate_old_issues():
             issue.escalated_date = now
             issue.escalate_flag = True
 
-            # TODO: complete code for issue comment
-            # Add an escalation comment
-            # system_user = None  # take none like user system or create a user system with name "Système eMGP"
-            # escalation_comment = Comment.objects.create(
-            #     user=system_user,
-            #     comment="La plainte a été escaladée/remontée automatiquement car le délai de traitement est dépassé.",
-            # )
-            # issue.comments.add(escalation_comment)
+            Comment.objects.create(
+                user=None,  # take None like user system
+                comment=_("The complaint has been escalated automatically because the processing time has passed."),
+                issue=issue,
+            )
 
             issue.save()
             updated_issues += 1

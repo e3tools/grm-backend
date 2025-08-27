@@ -25,8 +25,12 @@ from authentication.models import (
 
 # from client import upload_file
 from dashboard.adls.forms import PasswordConfirmForm
-from dashboard.grm.constants import CHOICE_ALERT
-from dashboard.grm.forms import (  # MAX_LENGTH,
+from dashboard.grm.constants import (
+    CHOICE_ALERT,
+    CHOICE_CONFIDENTIAL,
+    TEXTAREA_MAX_LENGTH,
+)
+from dashboard.grm.forms import (
     IssueCommentForm,
     IssueDetailsForm,
     IssueRejectReasonForm,
@@ -45,7 +49,7 @@ from dashboard.mixins import (
     PageMixin,
 )
 from grm.utils import get_issue_select_options_choices
-from issues.models import AdministrativeRegion, Citizen, Issue, IssueStatus
+from issues.models import AdministrativeRegion, Citizen, Comment, Issue, IssueStatus
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
@@ -84,9 +88,15 @@ class IssueMixin:
     permissions = ("read", "write")
     has_permission = True
 
+    def get_query_result(self, **kwargs):
+        return Issue.objects.select_related('reporter', 'administrative_region', 'assignee')
+
     def check_permissions(self):
+        if not self.obj:
+            self.has_permission = False
+            return
+
         user = self.request.user
-        administrative_id = self.obj.administrative_region.id if self.obj.administrative_region else None
 
         if self.obj.confirmed:
             if "read_only_by_reporter" in self.permissions and self.obj.reporter != user:
@@ -108,14 +118,13 @@ class IssueMixin:
                             if "write" not in self.permissions:
                                 self.has_permission = False
         if hasattr(user, "governmentworker"):
-            user_adm_id = user.governmentworker.administrative_id
-            administrative_region = AdministrativeRegion.objects.get(id=user_adm_id)
+            administrative_region = user.governmentworker.administrative_region
             allowed_regions = administrative_region.get_descendant_ids()
-            if administrative_id in allowed_regions:
+            if self.obj.administrative_region and self.obj.administrative_region.id in allowed_regions:
                 self.has_permission = True
 
     def dispatch(self, request, *args, **kwargs):
-        self.obj = get_object_or_404(Issue, id=kwargs["issue"])
+        self.obj = self.get_query_result(**kwargs).filter(id=kwargs["issue"]).first()
 
         self.check_permissions()
         if not self.has_permission:
@@ -272,7 +281,9 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         return dispatch
 
     def get_query_result(self, **kwargs):
-        return Issue.objects.filter(id=kwargs["issue"], reporter=self.request.user, confirmed=False)
+        return Issue.objects.filter(id=kwargs["issue"], reporter=self.request.user, confirmed=False).select_related(
+            'reporter', 'administrative_region', 'assignee'
+        )
 
     def has_required_fields(self):
         if self.fields_to_check and self.obj:
@@ -284,19 +295,13 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     def set_details_fields(self, data):
         self.obj.intake_date = data["intake_date"]
         self.obj.issue_date = data["issue_date"]
-        self.obj.description = data["description"]
         self.obj.issue_type_id = int(data["issue_type"])
+        self.obj.issue_sub_type_id = int(data["issue_sub_type"])
         self.obj.category_id = int(data["category"])
-
-        if "issue_sub_type" in data:
-            self.obj.issue_sub_type_id = int(data["issue_sub_type"])
-        if "component" in data:
-            self.obj.component_id = int(data["component"])
-        if "sub_component" in data:
-            self.obj.sub_component_id = int(data["sub_component"])
-        if "subproject_group" in data:
-            self.obj.subproject_group_id = int(data["subproject_group"])
-
+        self.obj.component_id = int(data["component"]) if data["component"] else None
+        self.obj.sub_component_id = int(data["sub_component"]) if data["sub_component"] else None
+        self.obj.subproject_group_id = int(data["subproject_group"]) if data["subproject_group"] else None
+        self.obj.description = data["description"]
         self.obj.ongoing_issue = data["ongoing_issue"]
 
     def set_person_fields(self, data):
@@ -474,11 +479,8 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
             )
 
         self.set_contact_fields(data)
-        category = self.obj.category
-        region = self.obj.administrative_region
-        self.obj.internal_code = f'{category.abbreviation}-{region.id}-{self.obj.id}'
+        self.obj.internal_code = self.obj.get_internal_code()
         self.obj.status = IssueStatus.objects.get(open_status=True)
-
         self.obj.confirmed = True
         anonymize_issue_data(self.obj)
         self.obj.save()
@@ -495,7 +497,17 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     permissions = ("read_only_by_reporter",)
 
     def get_query_result(self, **kwargs):
-        return Issue.objects.filter(id=kwargs["issue"], confirmed=True)
+        return Issue.objects.filter(id=kwargs["issue"], confirmed=True).select_related(
+            'reporter',
+            'administrative_region',
+            'category',
+            'citizen__group',
+            'citizen__age_group',
+            'issue_type',
+            'issue_sub_type',
+            'subproject_group',
+            'component',
+        )
 
 
 class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
@@ -548,8 +560,7 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, gen
 
         user = self.request.user
         if hasattr(user, "governmentworker"):
-            parent_id = user.governmentworker.administrative_id
-            region = get_object_or_404(AdministrativeRegion, id=parent_id)
+            region = user.governmentworker.administrative_region
             allowed_regions = region.get_descendant_ids()
             or_filters += [
                 {"assignee": user},
@@ -615,49 +626,42 @@ class IssueListView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, gen
         return self.render_to_json_response(context, safe=False)
 
 
-# class IssueCommentsContextMixin:
-#     doc_department = None
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         try:
-#             self.doc_department = self.grm_db.get_query_result(
-#                 {
-#                     "id": self.doc["category"]["assigned_department"],
-#                     "type": "issue_department",
-#                 }
-#             )[0][0]
-#         except Exception:
-#             raise Http404
-#         context["colors"] = [
-#             "warning",
-#             "mediumslateblue",
-#             "gray",
-#             "mediumpurple",
-#             "plum",
-#             "primary",
-#             "danger",
-#         ]
-#         comments = self.doc["comments"] if "comments" in self.doc else list()
-#         users = {c["id"] for c in comments} | {self.doc["assignee"]["id"]}
-#         head_id = self.doc_department["head"].get('id')
-#         if head_id:
-#             users |= head_id
-#         else:
-#             msg = _(f"There is no head member for {self.doc_department['name']}. Please report to IT staff.")
-#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-#
-#         indexed_users = {}
-#         for index, user_id in enumerate(users):
-#             indexed_users[user_id] = index
-#         context["indexed_users"] = indexed_users
-#         return context
+class IssueCommentsContextMixin:
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            department = self.obj.category.assigned_department.department
+        except Exception:
+            raise Http404
+        context["colors"] = [
+            "warning",
+            "mediumslateblue",
+            "gray",
+            "mediumpurple",
+            "plum",
+            "primary",
+            "danger",
+        ]
+        users = set(self.obj.comments.values_list('user', flat=True)) | {self.obj.assignee.id}
+        if department.head:
+            users |= department.head.id
+        else:
+            msg = _(f"There is no head member for {department.name}. Please report to IT staff.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
+        # indexed_users = {}
+        # for index, user_id in enumerate(users):
+        #     indexed_users[user_id] = index
+        # context["indexed_users"] = indexed_users
+        context["indexed_users"] = users
+        return context
 
 
 class IssueDetailsFormView(
     PageMixin,
     IssueMixin,
-    # IssueCommentsContextMixin,
+    IssueCommentsContextMixin,
     LoginRequiredMixin,
     generic.FormView,
 ):
@@ -683,16 +687,14 @@ class IssueDetailsFormView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user.id
-        try:
-            head = self.obj.category.assigned_department.department.head
-        except Exception:
-            head = None
-        context["enable_add_comment"] = user == self.obj.assignee or user == head
+        user = self.request.user
+        context["enable_add_comment"] = self.obj.is_piu_staff(user)
 
         context["comment_form"] = IssueCommentForm()
-        context["status"] = self.obj.status
         context["password_confirm_form"] = PasswordConfirmForm()
+        context["comments"] = self.obj.comments.select_related('user')
+        citizen_type = self.obj.citizen.type if self.obj.citizen else None
+        context["confidential"] = self.obj.assignee != user and citizen_type == CHOICE_CONFIDENTIAL
 
         return context
 
@@ -711,55 +713,37 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
         return self.render_to_json_response(context, safe=False)
 
 
-# class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             doc_department = self.grm_db.get_query_result(
-#                 {
-#                     "id": self.obj["category"]["assigned_department"],
-#                     "type": "issue_department",
-#                 }
-#             )[0][0]
-#         except Exception:
-#             raise Http404
-#         user_id = request.user.id
-#         if user_id != self.obj["assignee"]["id"] and user_id != doc_department["head"].get('id'):
-#             raise PermissionDenied()
-#
-#         comment = request.POST.get("comment").strip()[:MAX_LENGTH]
-#         if comment:
-#             comments = self.obj["comments"] if "comments" in self.obj else list()
-#             comment_obj = {
-#                 "name": request.user.name,
-#                 "id": user_id,
-#                 "comment": comment,
-#                 "due_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-#             }
-#             comments.insert(0, comment_obj)
-#             self.obj["comments"] = comments
-#             self.obj.save()
-#             msg = _("The comment was sent successfully.")
-#             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-#         else:
-#             msg = _("Comment cannot be empty.")
-#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-#         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-#         return self.render_to_json_response(context, safe=False)
-#
-#
-# # class IssueCommentListView(
-#     IssueMixin,
-#     IssueCommentsContextMixin,
-#     AJAXRequestMixin,
-#     LoginRequiredMixin,
-#     generic.ListView,
-# ):
-#     template_name = "grm/issue_comments.html"
-#     context_object_name = "comments"
-#     permissions = ("read",)
-#
-#     def get_queryset(self):
-#         return self.obj["comments"] if "comments" in self.obj else list()
+class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        if not self.obj.is_piu_staff(user):
+            raise PermissionDenied()
+
+        comment = request.POST.get("comment").strip()[:TEXTAREA_MAX_LENGTH]
+        if comment:
+            Comment.objects.create(user=user, comment=comment, issue=self.obj)
+            msg = _("The comment was sent successfully.")
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        else:
+            msg = _("Comment cannot be empty.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+        return self.render_to_json_response(context, safe=False)
+
+
+class IssueCommentListView(
+    IssueMixin,
+    IssueCommentsContextMixin,
+    AJAXRequestMixin,
+    LoginRequiredMixin,
+    generic.ListView,
+):
+    template_name = "grm/issue_comments.html"
+    context_object_name = "comments"
+    permissions = ("read",)
+
+    def get_queryset(self):
+        return self.obj.comments.select_related("user")
 
 
 class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView):
@@ -816,15 +800,9 @@ class SubmitIssueResearchResultFormView(
         self.obj.research_result = data["research_result"]
         self.obj.reject_reason = ""
         self.obj.status = IssueStatus.objects.get(final_status=True)
-
-        # TODO: complete code for issue comment
-        # Add comment to the issue
-        # comment = Comment.objects.create(
-        #     user=self.request.user,
-        #     comment=_("The complaint has been resolved")
-        # )
-        # issue.comments.add(comment)
         self.obj.save()
+
+        Comment.objects.create(user=self.request.user, comment=_("The complaint has been resolved"), issue=self.obj)
 
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
@@ -857,15 +835,9 @@ class SubmitIssueRejectReasonFormView(
         self.obj.reject_reason = data["reject_reason"]
         self.obj.research_result = ""
         self.obj.status = IssueStatus.objects.get(rejected_status=True)
-
-        # TODO: complete code for issue comment
-        # Add comment to the issue
-        # comment = Comment.objects.create(
-        #     user=self.request.user,
-        #     comment= _("The complaint has been rejected")
-        # )
-        # issue.comments.add(comment)
         self.obj.save()
+
+        Comment.objects.create(user=self.request.user, comment=_("The complaint has been rejected"), issue=self.obj)
 
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
@@ -908,18 +880,20 @@ class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, 
 
 class GetSensitiveIssueDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
-        data = None
+        context = {
+            "data": None,
+        }
 
         if self.request.user.check_password(request.POST.get("password")):
-            doc_id = request.POST.get("id")
+            issue_id = request.POST.get("id")
 
-            citizen = Pdata.objects.get(key=doc_id) if Pdata.objects.filter(key=doc_id).exists() else None
-            citizen = cryptocode.decrypt(citizen.data, doc_id) if citizen else None
+            citizen = Pdata.objects.get(key=issue_id) if Pdata.objects.filter(key=issue_id).exists() else None
+            citizen = cryptocode.decrypt(citizen.data, issue_id) if citizen else None
 
-            contact = Cdata.objects.get(key=doc_id) if Cdata.objects.filter(key=doc_id).exists() else None
-            contact = cryptocode.decrypt(contact.data, doc_id) if contact else None
+            contact = Cdata.objects.get(key=issue_id) if Cdata.objects.filter(key=issue_id).exists() else None
+            contact = cryptocode.decrypt(contact.data, issue_id) if contact else None
 
-            data = {
+            context["data"] = {
                 "citizen": citizen,
                 "contact": contact,
             }
@@ -927,9 +901,6 @@ class GetSensitiveIssueDataView(AJAXRequestMixin, LoginRequiredMixin, JSONRespon
         else:
             msg = _("The password was not correct, we could not proceed with action.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+            context["msg"] = (render(self.request, "common/messages.html").content.decode("utf-8"),)
 
-        context = {
-            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
-            "data": data,
-        }
         return self.render_to_json_response(context, safe=False)

@@ -8,7 +8,6 @@ from dashboard.grm.constants import (
     CONTACT_CHOICES,
     MEDIUM_CHOICES,
 )
-from issues.models import AdministrativeRegion
 
 register = template.Library()
 
@@ -116,16 +115,3 @@ def get_contact_medium_display(value):
 @register.simple_tag
 def get_initials(string):
     return "".join(w[0] for w in string.split(" ") if w).upper()
-
-
-@register.simple_tag
-def get_hour(date_time):
-    data = date_time.split("T") if date_time else ""
-    if data:
-        data = data[1].split(".")[0]
-    return data
-
-
-@register.simple_tag
-def get_administrative_region_name(region_id):
-    return AdministrativeRegion.objects.get(id=region_id).name

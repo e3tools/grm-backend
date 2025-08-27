@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import connection, models
-from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
@@ -8,6 +7,7 @@ from dashboard.grm.constants import (
     ALERT_CHOICES,
     CHOICE_ALERT,
     CHOICE_ANONYMOUS,
+    CITIZEN_GROUP_CHOICES,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
     GENDER_CHOICES,
@@ -111,11 +111,10 @@ class AdministrativeRegion(models.Model):
 
         return ids
 
-    def belongs_to_region(self, parent_id):
-        if parent_id == self.id:
+    def belongs_to_region(self, parent):
+        if parent == self:
             belongs = True
         else:
-            parent = self.__class__.objects.get(id=parent_id)
             belongs = self.id in parent.get_descendant_ids()
         return belongs
 
@@ -140,8 +139,8 @@ class AdministrativeRegion(models.Model):
         return region
 
     @classmethod
-    def get_choices(cls, empty_choice=True):
-        query_result = cls.objects.filter(parent__parent=None)
+    def get_first_level_choices(cls, empty_choice=True):
+        query_result = cls.objects.filter(parent__parent__isnull=True).exclude(parent__isnull=True)
         choices = list()
         for item in query_result:
             choices.append((item.id, item.name))
@@ -160,6 +159,10 @@ class Component(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=False, blank=False)
 
+    class Meta:
+        verbose_name = _("Component")
+        verbose_name_plural = _("Components")
+
     def __str__(self):
         return self.name
 
@@ -173,6 +176,10 @@ class SubComponent(models.Model):
     description = models.TextField(null=False, blank=False)
     parent = models.ForeignKey(Component, on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = _("Subcomponent")
+        verbose_name_plural = _("Subcomponents")
+
     def __str__(self):
         return self.name
 
@@ -183,6 +190,10 @@ class SubComponent(models.Model):
 
 class SubProjectGroup(models.Model):
     name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name = _("Subproject Group")
+        verbose_name_plural = _("Subproject Groups")
 
     def __str__(self):
         return self.name
@@ -236,6 +247,25 @@ class IssueDepartmentAdministrativeLevel(models.Model):
         return f"{self.department.name} - {self.administrative_level.name}"
 
 
+class IssueSubType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
+    )
+
+    class Meta:
+        verbose_name = _("Issue Subtype")
+        verbose_name_plural = _("Issue Subtypes")
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
+
 class IssueCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
     abbreviation = models.CharField(max_length=255, unique=False, blank=True, null=True)
@@ -248,6 +278,7 @@ class IssueCategory(models.Model):
     assigned_escalation_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_escalation_categories'
     )
+    parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
     confidentiality_level = models.CharField(max_length=255, null=True, blank=True)
     redirection_protocol = models.IntegerField(default=0)
 
@@ -280,27 +311,12 @@ class IssueType(models.Model):
         return get_choices(cls.objects.all(), empty_choice)
 
 
-class IssueSubType(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
-    )
-
-    class Meta:
-        verbose_name = _("Issue Subtype")
-        verbose_name_plural = _("Issue Subtypes")
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def get_choices(cls, empty_choice=True):
-        return get_choices(cls.objects.all(), empty_choice)
-
-
 class CitizenAgeGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        verbose_name = _("Citizen Age Group")
+        verbose_name_plural = _("Citizen Age Groups")
 
     def __str__(self):
         return self.name
@@ -311,12 +327,12 @@ class CitizenAgeGroup(models.Model):
 
 
 class CitizenGroup(models.Model):
-    CITIZEN_GROUP_TYPE = (
-        ('citizen_group', _('citizen_group')),
-        ('citizen_group_2', _('citizen_group_2')),
-    )
     name = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=50, blank=True, choices=CITIZEN_GROUP_TYPE)
+    type = models.CharField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES)
+
+    class Meta:
+        verbose_name = _("Citizen Group")
+        verbose_name_plural = _("Citizen Groups")
 
     def __str__(self):
         return self.name
@@ -340,6 +356,13 @@ class Citizen(models.Model):
         CitizenGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="group2_citizen"
     )
 
+    class Meta:
+        verbose_name = _("Citizen")
+        verbose_name_plural = _("Citizens")
+
+    def __str__(self):
+        return f'{self.id} {self.name}'
+
 
 class Issue(models.Model):
     external_id = models.CharField(
@@ -360,13 +383,13 @@ class Issue(models.Model):
     contact_method = models.CharField(max_length=255, choices=CONTACT_CHOICES, default=None, null=True, blank=True)
     component = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
     created_date = models.DateTimeField(
-        blank=True, editable=False, null=True, auto_now_add=now(), help_text="When was the issue created in DB"
+        blank=True, editable=False, null=True, default=now, help_text="When was the issue created in DB"
     )
     description = models.TextField(null=True, blank=True, default=None)
     research_result = models.TextField(blank=True, default="")
     reject_reason = models.TextField(blank=True, default="")
     intake_date = models.DateTimeField(
-        null=True, blank=True, default=timezone.now, db_index=True, help_text="When was the issue was reported"
+        null=True, blank=True, default=now, db_index=True, help_text="When was the issue was reported"
     )
     issue_date = models.DateTimeField(blank=True, editable=False, null=True, help_text="When was the issue happened")
     issue_location = models.ForeignKey(
@@ -433,3 +456,30 @@ class Issue(models.Model):
         if self.resolution_date is not None:
             return abs((self.resolution_date - self.intake_date).days)
         return None
+
+    def is_piu_staff(self, user):
+        try:
+            head = self.category.assigned_department.department.head
+        except Exception:
+            head = None
+        return user == self.assignee or user == head
+
+    def get_internal_code(self):
+        return f'{self.category.abbreviation}-{self.administrative_region.id}-{self.id}'
+
+
+class Comment(models.Model):
+    comment = models.TextField()
+    user = models.ForeignKey(
+        'authentication.User', blank=True, null=True, on_delete=models.CASCADE, related_name='comments'
+    )
+    issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name='comments')
+    due_date = models.DateTimeField(default=now)
+
+    class Meta:
+        verbose_name = _("Comment")
+        verbose_name_plural = _("Comments")
+        ordering = ['-due_date']
+
+    def __str__(self):
+        return f"{self.id} {self.comment}"

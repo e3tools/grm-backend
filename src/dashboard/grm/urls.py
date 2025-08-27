@@ -64,16 +64,16 @@ urlpatterns = [
         name="get_sensitive_issue_data",
     ),
     path("edit-issue/<int:issue>/", views.EditIssueView.as_view(), name="edit_issue"),
-    # path(
-    #     "add-comment-to-issue/<int:issue>/",
-    #     views.AddCommentToIssueView.as_view(),
-    #     name="add_comment_to_issue",
-    # ),
-    # path(
-    #     "issue-comments/<int:issue>/",
-    #     views.IssueCommentListView.as_view(),
-    #     name="issue_comments",
-    # ),
+    path(
+        "add-comment-to-issue/<int:issue>/",
+        views.AddCommentToIssueView.as_view(),
+        name="add_comment_to_issue",
+    ),
+    path(
+        "issue-comments/<int:issue>/",
+        views.IssueCommentListView.as_view(),
+        name="issue_comments",
+    ),
     path(
         "issue-status-buttons/<int:issue>/",
         views.IssueStatusButtonsTemplateView.as_view(),
