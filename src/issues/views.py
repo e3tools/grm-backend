@@ -523,6 +523,7 @@ class IssueCategoryListView(ListAPIView):
         'assigned_appeal_department__administrative_level',
         'assigned_escalation_department__department',
         'assigned_escalation_department__administrative_level',
+        'parent',
     ).all()
     serializer_class = IssueCategorySerializer
     authentication_classes = [TokenAuthentication]
@@ -635,6 +636,9 @@ class IssueCategoryListView(ListAPIView):
                                     'value': openapi.Schema(
                                         type=openapi.TYPE_INTEGER,
                                         description="Category value (same as id, convenience field)",
+                                    ),
+                                    'parent_id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER, description="Subtype ID", nullable=True
                                     ),
                                 },
                             ),

@@ -10,6 +10,7 @@ from issues.factories import (
     IssueCategoryFactory,
     IssueDepartmentAdministrativeLevelFactory,
     IssueDepartmentFactory,
+    IssueSubTypeFactory,
     UserFactory,
 )
 from issues.models import IssueCategory
@@ -17,7 +18,7 @@ from issues.models import IssueCategory
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class TestIssueCategoryListAPIView(APITestCase):
+class TestIssueCategoryListView(APITestCase):
     """
     Test cases for the IssueCategory list API endpoint using Token Authentication.
 
@@ -60,6 +61,7 @@ class TestIssueCategoryListAPIView(APITestCase):
         self.monitoring_dept_subcounty = IssueDepartmentAdministrativeLevelFactory(
             department=self.monitoring_dept, administrative_level=self.sub_county_level
         )
+        self.parent = IssueSubTypeFactory(name="Denunciation")
 
         # Create test issue categories
         self.environmental = IssueCategoryFactory(
@@ -70,6 +72,7 @@ class TestIssueCategoryListAPIView(APITestCase):
             assigned_escalation_department=self.monitoring_dept_subcounty,
             confidentiality_level="Public",
             redirection_protocol=1,
+            parent=self.parent,
         )
         self.corruption = IssueCategoryFactory(
             name="Corruption",
@@ -79,6 +82,7 @@ class TestIssueCategoryListAPIView(APITestCase):
             assigned_escalation_department=self.env_dept_district,
             confidentiality_level="Confidential",
             redirection_protocol=2,
+            parent=self.parent,
         )
         self.abuse = IssueCategoryFactory(
             name="Abuse of Office",
@@ -88,6 +92,7 @@ class TestIssueCategoryListAPIView(APITestCase):
             assigned_escalation_department=self.appeals_dept_county,
             confidentiality_level="Restricted",
             redirection_protocol=0,
+            parent=self.parent,
         )
 
     def authenticate_with_token(self):
@@ -170,6 +175,7 @@ class TestIssueCategoryListAPIView(APITestCase):
             'assigned_department',
             'assigned_appeal_department',
             'assigned_escalation_department',
+            'parent_id',
             'confidentiality_level',
             'redirection_protocol',
             'label',
@@ -185,6 +191,7 @@ class TestIssueCategoryListAPIView(APITestCase):
         assert isinstance(first_category['label'], str)
         assert isinstance(first_category['value'], int)
         assert isinstance(first_category['redirection_protocol'], int)
+        assert isinstance(first_category['parent_id'], int)
 
         # Check department structure
         dept_fields = ['name', 'id', 'administrative_level']
@@ -451,6 +458,28 @@ class TestIssueCategoryListAPIView(APITestCase):
         assert no_conf_result is not None
         assert no_conf_result['confidentiality_level'] is None
 
+    def test_parent_field_nullable(self):
+        """Test that parent field can be null or blank."""
+        # Create category without parent
+        IssueCategoryFactory(
+            name="No Parent Category",
+            parent=None,
+            assigned_department=self.env_dept_district,
+            assigned_appeal_department=self.appeals_dept_county,
+            assigned_escalation_department=self.monitoring_dept_subcounty,
+        )
+
+        self.authenticate_with_token()
+        response = self.client.get(self.url)
+        response_data = response.data
+
+        assert response.status_code == 200
+
+        # Find the category without parent
+        no_parent_result = next((cat for cat in response_data['results'] if cat['name'] == 'No Parent Category'), None)
+        assert no_parent_result is not None
+        assert no_parent_result['parent_id'] is None
+
     def test_complete_category_data_integrity(self):
         """Test that all category data is correctly serialized and maintains integrity."""
         self.authenticate_with_token()
@@ -472,6 +501,7 @@ class TestIssueCategoryListAPIView(APITestCase):
         assert environmental_result['redirection_protocol'] == 1
         assert environmental_result['label'] == 'Environmental'
         assert environmental_result['value'] == self.environmental.id
+        assert environmental_result['parent_id'] == self.parent.id
 
         # Verify department structures
         assert environmental_result['assigned_department']['name'] == 'Environmental Department'

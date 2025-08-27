@@ -141,6 +141,7 @@ class IssueCategorySerializer(serializers.ModelSerializer):
     # Additional convenience fields
     label = serializers.CharField(source='name', read_only=True)
     value = serializers.IntegerField(source='id', read_only=True)
+    parent_id = serializers.IntegerField(source='parent.id', read_only=True, allow_null=True)
 
     class Meta:
         model = IssueCategory
@@ -151,6 +152,7 @@ class IssueCategorySerializer(serializers.ModelSerializer):
             'assigned_department',
             'assigned_appeal_department',
             'assigned_escalation_department',
+            'parent_id',
             'confidentiality_level',
             'redirection_protocol',
             'label',
