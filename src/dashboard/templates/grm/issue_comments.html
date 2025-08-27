@@ -2,22 +2,29 @@
 {% for comment in comments %}
     <div class="row">
         <div class="col-6">
-            {% with indexed_users|get:comment.id as color_index %}
-                <div class="circle-icon float-left mr-2 navbar-{{ colors|next_in_circular_list:color_index }}">
-                    <div class="center-32 pt-1 text-white text-bold-family">
-                        {% get_initials comment.name %}
-                    </div>
-                </div>
-            {% endwith %}
-            <div class="text-bold-family">
-                {{ comment.name }}
-            </div>
-            <div class="text-regular-family">
-                {{ comment.due_at|date:'j-F-Y' }}
-            </div>
+			{% if comment.user %}
+				<div class="circle-icon float-left mr-2 navbar-{{ colors|next_in_circular_list:comment.user.id }}">
+					<div class="center-32 pt-1 text-white text-bold-family">
+						{% get_initials comment.user.name %}
+					</div>
+				</div>
+				<div class="text-bold-family mt-2">
+					{{ comment.user.name }}
+				</div>
+			{% else %}
+				{% translate 'GRM system' as grm_system %}
+				<div class="circle-icon float-left mr-2 navbar-dark">
+					<div class="center-32 pt-1 text-white text-bold-family">
+						{% get_initials grm_system %}
+					</div>
+				</div>
+				<div class="text-bold-family mt-2">
+					{{ grm_system }}
+				</div>
+			{% endif %}
         </div>
         <div class="col-6 text-right lh15 mt-3 text-regular-family">
-            {% get_hour comment.due_at %}
+            {{ comment.due_date|date:'j F Y' }} {{ comment.due_date|time:"H:i" }}
         </div>
     </div>
     <div class="row border-bottom mt-2 mb-3">

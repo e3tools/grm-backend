@@ -65,8 +65,10 @@ class Cdata(AbstractKeyData):
 
 class GovernmentWorker(models.Model):
     user = models.OneToOneField("User", models.PROTECT)
-    department = models.PositiveSmallIntegerField(db_index=True, verbose_name=_("department"))
-    administrative_id = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("administrative level"))
+    department = models.ForeignKey(IssueDepartment, on_delete=models.CASCADE, verbose_name=_("department"))
+    administrative_region = models.ForeignKey(
+        AdministrativeRegion, blank=True, null=True, on_delete=models.CASCADE, verbose_name=_("administrative region")
+    )
 
     class Meta:
         verbose_name = _("Government Worker")
@@ -80,11 +82,11 @@ class GovernmentWorker(models.Model):
         try:
             administrative_region = issue.administrative_region
             if (
-                administrative_region.id != self.administrative_id
-                and self.department != issue.category.assigned_department.id
+                administrative_region != self.administrative_region
+                and issue.category.assigned_department != self.department
             ):
                 return False
-            belongs = issue.administrative_region.belongs_to_region(self.administrative_id)
+            belongs = administrative_region.belongs_to_region(self.administrative_region)
             return belongs
         except Exception:
             return False
@@ -98,29 +100,27 @@ class GovernmentWorker(models.Model):
         return choices
 
 
-def get_assignee(issue, administrative_id=None):
+def get_assignee(issue, region_id=None):
     category = issue.category
     assigned_department = category.assigned_department
     department_id = assigned_department.id
     assignee = None
     if category.redirection_protocol:
-        if not administrative_id:
+        if not region_id:
             level = issue.category.assigned_department.administrative_level
             related_region = issue.administrative_region.get_ancestor_with_level(level)
-            administrative_id = related_region.administrative_id
+            region_id = related_region.region_id
 
-        if administrative_id:
-            facilitator = Facilitator.objects.filter(
-                administrative_region=administrative_id, village_secretary=1
-            ).first()
+        if region_id:
+            facilitator = Facilitator.objects.filter(administrative_region=region_id, village_secretary=1).first()
             if facilitator:
                 assignee = facilitator.user
 
         if not assignee:
             related_workers = set(
-                GovernmentWorker.objects.filter(
-                    department=department_id, administrative_id=administrative_id
-                ).values_list("user", flat=True)
+                GovernmentWorker.objects.filter(department=department_id, administrative_region=region_id).values_list(
+                    "user", flat=True
+                )
             )
 
             assignees = (
@@ -144,7 +144,7 @@ def get_assignee(issue, administrative_id=None):
                             break
                 elif related_workers:
                     assignee = GovernmentWorker.objects.filter(
-                        department=department_id, administrative_id=administrative_id
+                        department=department_id, administrative_region=region_id
                     ).first()
     else:
         print("not supposed to be here")
@@ -152,7 +152,7 @@ def get_assignee(issue, administrative_id=None):
     if not assignee:
         print(" definitively not supposed to be here")
         # TODO: ask about this repeated case
-        facilitator = Facilitator.objects.filter(administrative_region=administrative_id, village_secretary=1).first()
+        facilitator = Facilitator.objects.filter(administrative_region=region_id, village_secretary=1).first()
         if facilitator:
             assignee = facilitator.user
 
@@ -160,31 +160,23 @@ def get_assignee(issue, administrative_id=None):
         facilitator = Facilitator.objects.filter(administrative_region=1, village_secretary=1).first()
         if facilitator:
             assignee = facilitator.user
-        print("confidential assignee ok")
+            print("confidential assignee ok")
     return assignee
 
 
-def get_assignee_to_escalate(department_id, administrative_id):
-    parent = AdministrativeRegion.objects.get(id=administrative_id).parent
-    administrative_id = parent.id
-    # TODO: ask why department=int(department_id + 1)
-    worker = GovernmentWorker.objects.filter(
-        department=int(department_id + 1), administrative_id=administrative_id
-    ).first()
+def get_assignee_to_escalate(department_id, region_id):
+    parent = AdministrativeRegion.objects.get(id=region_id).parent
+    region_id = parent.id
+    worker = GovernmentWorker.objects.filter(department=int(department_id + 1), administrative_region=region_id).first()
     if worker:
-        # adl_user = eadl_db.get_query_result(
-        #     {
-        #         "representative_id": worker.user.id,
-        #         "administrative_region": worker.administrative_id,
-        #         "department": worker.department,
-        #         "type": "adl",
-        #     }
-        # )[0][0]
-        assignee = worker.user
-        return assignee
+        facilitator = Facilitator.objects.filter(
+            user=worker.user, administrative_region=region_id, department=worker.department
+        ).first()
+        if facilitator:
+            return facilitator.user
 
     elif parent:
-        return get_assignee_to_escalate(department_id, administrative_id)
+        return get_assignee_to_escalate(department_id, region_id)
 
 
 def anonymize_issue_data(issue):

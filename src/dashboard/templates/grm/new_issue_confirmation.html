@@ -57,66 +57,48 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                {% comment %}{% if obj.citizen %}
-                                    <div class="row mr-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Citizen name" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ obj.citizen }}
-                                        </div>
-                                    </div>
-                                {% endif %}{% endcomment %}
-                                {% if obj.citizen_type %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_type.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {% get_citizen_type_display obj.citizen_type %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if obj.citizen_age_group %}
-                                    <div class="row mr-2 mb-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Age" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ obj.citizen_age_group.name }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if obj.gender %}
-                                    <div class="row mr-2 mb-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Gender" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ obj.gender }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if obj.citizen_group %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_group.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {{ obj.citizen_group.name }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% comment %} {% if obj.religious_affiliation %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.religious_affiliation.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {{ obj.religious_affiliation.name }}
-                                        </div>
-                                    </div>
-                                {% endif %} {% endcomment %}
+								{% if obj.citizen %}
+									{% if obj.citizen.type %}
+										<div class="row mr-2 mb-2">
+											<div class="col-3 label-align">
+												{{ form.citizen_type.label_tag }}
+											</div>
+											<div class="col-9 text-regular-family">
+												{% get_citizen_type_display obj.citizen.type %}
+											</div>
+										</div>
+									{% endif %}
+									{% if obj.citizen.age_group %}
+										<div class="row mr-2 mb-2">
+											<label class="col-3 label-align">
+												{% translate "Age" %}:
+											</label>
+											<div class="col-9 text-regular-family">
+												{{ obj.citizen.age_group.name }}
+											</div>
+										</div>
+									{% endif %}
+									{% if obj.citizen.gender %}
+										<div class="row mr-2 mb-2">
+											<label class="col-3 label-align">
+												{% translate "Gender" %}:
+											</label>
+											<div class="col-9 text-regular-family">
+												{{ obj.citizen.gender }}
+											</div>
+										</div>
+									{% endif %}
+									{% if obj.citizen.group %}
+										<div class="row mr-2 mb-2">
+											<div class="col-3 label-align">
+												{{ form.citizen_group.label_tag }}
+											</div>
+											<div class="col-9 text-regular-family">
+												{{ obj.citizen.group.name }}
+											</div>
+										</div>
+									{% endif %}
+								{% endif %}
                                 <div class="row mr-2 mb-2">
                                     <div class="col-3 label-align">
                                         {{ form.intake_date.label_tag }}
@@ -214,7 +196,7 @@
                                         {% translate "Location" %}:
                                     </label>
                                     <div class="col-9 text-regular-family">
-                                        {% get_administrative_region_name obj.administrative_region.id %}
+                                        {{ obj.administrative_region.name }}
                                     </div>
                                 </div>
                             </div>

@@ -109,6 +109,15 @@ class IssueDepartmentAdministrativeLevelFactory(DjangoModelFactory):
         django_get_or_create = ('department', 'administrative_level')  # Avoid duplicates
 
 
+class IssueSubTypeFactory(DjangoModelFactory):
+    """Factory for creating IssueSubTypeFactory instances for testing."""
+
+    class Meta:
+        model = IssueSubType
+
+    name = factory.Sequence(lambda n: f"SubType {n}")
+
+
 class IssueCategoryFactory(DjangoModelFactory):
     """
     Factory for creating IssueCategory instances.
@@ -124,6 +133,7 @@ class IssueCategoryFactory(DjangoModelFactory):
     assigned_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
     assigned_appeal_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
     assigned_escalation_department = factory.SubFactory(IssueDepartmentAdministrativeLevelFactory)
+    parent = factory.SubFactory(IssueSubTypeFactory)
 
     # Optional fields with sensible defaults
     confidentiality_level = fuzzy.FuzzyChoice(['Public', 'Internal', 'Confidential', 'Restricted', 'Secret'])
@@ -141,15 +151,6 @@ class IssueTypeFactory(DjangoModelFactory):
         model = IssueType
 
     name = factory.Sequence(lambda n: f"Type {n}")
-
-
-class IssueSubTypeFactory(DjangoModelFactory):
-    """Factory for creating IssueSubTypeFactory instances for testing."""
-
-    class Meta:
-        model = IssueSubType
-
-    name = factory.Sequence(lambda n: f"SubType {n}")
 
 
 class ComponentFactory(DjangoModelFactory):

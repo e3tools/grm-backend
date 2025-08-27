@@ -9,6 +9,7 @@ from dashboard.grm.constants import (
     CONTACT_CHOICES,
     GENDER_CHOICES,
     MEDIUM_CHOICES,
+    TEXTAREA_MAX_LENGTH,
 )
 from grm.utils import email_is_valid
 from issues.models import (
@@ -24,8 +25,6 @@ from issues.models import (
     SubComponent,
     SubProjectGroup,
 )
-
-MAX_LENGTH = 65000
 
 
 class NewIssueContactForm(forms.Form):
@@ -104,7 +103,7 @@ class NewIssuePersonForm(forms.Form):
         obj_id = initial.get("obj_id")
         super().__init__(*args, **kwargs)
 
-        obj = Issue.objects.get(id=obj_id)
+        obj = Issue.objects.select_related('citizen__age_group', 'citizen__group').get(id=obj_id)
 
         citizen_age_groups = CitizenAgeGroup.get_choices()
         self.fields["citizen_age_group"].widget.choices = citizen_age_groups
@@ -196,7 +195,14 @@ class NewIssueDetailsForm(forms.Form):
         self.fields["intake_date"].widget.attrs["data-target"] = "#intake_date"
         self.fields["issue_date"].widget.attrs["data-target"] = "#issue_date"
 
-        obj = Issue.objects.get(id=obj_id)
+        obj = Issue.objects.select_related(
+            'issue_type',
+            'category',
+            'issue_sub_type',
+            'component',
+            'sub_component',
+            'subproject_group',
+        ).get(id=obj_id)
         if obj.intake_date:
             self.fields["intake_date"].initial = obj.intake_date.strftime("%d/%m/%Y")
         if obj.issue_date:
@@ -232,13 +238,13 @@ class NewIssueLocationForm(forms.Form):
         label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
 
-        administrative_region_choices = AdministrativeRegion.get_choices()
+        administrative_region_choices = AdministrativeRegion.get_first_level_choices()
         self.fields["administrative_region"].widget.choices = administrative_region_choices
         self.fields["administrative_region"].choices = administrative_region_choices
         self.fields["administrative_region"].widget.attrs["class"] = "region"
         self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
 
-        obj = Issue.objects.get(id=obj_id)
+        obj = Issue.objects.select_related('administrative_region').get(id=obj_id)
         administrative_region = obj.administrative_region
         if administrative_region:
             self.fields["administrative_region_value"].initial = administrative_region.id
@@ -278,7 +284,7 @@ class SearchIssueForm(forms.Form):
 
         label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_choices()
+        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_first_level_choices()
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
@@ -308,7 +314,7 @@ class NewSearchIssueForm(forms.Form):
 
         label = AdministrativeRegion.get_first_child_level_name()
         self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_choices()
+        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_first_level_choices()
 
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
@@ -325,7 +331,7 @@ class IssueDetailsForm(forms.Form):
         government_workers = GovernmentWorker.get_choices(False)
         self.fields["assignee"].widget.choices = government_workers
 
-        obj = Issue.objects.get(id=obj_id)
+        obj = Issue.objects.select_related('assignee').get(id=obj_id)
         is_assignee_to_government_worker = False
         for worker in government_workers:
             if worker[1] == obj.assignee.id:
@@ -341,14 +347,16 @@ class IssueDetailsForm(forms.Form):
 class IssueCommentForm(forms.Form):
     comment = forms.CharField(
         label="",
-        max_length=MAX_LENGTH,
+        max_length=TEXTAREA_MAX_LENGTH,
         widget=forms.Textarea(attrs={"rows": "3", "placeholder": _("Add comment")}),
     )
 
 
 # to check
 class IssueResearchResultForm(forms.Form):
-    research_result = forms.CharField(label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"}))
+    research_result = forms.CharField(
+        label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
+    )
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
@@ -361,7 +369,9 @@ class IssueResearchResultForm(forms.Form):
 
 # to check
 class IssueRejectReasonForm(forms.Form):
-    reject_reason = forms.CharField(label="", max_length=MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"}))
+    reject_reason = forms.CharField(
+        label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
+    )
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")

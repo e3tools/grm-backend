@@ -17,6 +17,7 @@ from dashboard.grm.constants import (
 from issues.models import (
     AdministrativeLevel,
     Citizen,
+    Comment,
     IssueDepartmentAdministrativeLevel,
 )
 
@@ -162,6 +163,16 @@ def process_issue_department_data(data: list[dict]) -> list[dict]:
     return processed
 
 
+def datetime_field_process(item_dict, name):
+    field_data = item_dict.get(name)
+    if isinstance(field_data, str) and 'T' in field_data and 'Z' in field_data:
+        parsed = parse_datetime(field_data)
+        if parsed:
+            item_dict[name] = parsed
+    else:
+        item_dict[name] = None
+
+
 def process_issue_data(data: list[dict]) -> list[dict]:
     # Load users into a dictionary {external_id: id}
     external_users = dict(User.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))
@@ -179,15 +190,6 @@ def process_issue_data(data: list[dict]) -> list[dict]:
         "Female": CHOICE_FEMALE,
         "Femelle": CHOICE_FEMALE,
     }
-
-    def datetime_field_process(item_dict, name):
-        field_data = item_dict.get(name)
-        if isinstance(field_data, str) and 'T' in field_data and 'Z' in field_data:
-            parsed = parse_datetime(field_data)
-            if parsed:
-                item_dict[name] = parsed
-        else:
-            item_dict[name] = None
 
     def user_field_process(item_dict, name):
         field_data = item_dict.get(name)
@@ -410,7 +412,6 @@ def process_category_data(data: list[dict]) -> list[dict]:
 
 
 def process_citizen_group_data(data: list[dict]) -> list[dict]:
-
     processed = []
     for item in data:
         new_item = item.copy()
@@ -425,7 +426,6 @@ def process_citizen_group_data(data: list[dict]) -> list[dict]:
 
 
 def process_sub_component_data(data: list[dict]) -> list[dict]:
-
     processed = []
     for item in data:
         new_item = item.copy()
@@ -515,6 +515,36 @@ def process_facilitator_data(data: list[dict]) -> list[dict]:
         new_item['village_secretary'] = new_item.get('village_secretary') == 1
 
         processed.append(new_item)
+
+    return processed
+
+
+def process_comment_data(data: list[dict], external_issues) -> list[dict]:
+    processed = []
+    existing_comments = Comment.objects.values_list('issue__external_id', 'due_date')
+
+    for item in data:
+        comments = item.get('comments', [])
+        for comment in comments:
+            due_at = parse_datetime(comment.get('due_at').replace("Z", "+00:00")) if comment.get('due_at') else None
+            if (item.get('_id'), due_at) in existing_comments:
+                continue
+
+            new_item = comment.copy()
+
+            # --- Handle user ---
+            user_id = new_item.get('id')
+            new_item['user_id'] = user_id if isinstance(user_id, int) else None
+            new_item.pop("id")
+
+            # --- Handle due_at ---
+            datetime_field_process(new_item, 'due_at')
+            new_item['due_date'] = new_item['due_at']
+
+            # --- Handle issue ---
+            new_item['issue_id'] = external_issues[item.get('_id')]
+
+            processed.append(new_item)
 
     return processed
 

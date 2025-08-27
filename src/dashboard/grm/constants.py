@@ -30,6 +30,7 @@ CITIZEN_TYPE_CHOICES = [
     (CHOICE_INDIVIDUAL, _("This is an individual filing on behalf of someone else.")),
     (CHOICE_ORGANIZATION, _("This is an organization filing on behalf of someone else.")),
 ]
+
 CHOICE_0_OR_1_LABEL = _("Complainant")
 CITIZEN_TYPE_CHOICES_ALT = [
     (None, CHOICE_0_OR_1_LABEL),
@@ -37,6 +38,7 @@ CITIZEN_TYPE_CHOICES_ALT = [
     (CHOICE_INDIVIDUAL, _("Citizen on behalf of others")),
     (CHOICE_ORGANIZATION, _("Organization on behalf of others")),
 ]
+
 CHOICE_MALE = "male"
 CHOICE_FEMALE = "female"
 CHOICE_OTHER = "other"
@@ -59,3 +61,13 @@ ALERT_CHOICES = [
     (CHOICE_REJECTED, CHOICE_REJECTED),
     (CHOICE_CLOSED, CHOICE_CLOSED),
 ]
+
+CHOICE_CITIZEN_GROUP = "citizen_group"
+CHOICE_CITIZEN_GROUP2 = "citizen_group_2"
+
+CITIZEN_GROUP_CHOICES = (
+    (CHOICE_CITIZEN_GROUP, _('Citizen group')),
+    (CHOICE_CITIZEN_GROUP2, _('Citizen group 2')),
+)
+
+TEXTAREA_MAX_LENGTH = 65000

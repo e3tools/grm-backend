@@ -5,14 +5,10 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from authentication.models import Cdata, Pdata
 from client import get_db
 from etl.management.commands.etl_fetch_adl_data import Command as ADLCommand
 from etl.management.commands.etl_fetch_administrative_region_data import (
     Command as RegionCommand,
-)
-from etl.management.commands.etl_fetch_issue_department_data import (
-    Command as DepartmentCommand,
 )
 from etl.management.commands.etl_fetch_issue_sub_type_data import (
     Command as SubTypeCommand,
@@ -23,6 +19,7 @@ from etl.utils import (
     process_category_data,
     process_citizen_group_data,
     process_issue_data,
+    process_issue_department_data,
     process_sub_component_data,
 )
 from issues.models import (
@@ -31,6 +28,7 @@ from issues.models import (
     Component,
     Issue,
     IssueCategory,
+    IssueDepartment,
     IssueStatus,
     IssueType,
     SubComponent,
@@ -58,25 +56,6 @@ class Command(BaseCommand):
             help="Filter documents by confirmed field",
         )
 
-    def update_cripto_models(self):
-        # Load issues into a dictionary {external_id: id}
-        external_issues = dict(Issue.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))
-
-        def update_keys(model_class):
-            model_name = model_class.__name__
-            items_to_update = []
-            objs = model_class.objects.filter(key__in=external_issues.keys())
-            for obj in objs:
-                obj.key = external_issues[obj.key]
-                items_to_update.append(obj)
-
-            if items_to_update:
-                model_class.objects.bulk_update(items_to_update, ["key"])
-                self.stdout.write(self.style.NOTICE(f"Updated {len(items_to_update)} {model_name} objects"))
-
-        update_keys(Cdata)
-        update_keys(Pdata)
-
     def handle(self, *args, **options):
         triggered_by = options["triggered_by"]
         only_confirmed = options["only_confirmed"]
@@ -98,13 +77,18 @@ class Command(BaseCommand):
             # update User objects
             ADLCommand().handle()
 
-            # update IssueDepartment objects
-            DepartmentCommand().handle()
-
             # update IssueSubType objects
             SubTypeCommand().handle()
 
             grm_db = get_db(COUCHDB_GRM_DATABASE)
+
+            # update IssueDepartment objects
+            # get IssueDepartment documents from CouchDB
+            result = grm_db.get_query_result({"type": "issue_department"})
+
+            # process data for bulk create and bulk update
+            result = process_issue_department_data(result)
+            fetch_database(self, result=result, model_class=IssueDepartment)
 
             # update CitizenAgeGroup objects
             # get issue_age_group documents from CouchDB
@@ -178,8 +162,6 @@ class Command(BaseCommand):
 
             logger.info(f"ETL {etl_name} completed successfully. Processed {result['total_processed']} records")
 
-            # update Cdata and Pdata objects
-            self.update_cripto_models()
         except Exception as e:
             error_message = f"ETL failed: {str(e)}\n{traceback.format_exc()}"
             logger.error(error_message)
