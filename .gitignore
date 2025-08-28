@@ -138,3 +138,6 @@ src/staticfiles/
 
 # Exception: Include AdminLTE dist directory
 !src/dashboard/static/AdminLTE/dist/
+
+# media
+src/media/
