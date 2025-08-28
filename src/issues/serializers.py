@@ -212,7 +212,6 @@ class IssueCreateSerializer(serializers.ModelSerializer):
     contact_information = serializers.CharField(required=False, allow_null=True)
     description = serializers.CharField(required=True)
     intake_date = serializers.DateTimeField(required=True)
-    issue_location = serializers.JSONField(required=True)
     issue_type = serializers.CharField(required=True)
     issue_sub_type = serializers.CharField(required=True)
     ongoing_issue = serializers.BooleanField(required=False, default=False)
@@ -240,17 +239,7 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             'tracking_code',
             'intake_date',
             'issue_sub_type',
-            'issue_location',
         ]
-
-    def validate_location_info(self, value):
-        if 'issue_location' not in value:
-            raise serializers.ValidationError("The 'issue_location' key is required within 'location_info'.")
-
-        if 'administrative_id' not in value.get('issue_location', {}):
-            raise serializers.ValidationError("The 'administrative_id' key is required within 'issue_location'.")
-
-        return value
 
     def create(self, validated_data):
         citizen_data = validated_data.pop('citizen')
@@ -265,14 +254,12 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         category_data = validated_data.pop('category')
         issue_type_data = validated_data.pop('issue_type')
         issue_sub_type_data = validated_data.pop('issue_sub_type')
-        issue_location_data = validated_data.pop('issue_location')
 
         issue = Issue(
             citizen_id=citizen.id,
             category_id=category_data,
             issue_type_id=issue_type_data,
             issue_sub_type_id=issue_sub_type_data,
-            issue_location_id=issue_location_data,
             **validated_data
         )
         issue.save()

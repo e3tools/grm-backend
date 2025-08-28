@@ -108,7 +108,6 @@ class TestIssueCreateAPIView(APITestCase):
         test_cases = [
             {"expected_error_field": "title"},
             {"expected_error_field": "description"},
-            {"expected_error_field": "issue_location"},
             {"expected_error_field": "contact_medium"},
             {"expected_error_field": "intake_date"},
             {"expected_error_field": "issue_type"},
@@ -136,7 +135,6 @@ class TestIssueCreateAPIView(APITestCase):
             "category": self.issue_category.pk,
             "issue_type": self.issue_type.pk,
             "issue_sub_type": self.issue_sub_type.pk,
-            "issue_location": self.child_region.pk,
             "intake_date": "2011-10-05T14:48:00.000Z",
             "administrative_region": self.child_region.pk,
             "reporter": self.reporter_user.pk,

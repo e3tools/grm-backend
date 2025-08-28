@@ -7,12 +7,7 @@ from django.db.models import Q
 from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
-from authentication.models import (
-    Cdata,
-    anonymize_issue_data,
-    get_assignee,
-    get_assignee_to_escalate,
-)
+from authentication.models import Cdata
 from dashboard.grm.constants import (
     CHOICE_ACCEPTED,
     CHOICE_ALERT,
@@ -68,7 +63,7 @@ def check_issues():
         citizen = issue.citizen
         if citizen and citizen.name != "*" or (contact_information and contact_information != "*"):
             try:
-                anonymize_issue_data(issue)
+                issue.anonymize_issue_data()
                 anonymized_data = True
                 result["anonymized_data"].append(issue.id)
             except Exception:
@@ -78,8 +73,7 @@ def check_issues():
         # set assignee if not define yet
         if not issue.assignee:
             try:
-                adm_lvl_id = issue.issue_location.id
-                assignee = get_assignee(issue, adm_lvl_id)
+                assignee = issue.get_assignee()
                 issue.assignee = assignee
                 if assignee:
                     assignee_updated = True
@@ -114,9 +108,7 @@ def escalate_issues():
     updated_issues = 0
     for issue in issues:
         issues_updated = False
-        department_id = issue.assignee.governmentworker.department
-        region_id = issue.administrative_region.id
-        assignee = get_assignee_to_escalate(department_id, region_id)
+        assignee = issue.get_assignee_to_escalate(issue.administrative_region)
         if assignee:
             issue.assignee = assignee
             issue.escalate_flag = False
