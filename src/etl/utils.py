@@ -292,12 +292,6 @@ def process_issue_data(data: list[dict]) -> list[dict]:
         # --- Handle location_info ---
         location_info = new_item.get('location_info')
         if location_info:
-            issue_location = location_info.get('issue_location')
-            administrative_id = issue_location.get('administrative_id')
-            if isinstance(administrative_id, str) and administrative_id.isdigit():
-                new_item['issue_location_id'] = int(administrative_id) + 1
-            elif administrative_id == 'country':
-                new_item['issue_location_id'] = 1
             new_item['location_description'] = location_info.get('location_description')
 
         # --- Handle component ---

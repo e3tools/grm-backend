@@ -1,8 +1,11 @@
+import cryptocode
 from django.core.exceptions import ValidationError
 from django.db import connection, models
+from django.db.models import Count
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
+from authentication.models import Cdata, Facilitator, GovernmentWorker, Pdata, User
 from dashboard.grm.constants import (
     ALERT_CHOICES,
     CHOICE_ALERT,
@@ -125,18 +128,6 @@ class AdministrativeRegion(models.Model):
             base_region_id = parent.id
             parent = parent.parent
         return base_region_id
-
-    def get_ancestor_with_level(self, level):
-        """
-        Returns the ancestor with administrative_level=level.
-        If it is not found, return self.
-        """
-        region_base = region = self
-        while region.parent and region.administrative_level != level:
-            region = region.parent
-        if region.administrative_level != level:
-            region = region_base
-        return region
 
     @classmethod
     def get_first_level_choices(cls, empty_choice=True):
@@ -369,11 +360,14 @@ class Issue(models.Model):
         max_length=255, verbose_name="couchDB document _id", default=None, null=True, blank=True
     )
     administrative_region = models.ForeignKey(
-        AdministrativeRegion, blank=True, null=True, on_delete=models.CASCADE, related_name='issues'
+        AdministrativeRegion,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='issues',
+        help_text="The specific administrative location where the issue occurred.",
     )
-    assignee = models.ForeignKey(
-        'authentication.User', blank=True, null=True, on_delete=models.CASCADE, related_name='assigned_issues'
-    )
+    assignee = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='assigned_issues')
     category = models.ForeignKey(IssueCategory, blank=True, null=True, on_delete=models.CASCADE, related_name='issues')
     citizen = models.ForeignKey(Citizen, blank=True, null=True, on_delete=models.CASCADE, related_name="citizen_issues")
     contact_information = models.CharField(
@@ -392,14 +386,6 @@ class Issue(models.Model):
         null=True, blank=True, default=now, db_index=True, help_text="When was the issue was reported"
     )
     issue_date = models.DateTimeField(blank=True, editable=False, null=True, help_text="When was the issue happened")
-    issue_location = models.ForeignKey(
-        AdministrativeRegion,
-        on_delete=models.CASCADE,
-        related_name='located_issues',
-        null=True,
-        blank=True,
-        help_text="The specific administrative location where the issue occurred.",
-    )
     issue_type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
     issue_sub_type = models.ForeignKey(
         IssueSubType, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
@@ -466,6 +452,104 @@ class Issue(models.Model):
 
     def get_internal_code(self):
         return f'{self.category.abbreviation}-{self.administrative_region.id}-{self.id}'
+
+    def anonymize_issue_data(self):
+        key = str(self.id)
+        citizen = self.citizen
+        if citizen:
+            pdata, _ = Pdata.objects.get_or_create(key=key)
+            data_encoded = cryptocode.encrypt(citizen.name, key)
+            pdata.data = data_encoded
+            pdata.save()
+            citizen.name = "*"
+            citizen.save()
+        else:
+            Pdata.objects.filter(key=key).delete()
+
+        contact_information = self.contact_information
+        if contact_information:
+            contact = contact_information
+            cdata, _ = Cdata.objects.get_or_create(key=key)
+            data_encoded = cryptocode.encrypt(contact, key)
+            cdata.data = data_encoded
+            cdata.save()
+            self.contact_information = "*"
+        else:
+            Cdata.objects.filter(key=key).delete()
+
+    def get_assignee(self):
+        region = self.administrative_region
+        category = self.category
+        department = category.assigned_department.department
+        assignee = None
+        if category.redirection_protocol:
+            facilitator = Facilitator.objects.filter(administrative_region=region, village_secretary=1).first()
+            if facilitator:
+                assignee = facilitator.user
+
+            if not assignee:
+                related_workers = set(
+                    GovernmentWorker.objects.filter(department=department, administrative_region=region).values_list(
+                        "user", flat=True
+                    )
+                )
+
+                assignees = (
+                    User.objects.filter(assigned_issues__category__assigned_department_department=department)
+                    .annotate(issue_count=Count('assigned_issues', distinct=True))
+                    .order_by('issue_count')
+                    .distinct()
+                )
+
+                department_workers_with_assignment = {worker.id for worker in assignees}
+                department_workers_without_assignment = related_workers - department_workers_with_assignment
+
+                if department_workers_without_assignment:
+                    worker_id = list(department_workers_without_assignment)[0]
+                    assignee = GovernmentWorker.objects.get(user=worker_id)
+                else:
+                    if assignees and related_workers:
+                        for worker in assignees:
+                            if worker.id in related_workers:
+                                assignee = worker
+                                break
+                    elif related_workers:
+                        assignee = GovernmentWorker.objects.filter(
+                            department=department, administrative_region=region
+                        ).first()
+        else:
+            print("not supposed to be here")
+            assignee = department.head
+        if not assignee:
+            print(" definitively not supposed to be here")
+            # TODO: ask about this repeated case
+            facilitator = Facilitator.objects.filter(administrative_region=region, village_secretary=1).first()
+            if facilitator:
+                assignee = facilitator.user
+
+        if category.confidentiality_level == "Confidential" and category.redirection_protocol == 0:
+            facilitator = Facilitator.objects.filter(administrative_region=1, village_secretary=1).first()
+            if facilitator:
+                assignee = facilitator.user
+                print("confidential assignee ok")
+        return assignee
+
+    def get_assignee_to_escalate(self, region):
+        department = self.assignee.governmentworker.department
+        parent = region.parent
+        region = parent
+        worker = GovernmentWorker.objects.filter(
+            department=int(department.id + 1), administrative_region=region
+        ).first()
+        if worker:
+            facilitator = Facilitator.objects.filter(
+                user=worker.user, administrative_region=region, department=worker.department
+            ).first()
+            if facilitator:
+                return facilitator.user
+
+        elif parent:
+            return self.get_assignee_to_escalate(region)
 
 
 class Comment(models.Model):

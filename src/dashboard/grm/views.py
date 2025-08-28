@@ -15,13 +15,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from authentication.models import (
-    Cdata,
-    GovernmentWorker,
-    Pdata,
-    anonymize_issue_data,
-    get_assignee,
-)
+from authentication.models import Cdata, GovernmentWorker, Pdata
 
 # from client import upload_file
 from dashboard.adls.forms import PasswordConfirmForm
@@ -335,8 +329,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     def set_location_fields(self, data):
         self.obj.administrative_region_id = int(data["administrative_region_value"])
 
-    def set_assignee(self, adm_lvl_id=None):
-        assignee = get_assignee(self.obj, adm_lvl_id)
+    def set_assignee(self):
+        assignee = self.obj.get_assignee()
         self.obj.assignee = assignee
 
         if not assignee:
@@ -433,7 +427,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
     def form_valid(self, form):
         data = form.cleaned_data
         self.set_location_fields(data)
-        self.set_assignee(adm_lvl_id=data["administrative_region_value"])
+        self.set_assignee()
         self.obj.save()
         if not self.obj.assignee:
             return HttpResponseRedirect(
@@ -468,7 +462,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         citizen_to_delete = self.set_person_fields(data)
         self.set_details_fields(data)
         self.set_location_fields(data)
-        self.set_assignee(adm_lvl_id=data["administrative_region_value"])
+        self.set_assignee()
 
         if not self.obj.assignee:
             return HttpResponseRedirect(
@@ -482,7 +476,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         self.obj.internal_code = self.obj.get_internal_code()
         self.obj.status = IssueStatus.objects.get(open_status=True)
         self.obj.confirmed = True
-        anonymize_issue_data(self.obj)
+        self.obj.anonymize_issue_data()
         self.obj.save()
         if citizen_to_delete:
             citizen_to_delete.delete()
