@@ -71,3 +71,7 @@ CITIZEN_GROUP_CHOICES = (
 )
 
 TEXTAREA_MAX_LENGTH = 65000
+
+CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
+CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
+CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")

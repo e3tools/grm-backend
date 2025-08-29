@@ -1,9 +1,14 @@
-from coreschema.formats import validate_email
-from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
-from dashboard.grm.constants import CHOICE_ALERT
+from dashboard.grm.constants import (
+    CHOICE_ALERT,
+    CHOICE_EMAIL,
+    CONTACT_INFO_EMAIL_ERROR_MESSAGE,
+    CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
+    CONTACT_MEDIUM_ERROR_MESSAGE,
+)
+from grm.utils import email_is_valid
 from issues.models import (
     AdministrativeRegion,
     Citizen,
@@ -217,6 +222,9 @@ class IssueCreateSerializer(serializers.ModelSerializer):
     ongoing_issue = serializers.BooleanField(required=False, default=False)
     title = serializers.CharField(required=True)
     tracking_code = serializers.CharField(required=True)
+    administrative_region = serializers.PrimaryKeyRelatedField(
+        queryset=AdministrativeRegion.objects.all(), required=True
+    )
 
     class Meta:
         model = Issue
@@ -239,6 +247,7 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             'tracking_code',
             'intake_date',
             'issue_sub_type',
+            'location_description',
         ]
 
     def create(self, validated_data):
@@ -265,7 +274,6 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         issue.save()
         return issue
 
-    # TODO: tests for validate
     def validate(self, data):
         """
         Performs object-level validation for cross-field dependencies.
@@ -275,24 +283,11 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         contact_information = data.get('contact_information')
 
         if contact_medium == CHOICE_ALERT and not contact_method:
-            raise serializers.ValidationError(
-                {"contact_method": "You must define the contact method is your contact medium is channel alert"}
-            )
-        if contact_method == 'email':
-            try:
-                validate_email(contact_information)
-            except ValidationError:
-                raise serializers.ValidationError(
-                    {"contact_information": "If email contact method is selected, provide a valid email"}
-                )
-        elif contact_method in ['phone_number', 'whatsapp']:
-            try:
-                validate_email(contact_information)
-                raise serializers.ValidationError(
-                    {
-                        "contact_information": "If phone or whatsapp contact method is selected, provide a valid phone number"
-                    }
-                )
-            except ValidationError:
-                pass
+            raise serializers.ValidationError({"contact_method": CONTACT_MEDIUM_ERROR_MESSAGE})
+
+        elif contact_method == CHOICE_EMAIL and not email_is_valid(contact_information):
+            raise serializers.ValidationError({"contact_information": CONTACT_INFO_EMAIL_ERROR_MESSAGE})
+
+        elif contact_method != CHOICE_EMAIL and email_is_valid(contact_information):
+            raise serializers.ValidationError({"contact_information": CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE})
         return data

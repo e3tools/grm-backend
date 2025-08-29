@@ -116,6 +116,23 @@
 								{% endcomment %}
                                 {% bootstrap_field form.administrative_region layout='horizontal' %}
                                 {{ form.administrative_region_value }}
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label for="id_description" class="label-align">
+                                            {{ form.location_description.label }}
+                                        </label>
+                                    </div>
+                                    <div class="col-md-9">
+                                        <a class="btn absolute-left-110 p-0 text-primary" id="edit-location_description"
+                                           title="{{ edit }}">
+                                            <i class="fas fa-edit fs17"></i>
+                                        </a>
+                                        <div id="location_description_value" class="mb-3"></div>
+                                        <div id="input_location_description" class="hidden input">
+                                            {% bootstrap_field form.location_description layout='horizontal' show_label=False %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-3"></div>
                         </div>
@@ -363,6 +380,20 @@
             description_value.hide();
             input_description.show();
             $("#id_description").focus();
+        });
+
+        let location_description_value = $('#location_description_value');
+        location_description_value.html($("#id_location_description").val());
+        let input_location_description = $("#input_location_description");
+        input_location_description.focusout(function () {
+            isValid($(this));
+            location_description_value.html($("#id_location_description").val());
+        });
+
+        $('#edit-location_description').click(function () {
+            location_description_value.hide();
+            input_location_description.show();
+            $("#id_location_description").focus();
         });
 
         let get_ancestors_url = '{% url 'dashboard:grm:get_ancestor_administrative_levels' %}';

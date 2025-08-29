@@ -328,6 +328,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
     def set_location_fields(self, data):
         self.obj.administrative_region_id = int(data["administrative_region_value"])
+        self.obj.location_description = data["location_description"]
 
     def set_assignee(self):
         assignee = self.obj.get_assignee()

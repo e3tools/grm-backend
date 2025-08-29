@@ -1,9 +1,15 @@
 import pytest
-from django.urls import reverse  # Import reverse to use named URLs in tests
+from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase  # Use APITestCase for DRF views
+from rest_framework.test import APITestCase
 
-from dashboard.grm.constants import CHOICE_FACILITATOR
+from dashboard.grm.constants import (
+    CHOICE_ALERT,
+    CHOICE_FACILITATOR,
+    CONTACT_INFO_EMAIL_ERROR_MESSAGE,
+    CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
+    CONTACT_MEDIUM_ERROR_MESSAGE,
+)
 from grm.utils import reset_sequences
 from issues.factories import (
     AdministrativeLevelFactory,
@@ -32,6 +38,7 @@ class TestIssueCreateAPIView(APITestCase):
 
     def setUp(self):
         reset_sequences()
+        self.url = reverse("issues:create-issue")
         self.administrative_level = AdministrativeLevelFactory(name="Country")
         self.root_region = AdministrativeRegionFactory(
             name="Root Region",
@@ -71,8 +78,7 @@ class TestIssueCreateAPIView(APITestCase):
 
         data = self.__get_valid_data()
 
-        url = reverse("issues:create-issue")
-        response = self.client.post(url, data=data, format="json")
+        response = self.client.post(self.url, data=data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
@@ -95,9 +101,7 @@ class TestIssueCreateAPIView(APITestCase):
             "administrative_region": self.child_region.pk,
         }
 
-        # Use reverse with the app namespace
-        url = reverse("issues:create-issue")
-        response = self.client.post(url, data=data, format="json")
+        response = self.client.post(self.url, data=data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(Issue.objects.count(), 0)
@@ -114,18 +118,115 @@ class TestIssueCreateAPIView(APITestCase):
             {"expected_error_field": "issue_sub_type"},
             {"expected_error_field": "tracking_code"},
         ]
-        url = reverse("issues:create-issue")
 
         for case in test_cases:
             data = self.__get_valid_data()
             del data[case["expected_error_field"]]
 
             with self.subTest(msg=f"Testing missing field: {case['expected_error_field']}"):
-                response = self.client.post(url, data=data, format="json")
+                response = self.client.post(self.url, data=data, format="json")
 
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertIn(case["expected_error_field"], response.data['errors'])
                 self.assertEqual(Issue.objects.count(), 0)
+
+    def test_validation_contact_medium_channel_alert_requires_contact_method(self):
+        """Test that contact_medium 'channel-alert' requires contact_method."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_medium'] = CHOICE_ALERT
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        error = {"contact_method": [CONTACT_MEDIUM_ERROR_MESSAGE]}
+        self.assertEqual(response.data['errors'], error)
+        self.assertEqual(Issue.objects.count(), 0)
+
+    def test_validation_contact_medium_channel_alert_with_contact_method_success(self):
+        """Test that contact_medium 'channel-alert' with contact_method passes validation."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_medium'] = CHOICE_ALERT
+        data['contact_method'] = 'email'
+        data['contact_information'] = 'test@example.com'
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+        self.assertEqual(created_issue.title, "Test Issue")
+
+    def test_validation_email_contact_method_with_valid_email(self):
+        """Test that email contact_method with valid email passes validation."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_method'] = 'email'
+        data['contact_information'] = 'valid.email@example.com'
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+        self.assertEqual(created_issue.title, "Test Issue")
+
+    def test_validation_email_contact_method_with_invalid_email(self):
+        """Test that email contact_method with invalid email fails validation."""
+
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_method'] = 'email'
+        data['contact_information'] = 'invalid-email'
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(response.data['errors']['contact_information'][0]), CONTACT_INFO_EMAIL_ERROR_MESSAGE)
+        self.assertEqual(Issue.objects.count(), 0)
+
+    def test_validation_no_email_contact_method_with_email_fails(self):
+        """Test that phone contact_method with email format fails validation."""
+
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_method'] = 'phone_number'
+        data['contact_information'] = 'test@example.com'
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(response.data['errors']['contact_information'][0]), CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE)
+        self.assertEqual(Issue.objects.count(), 0)
+
+    def test_validation_no_email_contact_method_with_valid_phone(self):
+        """Test that whatsapp contact_method with valid phone number passes."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_method'] = 'whatsapp'
+        data['contact_information'] = '+1234567890'  # Non-email format
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+        self.assertEqual(created_issue.title, "Test Issue")
+
+    def test_validation_no_contact_method_no_validation_required(self):
+        """Test that when contact_method is not set, contact validation is skipped."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data['contact_information'] = 'any-string-here'
+        # contact_method is not set
+
+        response = self.client.post(self.url, data=data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+        self.assertEqual(created_issue.title, "Test Issue")
 
     def __get_valid_data(self):
         return {
@@ -153,4 +254,5 @@ class TestIssueCreateAPIView(APITestCase):
             "contact_information": "aa",
             "ongoing_issue": True,
             "tracking_code": "TRACK123",
+            "location_description": "This is a test location.",
         }

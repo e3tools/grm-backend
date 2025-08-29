@@ -139,22 +139,26 @@
                                         {{ obj.category.name }}
                                     </div>
                                 </div>
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Component" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ obj.component.name }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {{ form.subproject_group.label_tag }}
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ obj.subproject_group.name }}
-                                    </div>
-                                </div>
+								{% if obj.component %}
+									<div class="row mr-2 mb-2">
+										<label class="col-3 label-align">
+											{% translate "Component" %}:
+										</label>
+										<div class="col-9 text-regular-family">
+											{{ obj.component.name }}
+										</div>
+									</div>
+								{% endif %}
+								{% if obj.subproject_group %}
+									<div class="row mr-2 mb-2">
+										<label class="col-3 label-align">
+											{{ form.subproject_group.label_tag }}
+										</label>
+										<div class="col-9 text-regular-family">
+											{{ obj.subproject_group.name }}
+										</div>
+									</div>
+								{% endif %}
                                 <div class="row mr-2">
                                     <label class="col-3 label-align">
                                         {% translate "Description" %}:
@@ -199,6 +203,16 @@
                                         {{ obj.administrative_region.name }}
                                     </div>
                                 </div>
+								{% if obj.location_description %}
+									<div class="row mr-2 mb-2">
+										<label class="col-3 label-align">
+											{% translate "Location description" %}:
+										</label>
+										<div class="col-9 text-regular-family">
+											{{ obj.location_description }}
+										</div>
+									</div>
+								{% endif %}
                             </div>
                         </div>
                     </div>
