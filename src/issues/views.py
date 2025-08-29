@@ -8,6 +8,10 @@ from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from dashboard.grm.constants import (
+    CONTACT_INFO_EMAIL_ERROR_MESSAGE,
+    CONTACT_MEDIUM_ERROR_MESSAGE,
+)
 from issues.models import Issue, IssueCategory, IssueStatus, IssueType
 from issues.serializers import (
     IssueCategorySerializer,
@@ -33,6 +37,117 @@ class IssueCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=[
+                'title',
+                'description',
+                'category',
+                'issue_type',
+                'issue_sub_type',
+                'contact_medium',
+                'tracking_code',
+                'intake_date',
+                'administrative_region',
+            ],
+            properties={
+                'title': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Brief title describing the issue',
+                    example='Water supply problem in downtown area',
+                ),
+                'description': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Detailed description of the issue',
+                    example='The water supply has been intermittent for the past 3 days affecting 200+ households',
+                ),
+                'category': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='ID of the issue category', example=1
+                ),
+                'issue_type': openapi.Schema(
+                    type=openapi.TYPE_STRING, description='Type of the issue', example='infrastructure'
+                ),
+                'issue_sub_type': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Sub-type of the issue for more specific classification',
+                    example='water_supply',
+                ),
+                'contact_medium': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Medium through which the issue was reported',
+                    enum=['phone', 'email', 'web', 'in_person', 'alert', 'anonymous'],
+                    example='web',
+                ),
+                'contact_method': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Specific contact method (required if contact_medium is "alert")',
+                    enum=['email', 'phone_number', 'whatsapp', 'sms'],
+                    example='email',
+                ),
+                'contact_information': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Contact details (email/phone based on contact_method)',
+                    example='citizen@example.com',
+                ),
+                'tracking_code': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Unique tracking code for the issue',
+                    example='ISS-2024-001234',
+                ),
+                'intake_date': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_DATETIME,
+                    description='Date and time when the issue was reported',
+                    example='2024-08-28T10:30:00Z',
+                ),
+                'ongoing_issue': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Whether this is an ongoing issue',
+                    default=False,
+                    example=True,
+                ),
+                'location_description': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Textual description of where the issue occurred',
+                    example='Corner of Main Street and 5th Avenue, near the central plaza',
+                ),
+                'status': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='Initial status ID for the issue (optional)', example=1
+                ),
+                'administrative_region': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description='ID of the administrative region where the issue occurred',
+                    example=5,
+                ),
+                'component': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='ID of the system component related to the issue', example=3
+                ),
+                'sub_component': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='ID of the system sub-component', example=7
+                ),
+                'citizen': openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    description='Information about the citizen reporting the issue',
+                    properties={
+                        'name': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Full name of the citizen', example='John Doe'
+                        ),
+                        'age_group': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Age group classification', example='adult'
+                        ),
+                        'type': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Citizen type classification', example='individual'
+                        ),
+                        'group': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Primary group classification', example='general'
+                        ),
+                        'group_2': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Secondary group classification', example='urban'
+                        ),
+                    },
+                ),
+            },
+        ),
         responses={
             201: IssueDetailSerializer,
             400: openapi.Response(
@@ -41,10 +156,12 @@ class IssueCreateAPIView(CreateAPIView):
                     "application/json": {
                         "message": "Validation failed.",
                         "errors": {
-                            "status": ["This field is required."],
+                            "title": ["This field is required."],
                             "category": ["This field is required."],
                             "issue_type": ["This field is required."],
                             "administrative_region": ["This field is required."],
+                            "contact_method": [CONTACT_MEDIUM_ERROR_MESSAGE],
+                            "contact_information": [CONTACT_INFO_EMAIL_ERROR_MESSAGE],
                         },
                     }
                 },

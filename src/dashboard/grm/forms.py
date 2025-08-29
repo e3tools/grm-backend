@@ -5,8 +5,12 @@ from authentication.models import GovernmentWorker
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm.constants import (
     CHOICE_ALERT,
+    CHOICE_EMAIL,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
+    CONTACT_INFO_EMAIL_ERROR_MESSAGE,
+    CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
+    CONTACT_MEDIUM_ERROR_MESSAGE,
     GENDER_CHOICES,
     MEDIUM_CHOICES,
     TEXTAREA_MAX_LENGTH,
@@ -56,14 +60,18 @@ class NewIssueContactForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        contact_medium = cleaned_data.get("contact_medium")
         contact_type = cleaned_data.get("contact_type")
         contact = cleaned_data.get("contact")
 
-        if contact_type == "email" and not email_is_valid(contact):
-            self.add_error("contact", _("If email contact method is selected provide a valid email"))
+        if contact_medium == CHOICE_ALERT and not contact_type:
+            self.add_error("contact_type", CONTACT_MEDIUM_ERROR_MESSAGE)
 
-        if contact_type != "email" and email_is_valid(contact):
-            self.add_error("contact", _("If phone or whatsapp contact method is selected provide a valid phone number"))
+        elif contact_type == CHOICE_EMAIL and not email_is_valid(contact):
+            self.add_error("contact", CONTACT_INFO_EMAIL_ERROR_MESSAGE)
+
+        elif contact_type != CHOICE_EMAIL and email_is_valid(contact):
+            self.add_error("contact", CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE)
 
         return cleaned_data
 
@@ -229,6 +237,13 @@ class NewIssueDetailsForm(forms.Form):
 class NewIssueLocationForm(forms.Form):
     administrative_region = forms.ChoiceField()
     administrative_region_value = forms.CharField(label="", required=False)
+    location_description = forms.CharField(
+        label=_("Briefly describe the issue location"),
+        max_length=2000,
+        required=False,
+        help_text=_("This is an optional field"),
+        widget=forms.Textarea(attrs={"rows": "3", "placeholder": _("Please describe the issue location")}),
+    )
 
     def __init__(self, *args, **kwargs):
         initial = kwargs.get("initial")
@@ -249,6 +264,9 @@ class NewIssueLocationForm(forms.Form):
         if administrative_region:
             self.fields["administrative_region_value"].initial = administrative_region.id
             self.fields["administrative_region"].initial = administrative_region.get_base_region_id()
+
+        if obj.location_description:
+            self.fields["location_description"].initial = obj.location_description
 
 
 class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):

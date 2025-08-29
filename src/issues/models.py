@@ -13,6 +13,7 @@ from dashboard.grm.constants import (
     CITIZEN_GROUP_CHOICES,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
+    CONTACT_MEDIUM_ERROR_MESSAGE,
     GENDER_CHOICES,
     MEDIUM_CHOICES,
 )
@@ -434,9 +435,7 @@ class Issue(models.Model):
 
     def _validate_contact_method_based_on_contact_medium(self):
         if self.contact_medium == CHOICE_ALERT and not self.contact_method:
-            raise ValidationError(
-                _("You must define the contact method is your contact medium is channel alert"),
-            )
+            raise ValidationError(CONTACT_MEDIUM_ERROR_MESSAGE)
 
     def resolution_days(self):
         if self.resolution_date is not None:
@@ -495,7 +494,7 @@ class Issue(models.Model):
                 )
 
                 assignees = (
-                    User.objects.filter(assigned_issues__category__assigned_department_department=department)
+                    User.objects.filter(assigned_issues__category__assigned_department__department=department)
                     .annotate(issue_count=Count('assigned_issues', distinct=True))
                     .order_by('issue_count')
                     .distinct()
