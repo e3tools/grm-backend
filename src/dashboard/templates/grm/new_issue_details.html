@@ -30,14 +30,12 @@
                             </div>
                             <div class="col-6">
                                 {% bootstrap_form form layout='horizontal' %}
-                                {% comment %}
 								<div class="overlay-wrapper">
 									<div id="attachments"></div>
 									<div class="overlay" id="load-attachments-spin">
 										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 									</div>
 								</div>
-								{% endcomment %}
 							</div>
                         </div>
                     </div>
@@ -119,7 +117,7 @@
                 loadData(get_choices_url, data, 'id_sub_component');
             }
         });
-		{% comment %}
+        
         class FileFormAjaxSubmit extends FormAjaxSubmit {
             submitted_form() {
                 loadAttachments();
@@ -130,6 +128,7 @@
         let modal = $('#formModal');
 
         function loadAttachments() {
+            console.log('entraaaa!')
             load_attachments_spin.show();
             $('#attachments').load("{% url 'dashboard:grm:issue_attachments' obj.id %}", function (
                 response, status, xhr) {
@@ -147,7 +146,6 @@
         $(document).ready(function () {
             loadAttachments();
         });
-        {% endcomment %}
 
         $('b[role="presentation"]').hide();
         $('.select2-selection__arrow').append(

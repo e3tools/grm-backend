@@ -447,7 +447,10 @@ class Issue(models.Model):
             head = self.category.assigned_department.department.head
         except Exception:
             head = None
-        return user == self.assignee or user == head
+        return user.id == self.assignee.id or (head and user.id == head.id)
+
+    def has_edit_permission(self, user):
+        return not hasattr(user, "governmentworker") or not self.assignee or self.assignee.id == user.id
 
     def get_internal_code(self):
         return f'{self.category.abbreviation}-{self.administrative_region.id}-{self.id}'

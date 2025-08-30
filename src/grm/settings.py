@@ -189,8 +189,6 @@ MEDIA_ROOT = BASE_DIR / "media/"
 
 MEDIA_URL = "/media/"
 
-MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
-
 AUTH_USER_MODEL = "authentication.User"
 
 # Default primary key field type

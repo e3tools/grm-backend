@@ -91,6 +91,7 @@ class FormAjaxSubmit {
                 } else {
                     modal.find('.modal-dialog').addClass(self.modal_size_class);
                     modal.modal('show');
+                    modal.attr('aria-hidden', 'false');
                     self.loaded_form();
                     self.first_loaded_form();
                     def.resolve(true);

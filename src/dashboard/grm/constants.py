@@ -1,5 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 
+from grm.utils import filesizeformat_en
+
 CHOICE_ANONYMOUS = "anonymous"
 CHOICE_FACILITATOR = "facilitator"
 CHOICE_ALERT = "channel-alert"
@@ -71,7 +73,14 @@ CITIZEN_GROUP_CHOICES = (
 )
 
 TEXTAREA_MAX_LENGTH = 65000
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_UPLOAD_SIZE_FILE_FORMAT = filesizeformat_en(MAX_UPLOAD_SIZE)
+MAX_ATTACHMENTS = 20
 
 CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
 CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
 CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")
+FILE_SIZE_ERROR_MESSAGE = _(
+    f"Select a file with a size less than or equal to {MAX_UPLOAD_SIZE_FILE_FORMAT}. The selected file is %s in size."
+)
+FILE_HELP_TEXT = _(f"Allowed file size less than or equal to {MAX_UPLOAD_SIZE_FILE_FORMAT}")

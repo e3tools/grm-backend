@@ -175,19 +175,18 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                {% if obj.attachments %}
+                                {% if obj.attachments.all %}
                                     <div class="row mr-2 mb-2">
                                         <label class="col-3 label-align">
                                             {% translate 'Attachments' %}:
                                         </label>
                                         <div class="col-9">
-                                            {% for attachment in obj.attachments %}
+                                            {% for attachment in obj.attachments.all %}
                                                 <div class="row mb-2">
                                                     <div class="col-12">
-                                                        <a href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
-                                                           target="_blank">
+                                                        <a href="{{ attachment.file.url }}" target="_blank">
                                                             <i class="fas fa-paperclip mr-2"></i>
-                                                            {{ attachment.name }}
+                                                            {{ attachment.filename }}
                                                         </a>
                                                     </div>
                                                 </div>

@@ -1,25 +1,20 @@
 from django import forms
-from django.conf import settings
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import gettext_lazy as _
+
+from dashboard.grm.constants import (
+    FILE_HELP_TEXT,
+    FILE_SIZE_ERROR_MESSAGE,
+    MAX_UPLOAD_SIZE,
+)
 
 
 class FileForm(forms.Form):
-    file = forms.FileField(label="", help_text=_("Allowed file size less than or equal to 2 MB"))
+    file = forms.FileField(label="", help_text=FILE_HELP_TEXT)
 
-    default_error_messages = {
-        "file_size": _("Select a file size less than or equal to %(max_size)s. The selected file size is %(size)s.")
-    }
+    default_error_messages = {"file_size": FILE_SIZE_ERROR_MESSAGE}
 
     def clean_file(self):
-        max_upload_size = settings.MAX_UPLOAD_SIZE
         value = self.cleaned_data.get("file")
-        if value and value.size > max_upload_size:
-            raise forms.ValidationError(
-                self.default_error_messages["file_size"]
-                % {
-                    "max_size": filesizeformat(max_upload_size),
-                    "size": filesizeformat(value.size),
-                }
-            )
+        if value and value.size > MAX_UPLOAD_SIZE:
+            raise forms.ValidationError(self.default_error_messages["file_size"] % filesizeformat(value.size))
         return value

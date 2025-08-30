@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import connection
 from django.template.defaultfilters import date as _date
+from django.template.defaultfilters import filesizeformat
+from django.utils import translation
 
 # from openpyxl import load_workbook
 # from openpyxl.utils.cell import range_boundaries
@@ -162,3 +164,9 @@ def email_is_valid(email):
         return True
     except ValidationError:
         return False
+
+
+def filesizeformat_en(value):
+    """Return file size in English (MB, GB, etc.) regardless of active locale."""
+    with translation.override("en"):
+        return filesizeformat(value)

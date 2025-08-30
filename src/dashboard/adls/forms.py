@@ -7,7 +7,17 @@ from dashboard.forms.forms import FileForm
 
 
 class PasswordConfirmForm(forms.Form):
-    password = forms.CharField(widget=forms.PasswordInput())
+    password = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Password",
+                "autocomplete": "off",
+            }
+        ),
+        required=True,
+        label="Password",
+    )
 
 
 class AdlProfileForm(FileForm):

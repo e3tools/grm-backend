@@ -6,21 +6,21 @@ app_name = "grm"
 urlpatterns = [
     path("", views.DashboardTemplateView.as_view(), name="dashboard"),
     path("start-new-issue", views.StartNewIssueView.as_view(), name="start_new_issue"),
-    # path(
-    #     "upload-issue-attachment/<int:issue>/",
-    #     views.UploadIssueAttachmentFormView.as_view(),
-    #     name="upload_issue_attachment",
-    # ),
-    # path(
-    #     "delete-issue-attachment/<int:issue>/<str:attachment>/",
-    #     views.IssueAttachmentDeleteView.as_view(),
-    #     name="delete_issue_attachment",
-    # ),
-    # path(
-    #     "issue-attachments/<int:issue>/",
-    #     views.IssueAttachmentListView.as_view(),
-    #     name="issue_attachments",
-    # ),
+    path(
+        "upload-issue-attachment/<int:issue>/",
+        views.UploadIssueAttachmentFormView.as_view(),
+        name="upload_issue_attachment",
+    ),
+    path(
+        "delete-issue-attachment/<int:issue>/<int:attachment>/",
+        views.IssueAttachmentDeleteView.as_view(),
+        name="delete_issue_attachment",
+    ),
+    path(
+        "issue-attachments/<int:issue>/",
+        views.IssueAttachmentListView.as_view(),
+        name="issue_attachments",
+    ),
     path(
         "new-issue-step-1/<int:issue>/",
         views.NewIssueContactFormView.as_view(),

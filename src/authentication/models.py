@@ -30,6 +30,12 @@ class User(AbstractUser):
     def name(self):
         return f"{self.first_name} {self.last_name}"
 
+    def delete(self, *args, **kwargs):
+        if self.photo:
+            if os.path.isfile(self.photo.path):
+                os.remove(self.photo.path)
+        super().delete(*args, **kwargs)
+
 
 class AbstractKeyData(models.Model):
     key = models.CharField(max_length=255, primary_key=True, unique=True)
