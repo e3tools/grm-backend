@@ -1,10 +1,19 @@
 import logging
 
+import requests
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
 
+from attachments.models import IssueAttachment
 from authentication.models import Facilitator, User
+from client import (
+    COUCHDB_GRM_ATTACHMENT_DATABASE,
+    COUCHDB_PASSWORD,
+    COUCHDB_URL,
+    COUCHDB_USERNAME,
+)
 from dashboard.grm.constants import (
     CHOICE_ALERT,
     CHOICE_CONFIDENTIAL,
@@ -18,6 +27,7 @@ from issues.models import (
     AdministrativeLevel,
     Citizen,
     Comment,
+    Issue,
     IssueDepartmentAdministrativeLevel,
 )
 
@@ -513,7 +523,7 @@ def process_facilitator_data(data: list[dict]) -> list[dict]:
     return processed
 
 
-def process_comment_data(data: list[dict], external_issues) -> list[dict]:
+def process_comments_data(data: list[dict], external_issues) -> list[dict]:
     processed = []
     existing_comments = Comment.objects.values_list('issue__external_id', 'due_date')
 
@@ -541,6 +551,53 @@ def process_comment_data(data: list[dict], external_issues) -> list[dict]:
             processed.append(new_item)
 
     return processed
+
+
+def create_attachments(data: list[dict], external_issues) -> int:
+    created = 0
+    existing_attachments = IssueAttachment.objects.values_list('external_id', flat=True)
+    reporters = dict(Issue.objects.filter(external_id__isnull=False).values_list('id', 'reporter'))
+
+    for item in data:
+        attachments = item.get('attachments', [])
+        for attachment in attachments:
+            bd_id = attachment.get('bd_id')
+            attachment_url = attachment.get("url")
+            if not attachment_url or not bd_id or bd_id in existing_attachments:
+                continue
+
+            issue_id = external_issues[item.get('_id')]
+            new_attachment = IssueAttachment(
+                issue_id=issue_id,
+                uploaded_by_id=reporters[issue_id],
+            )
+
+            # --- Handle created_date ---
+            created_date_str = attachment.get('id')
+            if isinstance(created_date_str, str) and 'T' in created_date_str and 'Z' in created_date_str:
+                new_attachment.created_date = parse_datetime(created_date_str)
+
+            # --- Handle file ---
+            try:
+                name = attachment_url.split('/')[-1:][0]
+            except IndexError:
+                print(
+                    f"Error for attachment _id {bd_id}: "
+                    f"Incomplete url '{attachment_url}' in issue _id {item.get('_id')}"
+                )
+                continue
+            url = f'{COUCHDB_URL}/{COUCHDB_GRM_ATTACHMENT_DATABASE}/{bd_id}/{name}'
+            response = requests.get(url, auth=(COUCHDB_USERNAME, COUCHDB_PASSWORD))
+
+            if response.status_code == 200:
+                file_content = ContentFile(response.content)
+                new_attachment.file.save(name, file_content)
+                new_attachment.save()
+                created += 1
+            else:
+                print(f"Error downloading attachment _id {bd_id}:", response.status_code)
+
+    return created
 
 
 def bulk_create_or_update(

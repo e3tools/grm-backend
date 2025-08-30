@@ -106,14 +106,12 @@
                                     </div>
                                 </div>
                                 {% bootstrap_field form.ongoing_issue layout='horizontal' %}
-                                {% comment %}
 								<div class="overlay-wrapper">
                                     <div id="attachments"></div>
                                     <div class="overlay" id="load-attachments-spin">
                                         <i class="fas fa-2x fa-sync-alt fa-spin"></i>
                                     </div>
                                 </div>
-								{% endcomment %}
                                 {% bootstrap_field form.administrative_region layout='horizontal' %}
                                 {{ form.administrative_region_value }}
                                 <div class="row">
@@ -232,7 +230,6 @@
     <script type="text/javascript">
         deselectableRadios("id_citizen_type");
 
-        {% comment %}
         let load_attachments_spin = $('#load-attachments-spin');
 
         class FileFormAjaxSubmit extends FormAjaxSubmit {
@@ -262,7 +259,6 @@
         $(document).ready(function () {
             loadAttachments();
         });
-		{% endcomment %}
 
         $('b[role="presentation"]').hide();
         $('.select2-selection__arrow').append(

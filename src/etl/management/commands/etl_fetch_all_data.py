@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from authentication.models import Cdata, Pdata
 from client import get_db
-from etl.utils import fetch_database, process_comment_data
+from etl.utils import create_attachments, fetch_database, process_comments_data
 from issues.models import Comment, Issue
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -52,10 +52,15 @@ class Command(BaseCommand):
             "type": "issue",
             "auto_increment_id": {"$ne": ""},
         }
-        result = grm_db.get_query_result(selector)
+        data = grm_db.get_query_result(selector)
 
-        # process data for bulk create and bulk update
-        result = process_comment_data(result, external_issues)
+        # process data for bulk create
+        result = process_comments_data(data, external_issues)
         fetch_database(self, result=result, model_class=Comment)
+
+        # create IssueAttachment objects
+        attachments_created = create_attachments(data, external_issues)
+
+        self.stdout.write(self.style.NOTICE(f"Created {attachments_created} IssueAttachment objects"))
 
         self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_all_data'))

@@ -1,5 +1,4 @@
 import requests
-from django.conf import settings
 from django.http import Http404, HttpResponse
 from drf_yasg.openapi import IN_QUERY, Parameter
 from drf_yasg.utils import swagger_auto_schema
@@ -14,15 +13,15 @@ from attachments.serializers import (
 )
 from client import (
     COUCHDB_ATTACHMENT_DATABASE,
+    COUCHDB_GRM_ATTACHMENT_DATABASE,
+    COUCHDB_GRM_DATABASE,
     COUCHDB_PASSWORD,
     COUCHDB_URL,
     COUCHDB_USERNAME,
     get_db,
     upload_file,
 )
-
-COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
-COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
+from dashboard.grm.constants import FILE_HELP_TEXT
 
 
 class GetAttachmentAPIView(APIView):
@@ -96,7 +95,7 @@ class UploadIssueAttachmentAPIView(generics.GenericAPIView):
 
     @swagger_auto_schema(
         responses={201: AttachmentUpdateStatusSerializer()},
-        operation_description="Allowed file size less than or equal to 2 MB",
+        operation_description=FILE_HELP_TEXT,
     )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

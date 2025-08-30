@@ -18,14 +18,12 @@
 							<p>{{ obj.description }}</p>
 						</div>
 					</div>
-					{% comment %}
-						<div class="overlay-wrapper">
-							<div id="attachments"></div>
-							<div class="overlay" id="load-attachments-spin">
-								<i class="fas fa-2x fa-sync-alt fa-spin"></i>
-							</div>
+					<div class="overlay-wrapper">
+						<div id="attachments"></div>
+						<div class="overlay" id="load-attachments-spin">
+							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>
-					{% endcomment %}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -234,7 +232,9 @@
 					<div class="text-primary text-center fs17 lh19 text-bold mb-4" style="padding: 0 45px 0 45px;">
 						{% translate "Please enter your password to show sensitive data" %}
 					</div>
-					{% bootstrap_form password_confirm_form %}
+					<form onsubmit="return false;">
+						{% bootstrap_form password_confirm_form %}
+					</form>
 				</div>
 				<div class="modal-footer border-0">
 					<button id="check-password" type="submit" class="btn btn-lg btn-primary text-right">
@@ -281,9 +281,9 @@
             submitted_form() {
                 loadStatusButtons();
                 loadComments();
-				$("#research-result .value").html($("#id_research_result").val());
-				$("#research-result").removeClass('d-none');
-				$("#reject-reason").addClass('d-none');
+                $("#research-result .value").html($("#id_research_result").val());
+                $("#research-result").removeClass('d-none');
+                $("#reject-reason").addClass('d-none');
             };
         }
 
@@ -294,8 +294,8 @@
                 loadStatusButtons();
                 loadComments();
                 $('#reject-reason .value').html($("#id_reject_reason").val());
-				$("#reject-reason").removeClass('d-none');
-				$("#research-result").addClass('d-none');
+                $("#reject-reason").removeClass('d-none');
+                $("#research-result").addClass('d-none');
             };
         }
 
@@ -343,46 +343,45 @@
 
             });
         }
-        {% comment %}
-            class FileFormAjaxSubmit extends FormAjaxSubmit {
-                submitted_form() {
-                    loadAttachments();
-                }
+
+        class FileFormAjaxSubmit extends FormAjaxSubmit {
+            submitted_form() {
+                loadAttachments();
             }
+        }
 
-            let file_form_ajax = new FileFormAjaxSubmit();
-            let file_form_modal = $('#fileFormModal');
+        let file_form_ajax = new FileFormAjaxSubmit();
+        let file_form_modal = $('#fileFormModal');
 
-            function loadAttachments() {
-                load_attachments_spin.show();
-                $('#attachments').load(
-                    "{% url 'dashboard:grm:issue_attachments' obj.id %}?column=1", function (
-                        response, status, xhr) {
-                        if (status === "error") {
-                            alert(error_server_message + "Error " + response.status);
-                        }
-                        load_attachments_spin.hide();
-                        $('#add_attachment').click(function () {
-                            let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
-                            file_form_ajax.load_form('#form', file_form_modal, url, false, true);
-                        });
+        function loadAttachments() {
+            load_attachments_spin.show();
+            $('#attachments').load(
+                "{% url 'dashboard:grm:issue_attachments' obj.id %}?column=1", function (
+                    response, status, xhr) {
+                    if (status === "error") {
+                        alert(error_server_message + "Error " + response.status);
+                    }
+                    load_attachments_spin.hide();
+                    $('#add_attachment').click(function () {
+                        let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
+                        file_form_ajax.load_form('#form', file_form_modal, url, false, true);
                     });
-            }
+                });
+        }
 
-            $(document).on('click', '.delete-attachment', function () {
-                $.ajax({
-                    url: $(this).data('url'),
-                    type: 'POST'
+        $(document).on('click', '.delete-attachment', function () {
+            $.ajax({
+                url: $(this).data('url'),
+                type: 'POST'
+            })
+                .fail(function (data) {
+                    alert(error_server_message + "Error " + data.status);
                 })
-                    .fail(function (data) {
-                        alert(error_server_message + "Error " + data.status);
-                    })
-                    .done(function (data) {
-                        loadAttachments();
-                        showPopupMessage(data.msg);
-                    })
-            });
-        {% endcomment %}
+                .done(function (data) {
+                    loadAttachments();
+                    showPopupMessage(data.msg);
+                })
+        });
 
         let add_comment = $('#add_comment');
         let load_comments_spin = $('#load-comments-spin');
@@ -428,7 +427,7 @@
         });
 
         $(document).ready(function () {
-            //loadAttachments();
+            loadAttachments();
             loadStatusButtons();
             $('b[role="presentation"]').hide();
             $('.select2-selection__arrow').append(

@@ -1,9 +1,10 @@
-from django.conf import settings
 from parameterized import parameterized
 from rest_framework.reverse import reverse
 
+import dashboard.grm.constants
 from authentication.factories import CouchdbADLFactory
 from client import COUCHDB_PASSWORD, COUCHDB_USERNAME
+from dashboard.grm.constants import FILE_SIZE_ERROR_MESSAGE
 from grm.tests.base import BaseTestCase
 
 
@@ -17,7 +18,7 @@ class TestUploadTaskAttachmentAPIView(BaseTestCase):
         "invalid_file": "The submitted data was not a file. Check the encoding type on the form.",
         "required_field": "This field is required.",
         "required_file": "No file was submitted.",
-        "file_size": "Select a file size less than or equal to %(max_size)s. The selected file size is %(size)s.",
+        "file_size": FILE_SIZE_ERROR_MESSAGE,
     }
 
     def setUp(self):
@@ -239,8 +240,8 @@ class TestUploadTaskAttachmentAPIView(BaseTestCase):
 
     @parameterized.expand(
         [
-            ("5.0 MB", settings.MAX_UPLOAD_SIZE),
-            ("5.1 MB", settings.MAX_UPLOAD_SIZE + int(0.1 * 1024 * 1024)),
+            ("5.0 MB", dashboard.grm.constants.MAX_UPLOAD_SIZE),
+            ("5.1 MB", dashboard.grm.constants.MAX_UPLOAD_SIZE + int(0.1 * 1024 * 1024)),
         ]
     )
     def test_file_size(self, size_representation, size):
@@ -265,7 +266,4 @@ class TestUploadTaskAttachmentAPIView(BaseTestCase):
         else:
             assert response.status_code == 400
             assert len(data) == 1
-            assert str(data["file"][0]) == self.error_messages["file_size"] % {
-                "max_size": "5.0\xa0MB",
-                "size": "5.1\xa0MB",
-            }
+            assert str(data["file"][0]) == self.error_messages["file_size"] % "5.1\xa0MB"

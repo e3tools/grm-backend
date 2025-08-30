@@ -21,7 +21,6 @@ from issues.models import (
     CitizenAgeGroup,
     CitizenGroup,
     Component,
-    Issue,
     IssueCategory,
     IssueStatus,
     IssueSubType,
@@ -40,23 +39,21 @@ class NewIssueContactForm(forms.Form):
     contact_type = forms.ChoiceField(label="", required=False, choices=CONTACT_CHOICES)
     contact = forms.CharField(label="", required=False)
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["contact"].widget.attrs["placeholder"] = _("Please type the contact information")
+        if obj:
+            self.fields["contact"].widget.attrs["placeholder"] = _("Please type the contact information")
 
-        obj = Issue.objects.get(id=obj_id)
-        if obj.contact_medium:
-            self.fields["contact_medium"].initial = obj.contact_medium
-            if obj.contact_medium == CHOICE_ALERT:
-                if obj.contact_method:
-                    self.fields["contact_type"].initial = obj.contact_method
-                if obj.contact_information:
-                    self.fields["contact"].initial = obj.contact_information
-            else:
-                self.fields["contact"].widget.attrs["class"] = "hidden"
+            if obj.contact_medium:
+                self.fields["contact_medium"].initial = obj.contact_medium
+                if obj.contact_medium == CHOICE_ALERT:
+                    if obj.contact_method:
+                        self.fields["contact_type"].initial = obj.contact_method
+                    if obj.contact_information:
+                        self.fields["contact"].initial = obj.contact_information
+                else:
+                    self.fields["contact"].widget.attrs["class"] = "hidden"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -106,30 +103,27 @@ class NewIssuePersonForm(forms.Form):
         help_text=_("This is an optional field"),
     )
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        obj = Issue.objects.select_related('citizen__age_group', 'citizen__group').get(id=obj_id)
+        if obj:
+            citizen_age_groups = CitizenAgeGroup.get_choices()
+            self.fields["citizen_age_group"].widget.choices = citizen_age_groups
+            self.fields["citizen_age_group"].choices = citizen_age_groups
 
-        citizen_age_groups = CitizenAgeGroup.get_choices()
-        self.fields["citizen_age_group"].widget.choices = citizen_age_groups
-        self.fields["citizen_age_group"].choices = citizen_age_groups
+            citizen_group_choices = CitizenGroup.get_choices()
+            self.fields["citizen_group"].widget.choices = citizen_group_choices
+            self.fields["citizen_group"].choices = citizen_group_choices
 
-        citizen_group_choices = CitizenGroup.get_choices()
-        self.fields["citizen_group"].widget.choices = citizen_group_choices
-        self.fields["citizen_group"].choices = citizen_group_choices
-
-        citizen = obj.citizen
-        if citizen:
-            self.fields["citizen"].initial = citizen.name
-            self.fields["citizen_type"].initial = citizen.type
-            if citizen.age_group:
-                self.fields["citizen_age_group"].initial = citizen.age_group.id
-            self.fields["gender"].initial = citizen.gender
-            if citizen.group:
-                self.fields["citizen_group"].initial = citizen.group.id
+            citizen = obj.citizen
+            if citizen:
+                self.fields["citizen"].initial = citizen.name
+                self.fields["citizen_type"].initial = citizen.type
+                if citizen.age_group:
+                    self.fields["citizen_age_group"].initial = citizen.age_group.id
+                self.fields["gender"].initial = citizen.gender
+                if citizen.group:
+                    self.fields["citizen_group"].initial = citizen.group.id
 
 
 class NewIssueDetailsForm(forms.Form):
@@ -168,72 +162,62 @@ class NewIssueDetailsForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        types = IssueType.get_choices()
-        self.fields["issue_type"].widget.choices = types
-        self.fields["issue_type"].choices = types
+        if obj:
+            types = IssueType.get_choices()
+            self.fields["issue_type"].widget.choices = types
+            self.fields["issue_type"].choices = types
 
-        categories = IssueCategory.get_choices()
-        self.fields["category"].widget.choices = categories
-        self.fields["category"].choices = categories
+            categories = IssueCategory.get_choices()
+            self.fields["category"].widget.choices = categories
+            self.fields["category"].choices = categories
 
-        issue_sub_types = IssueSubType.get_choices()
-        self.fields["issue_sub_type"].widget.choices = issue_sub_types
-        self.fields["issue_sub_type"].choices = issue_sub_types
+            issue_sub_types = IssueSubType.get_choices()
+            self.fields["issue_sub_type"].widget.choices = issue_sub_types
+            self.fields["issue_sub_type"].choices = issue_sub_types
 
-        components = Component.get_choices()
-        self.fields["component"].widget.choices = components
-        self.fields["component"].choices = components
+            components = Component.get_choices()
+            self.fields["component"].widget.choices = components
+            self.fields["component"].choices = components
 
-        sub_components = SubComponent.get_choices()
-        self.fields["sub_component"].widget.choices = sub_components
-        self.fields["sub_component"].choices = sub_components
+            sub_components = SubComponent.get_choices()
+            self.fields["sub_component"].widget.choices = sub_components
+            self.fields["sub_component"].choices = sub_components
 
-        subproject_groups = SubProjectGroup.get_choices()
-        self.fields["subproject_group"].widget.choices = subproject_groups
-        self.fields["subproject_group"].choices = subproject_groups
+            subproject_groups = SubProjectGroup.get_choices()
+            self.fields["subproject_group"].widget.choices = subproject_groups
+            self.fields["subproject_group"].choices = subproject_groups
 
-        self.fields["intake_date"].widget.attrs["class"] = self.fields["issue_date"].widget.attrs["class"] = (
-            "form-control datetimepicker-input"
-        )
-        self.fields["intake_date"].widget.attrs["data-target"] = "#intake_date"
-        self.fields["issue_date"].widget.attrs["data-target"] = "#issue_date"
+            self.fields["intake_date"].widget.attrs["class"] = self.fields["issue_date"].widget.attrs["class"] = (
+                "form-control datetimepicker-input"
+            )
+            self.fields["intake_date"].widget.attrs["data-target"] = "#intake_date"
+            self.fields["issue_date"].widget.attrs["data-target"] = "#issue_date"
 
-        obj = Issue.objects.select_related(
-            'issue_type',
-            'category',
-            'issue_sub_type',
-            'component',
-            'sub_component',
-            'subproject_group',
-        ).get(id=obj_id)
-        if obj.intake_date:
-            self.fields["intake_date"].initial = obj.intake_date.strftime("%d/%m/%Y")
-        if obj.issue_date:
-            self.fields["issue_date"].initial = obj.issue_date.strftime("%d/%m/%Y")
-        if obj.description:
-            self.fields["description"].initial = obj.description
-        if obj.issue_type:
-            self.fields["issue_type"].initial = obj.issue_type.id
-        if obj.category:
-            self.fields["category"].initial = obj.category.id
-        if obj.issue_sub_type:
-            self.fields["issue_sub_type"].initial = obj.issue_sub_type.id
-        if obj.component:
-            self.fields["component"].initial = obj.component.id
-        if obj.sub_component:
-            self.fields["sub_component"].initial = obj.sub_component.id
-        if obj.subproject_group:
-            self.fields["subproject_group"].initial = obj.subproject_group.id
-        if obj.ongoing_issue:
-            self.fields["ongoing_issue"].initial = obj.ongoing_issue
+            if obj.intake_date:
+                self.fields["intake_date"].initial = obj.intake_date.strftime("%d/%m/%Y")
+            if obj.issue_date:
+                self.fields["issue_date"].initial = obj.issue_date.strftime("%d/%m/%Y")
+            if obj.description:
+                self.fields["description"].initial = obj.description
+            if obj.issue_type:
+                self.fields["issue_type"].initial = obj.issue_type.id
+            if obj.category:
+                self.fields["category"].initial = obj.category.id
+            if obj.issue_sub_type:
+                self.fields["issue_sub_type"].initial = obj.issue_sub_type.id
+            if obj.component:
+                self.fields["component"].initial = obj.component.id
+            if obj.sub_component:
+                self.fields["sub_component"].initial = obj.sub_component.id
+            if obj.subproject_group:
+                self.fields["subproject_group"].initial = obj.subproject_group.id
+            if obj.ongoing_issue:
+                self.fields["ongoing_issue"].initial = obj.ongoing_issue
 
 
-# to check
 class NewIssueLocationForm(forms.Form):
     administrative_region = forms.ChoiceField()
     administrative_region_value = forms.CharField(label="", required=False)
@@ -245,36 +229,47 @@ class NewIssueLocationForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": "3", "placeholder": _("Please describe the issue location")}),
     )
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        label = AdministrativeRegion.get_first_child_level_name()
-        self.fields["administrative_region"].label = label
+        if obj:
+            label = AdministrativeRegion.get_first_child_level_name()
+            self.fields["administrative_region"].label = label
 
-        administrative_region_choices = AdministrativeRegion.get_first_level_choices()
-        self.fields["administrative_region"].widget.choices = administrative_region_choices
-        self.fields["administrative_region"].choices = administrative_region_choices
-        self.fields["administrative_region"].widget.attrs["class"] = "region"
-        self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
+            administrative_region_choices = AdministrativeRegion.get_first_level_choices()
+            self.fields["administrative_region"].widget.choices = administrative_region_choices
+            self.fields["administrative_region"].choices = administrative_region_choices
+            self.fields["administrative_region"].widget.attrs["class"] = "region"
+            self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
 
-        obj = Issue.objects.select_related('administrative_region').get(id=obj_id)
-        administrative_region = obj.administrative_region
-        if administrative_region:
-            self.fields["administrative_region_value"].initial = administrative_region.id
-            self.fields["administrative_region"].initial = administrative_region.get_base_region_id()
+            administrative_region = obj.administrative_region
+            if administrative_region:
+                self.fields["administrative_region_value"].initial = administrative_region.id
+                self.fields["administrative_region"].initial = administrative_region.get_base_region_id()
 
-        if obj.location_description:
-            self.fields["location_description"].initial = obj.location_description
+            if obj.location_description:
+                self.fields["location_description"].initial = obj.location_description
 
 
-class NewIssueConfirmForm(NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
+class NewIssueConfirmForm(forms.Form):
+    def __init__(self, *args, obj, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for FormClass in (NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
+            subform = FormClass(obj=obj)
+            self.fields.update(subform.fields)
+
+
+class NewIssueConfirmationForm(forms.Form):
+    """Form only to show all fields and labels from NewIssueConfirmForm"""
+
     def __init__(self, *args, **kwargs):
-        NewIssueContactForm.__init__(self, *args, **kwargs)
-        NewIssuePersonForm.__init__(self, *args, **kwargs)
-        NewIssueDetailsForm.__init__(self, *args, **kwargs)
-        NewIssueLocationForm.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+        confirm_form = NewIssueConfirmForm(*args, obj=None, **kwargs)
+
+        for name, field in confirm_form.fields.items():
+            self.fields[name] = field
 
 
 class SearchIssueForm(forms.Form):
@@ -341,15 +336,12 @@ class NewSearchIssueForm(forms.Form):
 class IssueDetailsForm(forms.Form):
     assignee = forms.ChoiceField(label=_("Assigned to"))
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         government_workers = GovernmentWorker.get_choices(False)
         self.fields["assignee"].widget.choices = government_workers
 
-        obj = Issue.objects.select_related('assignee').get(id=obj_id)
         is_assignee_to_government_worker = False
         for worker in government_workers:
             if worker[1] == obj.assignee.id:
@@ -376,12 +368,9 @@ class IssueResearchResultForm(forms.Form):
         label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
     )
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        obj = Issue.objects.get(id=obj_id)
         self.fields["research_result"].initial = obj.research_result
 
 
@@ -391,10 +380,7 @@ class IssueRejectReasonForm(forms.Form):
         label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
     )
 
-    def __init__(self, *args, **kwargs):
-        initial = kwargs.get("initial")
-        obj_id = initial.get("obj_id")
+    def __init__(self, *args, obj=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        obj = Issue.objects.get(id=obj_id)
         self.fields["reject_reason"].initial = obj.reject_reason

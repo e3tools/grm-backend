@@ -3,6 +3,8 @@ from django.template.defaultfilters import filesizeformat
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from dashboard.grm.constants import FILE_SIZE_ERROR_MESSAGE, MAX_UPLOAD_SIZE
+
 
 class AuthMixinSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -26,22 +28,13 @@ class FileSerializer(serializers.Serializer):
     file = serializers.FileField()
 
     def validate_file(self, value):
-        max_upload_size = settings.MAX_UPLOAD_SIZE
-        if value.size > max_upload_size:
-            raise serializers.ValidationError(
-                self.default_error_messages["file_size"]
-                % {
-                    "max_size": filesizeformat(max_upload_size),
-                    "size": filesizeformat(value.size),
-                }
-            )
+        if value.size > MAX_UPLOAD_SIZE:
+            raise serializers.ValidationError(self.default_error_messages["file_size"] % filesizeformat(value.size))
         return value
 
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
-        self.default_error_messages["file_size"] = _(
-            "Select a file size less than or equal to %(max_size)s. The selected file size is %(size)s."
-        )
+        self.default_error_messages["file_size"] = FILE_SIZE_ERROR_MESSAGE
 
 
 class TaskFileSerializer(AuthMixinSerializer, FileSerializer):

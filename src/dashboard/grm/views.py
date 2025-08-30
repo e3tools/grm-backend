@@ -6,8 +6,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
-
-# from dashboard.forms.forms import FileForm
 from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -15,13 +13,14 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
+from attachments.models import IssueAttachment
 from authentication.models import Cdata, GovernmentWorker, Pdata
-
-# from client import upload_file
 from dashboard.adls.forms import PasswordConfirmForm
+from dashboard.forms.forms import FileForm
 from dashboard.grm.constants import (
     CHOICE_ALERT,
     CHOICE_CONFIDENTIAL,
+    MAX_ATTACHMENTS,
     TEXTAREA_MAX_LENGTH,
 )
 from dashboard.grm.forms import (
@@ -29,6 +28,7 @@ from dashboard.grm.forms import (
     IssueDetailsForm,
     IssueRejectReasonForm,
     IssueResearchResultForm,
+    NewIssueConfirmationForm,
     NewIssueConfirmForm,
     NewIssueContactForm,
     NewIssueDetailsForm,
@@ -78,7 +78,6 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
 
 class IssueMixin:
     obj = None
-    max_attachments = 20
     permissions = ("read", "write")
     has_permission = True
 
@@ -93,15 +92,15 @@ class IssueMixin:
         user = self.request.user
 
         if self.obj.confirmed:
-            if "read_only_by_reporter" in self.permissions and self.obj.reporter != user:
+            if "read_only_by_reporter" in self.permissions and self.obj.reporter.id != user.id:
                 self.has_permission = False
             else:
-                if hasattr(user, "governmentworker") and self.obj.assignee and self.obj.assignee != user:
+                if hasattr(user, "governmentworker") and self.obj.assignee and self.obj.assignee.id != user.id:
                     if "read" not in self.permissions and "read_only_by_reporter" not in self.permissions:
                         self.has_permission = False
                     else:
                         if "read_only_by_reporter" in self.permissions:
-                            if self.obj.reporter != user:
+                            if self.obj.reporter.id != user.id:
                                 self.has_permission = False
                         else:
                             # show user's children administrative level issue
@@ -129,140 +128,93 @@ class IssueMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["obj"] = self.obj
-        context["max_attachments"] = self.max_attachments
+        context["max_attachments"] = MAX_ATTACHMENTS
         context["choice_contact"] = CHOICE_ALERT
-        permission_to_edit = True
-        user = self.request.user
-        if hasattr(user, "governmentworker") and self.obj.assignee and self.obj.assignee != user:
-            permission_to_edit = False
-        context["permission_to_edit"] = permission_to_edit
+        context["permission_to_edit"] = self.obj.has_edit_permission(self.request.user)
         return context
 
 
-# class UploadIssueAttachmentFormView(
-#     IssueMixin,
-#     AJAXRequestMixin,
-#     ModalFormMixin,
-#     LoginRequiredMixin,
-#     JSONResponseMixin,
-#     generic.FormView,
-# ):
-#     form_class = FileForm
-#     title = _("Add attachment")
-#     submit_button = _("Upload")
-#     permissions = ("read",)
-#
-#     def form_valid(self, form):
-#         data = form.cleaned_data
-#         attachments = self.doc["attachments"] if "attachments" in self.doc else list()
-#         if len(attachments) < self.max_attachments:
-#             response = upload_file(data["file"], COUCHDB_GRM_ATTACHMENT_DATABASE)
-#             if response["ok"]:
-#                 attachment = {
-#                     "name": data["file"].name,
-#                     "url": f'/grm_attachments/{response["id"]}/{data["file"].name}',
-#                     "local_url": "",
-#                     "id": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-#                     "uploaded": True,
-#                     "bd_id": response["id"],
-#                 }
-#                 attachments.append(attachment)
-#                 self.doc["attachments"] = attachments
-#
-#                 # Add a comment relative to the action: Add new attachment to the issue.
-#                 user_id = self.request.user.id
-#                 comments = self.doc["comments"] if "comments" in self.doc else list()
-#                 comment = _("A new attachment %s has been added to the issue.") % data["file"].name
-#                 comment_obj = {
-#                     "name": f"{self.request.user.name}",
-#                     "id": f"{user_id}",
-#                     "comment": f"{comment}",
-#                     "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
-#                 }
-#                 comments.insert(0, comment_obj)
-#                 self.doc["comments"] = comments
-#                 self.doc.save()
-#                 msg = _("The attachment was successfully uploaded.")
-#                 messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-#             else:
-#                 msg = _(
-#                     "An error has occurred that did not allow the attachment to be uploaded to the database. "
-#                     "Please report to IT staff."
-#                 )
-#                 messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-#         else:
-#             msg = _(
-#                 "The file could not be uploaded because it has already reached the limit of %(max)d attachments."
-#             ) % {"max": self.max_attachments}
-#             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-#         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-#         return self.render_to_json_response(context, safe=False)
-#
-#
-# class IssueAttachmentDeleteView(
-#     IssueMixin,
-#     AJAXRequestMixin,
-#     ModalFormMixin,
-#     LoginRequiredMixin,
-#     JSONResponseMixin,
-#     generic.DeleteView,
-# ):
-#     permissions = ("read",)
-#
-#     def delete(self, request, *args, **kwargs):
-#         if "attachments" in self.doc:
-#             attachment_name = None
-#             attachments = self.doc["attachments"]
-#             grm_attachment_db = get_db(COUCHDB_GRM_ATTACHMENT_DATABASE)
-#             for attachment in attachments:
-#                 if attachment["id"] == kwargs["attachment"]:
-#                     try:
-#                         grm_attachment_db[attachment["bd_id"]].delete()
-#                     except Exception:
-#                         pass
-#                     attachment_name = attachment["name"]
-#                     attachments.remove(attachment)
-#                     break
-#
-#             # Add a comment relative to the action: Attachment deletion
-#             user_id = request.user.id
-#             comments = self.doc["comments"] if "comments" in self.doc else list()
-#             comment = _("The attachment %s has been deleted to the issue.") % attachment_name
-#             comment_obj = {
-#                 "name": f"{request.user.name}",
-#                 "id": f"{user_id}",
-#                 "comment": f"{comment}",
-#                 "due_at": f"{datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%fZ')}",
-#             }
-#             comments.insert(0, comment_obj)
-#             self.doc["comments"] = comments
-#             self.doc.save()
-#             msg = _("The attachment was successfully deleted.")
-#             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-#             context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-#             return self.render_to_json_response(context, safe=False)
-#         else:
-#             raise Http404
-#
-#
-# class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
-#     template_name = "grm/issue_attachments.html"
-#     context_object_name = "attachments"
-#
-#     def get_queryset(self):
-#         return self.obj["attachments"] if "attachments" in self.obj else list()
-#
-#     def dispatch(self, request, *args, **kwargs):
-#         column = self.request.GET.get("column", "")
-#         if column:
-#             self.template_name = "grm/issue_attachments_column1.html"
-#         return super().dispatch(request, *args, **kwargs)
+class UploadIssueAttachmentFormView(
+    IssueMixin,
+    AJAXRequestMixin,
+    ModalFormMixin,
+    LoginRequiredMixin,
+    JSONResponseMixin,
+    generic.FormView,
+):
+    form_class = FileForm
+    title = _("Add attachment")
+    submit_button = _("Upload")
+    permissions = ("read",)
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        attachments = IssueAttachment.objects.filter(issue=self.obj)
+        if len(attachments) < MAX_ATTACHMENTS:
+            user = self.request.user
+            try:
+                IssueAttachment.objects.create(issue=self.obj, file=data["file"], uploaded_by=user)
+
+                # Add a comment relative to the action: Add new attachment to the issue.
+                comment = _("A new attachment %s has been added to the issue.") % data["file"].name
+                Comment.objects.create(user=user, comment=comment, issue=self.obj)
+                msg = _("The attachment was successfully uploaded.")
+                messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+            except Exception:
+                msg = _(
+                    "An error has occurred that did not allow the attachment to be uploaded to the database. "
+                    "Please report to IT staff."
+                )
+                messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+        else:
+            msg = _(
+                "The file could not be uploaded because it has already reached the limit of %(max)d attachments."
+            ) % {"max": MAX_ATTACHMENTS}
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+        return self.render_to_json_response(context, safe=False)
+
+
+class IssueAttachmentDeleteView(
+    IssueMixin, AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
+):
+    permissions = ("read",)
+
+    def post(self, request, *args, **kwargs):
+        attachment = IssueAttachment.objects.filter(id=kwargs["attachment"]).first()
+        if attachment:
+            attachment_name = attachment.filename
+            attachment.delete()
+
+            # Add a comment relative to the action: Attachment deletion
+            comment = _("The attachment %s has been deleted to the issue.") % attachment_name
+            Comment.objects.create(user=request.user, comment=comment, issue=self.obj)
+
+        msg = _("The attachment was successfully deleted.")
+        messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+        return self.render_to_json_response(context, safe=False)
+
+
+class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+    template_name = "grm/issue_attachments.html"
+    context_object_name = "attachments"
+
+    def get_queryset(self):
+        return IssueAttachment.objects.filter(issue=self.obj)
+
+    def dispatch(self, request, *args, **kwargs):
+        column = self.request.GET.get("column", "")
+        if column:
+            self.template_name = "grm/issue_attachments_column1.html"
+        return super().dispatch(request, *args, **kwargs)
 
 
 class IssueFormMixin(IssueMixin, generic.FormView):
     def get_form_kwargs(self):
-        self.initial = {"obj_id": self.obj.id}
-        return super().get_form_kwargs()
+        kwargs = super().get_form_kwargs()
+        kwargs['obj'] = self.obj
+        return kwargs
 
 
 class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
@@ -276,7 +228,17 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
     def get_query_result(self, **kwargs):
         return Issue.objects.filter(id=kwargs["issue"], reporter=self.request.user, confirmed=False).select_related(
-            'reporter', 'administrative_region', 'assignee'
+            'administrative_region',
+            'assignee',
+            'category',
+            'citizen__group',
+            'citizen__age_group',
+            'component',
+            'issue_type',
+            'issue_sub_type',
+            'reporter',
+            'subproject_group',
+            'sub_component',
         )
 
     def has_required_fields(self):
@@ -488,20 +450,31 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     template_name = "grm/new_issue_confirmation.html"
     title = _("GRM")
     active_level1 = "grm"
-    form_class = NewIssueConfirmForm
+    form_class = NewIssueConfirmationForm
     permissions = ("read_only_by_reporter",)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.pop('obj')
+        return kwargs
+
     def get_query_result(self, **kwargs):
-        return Issue.objects.filter(id=kwargs["issue"], confirmed=True).select_related(
-            'reporter',
-            'administrative_region',
-            'category',
-            'citizen__group',
-            'citizen__age_group',
-            'issue_type',
-            'issue_sub_type',
-            'subproject_group',
-            'component',
+        return (
+            Issue.objects.filter(id=kwargs["issue"], confirmed=True)
+            .select_related(
+                'administrative_region',
+                'assignee',
+                'category',
+                'citizen__group',
+                'citizen__age_group',
+                'component',
+                'issue_type',
+                'issue_sub_type',
+                'reporter',
+                'subproject_group',
+                'sub_component',
+            )
+            .prefetch_related("attachments")
         )
 
 
@@ -674,8 +647,9 @@ class IssueDetailsFormView(
     ]
 
     def get_form_kwargs(self):
-        self.initial = {"obj_id": self.obj.id}
-        return super().get_form_kwargs()
+        kwargs = super().get_form_kwargs()
+        kwargs['obj'] = self.obj
+        return kwargs
 
     def get_query_result(self, **kwargs):
         return Issue.objects.filter(id=kwargs["issue"], confirmed=True)
@@ -689,7 +663,7 @@ class IssueDetailsFormView(
         context["password_confirm_form"] = PasswordConfirmForm()
         context["comments"] = self.obj.comments.select_related('user')
         citizen_type = self.obj.citizen.type if self.obj.citizen else None
-        context["confidential"] = self.obj.assignee != user and citizen_type == CHOICE_CONFIDENTIAL
+        context["confidential"] = self.obj.assignee.id != user.id and citizen_type == CHOICE_CONFIDENTIAL
 
         return context
 
