@@ -4,7 +4,7 @@
 # from grm.tests import DashboardTestCase
 #
 #
-# class TestDashboardTemplateView(DashboardTestCase):
+# class DashboardTemplateViewTest(DashboardTestCase):
 #     def setUp(self):
 #         super().setUp()
 #         self.url = reverse('dashboard:participatory_budget:dashboard')

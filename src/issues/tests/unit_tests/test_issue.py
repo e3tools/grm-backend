@@ -16,7 +16,7 @@ from issues.factories import IssueFactory
 
 
 @pytest.mark.django_db
-class TestIssue(TestCase):
+class IssueTest(TestCase):
     """
     Tests for the custom methods and properties of the Issue model.
     """

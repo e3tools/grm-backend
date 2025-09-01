@@ -1,11 +1,13 @@
 from django.core.exceptions import ValidationError
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import APIException
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
 from dashboard.grm.constants import (
@@ -37,6 +39,10 @@ class IssueCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="Create an issue",
+        operation_description="Create an issue",
+        tags=['Issues'],
+        security=[{'Token': []}],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=[
@@ -180,10 +186,6 @@ class IssueCreateAPIView(CreateAPIView):
                 },
             ),
         },
-        operation_summary="Create an issue",
-        operation_description="Create an issue",
-        tags=['Issues'],
-        security=[{'Token': []}],  # References the Token security definition
     )
     def post(self, request, *args, **kwargs):
         """
@@ -243,6 +245,10 @@ class IssueListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="List all issues (paginated)",
+        operation_description="Retrieve a paginated list of all issues ordered by intake date.",
+        tags=['Issues'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
@@ -385,10 +391,6 @@ class IssueListAPIView(ListAPIView):
             ),
             500: openapi.Response(description="Internal server error"),
         },
-        operation_summary="List all issues (paginated)",
-        operation_description="Retrieve a paginated list of all issues ordered by intake date.",
-        tags=['Issues'],
-        security=[{'Token': []}],  # References the Token security definition
     )
     def get(self, request, *args, **kwargs):
         """
@@ -406,6 +408,239 @@ class IssueListAPIView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
+class IsReporterOrAssigneePermission(BasePermission):
+    """
+    Custom permission to only allow reporters or assignees to view an issue.
+
+    This permission checks if the requesting user is either:
+    - The reporter of the issue
+    - The assignee of the issue
+    """
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Check if the user has permission to access this specific issue.
+
+        Args:
+            request: HTTP request object
+            view: The view being accessed
+            obj: The Issue object being accessed
+
+        Returns:
+            bool: True if user is reporter or assignee, False otherwise
+        """
+        # Allow access if user is the reporter or assignee
+        return request.user == obj.reporter or request.user == obj.assignee
+
+
+class IssueRetrieveAPIView(RetrieveAPIView):
+    """
+    API View for retrieving a single Issue object.
+
+    This view allows authenticated users to retrieve detailed information about
+    a specific issue, but only if they are either the reporter or the assignee
+    of that issue. This ensures privacy and access control.
+
+    Permissions:
+        - Must be authenticated (TokenAuthentication)
+        - Must be either the reporter or assignee of the issue
+    """
+
+    queryset = Issue.objects.select_related(
+        'status',
+        'category',
+        'issue_type',
+        'administrative_region',
+        'reporter',
+        'assignee',
+        'category__assigned_department__department',
+        'category__assigned_department__administrative_level',
+        'category__assigned_appeal_department__department',
+        'category__assigned_appeal_department__administrative_level',
+        'category__assigned_escalation_department__department',
+        'category__assigned_escalation_department__administrative_level',
+    ).prefetch_related('category__parent')
+    serializer_class = IssueSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+    lookup_field = 'id'
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve a specific issue",
+        operation_description="""
+        Retrieve detailed information about a specific issue.
+
+        **Access Control:**
+        Only users who are either the reporter or assignee of the issue can access this endpoint.
+        This ensures that sensitive issue information is only visible to authorized personnel.
+
+        **Response Data:**
+        Returns comprehensive issue details including:
+        - Basic issue information (title, description, dates)
+        - Status and category information
+        - Administrative region details
+        - Reporter and assignee information
+        - Related metadata
+
+        **Business Rules:**
+        - User must be authenticated with a valid token
+        - User must be either the issue reporter or assignee
+        - Issue must exist in the system
+        """,
+        tags=['Issues'],
+        security=[{'Token': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="Unique identifier of the issue to retrieve",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                example=123,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Issue details retrieved successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
+                        'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
+                        'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
+                        'intake_date': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME,
+                            example="2021-03-23T10:30:45.123Z",
+                        ),
+                        'administrative_region': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'administrative_id': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="5101",
+                                    description="Administrative region ID",
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="KADJÈRÈ",
+                                    description="Administrative region name",
+                                ),
+                            },
+                            description="Administrative region information",
+                        ),
+                        'reporter': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, example=4556, description="Reporter user ID"
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="Commité village",
+                                    description="Reporter full name",
+                                ),
+                            },
+                            description="User who reported the issue",
+                        ),
+                        'assignee': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, example=123, description="Assignee user ID"
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="Comité National",
+                                    description="Assignee full name",
+                                ),
+                            },
+                            description="User assigned to handle the issue",
+                        ),
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, example=1, description="Issue status ID"
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING, example="Open", description="Status name"
+                                ),
+                            },
+                            description="Status information",
+                        ),
+                        'category': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, example=1, description="Issue category ID"
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="Environmental",
+                                    description="Category name",
+                                ),
+                            },
+                            description="Category information",
+                        ),
+                        'issue_type': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1, description="Issue type ID"),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING, example="Complaint", description="Type name"
+                                ),
+                            },
+                            description="Issue type information",
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while retrieving the issue.'
+                        )
+                    },
+                ),
+                examples={"application/json": {"detail": "An error occurred while retrieving the issue."}},
+            ),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve a specific Issue instance.
+
+        This method handles the retrieval of a single issue with proper
+        permission checking. Only reporters and assignees can access the issue.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with issue details or error message
+        """
+
+        try:
+            return super().get(request, *args, **kwargs)
+        except (Http404, APIException):
+            raise
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred while retrieving the issue.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class IssueStatusListAPIView(ListAPIView):
     """
     API View for listing IssueStatus objects with pagination.
@@ -420,6 +655,10 @@ class IssueStatusListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="List all issue statuses (paginated)",
+        operation_description="Retrieve a paginated list of all issue statuses ordered by name.",
+        tags=['Issue Statuses'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
@@ -513,10 +752,6 @@ class IssueStatusListAPIView(ListAPIView):
             ),
             500: openapi.Response(description="Internal server error"),
         },
-        operation_summary="List all issue statuses (paginated)",
-        operation_description="Retrieve a paginated list of all issue statuses ordered by name.",
-        tags=['Issue Statuses'],
-        security=[{'Token': []}],
     )
     def get(self, request, *args, **kwargs):
         """
@@ -548,6 +783,10 @@ class IssueTypeListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="List Issue Types",
+        operation_description="Retrieve a paginated list of all issue types ordered by name.",
+        tags=['Issue Types'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
@@ -604,10 +843,6 @@ class IssueTypeListView(ListAPIView):
             ),
             500: openapi.Response(description="Internal server error"),
         },
-        operation_summary="List Issue Types",
-        operation_description="Retrieve a paginated list of all issue types ordered by name.",
-        tags=['Issue Types'],
-        security=[{'Token': []}],
     )
     def get(self, request, *args, **kwargs):
         """
@@ -647,6 +882,10 @@ class IssueCategoryListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
+        operation_summary="List Issue Categories",
+        operation_description="Retrieve a paginated list of all issue categories ordered by name.",
+        tags=['Issue Categories'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
@@ -771,10 +1010,6 @@ class IssueCategoryListView(ListAPIView):
             ),
             500: openapi.Response(description="Internal server error"),
         },
-        operation_summary="List Issue Categories",
-        operation_description="Retrieve a paginated list of all issue categories ordered by name.",
-        tags=['Issue Categories'],
-        security=[{'Token': []}],
     )
     def get(self, request, *args, **kwargs):
         """

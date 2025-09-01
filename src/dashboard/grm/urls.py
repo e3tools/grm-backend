@@ -5,7 +5,6 @@ from dashboard.grm import views
 app_name = "grm"
 urlpatterns = [
     path("", views.DashboardTemplateView.as_view(), name="dashboard"),
-    path("start-new-issue", views.StartNewIssueView.as_view(), name="start_new_issue"),
     path(
         "upload-issue-attachment/<int:issue>/",
         views.UploadIssueAttachmentFormView.as_view(),
@@ -21,6 +20,7 @@ urlpatterns = [
         views.IssueAttachmentListView.as_view(),
         name="issue_attachments",
     ),
+    path("start-new-issue", views.StartNewIssueView.as_view(), name="start_new_issue"),
     path(
         "new-issue-step-1/<int:issue>/",
         views.NewIssueContactFormView.as_view(),

@@ -8,7 +8,7 @@ from authentication.factories import CouchdbUserFactory
 from grm.tests.base import BaseTestCase
 
 
-class TestAuthenticateAPIView(BaseTestCase):
+class AuthenticateAPIViewTest(BaseTestCase):
     error_messages = {
         "invalid": "Invalid data. Expected a dictionary, but got {datatype}.",
         "credentials": "Unable to log in with provided credentials.",

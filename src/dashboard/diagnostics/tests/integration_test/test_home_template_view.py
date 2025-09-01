@@ -5,7 +5,7 @@ from dashboard.diagnostics.views import HomeFormView
 from grm.tests.base import DashboardTestCase
 
 
-class TestHomeFormView(DashboardTestCase):
+class HomeFormViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("dashboard:diagnostics:home")
