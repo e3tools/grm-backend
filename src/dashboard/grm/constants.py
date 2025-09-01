@@ -80,7 +80,8 @@ MAX_ATTACHMENTS = 20
 CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
 CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
 CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")
-FILE_SIZE_ERROR_MESSAGE = _(
-    f"Select a file with a size less than or equal to {MAX_UPLOAD_SIZE_FILE_FORMAT}. The selected file is %s in size."
+FILE_SIZE_ERROR_MESSAGE = _("Select a file with a size less than or equal to %s. The selected file is %s in size.") % (
+    MAX_UPLOAD_SIZE_FILE_FORMAT,
+    "%s",
 )
-FILE_HELP_TEXT = _(f"Allowed file size less than or equal to {MAX_UPLOAD_SIZE_FILE_FORMAT}")
+FILE_HELP_TEXT = _("Allowed file size less than or equal to %s") % MAX_UPLOAD_SIZE_FILE_FORMAT
