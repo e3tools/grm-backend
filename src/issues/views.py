@@ -348,6 +348,10 @@ class IssueListAPIView(ListAPIView):
                                             'name': openapi.Schema(
                                                 type=openapi.TYPE_STRING, example="Open", description="Status name"
                                             ),
+                                            'final_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                            'initial_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                            'rejected_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                            'open_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=True),
                                         },
                                         description="Status information",
                                     ),
@@ -566,6 +570,10 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                                 'name': openapi.Schema(
                                     type=openapi.TYPE_STRING, example="Open", description="Status name"
                                 ),
+                                'final_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                'initial_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                'rejected_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                'open_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=True),
                             },
                             description="Status information",
                         ),

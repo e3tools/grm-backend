@@ -36,17 +36,6 @@ class AdministrativeRegionBasicSerializer(serializers.ModelSerializer):
         read_only_fields = ['administrative_id', 'name']
 
 
-class IssueStatusBasicSerializer(serializers.ModelSerializer):
-    """
-    Basic serializer for IssueStatus objects.
-    Provides read-only representation of issue status basic information.
-    """
-
-    class Meta:
-        model = IssueStatus
-        fields = ['id', 'name']
-
-
 class IssueCategoryBasicSerializer(serializers.ModelSerializer):
     """
     Basic serializer for IssueCategory objects.
@@ -69,6 +58,17 @@ class IssueTypeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
+class IssueStatusSerializer(serializers.ModelSerializer):
+    """
+    Serializer for IssueStatus model.
+    Provides read-only representation of issue status information.
+    """
+
+    class Meta:
+        model = IssueStatus
+        fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
+
+
 class IssueSerializer(serializers.ModelSerializer):
     """
     Serializer for the Issue model.
@@ -89,7 +89,7 @@ class IssueSerializer(serializers.ModelSerializer):
     assignee = UserBasicSerializer(read_only=True)
     reporter = UserBasicSerializer(read_only=True)
     administrative_region = AdministrativeRegionBasicSerializer(read_only=True)
-    status = IssueStatusBasicSerializer(read_only=True)
+    status = IssueStatusSerializer(read_only=True)
     category = IssueCategoryBasicSerializer(read_only=True)
     issue_type = IssueTypeSerializer(
         read_only=True,
@@ -181,17 +181,6 @@ class CitizenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Citizen
         fields = '__all__'
-
-
-class IssueStatusSerializer(serializers.ModelSerializer):
-    """
-    Serializer for IssueStatus model.
-    Provides read-only representation of issue status information.
-    """
-
-    class Meta:
-        model = IssueStatus
-        fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
 
 
 class IssueDetailSerializer(serializers.ModelSerializer):

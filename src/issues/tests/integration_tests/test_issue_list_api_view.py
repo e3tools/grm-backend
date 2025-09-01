@@ -58,7 +58,6 @@ class IssueListAPIViewTest(APITestCase):
 
         # Create issues
         self.issue1 = IssueFactory(
-            title="Network connectivity issue",
             status=self.status_open,
             category=self.category_env,
             issue_type=self.issue_type_complaint,
@@ -69,7 +68,6 @@ class IssueListAPIViewTest(APITestCase):
             description="Network connectivity issue",
         )
         self.issue2 = IssueFactory(
-            title="Water pollution complaint",
             status=self.status_open,
             category=self.category_env,
             issue_type=self.issue_type_complaint,
@@ -155,7 +153,6 @@ class IssueListAPIViewTest(APITestCase):
         expected_fields = [
             'id',
             'tracking_code',
-            'title',
             'intake_date',
             'status',
             'category',
@@ -171,7 +168,6 @@ class IssueListAPIViewTest(APITestCase):
         # Verify basic data types
         assert isinstance(first_issue['id'], int)
         assert isinstance(first_issue['tracking_code'], str)
-        assert isinstance(first_issue['title'], str)
         assert isinstance(first_issue['intake_date'], str)  # DRF DateTimeField is serialized as string
 
         # Check related object structures
@@ -194,16 +190,18 @@ class IssueListAPIViewTest(APITestCase):
 
         assert response.status_code == 200
 
-        # Find a specific issue by title
-        network_issue = next(
-            (issue for issue in response_data['results'] if issue['title'] == 'Network connectivity issue'), None
-        )
+        # Find a specific issue by id
+        network_issue = next((issue for issue in response_data['results'] if issue['id'] == self.issue1.id), None)
         assert network_issue is not None
 
         # Test status structure
         status = network_issue['status']
         assert status['id'] == self.status_open.id
         assert status['name'] == self.status_open.name
+        assert status['final_status'] == self.status_open.final_status
+        assert status['initial_status'] == self.status_open.initial_status
+        assert status['rejected_status'] == self.status_open.rejected_status
+        assert status['open_status'] == self.status_open.open_status
 
         # Test category structure
         category = network_issue['category']
@@ -266,7 +264,6 @@ class IssueListAPIViewTest(APITestCase):
 
         # Basic fields
         assert issue_data['tracking_code'] == self.issue1.tracking_code
-        assert issue_data['title'] == self.issue1.title
 
         # Date field
         assert 'intake_date' in issue_data
@@ -277,6 +274,10 @@ class IssueListAPIViewTest(APITestCase):
         status = issue_data['status']
         assert status['id'] == self.status_open.id
         assert status['name'] == self.status_open.name
+        assert status['final_status'] == self.status_open.final_status
+        assert status['initial_status'] == self.status_open.initial_status
+        assert status['rejected_status'] == self.status_open.rejected_status
+        assert status['open_status'] == self.status_open.open_status
 
         # Category
         category = issue_data['category']
@@ -324,7 +325,6 @@ class IssueListAPIViewTest(APITestCase):
         for i, issue in enumerate(response1.data['results']):
             assert issue['id'] == response2.data['results'][i]['id']
             assert issue['tracking_code'] == response2.data['results'][i]['tracking_code']
-            assert issue['title'] == response2.data['results'][i]['title']
             assert issue['intake_date'] == response2.data['results'][i]['intake_date']
             assert issue['status'] == response2.data['results'][i]['status']
             assert issue['category'] == response2.data['results'][i]['category']
@@ -419,7 +419,6 @@ class IssueListAPIViewTest(APITestCase):
         # Verify main fields
         assert issue_result['id'] == self.issue1.id
         assert issue_result['tracking_code'] == self.issue1.tracking_code
-        assert issue_result['title'] == "Network connectivity issue"
         # intake_date serialized as ISO format string
         assert issue_result['intake_date'] == self.issue1.intake_date.isoformat().replace('+00:00', 'Z')
 
