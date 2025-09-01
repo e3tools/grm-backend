@@ -37,7 +37,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE('Running: etl_fetch_all_data'))
 
         # update Issue objects and their FK objects
-        call_command("etl_fetch_issue_data", only_confirmed=True)
+        call_command("etl_fetch_issue_data")
 
         # Load issues into a dictionary {external_id: id}
         external_issues = dict(Issue.objects.filter(external_id__isnull=False).values_list('external_id', 'id'))

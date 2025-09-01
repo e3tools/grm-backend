@@ -406,7 +406,6 @@ class Issue(models.Model):
     subproject_group = models.ForeignKey(
         SubProjectGroup, on_delete=models.CASCADE, related_name='issues', null=True, blank=True
     )
-    title = models.CharField(max_length=255, null=True, blank=True)
     tracking_code = models.CharField(max_length=255)
     internal_code = models.CharField(max_length=255, null=True, blank=True)
     updated_date = models.DateTimeField(blank=True, editable=False, null=True, auto_now=now())

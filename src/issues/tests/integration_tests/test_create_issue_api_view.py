@@ -83,7 +83,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
-        self.assertEqual(created_issue.title, "Test Issue")
+        self.assertEqual(created_issue.description, "This is a test issue.")
         self.assertEqual(created_issue.reporter, self.reporter_user)
         self.assertEqual(created_issue.administrative_region, self.child_region)
 
@@ -92,7 +92,6 @@ class IssueCreateAPIViewTest(APITestCase):
         Tests that an issue cannot be created without authentication.
         """
         data = {
-            "title": "Test Issue",
             "description": "This is a test issue.",
             "intake_date": "2023-01-01T10:00:00Z",
             "contact_medium": "channel-alert",
@@ -110,7 +109,6 @@ class IssueCreateAPIViewTest(APITestCase):
         self.client.force_authenticate(user=self.reporter_user)
 
         test_cases = [
-            {"expected_error_field": "title"},
             {"expected_error_field": "description"},
             {"expected_error_field": "contact_medium"},
             {"expected_error_field": "intake_date"},
@@ -156,7 +154,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
-        self.assertEqual(created_issue.title, "Test Issue")
+        self.assertEqual(created_issue.description, "This is a test issue.")
 
     def test_validation_email_contact_method_with_valid_email(self):
         """Test that email contact_method with valid email passes validation."""
@@ -170,7 +168,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
-        self.assertEqual(created_issue.title, "Test Issue")
+        self.assertEqual(created_issue.description, "This is a test issue.")
 
     def test_validation_email_contact_method_with_invalid_email(self):
         """Test that email contact_method with invalid email fails validation."""
@@ -212,7 +210,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
-        self.assertEqual(created_issue.title, "Test Issue")
+        self.assertEqual(created_issue.description, "This is a test issue.")
 
     def test_validation_no_contact_method_no_validation_required(self):
         """Test that when contact_method is not set, contact validation is skipped."""
@@ -226,11 +224,10 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
-        self.assertEqual(created_issue.title, "Test Issue")
+        self.assertEqual(created_issue.description, "This is a test issue.")
 
     def __get_valid_data(self):
         return {
-            "title": "Test Issue",
             "description": "This is a test issue.",
             "status": self.initial_status.pk,
             "category": self.issue_category.pk,
@@ -251,7 +248,7 @@ class IssueCreateAPIViewTest(APITestCase):
             "sub_component": self.sub_component.pk,
             "contact_medium": CHOICE_FACILITATOR,
             "contact_method": None,
-            "contact_information": "aa",
+            "contact_information": "123456",
             "ongoing_issue": True,
             "tracking_code": "TRACK123",
             "location_description": "This is a test location.",

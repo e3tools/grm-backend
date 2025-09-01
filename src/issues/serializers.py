@@ -100,7 +100,6 @@ class IssueSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'tracking_code',
-            'title',
             'intake_date',
             'administrative_region',
             'reporter',
@@ -209,7 +208,6 @@ class IssueCreateSerializer(serializers.ModelSerializer):
     issue_type = serializers.CharField(required=True)
     issue_sub_type = serializers.CharField(required=True)
     ongoing_issue = serializers.BooleanField(required=False, default=False)
-    title = serializers.CharField(required=True)
     tracking_code = serializers.CharField(required=True)
     administrative_region = serializers.PrimaryKeyRelatedField(
         queryset=AdministrativeRegion.objects.all(), required=True
@@ -218,7 +216,6 @@ class IssueCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = [
-            'title',
             'description',
             'status',
             'category',

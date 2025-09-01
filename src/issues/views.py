@@ -46,7 +46,6 @@ class IssueCreateAPIView(CreateAPIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             required=[
-                'title',
                 'description',
                 'category',
                 'issue_type',
@@ -57,11 +56,6 @@ class IssueCreateAPIView(CreateAPIView):
                 'administrative_region',
             ],
             properties={
-                'title': openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description='Brief title describing the issue',
-                    example='Water supply problem in downtown area',
-                ),
                 'description': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description='Detailed description of the issue',
@@ -162,7 +156,6 @@ class IssueCreateAPIView(CreateAPIView):
                     "application/json": {
                         "message": "Validation failed.",
                         "errors": {
-                            "title": ["This field is required."],
                             "category": ["This field is required."],
                             "issue_type": ["This field is required."],
                             "administrative_region": ["This field is required."],
