@@ -611,14 +611,10 @@ class IssueCommentsContextMixin:
             "primary",
             "danger",
         ]
-        users = set(self.obj.comments.values_list('user', flat=True)) | {self.obj.assignee.id}
-        if department.head:
-            users |= department.head.id
-        else:
+        if not department.head:
             msg = _(f"There is no head member for {department.name}. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
-        context["indexed_users"] = users
         return context
 
 

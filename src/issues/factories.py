@@ -10,6 +10,7 @@ from issues.models import (
     Citizen,
     CitizenAgeGroup,
     CitizenGroup,
+    Comment,
     Component,
     Issue,
     IssueStatus,
@@ -219,3 +220,15 @@ class IssueFactory(DjangoModelFactory):
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
     reporter = factory.SubFactory(UserFactory)
     assignee = factory.SubFactory(UserFactory)
+
+
+class CommentFactory(DjangoModelFactory):
+    """Factory for creating Comment instances for testing."""
+
+    class Meta:
+        model = Comment
+
+    comment = factory.Faker("sentence", nb_words=10)
+    user = factory.SubFactory(UserFactory)
+    issue = factory.SubFactory(IssueFactory)
+    due_date = factory.LazyFunction(timezone.now)
