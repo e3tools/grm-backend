@@ -10,7 +10,7 @@ from issues.models import IssueStatus
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class TestIssueStatusListAPIView(APITestCase):
+class IssueStatusListAPIViewTest(APITestCase):
     """
     Test cases for the IssueStatus list API endpoint using Token Authentication.
 

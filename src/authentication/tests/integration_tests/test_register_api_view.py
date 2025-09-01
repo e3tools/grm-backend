@@ -8,7 +8,7 @@ from authentication.utils import get_validation_code
 from grm.tests.base import BaseTestCase
 
 
-class TestRegisterAPIView(BaseTestCase):
+class RegisterAPIViewTest(BaseTestCase):
     error_messages = {
         "invalid": "Invalid data. Expected a dictionary, but got {datatype}.",
         "credentials": "Unable to register with provided credentials.",

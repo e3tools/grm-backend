@@ -31,7 +31,7 @@ from issues.models import Issue
 
 
 @pytest.mark.django_db
-class TestIssueCreateAPIView(APITestCase):
+class IssueCreateAPIViewTest(APITestCase):
     """
     Tests for the IssueCreateAPIView.
     """

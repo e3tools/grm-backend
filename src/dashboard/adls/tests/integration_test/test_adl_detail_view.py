@@ -8,7 +8,7 @@ from grm.tests.base import DashboardTestCase
 
 
 @override_settings(LANGUAGE_CODE='en-us')
-class TestAdlDetailView(DashboardTestCase):
+class AdlDetailViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
         self.adl = CouchdbUserFactory(doc_type=ADL).doc

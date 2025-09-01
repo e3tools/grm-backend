@@ -7,18 +7,21 @@ from rest_framework.test import APITestCase
 from grm.utils import reset_sequences
 from issues.factories import (
     AdministrativeRegionFactory,
+    CitizenAgeGroupFactory,
+    CitizenFactory,
+    CitizenGroupFactory,
     IssueCategoryFactory,
     IssueFactory,
     IssueStatusFactory,
     IssueTypeFactory,
-    UserFactory, CitizenFactory, CitizenAgeGroupFactory, CitizenGroupFactory,
+    UserFactory,
 )
 from issues.models import Issue
 
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class TestIssueListAPIView(APITestCase):
+class IssueListAPIViewTest(APITestCase):
     """
     Test cases for the Issue list API endpoint using Token Authentication.
 
@@ -50,9 +53,7 @@ class TestIssueListAPIView(APITestCase):
         self.citizen_group = CitizenGroupFactory(name="group", type="citizen_group")
         self.citizen_group_2 = CitizenGroupFactory(name="group2", type="citizen_group_2")
         self.citizen = CitizenFactory(
-            age_group=self.citizen_age_group,
-            group=self.citizen_group,
-            group_2=self.citizen_group_2
+            age_group=self.citizen_age_group, group=self.citizen_group, group_2=self.citizen_group_2
         )
 
         # Create issues
@@ -65,7 +66,7 @@ class TestIssueListAPIView(APITestCase):
             reporter=self.user,
             assignee=self.user,
             citizen=self.citizen,
-            description="Network connectivity issue"
+            description="Network connectivity issue",
         )
         self.issue2 = IssueFactory(
             title="Water pollution complaint",
@@ -76,7 +77,7 @@ class TestIssueListAPIView(APITestCase):
             reporter=self.user,
             assignee=self.user,
             citizen=self.citizen,
-            description="Water pollution complaint"
+            description="Water pollution complaint",
         )
 
     def authenticate_with_token(self):
@@ -101,7 +102,7 @@ class TestIssueListAPIView(APITestCase):
         assert self.error_messages["invalid_token"] in str(response.data["detail"])
 
     def test_successful_list_retrieval_paginated(self):
-        """Test successful retrieval of paginated issue categories list."""
+        """Test successful retrieval of paginated issues list."""
         self.authenticate_with_token()
 
         response = self.client.get(self.url)
@@ -230,7 +231,7 @@ class TestIssueListAPIView(APITestCase):
         assert assignee['name'] == self.user.name
 
     def test_empty_list_when_no_issues(self):
-        """Test paginated response when no issue categories exist."""
+        """Test paginated response when no issues exist."""
         # Delete all issues
         Issue.objects.all().delete()
 
@@ -350,9 +351,7 @@ class TestIssueListAPIView(APITestCase):
         for i in range(50):
             categories_batch.append(
                 IssueFactory(
-                    administrative_region=self.admin_region,
-                    citizen=self.citizen,
-                    description="Issue description"
+                    administrative_region=self.admin_region, citizen=self.citizen, description="Issue description"
                 )
             )
 

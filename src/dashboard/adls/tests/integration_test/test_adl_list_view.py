@@ -7,7 +7,7 @@ from dashboard.adls.views import AdlListView
 from grm.tests.base import DashboardTestCase
 
 
-class TestAdlListView(DashboardTestCase):
+class AdlListViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("dashboard:adls:list")

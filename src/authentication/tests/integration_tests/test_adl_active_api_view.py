@@ -6,7 +6,7 @@ from authentication.factories import CouchdbUserFactory
 from grm.tests.base import BaseTestCase
 
 
-class TestADLActiveAPIView(BaseTestCase):
+class ADLActiveAPIViewTest(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("authentication:check_adl_status")

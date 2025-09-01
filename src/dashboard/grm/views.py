@@ -618,10 +618,6 @@ class IssueCommentsContextMixin:
             msg = _(f"There is no head member for {department.name}. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
-        # indexed_users = {}
-        # for index, user_id in enumerate(users):
-        #     indexed_users[user_id] = index
-        # context["indexed_users"] = indexed_users
         context["indexed_users"] = users
         return context
 

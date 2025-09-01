@@ -10,7 +10,7 @@ User = get_user_model()
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class TestAuthLoginView(APITestCase):
+class AuthLoginViewTest(APITestCase):
     """
     Test cases for the authentication login API endpoint.
 

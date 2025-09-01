@@ -7,7 +7,7 @@ from dashboard.grm.constants import FILE_SIZE_ERROR_MESSAGE, MAX_UPLOAD_SIZE
 from grm.tests.base import BaseTestCase
 
 
-class TestUploadIssueAttachmentAPIView(BaseTestCase):
+class UploadIssueAttachmentAPIViewTest(BaseTestCase):
     error_messages = {
         "credentials": "Unauthorized access with the credentials provided.",
         "not_found": "Not found.",
