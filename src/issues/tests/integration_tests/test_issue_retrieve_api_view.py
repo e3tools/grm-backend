@@ -55,7 +55,6 @@ class IssueRetrieveAPIViewTest(APITestCase):
         self.admin_region = AdministrativeRegionFactory(name="KADJÈRÈ")
 
         self.issue = IssueFactory(
-            title='Test Issue',
             description='Test description',
             administrative_region=self.admin_region,
             reporter=self.reporter_user,
@@ -104,7 +103,6 @@ class IssueRetrieveAPIViewTest(APITestCase):
         expected_fields = [
             'id',
             'tracking_code',
-            'title',
             'intake_date',
             'status',
             'category',
@@ -120,7 +118,6 @@ class IssueRetrieveAPIViewTest(APITestCase):
         # Verify basic data types
         assert isinstance(first_issue['id'], int)
         assert isinstance(first_issue['tracking_code'], str)
-        assert isinstance(first_issue['title'], str)
         assert isinstance(first_issue['intake_date'], str)  # DRF DateTimeField is serialized as string
 
         # Check related object structures
@@ -148,6 +145,10 @@ class IssueRetrieveAPIViewTest(APITestCase):
         status = network_issue['status']
         assert status['id'] == self.status_open.id
         assert status['name'] == self.status_open.name
+        assert status['final_status'] == self.status_open.final_status
+        assert status['initial_status'] == self.status_open.initial_status
+        assert status['rejected_status'] == self.status_open.rejected_status
+        assert status['open_status'] == self.status_open.open_status
 
         # Test category structure
         category = network_issue['category']
@@ -191,7 +192,6 @@ class IssueRetrieveAPIViewTest(APITestCase):
         # Responses should be identical
         assert response1.data['id'] == response2.data['id']
         assert response1.data['tracking_code'] == response2.data['tracking_code']
-        assert response1.data['title'] == response2.data['title']
         assert response1.data['intake_date'] == response2.data['intake_date']
         assert response1.data['status'] == response2.data['status']
         assert response1.data['category'] == response2.data['category']
@@ -257,7 +257,6 @@ class IssueRetrieveAPIViewTest(APITestCase):
         # Verify main fields
         assert issue_result['id'] == self.issue.id
         assert issue_result['tracking_code'] == "TEST-001"
-        assert issue_result['title'] == self.issue.title
         # intake_date serialized as ISO format string
         assert issue_result['intake_date'] == self.issue.intake_date.isoformat().replace('+00:00', 'Z')
 

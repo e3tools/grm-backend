@@ -211,7 +211,6 @@ class IssueFactory(DjangoModelFactory):
         model = Issue
 
     tracking_code = factory.Sequence(lambda n: f"TRK-{n + 1:05d}")
-    title = factory.Faker("sentence", nb_words=4)
     description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
     intake_date = factory.LazyFunction(timezone.now)
     status = factory.SubFactory(IssueStatusFactory)
