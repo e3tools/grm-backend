@@ -1,11 +1,10 @@
-from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -17,6 +16,7 @@ from dashboard.grm.constants import (
 from issues.models import Comment, Issue, IssueCategory, IssueStatus, IssueType
 from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
+    CommentCreateSerializer,
     CommentSerializer,
     IssueCategorySerializer,
     IssueCreateSerializer,
@@ -151,7 +151,162 @@ class IssueCreateAPIView(CreateAPIView):
             },
         ),
         responses={
-            201: IssueDetailSerializer,
+            201: openapi.Response(
+                description="Issue created successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Issue created successfully.'),
+                        'data': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, description='Unique issue identifier', example=42
+                                ),
+                                'intake_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    description='Date and time when the issue was reported',
+                                    example='2024-08-28T10:30:00Z',
+                                ),
+                                'status': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue status ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING, example="Open", description="Status name"
+                                        ),
+                                        'final_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'initial_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'rejected_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'open_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=True),
+                                    },
+                                    description="Status information",
+                                ),
+                                'category': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue category ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            example="Environmental",
+                                            description="Category name",
+                                        ),
+                                        'abbreviation': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            description="Abbreviation for the issue category",
+                                            nullable=True,
+                                        ),
+                                        'assigned_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned department information",
+                                        ),
+                                        'assigned_appeal_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Appeal department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Appeal department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned appeal department information",
+                                        ),
+                                        'assigned_escalation_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Escalation department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Escalation department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned escalation department information",
+                                        ),
+                                        'parent_id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, description="Subtype ID", nullable=True
+                                        ),
+                                        'confidentiality_level': openapi.Schema(
+                                            type=openapi.TYPE_STRING, description="Confidentiality level", nullable=True
+                                        ),
+                                        'redirection_protocol': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, description="Redirection protocol number"
+                                        ),
+                                        'label': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            description="Category label (same as name, convenience field)",
+                                        ),
+                                        'value': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            description="Category value (same as id, convenience field)",
+                                        ),
+                                    },
+                                    description="Category information",
+                                ),
+                                'issue_type': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue type ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING, example="Complaint", description="Type name"
+                                        ),
+                                    },
+                                    description="Issue type information",
+                                ),
+                                'administrative_region': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            example=2,
+                                            description="Administrative region ID",
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            example="ALIBORI",
+                                            description="Administrative region name",
+                                        ),
+                                        'administrative_level': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=5, description="Administrative level ID"
+                                        ),
+                                        'parent': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            example=5,
+                                            description="Administrative region parent ID",
+                                        ),
+                                    },
+                                    description="Administrative region information",
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            ),
             400: openapi.Response(
                 description="Bad Request - Validation Failed",
                 examples={
@@ -173,12 +328,14 @@ class IssueCreateAPIView(CreateAPIView):
             ),
             500: openapi.Response(
                 description="Internal Server Error",
-                examples={
-                    "application/json": {
-                        "message": "An error occurred while creating the issue.",
-                        "error": "Error details",
-                    }
-                },
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while creating the issue.'
+                        )
+                    },
+                ),
             ),
         },
     )
@@ -295,12 +452,12 @@ class IssueListAPIView(ListAPIView):
                                         properties={
                                             'administrative_id': openapi.Schema(
                                                 type=openapi.TYPE_STRING,
-                                                example="5101",
+                                                example="2",
                                                 description="Administrative region ID",
                                             ),
                                             'name': openapi.Schema(
                                                 type=openapi.TYPE_STRING,
-                                                example="KADJÈRÈ",
+                                                example="ALIBORI",
                                                 description="Administrative region name",
                                             ),
                                         },
@@ -492,12 +649,12 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                             properties={
                                 'administrative_id': openapi.Schema(
                                     type=openapi.TYPE_STRING,
-                                    example="5101",
+                                    example="2",
                                     description="Administrative region ID",
                                 ),
                                 'name': openapi.Schema(
                                     type=openapi.TYPE_STRING,
-                                    example="KADJÈRÈ",
+                                    example="ALIBORI",
                                     description="Administrative region name",
                                 ),
                             },
@@ -590,7 +747,6 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         )
                     },
                 ),
-                examples={"application/json": {"detail": "An error occurred while retrieving the issue."}},
             ),
         },
     )
@@ -1004,6 +1160,220 @@ class IssueCategoryListAPIView(ListAPIView):
                      detailed department information and convenience fields
         """
         return super().get(request, *args, **kwargs)
+
+
+class IssueCommentCreateAPIView(CreateAPIView):
+    """
+    API View for creating new Comment objects related to a specific Issue.
+
+    This view allows authenticated users to add comments to issues,
+    but only if they are either the reporter or assignee of that issue.
+    The comment is automatically associated with the specified issue and
+    the authenticated user.
+
+    Permissions:
+        - Must be authenticated (TokenAuthentication)
+        - Must be either the reporter or assignee of the issue
+    """
+
+    serializer_class = CommentCreateSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+
+    def get_issue(self):
+        """
+        Retrieve the Issue object based on the URL parameter.
+
+        Returns:
+            Issue: The issue object to which the comment will be added
+        """
+        issue_id = self.kwargs.get("id")
+        return Issue.objects.select_related('reporter', 'assignee').get(id=issue_id)
+
+    def get_object(self):
+        """
+        Get the Issue object for permission checking.
+
+        This method is called by DRF's permission system to check
+        object-level permissions.
+
+        Returns:
+            Issue: The issue object for permission validation
+        """
+        return self.get_issue()
+
+    def perform_create(self, serializer):
+        """
+        Save the comment with the associated issue and user.
+
+        Args:
+            serializer: The validated comment serializer
+        """
+        issue = self.get_issue()
+        instance = serializer.save(issue=issue, user=self.request.user)
+        return instance
+
+    def create(self, request, *args, **kwargs):
+        """
+        Override to return full CommentSerializer in the response.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
+        data = CommentSerializer(instance).data
+        headers = self.get_success_headers(data)
+        return Response(
+            {'message': _('Comment added successfully.'), 'data': data}, status=status.HTTP_201_CREATED, headers=headers
+        )
+
+    @swagger_auto_schema(
+        operation_summary="Add a comment to a specific issue",
+        operation_description="""
+        Create a new comment associated with a specific issue.
+
+        **Access Control:**
+        Only users who are either the reporter or assignee of the issue can add comments.
+        This ensures that only authorized personnel can participate in issue discussions.
+
+        **Automatic Associations:**
+        - The comment is automatically linked to the specified issue
+        - The authenticated user is set as the comment author
+        - The due_date is automatically set to the current timestamp
+
+        **Business Rules:**
+        - Issue must exist in the system
+        - User must be authenticated with a valid token
+        - User must be either the issue reporter or assignee
+        - Comment text is required and cannot be empty
+        """,
+        tags=['Issues', 'Comments'],
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="Unique identifier of the issue to add a comment to",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                example=123,
+            )
+        ],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['comment'],
+            properties={
+                'comment': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='The comment text content',
+                    example='This issue has been reviewed and requires additional information from the reporter.',
+                    minLength=1,
+                    maxLength=1000,
+                ),
+            },
+        ),
+        responses={
+            201: openapi.Response(
+                description="Comment created successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Comment added successfully.'),
+                        'data': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, description='Unique comment identifier', example=42
+                                ),
+                                'comment': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    description='The comment text',
+                                    example='This issue has been reviewed and requires additional information.',
+                                ),
+                                'user': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    description='User who created the comment',
+                                    properties={
+                                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=5),
+                                        'name': openapi.Schema(type=openapi.TYPE_STRING, example='John Doe'),
+                                    },
+                                ),
+                                'due_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    description='When the comment was created',
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad Request - Validation failed",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Validation failed.'),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT, description='Field-specific validation errors'
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while creating the comment.'
+                        )
+                    },
+                ),
+            ),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        """
+        Create a new Comment for the specified Issue.
+
+        This method handles the creation of a new comment with proper validation,
+        permission checking, and error handling. The comment is automatically
+        associated with the issue and the authenticated user.
+
+        Args:
+            request: HTTP request object containing comment data
+
+        Returns:
+            Response: JSON response with created comment data or error details
+        """
+        try:
+
+            return super().post(request, *args, **kwargs)
+
+        except Http404:
+            return Response(
+                {'detail': _('Not found.')},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return Response(
+                {
+                    'message': _('Validation failed.'),
+                    'errors': e.message_dict if hasattr(e, 'message_dict') else str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred while creating the comment.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class IssueCommentsListAPIView(ListAPIView):

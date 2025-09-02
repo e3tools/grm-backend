@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
@@ -282,3 +283,39 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'comment', 'user', 'issue', 'due_date']
+
+
+class CommentCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating Comment objects.
+
+    This serializer is used specifically for comment creation and only
+    includes the comment text field. The issue and user are set automatically
+    in the view.
+    """
+
+    comment = serializers.CharField(
+        required=True, allow_blank=False, max_length=1000, help_text="The comment text content"
+    )
+
+    class Meta:
+        model = Comment
+        fields = ['comment']
+
+    def validate_comment(self, value):
+        """
+        Validate the comment text.
+
+        Args:
+            value: The comment text to validate
+
+        Returns:
+            str: The validated comment text
+
+        Raises:
+            ValidationError: If the comment is empty or only whitespace
+        """
+        if not value or not value.strip():
+            raise serializers.ValidationError(_("Comment cannot be empty."))
+
+        return value.strip()

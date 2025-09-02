@@ -39,9 +39,9 @@ class IssueRetrieveAPIViewTest(APITestCase):
         reset_sequences()
 
         # Create test users
-        self.reporter_user = UserFactory(username='reporter')
-        self.assignee_user = UserFactory(username='assignee')
-        self.other_user = UserFactory(username='other')
+        self.reporter_user = UserFactory()
+        self.assignee_user = UserFactory()
+        self.other_user = UserFactory()
 
         # Create tokens
         self.reporter_token = Token.objects.create(user=self.reporter_user)
@@ -75,7 +75,7 @@ class IssueRetrieveAPIViewTest(APITestCase):
         """Test that authentication is required when no credentials provided."""
         response = self.client.get(self.url)
 
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "detail" in response.data
         assert self.error_messages["authentication"] in str(response.data["detail"])
 

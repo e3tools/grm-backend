@@ -2,6 +2,7 @@ from django.urls import path
 
 from issues.views import (
     IssueCategoryListAPIView,
+    IssueCommentCreateAPIView,
     IssueCommentsListAPIView,
     IssueCreateAPIView,
     IssueListAPIView,
@@ -18,5 +19,6 @@ urlpatterns = [
     path('issue-statuses/', IssueStatusListAPIView.as_view(), name='list-issue-statuses'),
     path('issue-types/', IssueTypeListAPIView.as_view(), name='list-issue-types'),
     path('issue-categories/', IssueCategoryListAPIView.as_view(), name='list-issue-categories'),
-    path('issue-comments/<int:id>/', IssueCommentsListAPIView.as_view(), name='list-issue-comments'),
+    path('<int:id>/add-comment', IssueCommentCreateAPIView.as_view(), name='add-issue-comment'),
+    path('<int:id>/comments/', IssueCommentsListAPIView.as_view(), name='list-issue-comments'),
 ]
