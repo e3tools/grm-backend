@@ -61,13 +61,13 @@ class IssueCommentsListAPIViewTest(APITestCase):
     # -----------------------------
     def test_authentication_required_no_credentials(self):
         response = self.client.get(self.url)
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert self.error_messages["authentication"] in str(response.data["detail"])
 
     def test_authentication_required_invalid_token(self):
         self.client.credentials(HTTP_AUTHORIZATION="Token invalid_token_123")
         response = self.client.get(self.url)
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert self.error_messages["invalid_token"] in str(response.data["detail"])
 
     # -----------------------------
@@ -76,19 +76,19 @@ class IssueCommentsListAPIViewTest(APITestCase):
     def test_reporter_can_access_comments(self):
         self.authenticate_with_token(self.reporter_token)
         response = self.client.get(self.url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 2
 
     def test_assignee_can_access_comments(self):
         self.authenticate_with_token(self.assignee_token)
         response = self.client.get(self.url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 2
 
     def test_other_user_cannot_access_comments(self):
         self.authenticate_with_token(self.other_token)
         response = self.client.get(self.url)
-        assert response.status_code == 403
+        assert response.status_code == status.HTTP_403_FORBIDDEN
         assert self.error_messages["permission_denied"] in str(response.data["detail"])
 
     def test_nonexistent_issue_returns_404(self):
@@ -97,7 +97,8 @@ class IssueCommentsListAPIViewTest(APITestCase):
         url = reverse("issues:list-issue-comments", kwargs={"id": 9999})
         response = self.client.get(url)
 
-        assert response.status_code == 404
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        self.assertEqual(response.data['detail'], 'Not found.')
 
     def test_internal_server_error(self):
         """Test internal server error response."""
@@ -115,7 +116,7 @@ class IssueCommentsListAPIViewTest(APITestCase):
         self.authenticate_with_token(self.reporter_token)
         response = self.client.get(self.url)
         data = response.data
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert "count" in data
         assert "next" in data
         assert "previous" in data
@@ -128,7 +129,7 @@ class IssueCommentsListAPIViewTest(APITestCase):
         Comment.objects.all().delete()
         self.authenticate_with_token(self.reporter_token)
         response = self.client.get(self.url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 0
         assert len(response.data["results"]) == 0
 
@@ -140,7 +141,7 @@ class IssueCommentsListAPIViewTest(APITestCase):
         self.authenticate_with_token(self.reporter_token)
         response = self.client.get(self.url)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         results = response.data["results"]
         assert isinstance(results, list)
         first_comment = results[0]
@@ -161,7 +162,7 @@ class IssueCommentsListAPIViewTest(APITestCase):
         CommentFactory.create_batch(50, issue=self.issue, user=self.reporter)
         self.authenticate_with_token(self.reporter_token)
         response = self.client.get(self.url)
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 52  # 2 original + 50 news
         assert len(response.data["results"]) == 20  # Default page size
         assert response.data["next"] is not None

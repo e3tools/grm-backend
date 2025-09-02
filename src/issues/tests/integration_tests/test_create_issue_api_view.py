@@ -1,4 +1,5 @@
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -31,6 +32,7 @@ from issues.models import Issue
 
 
 @pytest.mark.django_db
+@override_settings(LANGUAGE_CODE='en-us')
 class IssueCreateAPIViewTest(APITestCase):
     """
     Tests for the IssueCreateAPIView.

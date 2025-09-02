@@ -47,6 +47,4 @@ class IsReporterOrAssigneePermission(BasePermission):
         if not issue_id:
             return True  # No issue context available, allow access
         issue = get_object_or_404(Issue, id=issue_id)
-        if not issue:
-            return False
         return request.user == issue.reporter or request.user == issue.assignee

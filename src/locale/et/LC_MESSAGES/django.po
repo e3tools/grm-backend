@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:37+0000\n"
+"POT-Creation-Date: 2025-09-02 20:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: attachments/models.py:23 issues/models.py:419
+#: attachments/models.py:23 issues/models.py:418
 msgid "Issue"
 msgstr ""
 
@@ -157,7 +157,7 @@ msgstr ""
 msgid "The account was activated successfully."
 msgstr ""
 
-#: dashboard/adls/views.py:105 dashboard/grm/views.py:867
+#: dashboard/adls/views.py:105 dashboard/grm/views.py:863
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
@@ -165,8 +165,8 @@ msgstr ""
 msgid "Profile information"
 msgstr ""
 
-#: dashboard/adls/views.py:125 dashboard/grm/views.py:754
-#: dashboard/grm/views.py:789 dashboard/templates/grm/issue_detail.html:191
+#: dashboard/adls/views.py:125 dashboard/grm/views.py:750
+#: dashboard/grm/views.py:785 dashboard/templates/grm/issue_detail.html:191
 msgid "Save"
 msgstr ""
 
@@ -272,14 +272,14 @@ msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 
-#: dashboard/grm/constants.py:84
+#: dashboard/grm/constants.py:83
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
 "in size."
 msgstr ""
 
-#: dashboard/grm/constants.py:86
+#: dashboard/grm/constants.py:87
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr ""
@@ -402,7 +402,7 @@ msgstr ""
 #: dashboard/grm/views.py:338 dashboard/grm/views.py:357
 #: dashboard/grm/views.py:376 dashboard/grm/views.py:407
 #: dashboard/grm/views.py:451 dashboard/grm/views.py:487
-#: dashboard/grm/views.py:637 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:633 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr ""
@@ -451,44 +451,44 @@ msgid ""
 "There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:484 dashboard/grm/views.py:640
+#: dashboard/grm/views.py:484 dashboard/grm/views.py:636
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:634
+#: dashboard/grm/views.py:630
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:675
+#: dashboard/grm/views.py:671
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:690
+#: dashboard/grm/views.py:686
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:693
+#: dashboard/grm/views.py:689 issues/serializers.py:319
 msgid "Comment cannot be empty."
 msgstr ""
 
-#: dashboard/grm/views.py:738 dashboard/grm/views.py:772
-#: dashboard/grm/views.py:807
+#: dashboard/grm/views.py:734 dashboard/grm/views.py:768
+#: dashboard/grm/views.py:803
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:753
+#: dashboard/grm/views.py:749
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:770
+#: dashboard/grm/views.py:766
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:788
+#: dashboard/grm/views.py:784
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:805
+#: dashboard/grm/views.py:801
 msgid "The complaint has been rejected"
 msgstr ""
 
@@ -1244,30 +1244,46 @@ msgstr ""
 msgid "Citizens"
 msgstr ""
 
-#: issues/models.py:420
+#: issues/models.py:419
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:566
+#: issues/models.py:565
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:567
+#: issues/models.py:566
 msgid "Comments"
 msgstr ""
 
-#: issues/views.py:210
+#: issues/views.py:362
 msgid "Issue created successfully."
 msgstr ""
 
-#: issues/views.py:215 issues/views.py:221
+#: issues/views.py:367 issues/views.py:373 issues/views.py:1367
 msgid "Validation failed."
 msgstr ""
 
-#: issues/views.py:226
+#: issues/views.py:378
 msgid "An error occurred while creating the issue."
 msgstr ""
 
-#: issues/views.py:639
+#: issues/views.py:773
 msgid "An error occurred while retrieving the issue."
+msgstr ""
+
+#: issues/views.py:1226
+msgid "Comment added successfully."
+msgstr ""
+
+#: issues/views.py:1361
+msgid "Not found."
+msgstr ""
+
+#: issues/views.py:1374
+msgid "An error occurred while creating the comment."
+msgstr ""
+
+#: issues/views.py:1481
+msgid "An error occurred while retrieving issue comments."
 msgstr ""

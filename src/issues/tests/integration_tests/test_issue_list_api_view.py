@@ -1,5 +1,6 @@
 import pytest
 from django.test import override_settings
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -86,7 +87,7 @@ class IssueListAPIViewTest(APITestCase):
         """Test that authentication is required when no credentials provided."""
         response = self.client.get(self.url)
 
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "detail" in response.data
         assert self.error_messages["authentication"] in str(response.data["detail"])
 
@@ -95,7 +96,7 @@ class IssueListAPIViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token invalid_token_123')
         response = self.client.get(self.url)
 
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "detail" in response.data
         assert self.error_messages["invalid_token"] in str(response.data["detail"])
 
@@ -106,7 +107,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response_data, dict)
 
         # Check pagination structure
@@ -133,7 +134,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response_data, dict)
 
         # Check pagination structure
@@ -188,7 +189,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
         # Find a specific issue by id
         network_issue = next((issue for issue in response_data['results'] if issue['id'] == self.issue1.id), None)
@@ -237,7 +238,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response_data, dict)
         assert response_data['count'] == 0
         assert response_data['next'] is None
@@ -254,7 +255,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response_data, dict)
         assert response_data['count'] == 1
         assert response_data['next'] is None
@@ -316,8 +317,8 @@ class IssueListAPIViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token2.key}')
         response2 = self.client.get(self.url)
 
-        assert response1.status_code == 200
-        assert response2.status_code == 200
+        assert response1.status_code == status.HTTP_200_OK
+        assert response2.status_code == status.HTTP_200_OK
         assert response1.data['count'] == response2.data['count']
         assert len(response1.data['results']) == len(response2.data['results'])
 
@@ -342,7 +343,7 @@ class IssueListAPIViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {inactive_token.key}')
         response = self.client.get(self.url)
 
-        assert response.status_code == 401
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_large_dataset_performance(self):
         """Test paginated response with a larger dataset of issues."""
@@ -359,7 +360,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response_data['count'] == 52  # 2 original + 50 new
         assert len(response_data['results']) == 20  # Default page size
 
@@ -376,7 +377,7 @@ class IssueListAPIViewTest(APITestCase):
         self.authenticate_with_token()
         response = self.client.get(self.url)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert 'application/json' in response.get('Content-Type', '')
 
     def test_get_method_only_allowed(self):
@@ -385,23 +386,23 @@ class IssueListAPIViewTest(APITestCase):
 
         # POST should not be allowed
         response_post = self.client.post(self.url, {})
-        assert response_post.status_code == 405
+        assert response_post.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # PUT should not be allowed
         response_put = self.client.put(self.url, {})
-        assert response_put.status_code == 405
+        assert response_put.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # DELETE should not be allowed
         response_delete = self.client.delete(self.url)
-        assert response_delete.status_code == 405
+        assert response_delete.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # PATCH should not be allowed
         response_patch = self.client.patch(self.url, {})
-        assert response_patch.status_code == 405
+        assert response_patch.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # GET should work
         response_get = self.client.get(self.url)
-        assert response_get.status_code == 200
+        assert response_get.status_code == status.HTTP_200_OK
 
     def test_complete_issue_data_integrity(self):
         """Test that all issue data is correctly serialized and maintains integrity."""
@@ -410,7 +411,7 @@ class IssueListAPIViewTest(APITestCase):
         response = self.client.get(self.url)
         response_data = response.data
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
         # Test the first issue completely (issue1 from setUp)
         issue_result = next((i for i in response_data['results'] if i['id'] == self.issue1.id), None)

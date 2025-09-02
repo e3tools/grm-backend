@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:37+0000\n"
+"POT-Creation-Date: 2025-09-02 20:59+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: attachments/models.py:23 issues/models.py:419
+#: attachments/models.py:23 issues/models.py:418
 msgid "Issue"
 msgstr "Problème"
 
@@ -158,7 +158,7 @@ msgstr "Le compte a été désactivé avec succès."
 msgid "The account was activated successfully."
 msgstr "Le compte a été activé avec succès."
 
-#: dashboard/adls/views.py:105 dashboard/grm/views.py:867
+#: dashboard/adls/views.py:105 dashboard/grm/views.py:863
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
@@ -167,8 +167,8 @@ msgstr ""
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/adls/views.py:125 dashboard/grm/views.py:754
-#: dashboard/grm/views.py:789 dashboard/templates/grm/issue_detail.html:191
+#: dashboard/adls/views.py:125 dashboard/grm/views.py:750
+#: dashboard/grm/views.py:785 dashboard/templates/grm/issue_detail.html:191
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -287,15 +287,16 @@ msgstr ""
 "Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
 "indiquez un numéro de téléphone valide"
 
-#: dashboard/grm/constants.py:84
+#: dashboard/grm/constants.py:83
+#, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
 "in size."
 msgstr ""
-"Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La taille "
-"du fichier sélectionné est de %s."
+"Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
+"taille du fichier sélectionné est de %s."
 
-#: dashboard/grm/constants.py:86
+#: dashboard/grm/constants.py:87
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr "Taille de fichier autorisée inférieure ou égale à %s"
@@ -418,7 +419,7 @@ msgstr "Ajouter un commentaire"
 #: dashboard/grm/views.py:338 dashboard/grm/views.py:357
 #: dashboard/grm/views.py:376 dashboard/grm/views.py:407
 #: dashboard/grm/views.py:451 dashboard/grm/views.py:487
-#: dashboard/grm/views.py:637 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:633 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr "MGP"
@@ -474,44 +475,44 @@ msgstr ""
 "Il n'y a aucun membre du personnel à qui attribuer le problème. Veuillez le "
 "signaler au personnel informatique."
 
-#: dashboard/grm/views.py:484 dashboard/grm/views.py:640
+#: dashboard/grm/views.py:484 dashboard/grm/views.py:636
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:634
+#: dashboard/grm/views.py:630
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:675
+#: dashboard/grm/views.py:671
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:690
+#: dashboard/grm/views.py:686
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:693
+#: dashboard/grm/views.py:689 issues/serializers.py:319
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: dashboard/grm/views.py:738 dashboard/grm/views.py:772
-#: dashboard/grm/views.py:807
+#: dashboard/grm/views.py:734 dashboard/grm/views.py:768
+#: dashboard/grm/views.py:803
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
-#: dashboard/grm/views.py:753
+#: dashboard/grm/views.py:749
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:770
+#: dashboard/grm/views.py:766
 msgid "The complaint has been resolved"
 msgstr "La réclamation a été résolue"
 
-#: dashboard/grm/views.py:788
+#: dashboard/grm/views.py:784
 msgid "Enter the reason for rejecting this issue"
 msgstr "Entrez la raison du rejet de ce problème"
 
-#: dashboard/grm/views.py:805
+#: dashboard/grm/views.py:801
 msgid "The complaint has been rejected"
 msgstr "La réclamation a été réjetée"
 
@@ -1291,33 +1292,51 @@ msgstr "Citoyen"
 msgid "Citizens"
 msgstr "Citoyens"
 
-#: issues/models.py:420
+#: issues/models.py:419
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:566
+#: issues/models.py:565
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:567
+#: issues/models.py:566
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/views.py:210
+#: issues/views.py:362
 msgid "Issue created successfully."
 msgstr "Problème créé avec succès."
 
-#: issues/views.py:215 issues/views.py:221
+#: issues/views.py:367 issues/views.py:373 issues/views.py:1367
 msgid "Validation failed."
 msgstr "La validation a échoué."
 
-#: issues/views.py:226
+#: issues/views.py:378
 msgid "An error occurred while creating the issue."
 msgstr "Une erreur s'est produite lors de la création du problème."
 
-#: issues/views.py:639
+#: issues/views.py:773
 msgid "An error occurred while retrieving the issue."
 msgstr "Une erreur s'est produite lors de la récupération du problème."
+
+#: issues/views.py:1226
+msgid "Comment added successfully."
+msgstr "Commentaire ajouté avec succès."
+
+#: issues/views.py:1361
+msgid "Not found."
+msgstr "Non trouvé"
+
+#: issues/views.py:1374
+msgid "An error occurred while creating the comment."
+msgstr "Une erreur s'est produite lors de la création du commentaire."
+
+#: issues/views.py:1481
+msgid "An error occurred while retrieving issue comments."
+msgstr ""
+"Une erreur s'est produite lors de la récupération des commentaires sur "
+"le problème."
 
 #~ msgid "Synchronized"
 #~ msgstr "Synchronisée"
