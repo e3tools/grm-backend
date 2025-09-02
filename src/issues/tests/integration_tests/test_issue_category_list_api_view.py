@@ -18,7 +18,7 @@ from issues.models import IssueCategory
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class IssueCategoryListViewTest(APITestCase):
+class IssueCategoryListAPIViewTest(APITestCase):
     """
     Test cases for the IssueCategory list API endpoint using Token Authentication.
 

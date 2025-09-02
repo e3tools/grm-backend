@@ -195,13 +195,13 @@ class IssueListAPIViewTest(APITestCase):
         assert network_issue is not None
 
         # Test status structure
-        status = network_issue['status']
-        assert status['id'] == self.status_open.id
-        assert status['name'] == self.status_open.name
-        assert status['final_status'] == self.status_open.final_status
-        assert status['initial_status'] == self.status_open.initial_status
-        assert status['rejected_status'] == self.status_open.rejected_status
-        assert status['open_status'] == self.status_open.open_status
+        issue_status = network_issue['status']
+        assert issue_status['id'] == self.status_open.id
+        assert issue_status['name'] == self.status_open.name
+        assert issue_status['final_status'] == self.status_open.final_status
+        assert issue_status['initial_status'] == self.status_open.initial_status
+        assert issue_status['rejected_status'] == self.status_open.rejected_status
+        assert issue_status['open_status'] == self.status_open.open_status
 
         # Test category structure
         category = network_issue['category']
@@ -271,13 +271,13 @@ class IssueListAPIViewTest(APITestCase):
 
         # Foreign key fields
         # Status
-        status = issue_data['status']
-        assert status['id'] == self.status_open.id
-        assert status['name'] == self.status_open.name
-        assert status['final_status'] == self.status_open.final_status
-        assert status['initial_status'] == self.status_open.initial_status
-        assert status['rejected_status'] == self.status_open.rejected_status
-        assert status['open_status'] == self.status_open.open_status
+        issue_status = issue_data['status']
+        assert issue_status['id'] == self.status_open.id
+        assert issue_status['name'] == self.status_open.name
+        assert issue_status['final_status'] == self.status_open.final_status
+        assert issue_status['initial_status'] == self.status_open.initial_status
+        assert issue_status['rejected_status'] == self.status_open.rejected_status
+        assert issue_status['open_status'] == self.status_open.open_status
 
         # Category
         category = issue_data['category']

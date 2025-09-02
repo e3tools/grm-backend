@@ -7,15 +7,17 @@ from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import APIException
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from dashboard.grm.constants import (
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
 )
-from issues.models import Issue, IssueCategory, IssueStatus, IssueType
+from issues.models import Comment, Issue, IssueCategory, IssueStatus, IssueType
+from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
+    CommentSerializer,
     IssueCategorySerializer,
     IssueCreateSerializer,
     IssueDetailSerializer,
@@ -394,7 +396,7 @@ class IssueListAPIView(ListAPIView):
         Retrieve paginated list of Issue objects.
 
         Returns a paginated list of all issues available in the system.
-        The list is ordered by intake date.
+        The list is ordered by intake date in descending order (most recent first).
 
         Args:
             request: HTTP request object
@@ -403,31 +405,6 @@ class IssueListAPIView(ListAPIView):
             Response: JSON response with paginated list of issues
         """
         return super().get(request, *args, **kwargs)
-
-
-class IsReporterOrAssigneePermission(BasePermission):
-    """
-    Custom permission to only allow reporters or assignees to view an issue.
-
-    This permission checks if the requesting user is either:
-    - The reporter of the issue
-    - The assignee of the issue
-    """
-
-    def has_object_permission(self, request, view, obj):
-        """
-        Check if the user has permission to access this specific issue.
-
-        Args:
-            request: HTTP request object
-            view: The view being accessed
-            obj: The Issue object being accessed
-
-        Returns:
-            bool: True if user is reporter or assignee, False otherwise
-        """
-        # Allow access if user is the reporter or assignee
-        return request.user == obj.reporter or request.user == obj.assignee
 
 
 class IssueRetrieveAPIView(RetrieveAPIView):
@@ -770,7 +747,7 @@ class IssueStatusListAPIView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class IssueTypeListView(ListAPIView):
+class IssueTypeListAPIView(ListAPIView):
     """
     API View for listing IssueType objects with pagination.
 
@@ -861,7 +838,7 @@ class IssueTypeListView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class IssueCategoryListView(ListAPIView):
+class IssueCategoryListAPIView(ListAPIView):
     """
     API View for listing IssueCategory objects with pagination.
 
@@ -1027,3 +1004,110 @@ class IssueCategoryListView(ListAPIView):
                      detailed department information and convenience fields
         """
         return super().get(request, *args, **kwargs)
+
+
+class IssueCommentsListAPIView(ListAPIView):
+    """
+    API View for retrieving paginated comments related to a specific Issue.
+
+    Permissions:
+        - Must be authenticated
+        - Must be the reporter or assignee of the issue
+    """
+
+    serializer_class = CommentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+
+    def get_queryset(self):
+        """
+        Retrieve the queryset of comments for the specified Issue.
+
+        Returns:
+            QuerySet: All comments associated with the given Issue,
+            ordered by due_date descending (as defined in Comment.Meta).
+        """
+        issue_id = self.kwargs.get("id")
+        return Comment.objects.filter(issue_id=issue_id).select_related("user", "issue")
+
+    @swagger_auto_schema(
+        operation_summary="List comments of a specific issue",
+        operation_description="""
+        Retrieve a paginated list of comments associated with a specific issue.
+
+        **Access Control:**
+        Only users who are either the reporter or assignee of the issue can access this endpoint.
+        """,
+        tags=['Issues', 'Comments'],
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="Unique identifier of the issue whose comments you want to retrieve",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                example=123,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="List of comments",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, example=25),
+                        'next': openapi.Schema(type=openapi.TYPE_STRING, example=None),
+                        'previous': openapi.Schema(type=openapi.TYPE_STRING, example=None),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "id": openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
+                                    "comment": openapi.Schema(type=openapi.TYPE_STRING, example="This is a comment"),
+                                    "user": openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        properties={
+                                            "id": openapi.Schema(type=openapi.TYPE_INTEGER, example=42),
+                                            "name": openapi.Schema(type=openapi.TYPE_STRING, example="John Doe"),
+                                        },
+                                    ),
+                                    "due_date": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example="2025-09-01T10:30:45.123Z",
+                                    ),
+                                },
+                            ),
+                            description="List of comment objects",
+                        ),
+                    },
+                ),
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of Comment objects for a specific Issue.
+
+        Returns a paginated list of comments associated with the given Issue.
+        The list is ordered by due date in descending order (most recent first).
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with a paginated list of comments
+                      related to the specified issue.
+        """
+        try:
+            return super().get(request, *args, **kwargs)
+        except (Http404, APIException):
+            raise
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred while retrieving issue comments.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

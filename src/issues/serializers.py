@@ -12,6 +12,7 @@ from grm.utils import email_is_valid
 from issues.models import (
     AdministrativeRegion,
     Citizen,
+    Comment,
     Issue,
     IssueCategory,
     IssueDepartmentAdministrativeLevel,
@@ -23,6 +24,7 @@ from issues.models import (
 class AdministrativeRegionBasicSerializer(serializers.ModelSerializer):
     """
     Basic serializer for AdministrativeRegion objects.
+    Provides read-only representation of administrative region information.
 
     Displays the administrative region with custom field names as required.
     """
@@ -39,7 +41,6 @@ class AdministrativeRegionBasicSerializer(serializers.ModelSerializer):
 class IssueCategoryBasicSerializer(serializers.ModelSerializer):
     """
     Basic serializer for IssueCategory objects.
-    Provides read-only representation of issue category information.
     """
 
     class Meta:
@@ -48,10 +49,6 @@ class IssueCategoryBasicSerializer(serializers.ModelSerializer):
 
 
 class IssueTypeSerializer(serializers.ModelSerializer):
-    """
-    Serializer for IssueType model.
-    Provides read-only representation of issue type information.
-    """
 
     class Meta:
         model = IssueType
@@ -59,10 +56,6 @@ class IssueTypeSerializer(serializers.ModelSerializer):
 
 
 class IssueStatusSerializer(serializers.ModelSerializer):
-    """
-    Serializer for IssueStatus model.
-    Provides read-only representation of issue status information.
-    """
 
     class Meta:
         model = IssueStatus
@@ -168,7 +161,6 @@ class IssueCategorySerializer(serializers.ModelSerializer):
 class AdministrativeRegionSerializer(serializers.ModelSerializer):
     """
     Serializer for AdministrativeRegion model.
-    Provides read-only representation of administrative region information.
     """
 
     class Meta:
@@ -277,3 +269,16 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         elif contact_method != CHOICE_EMAIL and email_is_valid(contact_information):
             raise serializers.ValidationError({"contact_information": CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE})
         return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Comment objects.
+    Provides read-only representation of user information.
+    """
+
+    user = UserBasicSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'comment', 'user', 'issue', 'due_date']

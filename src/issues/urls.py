@@ -1,12 +1,13 @@
 from django.urls import path
 
 from issues.views import (
-    IssueCategoryListView,
+    IssueCategoryListAPIView,
+    IssueCommentsListAPIView,
     IssueCreateAPIView,
     IssueListAPIView,
     IssueRetrieveAPIView,
     IssueStatusListAPIView,
-    IssueTypeListView,
+    IssueTypeListAPIView,
 )
 
 app_name = "issues"
@@ -15,6 +16,7 @@ urlpatterns = [
     path('list/', IssueListAPIView.as_view(), name='list-issues'),
     path('<int:id>/', IssueRetrieveAPIView.as_view(), name='issue-detail'),
     path('issue-statuses/', IssueStatusListAPIView.as_view(), name='list-issue-statuses'),
-    path('issue-types/', IssueTypeListView.as_view(), name='list-issue-types'),
-    path('issue-categories/', IssueCategoryListView.as_view(), name='list-issue-categories'),
+    path('issue-types/', IssueTypeListAPIView.as_view(), name='list-issue-types'),
+    path('issue-categories/', IssueCategoryListAPIView.as_view(), name='list-issue-categories'),
+    path('issue-comments/<int:id>/', IssueCommentsListAPIView.as_view(), name='list-issue-comments'),
 ]
