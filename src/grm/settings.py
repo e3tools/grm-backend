@@ -285,3 +285,56 @@ REST_FRAMEWORK = {
 
 # drf-yasg
 SWAGGER_SETTINGS = {'SECURITY_DEFINITIONS': {'Token': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}}}
+
+# HUGGING FACE API CONFIGURATION
+
+# Hugging Face API Key - Get this from https://huggingface.co/settings/tokens
+HUGGINGFACE_API_KEY = env('HUGGINGFACE_API_KEY', default='')
+
+# Base URL for Hugging Face Inference API
+HUGGINGFACE_API_BASE_URL = env(
+    'HUGGINGFACE_API_BASE_URL', default='https://api-inference.huggingface.co/pipeline/feature-extraction'
+)
+
+# Default embedding model to use
+HUGGINGFACE_EMBEDDING_MODEL = env('HUGGINGFACE_EMBEDDING_MODEL', default='sentence-transformers/all-MiniLM-L6-v2')
+
+# Optional: Additional Hugging Face settings
+HUGGINGFACE_API_TIMEOUT = env('HUGGINGFACE_API_TIMEOUT', default=30)
+HUGGINGFACE_MAX_RETRIES = env('HUGGINGFACE_MAX_RETRIES', default=3)
+
+# Logging configuration for Hugging Face connector
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'huggingface.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'common.utils.huggingface_connector': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

@@ -30,3 +30,22 @@ logging.disable(logging.CRITICAL)
 COUCHDB_DATABASE = COUCHDB_GRM_DATABASE = COUCHDB_ATTACHMENT_DATABASE = COUCHDB_GRM_ATTACHMENT_DATABASE = "test"
 
 LANGUAGE_CODE = "en-us"
+
+# Prevents the creation of huggingface.log during testing
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'common.utils.huggingface_connector': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
