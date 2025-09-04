@@ -22,6 +22,8 @@ from grm.utils import get_choices
 
 class AdministrativeLevel(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Administrative Level")
@@ -42,6 +44,8 @@ class AdministrativeRegion(models.Model):
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
     )
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Administrative Region")
@@ -150,6 +154,8 @@ class AdministrativeRegion(models.Model):
 class Component(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=False, blank=False)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Component")
@@ -167,6 +173,8 @@ class SubComponent(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(null=False, blank=False)
     parent = models.ForeignKey(Component, on_delete=models.CASCADE)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Subcomponent")
@@ -182,6 +190,8 @@ class SubComponent(models.Model):
 
 class SubProjectGroup(models.Model):
     name = models.CharField(max_length=100)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Subproject Group")
@@ -201,6 +211,8 @@ class IssueStatus(models.Model):
     initial_status = models.BooleanField(default=False)
     rejected_status = models.BooleanField(default=False)
     open_status = models.BooleanField(default=True)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Status")
@@ -218,6 +230,8 @@ class IssueStatus(models.Model):
 class IssueDepartment(models.Model):
     name = models.CharField(max_length=255, unique=True)
     head = models.ForeignKey('authentication.User', null=True, blank=True, on_delete=models.SET_NULL)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Department")
@@ -231,6 +245,8 @@ class IssueDepartment(models.Model):
 class IssueDepartmentAdministrativeLevel(models.Model):
     department = models.ForeignKey(IssueDepartment, on_delete=models.CASCADE)
     administrative_level = models.ForeignKey(AdministrativeLevel, on_delete=models.CASCADE)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         unique_together = ['department', 'administrative_level']
@@ -244,6 +260,8 @@ class IssueSubType(models.Model):
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
     )
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Subtype")
@@ -273,6 +291,8 @@ class IssueCategory(models.Model):
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
     confidentiality_level = models.CharField(max_length=255, null=True, blank=True)
     redirection_protocol = models.IntegerField(default=0)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Category")
@@ -289,6 +309,8 @@ class IssueCategory(models.Model):
 
 class IssueType(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Type")
@@ -305,6 +327,8 @@ class IssueType(models.Model):
 
 class CitizenAgeGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Citizen Age Group")
@@ -321,6 +345,8 @@ class CitizenAgeGroup(models.Model):
 class CitizenGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Citizen Group")
@@ -347,6 +373,8 @@ class Citizen(models.Model):
     group_2 = models.ForeignKey(
         CitizenGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="group2_citizen"
     )
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Citizen")
@@ -408,7 +436,9 @@ class Issue(models.Model):
     )
     tracking_code = models.CharField(max_length=255)
     internal_code = models.CharField(max_length=255, null=True, blank=True)
-    updated_date = models.DateTimeField(blank=True, editable=False, null=True, auto_now=now())
+    updated_date = models.DateTimeField(
+        blank=True, editable=False, null=True, auto_now=now(), verbose_name=_('Updated at')
+    )
     confirmed = models.BooleanField(default=False)
     escalated_date = models.DateTimeField(blank=True, editable=False, null=True)
     escalate_flag = models.BooleanField(default=False)
@@ -560,6 +590,8 @@ class Comment(models.Model):
     )
     issue = models.ForeignKey(Issue, on_delete=models.CASCADE, related_name='comments')
     due_date = models.DateTimeField(default=now)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Comment")
