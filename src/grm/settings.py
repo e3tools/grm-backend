@@ -62,6 +62,7 @@ CREATED_APPS = [
     "dashboard",
     "etl",
     "issues",
+    "wizard",
 ]
 
 THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", 'rest_framework.authtoken', "django_celery_results"]
@@ -73,6 +74,7 @@ MIDDLEWARE = LOCAL_MIDDLEWARE + [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "grm.middleware.locale.CustomLocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "wizard.middleware.WizardRedirectMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

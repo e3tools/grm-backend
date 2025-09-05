@@ -6,8 +6,10 @@ from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
 from client import bulk_delete, get_db
+from dashboard.grm.constants import COMPLETE_CHOICE
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
+from wizard.models import WizardSession
 
 JSON_TYPE = "application/json"
 URLENCODED_TYPE = "application/x-www-form-urlencoded"
@@ -102,7 +104,7 @@ class DashboardTestCase(BaseTestCase):
 
     def setUp(self):
         reset_sequences()
-
+        WizardSession.update_state(COMPLETE_CHOICE)
         root_region = AdministrativeRegionFactory()
         AdministrativeRegionFactory(parent=root_region)
         super().setUp()

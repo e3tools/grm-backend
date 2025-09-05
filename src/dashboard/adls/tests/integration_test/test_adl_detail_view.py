@@ -20,7 +20,7 @@ class AdlDetailViewTest(DashboardTestCase):
         assert response.status_code == 302
 
     def test_context_data(self):
-        with self.assertNumQueries(18):
+        with self.assertNumQueries(19):
             response = self.get(self.url)
         context_data = response.context_data
 

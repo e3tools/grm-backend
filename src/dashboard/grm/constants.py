@@ -2,74 +2,74 @@ from django.utils.translation import gettext_lazy as _
 
 from grm.utils import filesizeformat_en
 
-CHOICE_ANONYMOUS = "anonymous"
-CHOICE_FACILITATOR = "facilitator"
-CHOICE_ALERT = "channel-alert"
+ANONYMOUS_CHOICE = "anonymous"
+FACILITATOR_CHOICE = "facilitator"
+ALERT_CHOICE = "channel-alert"
 MEDIUM_CHOICES = [
-    (CHOICE_ANONYMOUS, _("Remain anonymous")),
-    (CHOICE_FACILITATOR, _("Receive updates from facilitator")),
-    (CHOICE_ALERT, _("Receive updates directly")),
+    (ANONYMOUS_CHOICE, _("Remain anonymous")),
+    (FACILITATOR_CHOICE, _("Receive updates from facilitator")),
+    (ALERT_CHOICE, _("Receive updates directly")),
 ]
 
-CHOICE_EMAIL = "email"
-CHOICE_PHONE = "phone_number"
-CHOICE_WHATSAPP = "whatsapp"
+EMAIL_CHOICE = "email"
+PHONE_CHOICE = "phone_number"
+WHATSAPP_CHOICE = "whatsapp"
 CONTACT_CHOICES = [
     ("", ""),
-    (CHOICE_EMAIL, _("email")),
-    (CHOICE_PHONE, _("phone number")),
-    (CHOICE_WHATSAPP, _("whatsapp")),
+    (EMAIL_CHOICE, _("email")),
+    (PHONE_CHOICE, _("phone number")),
+    (WHATSAPP_CHOICE, _("whatsapp")),
 ]
-CHOICE_CONFIDENTIAL = 'keep_name_confidential'
-CHOICE_INDIVIDUAL = 'on_behalf_of_someone'
-CHOICE_ORGANIZATION = 'organization_behalf_someone'
+CONFIDENTIAL_CHOICE = 'keep_name_confidential'
+INDIVIDUAL_CHOICE = 'on_behalf_of_someone'
+ORGANIZATION_CHOICE = 'organization_behalf_someone'
 
 CITIZEN_TYPE_CHOICES = [
     (
-        CHOICE_CONFIDENTIAL,
+        CONFIDENTIAL_CHOICE,
         _("Keep name confidential. Only the person resolving the issue will see the name."),
     ),
-    (CHOICE_INDIVIDUAL, _("This is an individual filing on behalf of someone else.")),
-    (CHOICE_ORGANIZATION, _("This is an organization filing on behalf of someone else.")),
+    (INDIVIDUAL_CHOICE, _("This is an individual filing on behalf of someone else.")),
+    (ORGANIZATION_CHOICE, _("This is an organization filing on behalf of someone else.")),
 ]
 
-CHOICE_0_OR_1_LABEL = _("Complainant")
+CONFIDENTIAL_LABEL_CHOICE = _("Complainant")
 CITIZEN_TYPE_CHOICES_ALT = [
-    (None, CHOICE_0_OR_1_LABEL),
-    (CHOICE_CONFIDENTIAL, CHOICE_0_OR_1_LABEL),
-    (CHOICE_INDIVIDUAL, _("Citizen on behalf of others")),
-    (CHOICE_ORGANIZATION, _("Organization on behalf of others")),
+    (None, CONFIDENTIAL_LABEL_CHOICE),
+    (CONFIDENTIAL_CHOICE, CONFIDENTIAL_LABEL_CHOICE),
+    (INDIVIDUAL_CHOICE, _("Citizen on behalf of others")),
+    (ORGANIZATION_CHOICE, _("Organization on behalf of others")),
 ]
 
-CHOICE_MALE = "male"
-CHOICE_FEMALE = "female"
-CHOICE_OTHER = "other"
-CHOICE_RNS = "rather_not_say"
+MALE_CHOICE = "male"
+FEMALE_CHOICE = "female"
+OTHER_CHOICE = "other"
+RNS_CHOICE = "rather_not_say"
 GENDER_CHOICES = [
     ("", ""),
-    (CHOICE_MALE, _("Male")),
-    (CHOICE_FEMALE, _("Female")),
+    (MALE_CHOICE, _("Male")),
+    (FEMALE_CHOICE, _("Female")),
     #    (CHOICE_OTHER, _("Other")),
     #    (CHOICE_RNS, _("Rather not say")),
 ]
 
-CHOICE_ACCEPTED = "accepted"
-CHOICE_REJECTED = "rejected"
-CHOICE_CLOSED = "closed"
+ACCEPTED_CHOICE = "accepted"
+REJECTED_CHOICE = "rejected"
+CLOSED_CHOICE = "closed"
 
 ALERT_CHOICES = [
     ("", ""),
-    (CHOICE_ACCEPTED, CHOICE_ACCEPTED),
-    (CHOICE_REJECTED, CHOICE_REJECTED),
-    (CHOICE_CLOSED, CHOICE_CLOSED),
+    (ACCEPTED_CHOICE, ACCEPTED_CHOICE),
+    (REJECTED_CHOICE, REJECTED_CHOICE),
+    (CLOSED_CHOICE, CLOSED_CHOICE),
 ]
 
-CHOICE_CITIZEN_GROUP = "citizen_group"
-CHOICE_CITIZEN_GROUP2 = "citizen_group_2"
+CITIZEN_GROUP_CHOICE = "citizen_group"
+CITIZEN_GROUP2_CHOICE = "citizen_group_2"
 
 CITIZEN_GROUP_CHOICES = (
-    (CHOICE_CITIZEN_GROUP, _('Citizen group')),
-    (CHOICE_CITIZEN_GROUP2, _('Citizen group 2')),
+    (CITIZEN_GROUP_CHOICE, _('Citizen group')),
+    (CITIZEN_GROUP2_CHOICE, _('Citizen group 2')),
 )
 
 TEXTAREA_MAX_LENGTH = 65000
@@ -85,3 +85,20 @@ FILE_SIZE_ERROR_MESSAGE = _("Select a file with a size less than or equal to %s.
     "%s",
 )
 FILE_HELP_TEXT = _("Allowed file size less than or equal to %s") % MAX_UPLOAD_SIZE_FILE_FORMAT
+
+WELCOME_CHOICE = "welcome"
+ADMIN_LEVELS_CHOICE = "admin_levels"
+ROLES_CHOICE = "roles"
+ENTRY_TYPES_CHOICE = "entry_types"
+CATEGORIES_CHOICE = "categories"
+FEEDBACK_CHOICE = "feedback"
+COMPLETE_CHOICE = "complete"
+STATE_CHOICES = [
+    (WELCOME_CHOICE, _("Welcome")),
+    (ADMIN_LEVELS_CHOICE, _("Admin Levels")),
+    (ROLES_CHOICE, _("Roles")),
+    (ENTRY_TYPES_CHOICE, _("Entry Types")),
+    (CATEGORIES_CHOICE, _("Categories")),
+    (FEEDBACK_CHOICE, _("Feedback")),
+    (COMPLETE_CHOICE, _("Complete")),
+]

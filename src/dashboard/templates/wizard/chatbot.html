@@ -14,10 +14,11 @@
 	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
 	<link rel="mask-icon" href="{% static 'images/safari-pinned-tab.svg' %}" color="#5bbad5">
 	<meta name="msapplication-TileColor" content="#da532c">
-	<title>{% translate 'Log in' %}</title>
+	<title>{% translate 'Chat-Driven GRM Setup Wizard' %}</title>
 
-	<!-- Font Awesome -->
+	<!-- Font Awesome Free 5.13.0 -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/all.min.css' %}"/>
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/v4-shims.min.css' %}"/>
 	<!-- icheck bootstrap -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}"/>
 	<!-- Theme style -->
@@ -25,47 +26,26 @@
 	<link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 </head>
 
-<body class="hold-transition login-page">
-{% if OTHER_LANGUAGES %}
-	<nav class="main-header navbar navbar-expand" style="border-bottom: none">
-		<ul class="navbar-nav ml-auto">
-			{% include 'layouts/language_dropdown.html' %}
-		</ul>
-	</nav>
-{% endif %}
-<div class="login-box">
-	<div class="login-logo">
-		<img src="{% static 'images/cosologo.png' %}" width="80" alt="COSO">
-	</div>
-	<!-- /.login-logo -->
-	<div class="card">
-		<div class="card-body login-card-body">
-			<p class="login-box-msg">
-				{% translate "Log in to start your session" %}
-			</p>
+<body class="hold-transition layout-fixed">
+<div class="wrapper">
+    {% include 'wizard/navbar.html' %}
 
-			<form method="post">
-				{% csrf_token %} {% bootstrap_form form %}
-				<div class="row">
-					<!-- /.col -->
-					<div class="col-12">
-						<button type="submit" class="btn btn-primary btn-block">
-							{% translate "Log in" %}
-						</button>
+	<!-- Content Header (Page header) -->
+	<div class="content-header">
+		<div class="container-fluid">
+			<div class="row mb-2">
+				<div class="col-12">
+					<div class="card">
+						<div class="card-body">
+							{% translate "Chat-Driven GRM Setup Wizard" %}
+						</div>
 					</div>
-					<!-- /.col -->
 				</div>
-			</form>
-			{% comment %}
-				<p class="mb-1">
-					<a href="forgot-password.html">I forgot my password</a>
-				</p>
-			{% endcomment %}
+			</div>
 		</div>
-		<!-- /.login-card-body -->
 	</div>
 </div>
-<!-- /.login-box -->
+<!-- ./wrapper -->
 
 <!-- jQuery -->
 <script src="{% static 'AdminLTE/plugins/jquery/jquery.min.js' %}"></script>
@@ -77,3 +57,4 @@
 <script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
 </body>
 </html>
+

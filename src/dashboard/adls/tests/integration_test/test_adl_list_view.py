@@ -24,7 +24,7 @@ class AdlListViewTest(DashboardTestCase):
             doc = adl.doc
             docs |= {doc["_id"]}
 
-        with self.assertNumQueries(18):
+        with self.assertNumQueries(19):
             response = self.get(self.url)
         context_data = response.context_data
 
@@ -57,7 +57,7 @@ class AdlListViewTest(DashboardTestCase):
             docs |= {doc["_id"]}
         CouchdbUserFactory.create_batch(2, doc_type=MAJOR)
 
-        with self.assertNumQueries(18):
+        with self.assertNumQueries(19):
             response = self.get(self.url)
         context_data = response.context_data
 

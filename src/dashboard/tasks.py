@@ -9,12 +9,12 @@ from twilio.base.exceptions import TwilioRestException
 
 from authentication.models import Cdata
 from dashboard.grm.constants import (
-    CHOICE_ACCEPTED,
-    CHOICE_ALERT,
-    CHOICE_CLOSED,
-    CHOICE_EMAIL,
-    CHOICE_PHONE,
-    CHOICE_REJECTED,
+    ACCEPTED_CHOICE,
+    ALERT_CHOICE,
+    CLOSED_CHOICE,
+    EMAIL_CHOICE,
+    PHONE_CHOICE,
+    REJECTED_CHOICE,
 )
 from grm.celery_app import app
 from grm.utils import normalize_phone_number
@@ -189,8 +189,8 @@ def send_sms_message():
     issues = Issue.objects.filter(
         confirmed=True,
         assigned__isnull=False,
-        contact_medium=CHOICE_ALERT,
-        contact_method=CHOICE_PHONE,
+        contact_medium=ALERT_CHOICE,
+        contact_method=PHONE_CHOICE,
         alert_message_status="",
     ).exclude(Q(contact_information="") | Q(tracking_code=""))
 
@@ -207,33 +207,33 @@ def send_sms_message():
                 phone = cryptocode.decrypt(contact.data, issue.id) if contact else None
 
             phone = normalize_phone_number(phone)
-            no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_ACCEPTED
+            no_alert = not issue.alert_message_status or issue.alert_message_status != ACCEPTED_CHOICE
             if no_alert and status.open_status:
                 msg = messages["accepted_alert_message"] % tracking_code
                 try:
                     send_sms(to=phone, body=msg)
                     notified_issues = True
-                    issue.alert_message_status = CHOICE_ACCEPTED
+                    issue.alert_message_status = ACCEPTED_CHOICE
                 except TwilioRestException as e:
                     result["errors"].append(e.msg)
 
-            no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_REJECTED
+            no_alert = not issue.alert_message_status or issue.alert_message_status != REJECTED_CHOICE
             if no_alert and status.rejected_status:
                 msg = messages["rejected_alert_message"] % (tracking_code, issue.reject_reason)
                 try:
                     send_sms(to=phone, body=msg)
                     notified_issues = True
-                    issue.alert_message_status = CHOICE_REJECTED
+                    issue.alert_message_status = REJECTED_CHOICE
                 except TwilioRestException as e:
                     result["errors"].append(e.msg)
 
-            no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_CLOSED
+            no_alert = not issue.alert_message_status or issue.alert_message_status != CLOSED_CHOICE
             if no_alert and status.final_status:
                 msg = messages["closed_alert_message"] % (tracking_code, issue.research_result)
                 try:
                     send_sms(to=phone, body=msg)
                     notified_issues = True
-                    issue.alert_message_status = CHOICE_CLOSED
+                    issue.alert_message_status = CLOSED_CHOICE
                 except TwilioRestException as e:
                     result["errors"].append(e.msg)
 
@@ -255,8 +255,8 @@ def send_mail_message():
     issues = Issue.objects.filter(
         confirmed=True,
         assigned__isnull=False,
-        contact_medium=CHOICE_ALERT,
-        contact_method=CHOICE_EMAIL,
+        contact_medium=ALERT_CHOICE,
+        contact_method=EMAIL_CHOICE,
         alert_message_status="",
     ).exclude(Q(contact_information="") | Q(tracking_code=""))
 
@@ -272,36 +272,36 @@ def send_mail_message():
             contact = Cdata.objects.get(key=issue.id) if Cdata.objects.filter(key=issue.id).exists() else None
             recipient = cryptocode.decrypt(contact.data, issue.id) if contact else None
 
-        no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_ACCEPTED
+        no_alert = not issue.alert_message_status or issue.alert_message_status != ACCEPTED_CHOICE
         if no_alert and status.open_status:
             msg = messages["accepted_alert_message"] % tracking_code
             try:
                 subject = "open_status"
                 send_mail_notification(subject, msg, recipient)
                 notified_issues = True
-                issue.alert_message_status = CHOICE_ACCEPTED
+                issue.alert_message_status = ACCEPTED_CHOICE
             except Exception as e:
                 result["errors"].append(str(e))
 
-        no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_REJECTED
+        no_alert = not issue.alert_message_status or issue.alert_message_status != REJECTED_CHOICE
         if no_alert and status.rejected_status:
             msg = messages["rejected_alert_message"] % (tracking_code, issue.reject_reason)
             try:
                 subject = "rejected_status"
                 send_mail_notification(subject, msg, recipient)
                 notified_issues = True
-                issue.alert_message_status = CHOICE_REJECTED
+                issue.alert_message_status = REJECTED_CHOICE
             except Exception as e:
                 result["errors"].append(str(e))
 
-        no_alert = not issue.alert_message_status or issue.alert_message_status != CHOICE_CLOSED
+        no_alert = not issue.alert_message_status or issue.alert_message_status != CLOSED_CHOICE
         if no_alert and status.final_status:
             msg = messages["closed_alert_message"] % (tracking_code, issue.research_result)
             try:
                 subject = "final_status"
                 send_mail_notification(subject, msg, recipient)
                 notified_issues = True
-                issue.alert_message_status = CHOICE_CLOSED
+                issue.alert_message_status = CLOSED_CHOICE
             except Exception as e:
                 result["errors"].append(str(e))
 

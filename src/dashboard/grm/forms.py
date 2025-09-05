@@ -4,13 +4,13 @@ from django.utils.translation import gettext_lazy as _
 from authentication.models import GovernmentWorker
 from dashboard.forms.widgets import RadioSelect
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_EMAIL,
+    ALERT_CHOICE,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    EMAIL_CHOICE,
     GENDER_CHOICES,
     MEDIUM_CHOICES,
     TEXTAREA_MAX_LENGTH,
@@ -47,7 +47,7 @@ class NewIssueContactForm(forms.Form):
 
             if obj.contact_medium:
                 self.fields["contact_medium"].initial = obj.contact_medium
-                if obj.contact_medium == CHOICE_ALERT:
+                if obj.contact_medium == ALERT_CHOICE:
                     if obj.contact_method:
                         self.fields["contact_type"].initial = obj.contact_method
                     if obj.contact_information:
@@ -61,13 +61,13 @@ class NewIssueContactForm(forms.Form):
         contact_type = cleaned_data.get("contact_type")
         contact = cleaned_data.get("contact")
 
-        if contact_medium == CHOICE_ALERT and not contact_type:
+        if contact_medium == ALERT_CHOICE and not contact_type:
             self.add_error("contact_type", CONTACT_MEDIUM_ERROR_MESSAGE)
 
-        elif contact_type == CHOICE_EMAIL and not email_is_valid(contact):
+        elif contact_type == EMAIL_CHOICE and not email_is_valid(contact):
             self.add_error("contact", CONTACT_INFO_EMAIL_ERROR_MESSAGE)
 
-        elif contact_type != CHOICE_EMAIL and email_is_valid(contact):
+        elif contact_type != EMAIL_CHOICE and email_is_valid(contact):
             self.add_error("contact", CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE)
 
         return cleaned_data
