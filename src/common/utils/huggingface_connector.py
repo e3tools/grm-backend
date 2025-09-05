@@ -124,10 +124,10 @@ class HuggingFaceConnector:
         except requests.exceptions.ConnectionError as e:
             raise HuggingFaceConnectionError(f"Connection error: {str(e)}")
         except requests.exceptions.HTTPError as e:
-            resp = e.response
-            status_code = resp.status_code if resp else "unknown"
+            resp = getattr(e, "response", None)
+            status_code = getattr(resp, "status_code", "unknown")
             error_msg = f"HTTP error {status_code}"
-            if resp:
+            if resp is not None:
                 try:
                     error_details = resp.json()
                     error_msg += f": {error_details.get('error', resp.text)}"
@@ -158,8 +158,10 @@ class HuggingFaceConnector:
                 try:
                     return self._make_request(text, self.model)
                 except Exception as fallback_error:
+                    logger.warning(f"Model {model_to_try} failed, falling back to {self.model}")
                     raise fallback_error
             else:
+                logger.warning(f"Model {model_to_try} failed, falling back to {self.model}")
                 raise e
 
     def get_embeddings_batch(
@@ -180,7 +182,7 @@ class HuggingFaceConnector:
                     embedding = self.get_embedding(text, model)
                     embeddings.append(embedding)
                 except Exception:
-                    embeddings.append([])
+                    embeddings.append(None)
             if i + batch_size < len(texts):
                 time.sleep(0.1)  # Prevent rate limiting
         return embeddings

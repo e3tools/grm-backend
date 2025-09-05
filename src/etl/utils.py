@@ -15,13 +15,13 @@ from client import (
     COUCHDB_USERNAME,
 )
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_CONFIDENTIAL,
-    CHOICE_FEMALE,
-    CHOICE_INDIVIDUAL,
-    CHOICE_MALE,
-    CHOICE_ORGANIZATION,
-    CHOICE_PHONE,
+    ALERT_CHOICE,
+    CONFIDENTIAL_CHOICE,
+    FEMALE_CHOICE,
+    INDIVIDUAL_CHOICE,
+    MALE_CHOICE,
+    ORGANIZATION_CHOICE,
+    PHONE_CHOICE,
 )
 from issues.models import (
     AdministrativeLevel,
@@ -189,16 +189,16 @@ def process_issue_data(data: list[dict]) -> list[dict]:
     all_users = list(User.objects.values_list('id', flat=True))
 
     citizen_type_values = {
-        1: CHOICE_CONFIDENTIAL,
-        2: CHOICE_INDIVIDUAL,
-        3: CHOICE_ORGANIZATION,
+        1: CONFIDENTIAL_CHOICE,
+        2: INDIVIDUAL_CHOICE,
+        3: ORGANIZATION_CHOICE,
     }
 
     citizen_gender_values = {
-        "Male": CHOICE_MALE,
-        "Masculin": CHOICE_MALE,
-        "Female": CHOICE_FEMALE,
-        "Femelle": CHOICE_FEMALE,
+        "Male": MALE_CHOICE,
+        "Masculin": MALE_CHOICE,
+        "Female": FEMALE_CHOICE,
+        "Femelle": FEMALE_CHOICE,
     }
 
     def user_field_process(item_dict, name):
@@ -339,12 +339,12 @@ def process_issue_data(data: list[dict]) -> list[dict]:
         if contact_information:
             new_item['contact_information'] = contact_information.get('contact')
             contact_type = contact_information.get('type')
-            new_item['contact_method'] = CHOICE_PHONE if contact_type == "phone number" else contact_type
+            new_item['contact_method'] = PHONE_CHOICE if contact_type == "phone number" else contact_type
 
         # --- Handle contact_medium ---
         contact_medium = new_item.get('contact_medium')
         if contact_medium:
-            new_item['contact_medium'] = CHOICE_ALERT if contact_medium == "contact" else contact_medium
+            new_item['contact_medium'] = ALERT_CHOICE if contact_medium == "contact" else contact_medium
 
         # --- Rename auto_increment_id → id ---
         new_item['id'] = new_item.pop('auto_increment_id')

@@ -3,11 +3,11 @@ from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_EMAIL,
+    ALERT_CHOICE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    EMAIL_CHOICE,
 )
 from grm.utils import email_is_valid
 from issues.models import (
@@ -261,13 +261,13 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         contact_method = data.get('contact_method')
         contact_information = data.get('contact_information')
 
-        if contact_medium == CHOICE_ALERT and not contact_method:
+        if contact_medium == ALERT_CHOICE and not contact_method:
             raise serializers.ValidationError({"contact_method": CONTACT_MEDIUM_ERROR_MESSAGE})
 
-        elif contact_method == CHOICE_EMAIL and not email_is_valid(contact_information):
+        elif contact_method == EMAIL_CHOICE and not email_is_valid(contact_information):
             raise serializers.ValidationError({"contact_information": CONTACT_INFO_EMAIL_ERROR_MESSAGE})
 
-        elif contact_method != CHOICE_EMAIL and email_is_valid(contact_information):
+        elif contact_method != EMAIL_CHOICE and email_is_valid(contact_information):
             raise serializers.ValidationError({"contact_information": CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE})
         return data
 

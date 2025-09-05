@@ -18,8 +18,8 @@ from authentication.models import Cdata, GovernmentWorker, Pdata
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_CONFIDENTIAL,
+    ALERT_CHOICE,
+    CONFIDENTIAL_CHOICE,
     MAX_ATTACHMENTS,
     TEXTAREA_MAX_LENGTH,
 )
@@ -129,7 +129,7 @@ class IssueMixin:
         context = super().get_context_data(**kwargs)
         context["obj"] = self.obj
         context["max_attachments"] = MAX_ATTACHMENTS
-        context["choice_contact"] = CHOICE_ALERT
+        context["choice_contact"] = ALERT_CHOICE
         context["permission_to_edit"] = self.obj.has_edit_permission(self.request.user)
         return context
 
@@ -302,7 +302,7 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
 
     def set_contact_fields(self, data):
         self.obj.contact_medium = data["contact_medium"]
-        if data["contact_medium"] == CHOICE_ALERT:
+        if data["contact_medium"] == ALERT_CHOICE:
             self.obj.contact_information = data["contact"]
             self.obj.contact_method = data["contact_type"]
         else:
@@ -655,7 +655,7 @@ class IssueDetailsFormView(
         context["password_confirm_form"] = PasswordConfirmForm()
         context["comments"] = self.obj.comments.select_related('user')
         citizen_type = self.obj.citizen.type if self.obj.citizen else None
-        context["confidential"] = self.obj.assignee.id != user.id and citizen_type == CHOICE_CONFIDENTIAL
+        context["confidential"] = self.obj.assignee.id != user.id and citizen_type == CONFIDENTIAL_CHOICE
 
         return context
 

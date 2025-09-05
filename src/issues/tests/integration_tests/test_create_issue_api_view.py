@@ -5,11 +5,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_FACILITATOR,
+    ALERT_CHOICE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    FACILITATOR_CHOICE,
 )
 from grm.utils import reset_sequences
 from issues.factories import (
@@ -134,7 +134,7 @@ class IssueCreateAPIViewTest(APITestCase):
         """Test that contact_medium 'channel-alert' requires contact_method."""
         self.client.force_authenticate(user=self.reporter_user)
         data = self.__get_valid_data()
-        data['contact_medium'] = CHOICE_ALERT
+        data['contact_medium'] = ALERT_CHOICE
 
         response = self.client.post(self.url, data=data, format="json")
 
@@ -147,7 +147,7 @@ class IssueCreateAPIViewTest(APITestCase):
         """Test that contact_medium 'channel-alert' with contact_method passes validation."""
         self.client.force_authenticate(user=self.reporter_user)
         data = self.__get_valid_data()
-        data['contact_medium'] = CHOICE_ALERT
+        data['contact_medium'] = ALERT_CHOICE
         data['contact_method'] = 'email'
         data['contact_information'] = 'test@example.com'
 
@@ -248,7 +248,7 @@ class IssueCreateAPIViewTest(APITestCase):
             },
             "component": self.component.pk,
             "sub_component": self.sub_component.pk,
-            "contact_medium": CHOICE_FACILITATOR,
+            "contact_medium": FACILITATOR_CHOICE,
             "contact_method": None,
             "contact_information": "123456",
             "ongoing_issue": True,

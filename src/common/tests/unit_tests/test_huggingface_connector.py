@@ -6,6 +6,7 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse
 from django.test import RequestFactory, override_settings
+from rest_framework import status
 
 from common.utils.huggingface_connector import (
     HuggingFaceConnectionError,
@@ -55,7 +56,7 @@ class HuggingFaceConnectorTest(TestCase):
         request = self.factory.get("/embed", {"text": "hello world"})
         response = embedding_view(request)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = json.loads(response.content.decode())
         self.assertEqual(data["embedding"], sample_embedding)
         mock_make_request.assert_called_once_with("hello world", "test-model")
@@ -81,3 +82,65 @@ class HuggingFaceConnectorTest(TestCase):
             get_embedding("hello world", model="other-model")
         self.assertIn("Primary model failed", str(e.exception))
         self.assertGreaterEqual(mock_make_request.call_count, 1)
+
+    @patch("requests.Session.post")
+    def test_make_request_http_error_with_json(self, mock_post):
+        response = requests.Response()
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        response._content = b'{"error": "Invalid request"}'
+
+        http_error = requests.exceptions.HTTPError(response=response)
+        mock_post.return_value = response
+        response.raise_for_status = lambda: (_ for _ in ()).throw(http_error)
+
+        with self.assertRaises(Exception) as e:
+            self.connector._make_request("hello")
+
+        self.assertIn("HTTP error 400: Invalid request", str(e.exception))
+
+    @patch("requests.Session.post")
+    def test_make_request_http_error_with_text(self, mock_post):
+        response = requests.Response()
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        response._content = b"Internal server error"
+
+        http_error = requests.exceptions.HTTPError(response=response)
+        mock_post.return_value = response
+        response.raise_for_status = lambda: (_ for _ in ()).throw(http_error)
+
+        with self.assertRaises(Exception) as e:
+            self.connector._make_request("hello")
+
+        self.assertIn("HTTP error 500", str(e.exception))
+        self.assertIn("Internal server error", str(e.exception))
+
+    @patch("requests.Session.post")
+    def test_make_request_handles_rate_limit_retry(self, mock_post):
+        first_response = requests.Response()
+        first_response.status_code = status.HTTP_429_TOO_MANY_REQUESTS
+        first_response.headers["Retry-After"] = "0"  # no wait
+        first_response._content = b'{"error": "Rate limit"}'
+
+        second_response = requests.Response()
+        second_response.status_code = status.HTTP_200_OK
+        second_response._content = b"[0.1, 0.2, 0.3]"
+
+        mock_post.side_effect = [first_response, second_response]
+
+        embedding = self.connector._make_request("hello")
+        self.assertEqual(embedding, [0.1, 0.2, 0.3])
+
+    @patch("requests.Session.post")
+    def test_make_request_handles_model_loading_retry(self, mock_post):
+        first_response = requests.Response()
+        first_response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        first_response._content = b'{"error": "Model is loading", "estimated_time": 0}'
+
+        second_response = requests.Response()
+        second_response.status_code = status.HTTP_200_OK
+        second_response._content = b"[0.5, 0.6, 0.7]"
+
+        mock_post.side_effect = [first_response, second_response]
+
+        embedding = self.connector._make_request("hello")
+        self.assertEqual(embedding, [0.5, 0.6, 0.7])

@@ -6,10 +6,10 @@ from django.test import TestCase
 from django.utils import timezone
 
 from dashboard.grm.constants import (
-    CHOICE_ALERT,
-    CHOICE_ANONYMOUS,
-    CHOICE_FACILITATOR,
-    CHOICE_PHONE,
+    ALERT_CHOICE,
+    ANONYMOUS_CHOICE,
+    FACILITATOR_CHOICE,
+    PHONE_CHOICE,
 )
 from grm.utils import reset_sequences
 from issues.factories import IssueFactory
@@ -38,8 +38,8 @@ class IssueTest(TestCase):
         self.assertIsNone(issue.resolution_days())
 
     def test_issue_is_created_with_default_contact_medium(self):
-        issue = IssueFactory(contact_medium=CHOICE_ANONYMOUS)
-        self.assertEqual(issue.contact_medium, CHOICE_ANONYMOUS)
+        issue = IssueFactory(contact_medium=ANONYMOUS_CHOICE)
+        self.assertEqual(issue.contact_medium, ANONYMOUS_CHOICE)
 
     def test_issue_is_created_with_default_intake_date(self):
         issue = IssueFactory()
@@ -55,11 +55,11 @@ class IssueTest(TestCase):
 
     def test_contact_method_is_required_for_channel_alert_medium(self):
         with self.assertRaises(ValidationError):
-            IssueFactory(contact_medium=CHOICE_ALERT, contact_method=None)
+            IssueFactory(contact_medium=ALERT_CHOICE, contact_method=None)
 
     def test_valid_issue_saves_correctly(self):
         issue = IssueFactory(
-            contact_medium=CHOICE_FACILITATOR, contact_method=CHOICE_PHONE, contact_information="1234567890"
+            contact_medium=FACILITATOR_CHOICE, contact_method=PHONE_CHOICE, contact_information="1234567890"
         )
         try:
             issue.full_clean()
@@ -68,6 +68,6 @@ class IssueTest(TestCase):
             self.fail("ValidationError was raised on a valid model instance.")
 
     def test_full_clean_is_called_on_save(self):
-        issue = IssueFactory.build(contact_medium=CHOICE_ALERT, contact_method=None)
+        issue = IssueFactory.build(contact_medium=ALERT_CHOICE, contact_method=None)
         with self.assertRaises(ValidationError):
             issue.save()

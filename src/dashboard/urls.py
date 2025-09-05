@@ -11,4 +11,5 @@ urlpatterns = [
     path("grm/", include("dashboard.grm.urls")),
     path("logs/", include("dashboard.logs.urls")),
     path("couchdb-proxy/", include("dashboard.couchdb_proxy.urls")),
+    path("wizard/", include("dashboard.wizard.urls")),
 ]

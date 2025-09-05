@@ -7,9 +7,9 @@ from django.utils.translation import gettext_lazy as _
 
 from authentication.models import Cdata, Facilitator, GovernmentWorker, Pdata, User
 from dashboard.grm.constants import (
+    ALERT_CHOICE,
     ALERT_CHOICES,
-    CHOICE_ALERT,
-    CHOICE_ANONYMOUS,
+    ANONYMOUS_CHOICE,
     CITIZEN_GROUP_CHOICES,
     CITIZEN_TYPE_CHOICES,
     CONTACT_CHOICES,
@@ -374,7 +374,7 @@ class Issue(models.Model):
     contact_information = models.CharField(
         max_length=255, blank=True, null=True, help_text="The contact phone, email, whatsapp or other method data"
     )
-    contact_medium = models.CharField(max_length=50, blank=True, choices=MEDIUM_CHOICES, default=CHOICE_ANONYMOUS)
+    contact_medium = models.CharField(max_length=50, blank=True, choices=MEDIUM_CHOICES, default=ANONYMOUS_CHOICE)
     contact_method = models.CharField(max_length=255, choices=CONTACT_CHOICES, default=None, null=True, blank=True)
     component = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
     created_date = models.DateTimeField(
@@ -433,7 +433,7 @@ class Issue(models.Model):
         return super().save(*args, **kwargs)
 
     def _validate_contact_method_based_on_contact_medium(self):
-        if self.contact_medium == CHOICE_ALERT and not self.contact_method:
+        if self.contact_medium == ALERT_CHOICE and not self.contact_method:
             raise ValidationError(CONTACT_MEDIUM_ERROR_MESSAGE)
 
     def resolution_days(self):
