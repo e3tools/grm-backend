@@ -1,3 +1,4 @@
+import pytest
 from django.test import override_settings
 from django.urls import reverse
 
@@ -5,6 +6,8 @@ from dashboard.diagnostics.views import HomeFormView
 from grm.tests.base import DashboardTestCase
 
 
+@pytest.mark.django_db
+@override_settings(LANGUAGE_CODE='en-us')
 class HomeFormViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
@@ -15,7 +18,6 @@ class HomeFormViewTest(DashboardTestCase):
 
         assert response.status_code == 302
 
-    @override_settings(LANGUAGE_CODE='en-us')
     def test_context_data(self):
         response = self.get(self.url)
         context_data = response.context_data

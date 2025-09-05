@@ -74,11 +74,11 @@ MIDDLEWARE = LOCAL_MIDDLEWARE + [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "grm.middleware.locale.CustomLocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "wizard.middleware.WizardRedirectMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "wizard.middleware.WizardRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "grm.urls"

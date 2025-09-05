@@ -1,5 +1,11 @@
+from django.contrib.auth.views import LoginView
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+
+from dashboard.authentication.forms import EmailAuthenticationForm
+from dashboard.grm.constants import COMPLETE_CHOICE
+from wizard.models import WizardSession
 
 
 def handler400(request, exception):
@@ -36,3 +42,24 @@ def handler500(request):
         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content_type="text/html",
     )
+
+
+class CustomLoginView(LoginView):
+    """
+    Custom login view that blocks non-GRM managers when the wizard is incomplete.
+    """
+
+    authentication_form = EmailAuthenticationForm
+    template_name = "authentication/login.html"
+    redirect_authenticated_user = True
+
+    def form_valid(self, form):
+        user = form.get_user()
+
+        # Wizard check
+        session = WizardSession.get_wizard_session()
+        if not user.grm_manager and session.state != COMPLETE_CHOICE:
+            form.add_error(None, _("Login is not allowed until the customization wizard is completed."))
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
