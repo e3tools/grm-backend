@@ -1,3 +1,4 @@
+import pytest
 from django.test import override_settings
 from django.urls import reverse, reverse_lazy
 
@@ -7,6 +8,7 @@ from dashboard.adls.views import AdlDetailView
 from grm.tests.base import DashboardTestCase
 
 
+@pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
 class AdlDetailViewTest(DashboardTestCase):
     def setUp(self):
