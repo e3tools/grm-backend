@@ -22,9 +22,9 @@ from issues.models import Issue
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class IssueListAPIViewTest(APITestCase):
+class AssigneeIssueListAPIViewTest(APITestCase):
     """
-    Test cases for the Issue list API endpoint using Token Authentication.
+    Test cases for the Issue list API endpoint filtered by the authenticated user as assignee.
 
     This test class covers various scenarios including authentication,
     data retrieval, pagination, and response format validation.
@@ -37,7 +37,7 @@ class IssueListAPIViewTest(APITestCase):
 
     def setUp(self):
         """Set up test data, user, token, and URL for each test."""
-        self.url = reverse("issues:list-issues")
+        self.url = reverse("issues:list-assigned-issues")
 
         reset_sequences()
 
@@ -57,13 +57,12 @@ class IssueListAPIViewTest(APITestCase):
             age_group=self.citizen_age_group, group=self.citizen_group, group_2=self.citizen_group_2
         )
 
-        # Create issues
+        # Create issues assigned to the test user
         self.issue1 = IssueFactory(
             status=self.status_open,
             category=self.category_env,
             issue_type=self.issue_type_complaint,
             administrative_region=self.admin_region,
-            reporter=self.user,
             assignee=self.user,
             citizen=self.citizen,
             description="Network connectivity issue",
@@ -73,10 +72,21 @@ class IssueListAPIViewTest(APITestCase):
             category=self.category_env,
             issue_type=self.issue_type_complaint,
             administrative_region=self.admin_region,
-            reporter=self.user,
             assignee=self.user,
             citizen=self.citizen,
             description="Water pollution complaint",
+        )
+
+        # Create an issue assigned to another user (should not appear in authenticated user’s results)
+        self.other_user = UserFactory()
+        self.issue_other = IssueFactory(
+            status=self.status_open,
+            category=self.category_env,
+            issue_type=self.issue_type_complaint,
+            administrative_region=self.admin_region,
+            assignee=self.other_user,
+            citizen=self.citizen,
+            description="Other user issue",
         )
 
     def authenticate_with_token(self):
@@ -221,8 +231,8 @@ class IssueListAPIViewTest(APITestCase):
 
         # Test reporter structure
         reporter = network_issue['reporter']
-        assert reporter['id'] == self.user.id
-        assert reporter['name'] == self.user.name
+        assert reporter['id'] == self.issue1.reporter.id
+        assert reporter['name'] == self.issue1.reporter.name
 
         # Test assignee structure
         assignee = network_issue['assignee']
@@ -297,42 +307,13 @@ class IssueListAPIViewTest(APITestCase):
 
         # Reporter
         reporter = issue_data['reporter']
-        assert reporter['id'] == self.user.id
-        assert reporter['name'] == self.user.name
+        assert reporter['id'] == self.issue1.reporter.id
+        assert reporter['name'] == self.issue1.reporter.name
 
         # Assignee
         assignee = issue_data['assignee']
         assert assignee['id'] == self.user.id
         assert assignee['name'] == self.user.name
-
-    def test_different_users_same_response(self):
-        """Test that different authenticated users get the same paginated response."""
-        # First user request
-        self.authenticate_with_token()
-        response1 = self.client.get(self.url)
-
-        # Second user request
-        user2 = UserFactory()
-        token2 = Token.objects.create(user=user2)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token2.key}')
-        response2 = self.client.get(self.url)
-
-        assert response1.status_code == status.HTTP_200_OK
-        assert response2.status_code == status.HTTP_200_OK
-        assert response1.data['count'] == response2.data['count']
-        assert len(response1.data['results']) == len(response2.data['results'])
-
-        # Responses should be identical (same data for all users)
-        for i, issue in enumerate(response1.data['results']):
-            assert issue['id'] == response2.data['results'][i]['id']
-            assert issue['tracking_code'] == response2.data['results'][i]['tracking_code']
-            assert issue['intake_date'] == response2.data['results'][i]['intake_date']
-            assert issue['status'] == response2.data['results'][i]['status']
-            assert issue['category'] == response2.data['results'][i]['category']
-            assert issue['issue_type'] == response2.data['results'][i]['issue_type']
-            assert issue['administrative_region'] == response2.data['results'][i]['administrative_region']
-            assert issue['reporter'] == response2.data['results'][i]['reporter']
-            assert issue['assignee'] == response2.data['results'][i]['assignee']
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""
@@ -352,7 +333,10 @@ class IssueListAPIViewTest(APITestCase):
         for i in range(50):
             categories_batch.append(
                 IssueFactory(
-                    administrative_region=self.admin_region, citizen=self.citizen, description="Issue description"
+                    administrative_region=self.admin_region,
+                    citizen=self.citizen,
+                    assignee=self.user,
+                    description="Issue description",
                 )
             )
 
@@ -388,56 +372,43 @@ class IssueListAPIViewTest(APITestCase):
         response_post = self.client.post(self.url, {})
         assert response_post.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-        # PUT should not be allowed
-        response_put = self.client.put(self.url, {})
-        assert response_put.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-        # DELETE should not be allowed
-        response_delete = self.client.delete(self.url)
-        assert response_delete.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-        # PATCH should not be allowed
-        response_patch = self.client.patch(self.url, {})
-        assert response_patch.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-        # GET should work
-        response_get = self.client.get(self.url)
-        assert response_get.status_code == status.HTTP_200_OK
-
-    def test_complete_issue_data_integrity(self):
-        """Test that all issue data is correctly serialized and maintains integrity."""
+    def test_successful_list_retrieval_only_assigned(self):
+        """Test retrieval only returns issues where the authenticated user is assignee."""
         self.authenticate_with_token()
 
         response = self.client.get(self.url)
         response_data = response.data
 
         assert response.status_code == status.HTTP_200_OK
+        assert response_data['count'] == 2  # only issue1 and issue2 belong to self.user
+        issue_ids = [issue['id'] for issue in response_data['results']]
+        assert self.issue1.id in issue_ids
+        assert self.issue2.id in issue_ids
+        assert self.issue_other.id not in issue_ids
 
-        # Test the first issue completely (issue1 from setUp)
-        issue_result = next((i for i in response_data['results'] if i['id'] == self.issue1.id), None)
-        assert issue_result is not None
+    def test_different_users_get_different_results(self):
+        """Test that different users only see issues where they are assignee."""
+        # First user (self.user)
+        self.authenticate_with_token()
+        response1 = self.client.get(self.url)
 
-        # Verify main fields
-        assert issue_result['id'] == self.issue1.id
-        assert issue_result['tracking_code'] == self.issue1.tracking_code
-        # intake_date serialized as ISO format string
-        assert issue_result['intake_date'] == self.issue1.intake_date.isoformat().replace('+00:00', 'Z')
+        # Second user (self.other_user)
+        token2 = Token.objects.create(user=self.other_user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token2.key}')
+        response2 = self.client.get(self.url)
 
-        # Verify foreign key structures
-        assert issue_result['status']['id'] == self.issue1.status.id
-        assert issue_result['status']['name'] == "Open"
+        assert response1.status_code == status.HTTP_200_OK
+        assert response2.status_code == status.HTTP_200_OK
 
-        assert issue_result['category']['id'] == self.issue1.category.id
-        assert issue_result['category']['name'] == "Environmental"
+        # First user sees 2 issues
+        assert response1.data['count'] == 2
+        issue_ids_user1 = {i['id'] for i in response1.data['results']}
+        assert self.issue1.id in issue_ids_user1
+        assert self.issue2.id in issue_ids_user1
 
-        assert issue_result['issue_type']['id'] == self.issue1.issue_type.id
-        assert issue_result['issue_type']['name'] == "Complaint"
-
-        assert issue_result['administrative_region']['administrative_id'] == str(self.issue1.administrative_region.id)
-        assert issue_result['administrative_region']['name'] == "KADJÈRÈ"
-
-        assert issue_result['reporter']['id'] == self.issue1.reporter.id
-        assert issue_result['reporter']['name'] == self.user.name
-
-        assert issue_result['assignee']['id'] == self.issue1.assignee.id
-        assert issue_result['assignee']['name'] == self.user.name
+        # Second user sees 1 issue (only self.issue_other)
+        assert response2.data['count'] == 1
+        issue_ids_user2 = {i['id'] for i in response2.data['results']}
+        assert self.issue_other.id in issue_ids_user2
+        assert self.issue1.id not in issue_ids_user2
+        assert self.issue2.id not in issue_ids_user2

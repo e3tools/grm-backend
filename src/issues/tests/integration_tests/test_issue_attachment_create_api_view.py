@@ -37,7 +37,7 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
         self.assignee_token = Token.objects.create(user=self.assignee_user)
         self.other_token = Token.objects.create(user=self.other_user)
 
-        # Create an issue with the pre-created administrative region.
+        # Create an issue with reporter and assignee have access
         self.issue = IssueFactory(
             reporter=self.reporter_user,
             assignee=self.assignee_user,
