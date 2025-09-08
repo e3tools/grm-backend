@@ -15,12 +15,18 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from attachments.models import IssueAttachment
 from dashboard.grm.constants import (
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
 )
-from issues.models import Comment, Issue, IssueCategory, IssueStatus, IssueType
+from issues.models import (
+    Comment,
+    Issue,
+    IssueAttachment,
+    IssueCategory,
+    IssueStatus,
+    IssueType,
+)
 from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
     CommentCreateSerializer,
