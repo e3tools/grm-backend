@@ -2,6 +2,7 @@ from django.urls import path
 
 from issues.views import (
     AssigneeIssueListAPIView,
+    CitizenAgeGroupListAPIView,
     CitizenGroupListAPIView,
     IssueAttachmentCreateAPIView,
     IssueAttachmentsListAPIView,
@@ -25,6 +26,7 @@ urlpatterns = [
     path("reporter/", ReporterIssueListAPIView.as_view(), name="list-reported-issues"),
     path('<int:id>/', IssueRetrieveAPIView.as_view(), name='issue-detail'),
     path('issue-statuses/', IssueStatusListAPIView.as_view(), name='list-issue-statuses'),
+    path('citizen-age-groups/', CitizenAgeGroupListAPIView.as_view(), name='list-citizen-age-groups'),
     path('citizen-groups/', CitizenGroupListAPIView.as_view(), name='list-citizen-groups'),
     path('issue-types/', IssueTypeListAPIView.as_view(), name='list-issue-types'),
     path('issue-categories/', IssueCategoryListAPIView.as_view(), name='list-issue-categories'),

@@ -4,15 +4,15 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from issues.factories import CitizenGroupFactory, UserFactory
-from issues.models import CitizenGroup
+from issues.factories import CitizenAgeGroupFactory, UserFactory
+from issues.models import CitizenAgeGroup
 
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class CitizenGroupListAPIViewTest(APITestCase):
+class CitizenAgeGroupListAPIViewTest(APITestCase):
     """
-    Test cases for the CitizenGroup list API endpoint using Token Authentication.
+    Test cases for the CitizenAgeGroup list API endpoint using Token Authentication.
 
     This test class covers various scenarios including authentication,
     data retrieval, filtering, and response format validation.
@@ -25,15 +25,15 @@ class CitizenGroupListAPIViewTest(APITestCase):
 
     def setUp(self):
         """Set up test data, user, token, and URL for each test."""
-        self.url = reverse("issues:list-citizen-groups")
+        self.url = reverse("issues:list-citizen-age-groups")
 
         # Create test user and token
         self.user = UserFactory()
         self.token = Token.objects.create(user=self.user)
 
-        # Create test citizen groups
-        self.group = CitizenGroupFactory()
-        self.group2 = CitizenGroupFactory()
+        # Create test citizen age groups
+        self.group = CitizenAgeGroupFactory()
+        self.group2 = CitizenAgeGroupFactory()
 
     def authenticate_with_token(self):
         """Helper method to authenticate client with token."""
@@ -57,7 +57,7 @@ class CitizenGroupListAPIViewTest(APITestCase):
         assert self.error_messages["invalid_token"] in str(response.data["detail"])
 
     def test_successful_list_retrieval_paginated(self):
-        """Test successful retrieval of paginated citizen groups list."""
+        """Test successful retrieval of paginated citizen age groups list."""
         self.authenticate_with_token()
 
         response = self.client.get(self.url)
@@ -103,7 +103,7 @@ class CitizenGroupListAPIViewTest(APITestCase):
 
         # Check structure of first item in results
         first_type = response_data['results'][0]
-        expected_fields = ['id', 'name', 'type']
+        expected_fields = ['id', 'name']
 
         for field in expected_fields:
             assert field in first_type
@@ -111,12 +111,11 @@ class CitizenGroupListAPIViewTest(APITestCase):
         # Verify data types
         assert isinstance(first_type['id'], int)
         assert isinstance(first_type['name'], str)
-        assert isinstance(first_type['type'], str)
 
-    def test_empty_list_when_no_citizen_groups(self):
-        """Test paginated response when no citizen groups exist."""
-        # Delete all citizen groups
-        CitizenGroup.objects.all().delete()
+    def test_empty_list_when_no_citizen_age_groups(self):
+        """Test paginated response when no citizen age groups exist."""
+        # Delete all citizen age groups
+        CitizenAgeGroup.objects.all().delete()
 
         self.authenticate_with_token()
         response = self.client.get(self.url)
@@ -130,10 +129,10 @@ class CitizenGroupListAPIViewTest(APITestCase):
         assert isinstance(response_data['results'], list)
         assert len(response_data['results']) == 0
 
-    def test_single_citizen_group_response(self):
-        """Test paginated response when only one citizen group exists."""
-        # Delete all but one citizen group
-        CitizenGroup.objects.exclude(id=self.group.id).delete()
+    def test_single_citizen_age_group_response(self):
+        """Test paginated response when only one citizen age group exists."""
+        # Delete all but one citizen age group
+        CitizenAgeGroup.objects.exclude(id=self.group.id).delete()
 
         self.authenticate_with_token()
         response = self.client.get(self.url)
@@ -145,7 +144,6 @@ class CitizenGroupListAPIViewTest(APITestCase):
         assert response_data['next'] is None
         assert response_data['previous'] is None
         assert len(response_data['results']) == 1
-        assert response_data['results'][0]['type'] == self.group.type
         assert response_data['results'][0]['name'] == self.group.name
         assert response_data['results'][0]['id'] == self.group.id
 
@@ -170,7 +168,6 @@ class CitizenGroupListAPIViewTest(APITestCase):
         for i, item in enumerate(response1.data['results']):
             assert item['id'] == response2.data['results'][i]['id']
             assert item['name'] == response2.data['results'][i]['name']
-            assert item['type'] == response2.data['results'][i]['type']
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""
@@ -184,9 +181,9 @@ class CitizenGroupListAPIViewTest(APITestCase):
         assert response.status_code == 401
 
     def test_large_dataset_performance(self):
-        """Test paginated response with a larger dataset of citizen groups."""
-        # Create many more citizen groups
-        CitizenGroupFactory.create_batch(50)
+        """Test paginated response with a larger dataset of citizen age groups."""
+        # Create many more citizen age groups
+        CitizenAgeGroupFactory.create_batch(50)
 
         self.authenticate_with_token()
         response = self.client.get(self.url)

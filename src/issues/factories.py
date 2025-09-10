@@ -191,6 +191,8 @@ class CitizenAgeGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = CitizenAgeGroup
 
+    name = factory.Sequence(lambda n: f"{n}")
+
 
 class CitizenGroupFactory(factory.django.DjangoModelFactory):
     class Meta:
