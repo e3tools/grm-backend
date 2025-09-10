@@ -1,7 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from attachments.models import IssueAttachment
 from authentication.serializers import UserBasicSerializer
 from dashboard.grm.constants import (
     ALERT_CHOICE,
@@ -16,6 +15,7 @@ from issues.models import (
     Citizen,
     Comment,
     Issue,
+    IssueAttachment,
     IssueCategory,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,

@@ -13,7 +13,6 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from attachments.models import IssueAttachment
 from authentication.models import Cdata, GovernmentWorker, Pdata
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
@@ -43,7 +42,14 @@ from dashboard.mixins import (
     PageMixin,
 )
 from grm.utils import get_issue_select_options_choices
-from issues.models import AdministrativeRegion, Citizen, Comment, Issue, IssueStatus
+from issues.models import (
+    AdministrativeRegion,
+    Citizen,
+    Comment,
+    Issue,
+    IssueAttachment,
+    IssueStatus,
+)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
