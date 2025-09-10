@@ -116,7 +116,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         """Test internal server error response."""
 
         self.authenticate_with_token()
-        with patch("issues.views.IssueCommentCreateAPIView.get_issue", side_effect=RuntimeError("boom")):
+        with patch("issues.views.IssueCommentCreateAPIView.perform_create", side_effect=RuntimeError("boom")):
             response = self.client.post(self.url, self.valid_comment_data, format='json')
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['detail'] == 'An error occurred while creating the comment.'

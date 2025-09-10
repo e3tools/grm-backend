@@ -1,4 +1,5 @@
-from django.shortcuts import get_object_or_404
+from django.http import Http404
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import BasePermission
 
 from issues.models import Issue
@@ -46,5 +47,11 @@ class IsReporterOrAssigneePermission(BasePermission):
         issue_id = view.kwargs.get("id")
         if not issue_id:
             return True  # No issue context available, allow access
-        issue = get_object_or_404(Issue, id=issue_id)
+        if hasattr(view, "get_issue"):
+            try:
+                issue = view.get_issue()
+            except Exception:
+                raise Http404
+        else:
+            issue = get_object_or_404(Issue, id=issue_id)
         return request.user == issue.reporter or request.user == issue.assignee
