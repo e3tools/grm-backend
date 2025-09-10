@@ -4,9 +4,10 @@ import requests
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import DateTimeField
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from attachments.models import IssueAttachment
 from authentication.models import Facilitator, User
 from client import (
     COUCHDB_GRM_ATTACHMENT_DATABASE,
@@ -28,6 +29,7 @@ from issues.models import (
     Citizen,
     Comment,
     Issue,
+    IssueAttachment,
     IssueDepartmentAdministrativeLevel,
 )
 
@@ -555,7 +557,9 @@ def process_comments_data(data: list[dict], external_issues) -> list[dict]:
 
 def create_attachments(data: list[dict], external_issues) -> int:
     created = 0
-    existing_attachments = IssueAttachment.objects.values_list('external_id', flat=True)
+    existing_attachments = IssueAttachment.objects.filter(external_id__isnull=False).values_list(
+        'external_id', flat=True
+    )
     reporters = dict(Issue.objects.filter(external_id__isnull=False).values_list('id', 'reporter'))
 
     for item in data:
@@ -568,6 +572,7 @@ def create_attachments(data: list[dict], external_issues) -> int:
 
             issue_id = external_issues[item.get('_id')]
             new_attachment = IssueAttachment(
+                external_id=bd_id,
                 issue_id=issue_id,
                 uploaded_by_id=reporters[issue_id],
             )
@@ -663,14 +668,11 @@ def bulk_create_or_update(
         - Validation skipping is useful for trusted data sources or when validation
           has already been performed elsewhere
 
-    Database Operations per Batch:
-        - 1 bulk_create operation for new objects
-        - 1 bulk_update operation for existing objects
-        - Significantly faster than individual save() or update_or_create() calls
-
     Validation Behavior:
         - When validate=True (default): Performs full_clean(validate_unique=False)
           on each object, ensuring model field constraints are respected
+        - Fields not present in the input but having a default defined in the model
+          are excluded from validation to avoid false validation errors
         - When validate=False: Skips validation entirely, allowing faster processing
           but potentially permitting invalid data
     """
@@ -710,8 +712,18 @@ def bulk_create_or_update(
 
                         # Perform validation only if validate parameter is True
                         if validate:
+                            # Exclude fields that are missing but have model defaults
+                            exclude_fields = []
+                            for f in model_class._meta.fields:
+                                # For fields with auto_now or auto_now_add that are missing, set timezone.now()
+                                if isinstance(f, DateTimeField) and (f.auto_now or f.auto_now_add):
+                                    if f.attname not in filtered_data:
+                                        setattr(obj, f.attname, timezone.now())
+                                elif f.name not in filtered_data and f.has_default():
+                                    exclude_fields.append(f.name)
+
                             # Validate the object according to model constraints except for unique fields
-                            obj.full_clean(validate_unique=False)
+                            obj.full_clean(validate_unique=False, exclude=exclude_fields)
 
                         if obj.id in existing_ids:
                             objects_to_update.append(obj)
@@ -721,7 +733,7 @@ def bulk_create_or_update(
                         # Log validation errors but continue processing other objects
                         # This exception only occurs when validate=True
                         logger.warning(
-                            f"Validation error: {e}. Document {data_dict['type']} with _id {data_dict['_id']}"
+                            f"Validation error: {e}. Document {data_dict.get('type')} with _id {data_dict.get('_id')}"
                         )
                         continue
 
@@ -739,7 +751,7 @@ def bulk_create_or_update(
             # Log batch errors but continue with next batch
             logger.error(
                 f"Error in batch {i // batch_size + 1}: {e}. "
-                f"Document {data_dict['type']} with _id {data_dict['_id']}"
+                f"Document {data_dict.get('type')} with _id {data_dict.get('_id')}"
             )
 
     return {

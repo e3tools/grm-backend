@@ -57,7 +57,6 @@ INSTALLED_APPS = [
 ]
 
 CREATED_APPS = [
-    "attachments",
     "authentication",
     "dashboard",
     "etl",

@@ -1,10 +1,12 @@
+import random
+
 import factory
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from factory import fuzzy
-from factory.django import DjangoModelFactory, FileField
+from factory.django import DjangoModelFactory
 from faker import Faker
 
-from attachments.models import IssueAttachment
 from authentication.models import User
 from issues.models import (
     AdministrativeRegion,
@@ -14,6 +16,7 @@ from issues.models import (
     Comment,
     Component,
     Issue,
+    IssueAttachment,
     IssueStatus,
     IssueSubType,
     IssueType,
@@ -221,6 +224,7 @@ class IssueFactory(DjangoModelFactory):
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
     reporter = factory.SubFactory(UserFactory)
     assignee = factory.SubFactory(UserFactory)
+    rating = factory.LazyFunction(lambda: random.randint(1, 5))
 
 
 class CommentFactory(DjangoModelFactory):
@@ -242,7 +246,10 @@ class IssueAttachmentFactory(DjangoModelFactory):
         model = IssueAttachment
 
     created_date = factory.LazyFunction(timezone.now)
-    file = FileField(filename='test_attachment.txt', data=b'This is a test file content.')
     issue = factory.SubFactory(IssueFactory)
     uploaded_by = factory.SubFactory(UserFactory)
     updated_date = factory.LazyFunction(timezone.now)
+
+    @factory.lazy_attribute
+    def file(self):
+        return SimpleUploadedFile(name='test.txt', content=b'Test content', content_type='text/plain')

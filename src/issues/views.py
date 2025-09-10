@@ -10,6 +10,7 @@ from rest_framework.generics import (
     DestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
+    UpdateAPIView,
     get_object_or_404,
 )
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -19,6 +20,7 @@ from rest_framework.response import Response
 from dashboard.grm.constants import (
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    RATING_ERROR_MESSAGE,
 )
 from issues.models import (
     Comment,
@@ -40,6 +42,7 @@ from issues.serializers import (
     IssueSerializer,
     IssueStatusSerializer,
     IssueTypeSerializer,
+    IssueUpdateSerializer,
 )
 
 
@@ -383,12 +386,6 @@ class IssueCreateAPIView(CreateAPIView):
                     {'message': _('Validation failed.'), 'errors': serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-        except ValidationError as e:
-            return Response(
-                {'message': _('Validation failed.'), 'errors': e.message_dict},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except Exception as e:
             return Response(
                 {'message': _('An error occurred while creating the issue.'), 'error': str(e)},
@@ -1457,6 +1454,7 @@ class IssueCommentCreateAPIView(CreateAPIView):
         - Comment text is required and cannot be empty
         """,
         tags=['Issues', 'Comments'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'id',
@@ -1719,6 +1717,7 @@ class IssueCommentsListAPIView(ListAPIView):
         Only users who are either the reporter or assignee of the issue can access this endpoint.
         """,
         tags=['Issues', 'Comments'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'id',
@@ -1866,6 +1865,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             - Attachment URL is required and cannot be empty
             """,
         tags=['Issues', 'Attachment'],
+        security=[{'Token': []}],
         responses={
             201: openapi.Response(
                 description="Attachment created successfully",
@@ -2004,6 +2004,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
         Only users who are either the reporter or assignee of the issue can access this endpoint.
         """,
         tags=['Issues', 'Attachment'],
+        security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
                 'id',
@@ -2083,5 +2084,307 @@ class IssueAttachmentsListAPIView(ListAPIView):
         except Exception:
             return Response(
                 {'detail': _('An error occurred while retrieving issue attachments.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class IssueUpdateAPIView(UpdateAPIView):
+    """
+    API View for updating specific fields of Issue objects.
+
+    This view handles partial updates (PATCH) of Issue instances allowing only
+    specific fields to be modified: escalate_flag, reject_flag, rating,
+    escalation_reason, status, and research_result.
+
+    Requires Token authentication and validates that the user is either
+    the reporter or assignee of the issue.
+    """
+
+    queryset = Issue.objects.all()
+    serializer_class = IssueUpdateSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+    http_method_names = ['patch']
+    lookup_field = 'id'
+
+    @swagger_auto_schema(
+        operation_summary="Update an issue",
+        operation_description="""
+        Partially update an issue. Only specific fields can be modified.
+
+        **Access Control:**
+        Only users who are either the reporter or assignee of the issue can access this endpoint.
+        """,
+        tags=['Issues'],
+        security=[{'Token': []}],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'escalate_flag': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Flag indicating if the issue should be escalated',
+                    example=True,
+                ),
+                'reject_flag': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Flag indicating if the issue is rejected',
+                    example=False,
+                ),
+                'rating': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description='Rating for the issue resolution (1-5)',
+                    minimum=1,
+                    maximum=5,
+                    example=4,
+                ),
+                'escalation_reason': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Reason for escalating the issue',
+                    example='Issue requires higher level approval',
+                ),
+                'status': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description='ID of the new issue status',
+                    example=2,
+                ),
+                'research_result': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Results of research conducted on the issue',
+                    example='Investigation completed. Root cause identified.',
+                ),
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="Issue updated successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Issue updated successfully.'),
+                        'data': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, description='Unique issue identifier', example=42
+                                ),
+                                'intake_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    description='Date and time when the issue was reported',
+                                    example='2024-08-28T10:30:00Z',
+                                ),
+                                'status': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue status ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING, example="Open", description="Status name"
+                                        ),
+                                        'final_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'initial_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'rejected_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=False),
+                                        'open_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=True),
+                                    },
+                                    description="Status information",
+                                ),
+                                'category': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue category ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            example="Environmental",
+                                            description="Category name",
+                                        ),
+                                        'abbreviation': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            description="Abbreviation for the issue category",
+                                            nullable=True,
+                                        ),
+                                        'assigned_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned department information",
+                                        ),
+                                        'assigned_appeal_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Appeal department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Appeal department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned appeal department information",
+                                        ),
+                                        'assigned_escalation_department': openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                'name': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Escalation department name"
+                                                ),
+                                                'id': openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER, description="Escalation department ID"
+                                                ),
+                                                'administrative_level': openapi.Schema(
+                                                    type=openapi.TYPE_STRING, description="Administrative level name"
+                                                ),
+                                            },
+                                            description="Assigned escalation department information",
+                                        ),
+                                        'parent_id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, description="Subtype ID", nullable=True
+                                        ),
+                                        'confidentiality_level': openapi.Schema(
+                                            type=openapi.TYPE_STRING, description="Confidentiality level", nullable=True
+                                        ),
+                                        'redirection_protocol': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, description="Redirection protocol number"
+                                        ),
+                                        'label': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            description="Category label (same as name, convenience field)",
+                                        ),
+                                        'value': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            description="Category value (same as id, convenience field)",
+                                        ),
+                                    },
+                                    description="Category information",
+                                ),
+                                'issue_type': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=1, description="Issue type ID"
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING, example="Complaint", description="Type name"
+                                        ),
+                                    },
+                                    description="Issue type information",
+                                ),
+                                'administrative_region': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        'id': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            example=2,
+                                            description="Administrative region ID",
+                                        ),
+                                        'name': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            example="ALIBORI",
+                                            description="Administrative region name",
+                                        ),
+                                        'administrative_level': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER, example=5, description="Administrative level ID"
+                                        ),
+                                        'parent': openapi.Schema(
+                                            type=openapi.TYPE_INTEGER,
+                                            example=5,
+                                            description="Administrative region parent ID",
+                                        ),
+                                    },
+                                    description="Administrative region information",
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad Request - Validation Failed",
+                examples={
+                    "application/json": {
+                        "message": "Validation failed.",
+                        "errors": {
+                            "rating": [RATING_ERROR_MESSAGE],
+                            "status": ["Invalid pk \"999\" - object does not exist."],
+                        },
+                    }
+                },
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            403: openapi.Response(
+                description="Forbidden - User is not reporter or assignee",
+                examples={"application/json": {"detail": "You do not have permission to perform this action."}},
+            ),
+            404: openapi.Response(
+                description="Not Found - Issue does not exist",
+                examples={"application/json": {"detail": "Not found."}},
+            ),
+            500: openapi.Response(
+                description="Internal Server Error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while updating the issue.'
+                        )
+                    },
+                ),
+            ),
+        },
+    )
+    def patch(self, request, *args, **kwargs):
+        """
+        Partially update an Issue instance.
+
+        Overrides the default update method to provide custom response format
+        and error handling. Only allows updating specific permitted fields.
+
+        Args:
+            request: HTTP request object containing updated issue data
+            *args: Variable length argument list
+            **kwargs: Arbitrary keyword arguments (includes 'id' from URL)
+
+        Returns:
+            Response: JSON response with updated issue data or error details
+        """
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            if serializer.is_valid():
+                updated_issue = serializer.save()
+                detail_serializer = IssueDetailSerializer(updated_issue)
+                return Response(
+                    {'message': _('Issue updated successfully.'), 'data': detail_serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {'message': _('Validation failed.'), 'errors': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Issue.DoesNotExist:
+            return Response(
+                {'message': _('Not found.')},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {'message': _('An error occurred while updating the issue.'), 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

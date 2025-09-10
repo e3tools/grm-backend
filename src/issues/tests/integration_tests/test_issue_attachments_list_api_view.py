@@ -7,13 +7,13 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from attachments.models import IssueAttachment
 from grm.utils import reset_sequences
 from issues.factories import IssueAttachmentFactory, IssueFactory, UserFactory
+from issues.models import IssueAttachment
 
 
 @pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
+@override_settings(DEFAULT_FILE_STORAGE='grm.test_storage.InMemoryStorage', LANGUAGE_CODE='en-us')
 class IssueAttachmentsListAPIViewTest(APITestCase):
     """
     Test cases for the IssueAttachment list API endpoint using Token Authentication.

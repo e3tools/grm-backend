@@ -8,6 +8,7 @@ from dashboard.grm.constants import (
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
     EMAIL_CHOICE,
+    RATING_ERROR_MESSAGE,
 )
 from grm.utils import email_is_valid
 from issues.models import (
@@ -51,14 +52,12 @@ class IssueCategoryBasicSerializer(serializers.ModelSerializer):
 
 
 class IssueTypeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = IssueType
         fields = ['id', 'name']
 
 
 class IssueStatusSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = IssueStatus
         fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
@@ -271,6 +270,25 @@ class IssueCreateSerializer(serializers.ModelSerializer):
         elif contact_method != EMAIL_CHOICE and email_is_valid(contact_information):
             raise serializers.ValidationError({"contact_information": CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE})
         return data
+
+
+class IssueUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating specific fields of an Issue.
+
+    Only allows updating the fields that are permitted for modification:
+    escalate_flag, reject_flag, rating, escalation_reason, status, research_result
+    """
+
+    class Meta:
+        model = Issue
+        fields = ['escalate_flag', 'reject_flag', 'rating', 'escalation_reason', 'status', 'research_result']
+
+    def validate_rating(self, value):
+        """Validate rating is between 1 and 5 if provided."""
+        if value is not None and (value < 1 or value > 5):
+            raise serializers.ValidationError(RATING_ERROR_MESSAGE)
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):

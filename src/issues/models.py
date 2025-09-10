@@ -3,6 +3,7 @@ import os
 import cryptocode
 import shortuuid as uuid
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models
 from django.db.models import Count
 from django.utils.timezone import now
@@ -412,8 +413,8 @@ class Issue(models.Model):
         blank=True, editable=False, null=True, default=now, help_text="When was the issue created in DB"
     )
     description = models.TextField(null=True, blank=True, default=None)
-    research_result = models.TextField(blank=True, default="")
-    reject_reason = models.TextField(blank=True, default="")
+    research_result = models.TextField(null=True, blank=True, default="")
+    reject_reason = models.TextField(null=True, blank=True, default="")
     intake_date = models.DateTimeField(
         null=True, blank=True, default=now, db_index=True, help_text="When was the issue was reported"
     )
@@ -446,6 +447,9 @@ class Issue(models.Model):
     escalated_date = models.DateTimeField(blank=True, editable=False, null=True)
     escalate_flag = models.BooleanField(default=False)
     alert_message_status = models.CharField(max_length=50, blank=True, default="", choices=ALERT_CHOICES)
+    reject_flag = models.BooleanField(default=False)
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=0)
+    escalation_reason = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = _("Issue")

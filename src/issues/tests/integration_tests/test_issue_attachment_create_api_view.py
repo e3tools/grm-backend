@@ -1,20 +1,22 @@
+import os
+import re
 from unittest.mock import patch
 
 import pytest
-from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from attachments.models import IssueAttachment
 from grm.utils import reset_sequences
-from issues.factories import IssueAttachmentFactory, IssueFactory, UserFactory
+from issues.factories import IssueFactory, UserFactory
+from issues.models import IssueAttachment
 
 
 @pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
+@override_settings(DEFAULT_FILE_STORAGE='grm.test_storage.InMemoryStorage', LANGUAGE_CODE='en-us')
 class IssueAttachmentCreateAPIViewTest(APITestCase):
     """Integration tests for the IssueAttachmentCreateAPIView."""
 
@@ -44,17 +46,17 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
         )
 
         self.url = reverse("issues:add-issue-attachment", kwargs={"id": self.issue.id})
-        attachment_instance = IssueAttachmentFactory(issue=self.issue)
 
         # A multipart POST request is required for file uploads
-        self.valid_data = {'file': attachment_instance.file.file}
+        self.valid_data = {
+            'file': SimpleUploadedFile(name='test_attachment.txt', content=b'Test content', content_type='text/plain')
+        }
 
     def authenticate_with_token(self):
         """Helper method to authenticate client with token."""
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.reporter_token.key}')
 
-    @patch.object(FileSystemStorage, 'save', return_value='test_attachment.txt')
-    def test_reporter_can_create_attachment(self, mock_save):
+    def test_reporter_can_create_attachment(self):
         """Test that the reporter can create an attachment."""
         self.authenticate_with_token()
 
@@ -62,11 +64,25 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['message'], 'Attachment uploaded successfully.')
-        self.assertEqual(response.data['data']['file'].split('/')[-1], 'test_attachment.txt')
         self.assertEqual(response.data['data']['uploaded_by']['id'], self.reporter_user.id)
 
-        # Verify the attachment was actually created
-        self.assertTrue(IssueAttachment.objects.filter(issue=self.issue, uploaded_by=self.reporter_user).exists())
+        # Verify that the attachment was actually created in the database
+        attachment = IssueAttachment.objects.get(issue=self.issue, uploaded_by=self.reporter_user)
+        self.assertIsNotNone(attachment)
+
+        # Extract the file path and filename
+        saved_path = attachment.file.name  # e.g., 'attachments/abc123.txt'
+        filename = os.path.basename(saved_path)
+
+        # Check that the file is stored under the 'attachments/' directory
+        self.assertTrue(saved_path.startswith('attachments/'))
+
+        # Check that the filename ends with '.txt'
+        self.assertTrue(filename.endswith('.txt'))
+
+        # Validate that the filename is a valid shortuuid (22 alphanumeric characters)
+        uuid_part = filename.replace('.txt', '')
+        self.assertTrue(re.match(r'^[A-Za-z0-9]{22}$', uuid_part))
 
     def test_assignee_can_create_attachment(self):
         """Test that the assignee can create an attachment."""
