@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 09:53+0000\n"
+"POT-Creation-Date: 2025-09-10 13:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: attachments/models.py:23 issues/models.py:448
+#: attachments/models.py:23 issues/models.py:452
 msgid "Issue"
 msgstr ""
 
@@ -30,21 +30,21 @@ msgstr ""
 msgid "Uploaded by"
 msgstr ""
 
-#: attachments/models.py:35 authentication/models.py:120 issues/models.py:25
-#: issues/models.py:47 issues/models.py:157 issues/models.py:176
-#: issues/models.py:193 issues/models.py:214 issues/models.py:233
-#: issues/models.py:248 issues/models.py:263 issues/models.py:294
-#: issues/models.py:312 issues/models.py:330 issues/models.py:348
-#: issues/models.py:376 issues/models.py:593
-msgid "Created at"
-msgstr ""
-
-#: attachments/models.py:36 authentication/models.py:121 issues/models.py:26
+#: attachments/models.py:35 authentication/models.py:120 issues/models.py:26
 #: issues/models.py:48 issues/models.py:158 issues/models.py:177
 #: issues/models.py:194 issues/models.py:215 issues/models.py:234
 #: issues/models.py:249 issues/models.py:264 issues/models.py:295
 #: issues/models.py:313 issues/models.py:331 issues/models.py:349
-#: issues/models.py:377 issues/models.py:440 issues/models.py:594
+#: issues/models.py:377 issues/models.py:597
+msgid "Created at"
+msgstr ""
+
+#: attachments/models.py:36 authentication/models.py:121 issues/models.py:27
+#: issues/models.py:49 issues/models.py:159 issues/models.py:178
+#: issues/models.py:195 issues/models.py:216 issues/models.py:235
+#: issues/models.py:250 issues/models.py:265 issues/models.py:296
+#: issues/models.py:314 issues/models.py:332 issues/models.py:350
+#: issues/models.py:378 issues/models.py:441 issues/models.py:598
 msgid "Updated at"
 msgstr ""
 
@@ -155,7 +155,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61
-#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:30
+#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:31
 msgid "Administrative Levels"
 msgstr ""
 
@@ -291,43 +291,47 @@ msgid ""
 msgstr ""
 
 #: dashboard/grm/constants.py:83
+msgid "Rating must be between 1 and 5."
+msgstr ""
+
+#: dashboard/grm/constants.py:84
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
 "in size."
 msgstr ""
 
-#: dashboard/grm/constants.py:87
+#: dashboard/grm/constants.py:88
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr ""
 
-#: dashboard/grm/constants.py:97 dashboard/templates/layouts/navbar.html:12
+#: dashboard/grm/constants.py:98 dashboard/templates/layouts/navbar.html:12
 #: dashboard/templates/wizard/navbar.html:9
 msgid "Welcome"
 msgstr ""
 
-#: dashboard/grm/constants.py:98
+#: dashboard/grm/constants.py:99
 msgid "Admin Levels"
 msgstr ""
 
-#: dashboard/grm/constants.py:99
+#: dashboard/grm/constants.py:100
 msgid "Roles"
 msgstr ""
 
-#: dashboard/grm/constants.py:100
+#: dashboard/grm/constants.py:101
 msgid "Entry Types"
 msgstr ""
 
-#: dashboard/grm/constants.py:101
+#: dashboard/grm/constants.py:102
 msgid "Categories"
 msgstr ""
 
-#: dashboard/grm/constants.py:102
+#: dashboard/grm/constants.py:103
 msgid "Feedback"
 msgstr ""
 
-#: dashboard/grm/constants.py:103
+#: dashboard/grm/constants.py:104
 msgid "Complete"
 msgstr ""
 
@@ -392,7 +396,7 @@ msgid "The category of grievance"
 msgstr ""
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:161
+#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:162
 msgid "Component"
 msgstr ""
 
@@ -514,7 +518,7 @@ msgstr ""
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:689 issues/serializers.py:320
+#: dashboard/grm/views.py:689 issues/serializers.py:344
 msgid "Comment cannot be empty."
 msgstr ""
 
@@ -604,7 +608,7 @@ msgid "Export complete list"
 msgstr ""
 
 #: dashboard/templates/adls/list.html:23
-#: dashboard/templates/adls/profile.html:40 issues/models.py:29
+#: dashboard/templates/adls/profile.html:40 issues/models.py:30
 msgid "Administrative Level"
 msgstr ""
 
@@ -1205,103 +1209,103 @@ msgstr ""
 msgid "Ethiopia"
 msgstr ""
 
-#: issues/models.py:51
+#: issues/models.py:52
 msgid "Administrative Region"
 msgstr ""
 
-#: issues/models.py:52
+#: issues/models.py:53
 msgid "Administrative Regions"
 msgstr ""
 
-#: issues/models.py:162
+#: issues/models.py:163
 msgid "Components"
 msgstr ""
 
-#: issues/models.py:180
+#: issues/models.py:181
 msgid "Subcomponent"
 msgstr ""
 
-#: issues/models.py:181
+#: issues/models.py:182
 msgid "Subcomponents"
 msgstr ""
 
-#: issues/models.py:197
+#: issues/models.py:198
 msgid "Subproject Group"
 msgstr ""
 
-#: issues/models.py:198
+#: issues/models.py:199
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:218 issues/models.py:219
+#: issues/models.py:219 issues/models.py:220
 msgid "Issue Status"
 msgstr ""
 
-#: issues/models.py:237
+#: issues/models.py:238
 msgid "Issue Department"
 msgstr ""
 
-#: issues/models.py:238
+#: issues/models.py:239
 msgid "Issue Departments"
 msgstr ""
 
-#: issues/models.py:267
+#: issues/models.py:268
 msgid "Issue Subtype"
 msgstr ""
 
-#: issues/models.py:268
+#: issues/models.py:269
 msgid "Issue Subtypes"
 msgstr ""
 
-#: issues/models.py:298
+#: issues/models.py:299
 msgid "Issue Category"
 msgstr ""
 
-#: issues/models.py:299
+#: issues/models.py:300
 msgid "Issue Categories"
 msgstr ""
 
-#: issues/models.py:316
+#: issues/models.py:317
 msgid "Issue Type"
 msgstr ""
 
-#: issues/models.py:317
+#: issues/models.py:318
 msgid "Issue Types"
 msgstr ""
 
-#: issues/models.py:334
+#: issues/models.py:335
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:335
+#: issues/models.py:336
 msgid "Citizen Age Groups"
 msgstr ""
 
-#: issues/models.py:352
+#: issues/models.py:353
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:353
+#: issues/models.py:354
 msgid "Citizen Groups"
 msgstr ""
 
-#: issues/models.py:380
+#: issues/models.py:381
 msgid "Citizen"
 msgstr ""
 
-#: issues/models.py:381
+#: issues/models.py:382
 msgid "Citizens"
 msgstr ""
 
-#: issues/models.py:449
+#: issues/models.py:453
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:597
+#: issues/models.py:601
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:598
+#: issues/models.py:602
 msgid "Comments"
 msgstr ""
 
@@ -1309,48 +1313,56 @@ msgstr ""
 msgid "Issue created successfully."
 msgstr ""
 
-#: issues/views.py:377 issues/views.py:383 issues/views.py:1571
-#: issues/views.py:1833 issues/views.py:1956
+#: issues/views.py:377 issues/views.py:1566 issues/views.py:1829
+#: issues/views.py:1953 issues/views.py:2380
 msgid "Validation failed."
 msgstr ""
 
-#: issues/views.py:388
+#: issues/views.py:382
 msgid "An error occurred while creating the issue."
 msgstr ""
 
-#: issues/views.py:977
+#: issues/views.py:971
 msgid "An error occurred while retrieving the issue."
 msgstr ""
 
-#: issues/views.py:1430
+#: issues/views.py:1424
 msgid "Comment added successfully."
 msgstr ""
 
-#: issues/views.py:1565 issues/views.py:1675 issues/views.py:1828
-#: issues/views.py:1950
+#: issues/views.py:1560 issues/views.py:1670 issues/views.py:1824
+#: issues/views.py:1947 issues/views.py:2385
 msgid "Not found."
 msgstr ""
 
-#: issues/views.py:1578 issues/views.py:1963
+#: issues/views.py:1573 issues/views.py:1960
 msgid "An error occurred while creating the comment."
 msgstr ""
 
-#: issues/views.py:1678
+#: issues/views.py:1673
 msgid "An error occurred while deleting the comment."
 msgstr ""
 
-#: issues/views.py:1785
+#: issues/views.py:1781
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 
-#: issues/views.py:1822
+#: issues/views.py:1818
 msgid "Attachment uploaded successfully."
 msgstr ""
 
-#: issues/views.py:1838
+#: issues/views.py:1834
 msgid "An error occurred during file upload."
 msgstr ""
 
-#: issues/views.py:2079
+#: issues/views.py:2077
 msgid "An error occurred while retrieving issue attachments."
+msgstr ""
+
+#: issues/views.py:2373
+msgid "Issue updated successfully."
+msgstr ""
+
+#: issues/views.py:2390
+msgid "An error occurred while updating the issue."
 msgstr ""

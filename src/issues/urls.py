@@ -12,12 +12,14 @@ from issues.views import (
     IssueRetrieveAPIView,
     IssueStatusListAPIView,
     IssueTypeListAPIView,
+    IssueUpdateAPIView,
     ReporterIssueListAPIView,
 )
 
 app_name = "issues"
 urlpatterns = [
     path('create/', IssueCreateAPIView.as_view(), name='create-issue'),
+    path('<int:id>/update/', IssueUpdateAPIView.as_view(), name='update-issue'),
     path("assignee/", AssigneeIssueListAPIView.as_view(), name="list-assigned-issues"),
     path("reporter/", ReporterIssueListAPIView.as_view(), name="list-reported-issues"),
     path('<int:id>/', IssueRetrieveAPIView.as_view(), name='issue-detail'),
