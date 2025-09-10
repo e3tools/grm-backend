@@ -14,6 +14,7 @@ from grm.utils import email_is_valid
 from issues.models import (
     AdministrativeRegion,
     Citizen,
+    CitizenGroup,
     Comment,
     Issue,
     IssueAttachment,
@@ -55,6 +56,12 @@ class IssueTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueType
         fields = ['id', 'name']
+
+
+class CitizenGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CitizenGroup
+        fields = ['id', 'name', 'type']
 
 
 class IssueStatusSerializer(serializers.ModelSerializer):

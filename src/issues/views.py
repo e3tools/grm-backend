@@ -23,6 +23,7 @@ from dashboard.grm.constants import (
     RATING_ERROR_MESSAGE,
 )
 from issues.models import (
+    CitizenGroup,
     Comment,
     Issue,
     IssueAttachment,
@@ -32,6 +33,7 @@ from issues.models import (
 )
 from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
+    CitizenGroupSerializer,
     CommentCreateSerializer,
     CommentSerializer,
     IssueAttachmentCreateSerializer,
@@ -1864,7 +1866,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             - User must be either the issue reporter or assignee
             - Attachment URL is required and cannot be empty
             """,
-        tags=['Issues', 'Attachment'],
+        tags=['Issues', 'Attachments'],
         security=[{'Token': []}],
         responses={
             201: openapi.Response(
@@ -2003,7 +2005,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
         **Access Control:**
         Only users who are either the reporter or assignee of the issue can access this endpoint.
         """,
-        tags=['Issues', 'Attachment'],
+        tags=['Issues', 'Attachments'],
         security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
@@ -2388,3 +2390,96 @@ class IssueUpdateAPIView(UpdateAPIView):
                 {'message': _('An error occurred while updating the issue.'), 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class CitizenGroupListAPIView(ListAPIView):
+    """
+    API View for listing CitizenGroup objects with pagination.
+
+    This view provides a paginated read-only list of all available citizen groups.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = CitizenGroup.objects.all()
+    serializer_class = CitizenGroupSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List Citizen Groups",
+        operation_description="Retrieve a paginated list of all citizen groups.",
+        tags=['Citizen Groups'],
+        security=[{'Token': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of citizen groups",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER, description="Unique identifier for the citizen group"
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the citizen group"
+                                    ),
+                                    'type': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Type of the citizen group"
+                                    ),
+                                },
+                            ),
+                            description="List of citizen groups for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of CitizenGroup objects.
+
+        Returns a paginated list of all citizen groups available in the system.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated list of citizen groups
+        """
+        return super().get(request, *args, **kwargs)
