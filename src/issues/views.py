@@ -5,10 +5,17 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import APIException, ValidationError
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    ListAPIView,
+    RetrieveAPIView,
+    get_object_or_404,
+)
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from attachments.models import IssueAttachment
 from dashboard.grm.constants import (
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
@@ -18,6 +25,8 @@ from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
     CommentCreateSerializer,
     CommentSerializer,
+    IssueAttachmentCreateSerializer,
+    IssueAttachmentSerializer,
     IssueCategorySerializer,
     IssueCreateSerializer,
     IssueDetailSerializer,
@@ -1673,5 +1682,299 @@ class IssueCommentsListAPIView(ListAPIView):
         except Exception:
             return Response(
                 {'detail': _('An error occurred while retrieving issue comments.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class IssueAttachmentCreateAPIView(CreateAPIView):
+    """
+    API View for creating new IssueAttachment objects related to a specific Issue.
+
+    This view handles file uploads for a given issue and automatically
+    sets the uploader.
+    """
+
+    serializer_class = IssueAttachmentCreateSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+
+    def get_issue(self):
+        issue_id = self.kwargs.get("id")
+        return get_object_or_404(Issue, id=issue_id)
+
+    def perform_create(self, serializer):
+        issue = self.get_issue()
+        instance = serializer.save(issue=issue, uploaded_by=self.request.user)
+        return instance
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            instance = self.perform_create(serializer)
+
+            data = IssueAttachmentSerializer(instance).data
+
+            headers = self.get_success_headers(data)
+            return Response(
+                {'message': _('Attachment uploaded successfully.'), 'data': data},
+                status=status.HTTP_201_CREATED,
+                headers=headers,
+            )
+        except Http404:
+            return Response(
+                {'detail': _('Issue not found.')},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return Response(
+                {'message': _('Validation failed.'), 'errors': e.detail},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred during file upload.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @swagger_auto_schema(
+        operation_summary="Add an attachment to a specific issue",
+        operation_description="""
+            Create a new attachment associated with a specific issue.
+
+            **Access Control:**
+            Only users who are either the reporter or assignee of the issue can add attachment.
+            This ensures that only authorized personnel can participate in issue discussions.
+
+            **Automatic Associations:**
+            - The attachment is automatically linked to the specified issue
+            - The authenticated user is set as the author
+            - The created_date is automatically set to the current timestamp
+
+            **Business Rules:**
+            - Issue must exist in the system
+            - User must be authenticated with a valid token
+            - User must be either the issue reporter or assignee
+            - Attachment URL is required and cannot be empty
+            """,
+        tags=['Issues', 'Attachment'],
+        responses={
+            201: openapi.Response(
+                description="Attachment created successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Attachment added successfully.'),
+                        'data': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, description='Unique attachment identifier', example=42
+                                ),
+                                'file': openapi.Schema(
+                                    type=openapi.TYPE_FILE,
+                                    description='The file',
+                                ),
+                                'uploaded_by': openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    description='User who created the comment',
+                                    properties={
+                                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=5),
+                                        'name': openapi.Schema(type=openapi.TYPE_STRING, example='John Doe'),
+                                    },
+                                ),
+                                'created_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    description='When the comment was created',
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad Request - Validation failed",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Validation failed.'),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT, description='Field-specific validation errors'
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while creating the comment.'
+                        )
+                    },
+                ),
+            ),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        """
+        Create a new Attachment for the specified Issue.
+
+        This method handles the creation of a new attachment with proper validation,
+        permission checking, and error handling. The comment is automatically
+        associated with the issue and the authenticated user.
+
+        Args:
+            request: HTTP request object containing comment data
+
+        Returns:
+            Response: JSON response with created comment data or error details
+        """
+        try:
+
+            return super().post(request, *args, **kwargs)
+
+        except Http404:
+            return Response(
+                {'detail': _('Not found.')},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return Response(
+                {
+                    'message': _('Validation failed.'),
+                    'errors': e.message_dict if hasattr(e, 'message_dict') else str(e),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred while creating the comment.')},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class IssueAttachmentsListAPIView(ListAPIView):
+    """
+    API View for retrieving paginated attachments related to a specific Issue.
+
+    Permissions:
+        - Must be authenticated
+        - Must be the reporter or assignee of the issue
+    """
+
+    serializer_class = IssueAttachmentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+
+    def get_queryset(self):
+        """
+        Retrieve the queryset of attachments for the specified Issue.
+
+        Returns:
+            QuerySet: All attachments associated with the given Issue,
+            ordered by created_date descending (as defined in Comment.Meta).
+        """
+        issue_id = self.kwargs.get("id")
+        return IssueAttachment.objects.filter(issue_id=issue_id).select_related("uploaded_by", "issue")
+
+    @swagger_auto_schema(
+        operation_summary="List attachments of a specific issue",
+        operation_description="""
+        Retrieve a paginated list of attachments associated with a specific issue.
+
+        **Access Control:**
+        Only users who are either the reporter or assignee of the issue can access this endpoint.
+        """,
+        tags=['Issues', 'Attachment'],
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="Unique identifier of the issue whose attachments you want to retrieve",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                example=123,
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="List of comments",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, example=25),
+                        'next': openapi.Schema(type=openapi.TYPE_STRING, example=None),
+                        'previous': openapi.Schema(type=openapi.TYPE_STRING, example=None),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description='Unique attachment identifier',
+                                        example=42,
+                                    ),
+                                    'file': openapi.Schema(
+                                        type=openapi.TYPE_FILE,
+                                        description='The file',
+                                    ),
+                                    'uploaded_by': openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        description='User who created the comment',
+                                        properties={
+                                            'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=5),
+                                            'name': openapi.Schema(type=openapi.TYPE_STRING, example='John Doe'),
+                                        },
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        description='When the comment was created',
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                },
+                            ),
+                            description="List of comment objects",
+                        ),
+                    },
+                ),
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of Attachment objects for a specific Issue.
+
+        Returns a paginated list of attachments associated with the given Issue.
+        The list is ordered by due date in descending order (most recent first).
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with a paginated list of attachments
+                      related to the specified issue.
+        """
+        try:
+            return super().get(request, *args, **kwargs)
+        except (Http404, APIException):
+            raise
+        except Exception:
+            return Response(
+                {'detail': _('An error occurred while retrieving issue attachments.')},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

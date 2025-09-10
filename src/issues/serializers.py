@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from attachments.models import IssueAttachment
 from authentication.serializers import UserBasicSerializer
 from dashboard.grm.constants import (
     ALERT_CHOICE,
@@ -319,3 +320,47 @@ class CommentCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("Comment cannot be empty."))
 
         return value.strip()
+
+
+class IssueAttachmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the IssueAttachment model, following the project's conventions.
+
+    This serializer provides a representation of the attachment, including a read-only
+    'url' field derived from the file field.
+
+    Read-only fields:
+        - id: Primary key
+        - url: The URL of the uploaded file
+        - uploaded_by: Nested User object (assuming a UserBasicSerializer is available)
+        - created_date: Datetime field, automatically set on creation
+    """
+
+    issue = IssueSerializer(read_only=True)
+    url = serializers.CharField(source='file.url', read_only=True)
+    uploaded_by = UserBasicSerializer(read_only=True)
+
+    class Meta:
+        model = IssueAttachment
+        fields = [
+            'id',
+            'url',
+            'issue',
+            'file',
+            'uploaded_by',
+            'created_date',
+        ]
+        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date']
+
+
+class IssueAttachmentCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating IssueAttachment objects.
+
+    This serializer is used specifically for handling file uploads. The 'uploaded_by'
+    field is not included here as it will be set automatically by the view.
+    """
+
+    class Meta:
+        model = IssueAttachment
+        fields = ['file']

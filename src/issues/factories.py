@@ -1,9 +1,10 @@
 import factory
 from django.utils import timezone
 from factory import fuzzy
-from factory.django import DjangoModelFactory
+from factory.django import DjangoModelFactory, FileField
 from faker import Faker
 
+from attachments.models import IssueAttachment
 from authentication.models import User
 from issues.models import (
     AdministrativeRegion,
@@ -232,3 +233,16 @@ class CommentFactory(DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     issue = factory.SubFactory(IssueFactory)
     due_date = factory.LazyFunction(timezone.now)
+
+
+class IssueAttachmentFactory(DjangoModelFactory):
+    """Factory for creating Attachment instances for testing."""
+
+    class Meta:
+        model = IssueAttachment
+
+    created_date = factory.LazyFunction(timezone.now)
+    file = FileField(filename='test_attachment.txt', data=b'This is a test file content.')
+    issue = factory.SubFactory(IssueFactory)
+    uploaded_by = factory.SubFactory(UserFactory)
+    updated_date = factory.LazyFunction(timezone.now)
