@@ -1825,7 +1825,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             )
         except Http404:
             return Response(
-                {'detail': _('Issue not found.')},
+                {'detail': _('Not found.')},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:

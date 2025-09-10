@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-02 20:59+0000\n"
+"POT-Creation-Date: 2025-09-10 09:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: attachments/models.py:23 issues/models.py:418
+#: attachments/models.py:23 issues/models.py:448
 msgid "Issue"
 msgstr ""
 
@@ -30,15 +30,29 @@ msgstr ""
 msgid "Uploaded by"
 msgstr ""
 
-#: attachments/models.py:35
-msgid "Created date"
+#: attachments/models.py:35 authentication/models.py:120 issues/models.py:25
+#: issues/models.py:47 issues/models.py:157 issues/models.py:176
+#: issues/models.py:193 issues/models.py:214 issues/models.py:233
+#: issues/models.py:248 issues/models.py:263 issues/models.py:294
+#: issues/models.py:312 issues/models.py:330 issues/models.py:348
+#: issues/models.py:376 issues/models.py:593
+msgid "Created at"
 msgstr ""
 
-#: attachments/models.py:38
+#: attachments/models.py:36 authentication/models.py:121 issues/models.py:26
+#: issues/models.py:48 issues/models.py:158 issues/models.py:177
+#: issues/models.py:194 issues/models.py:215 issues/models.py:234
+#: issues/models.py:249 issues/models.py:264 issues/models.py:295
+#: issues/models.py:313 issues/models.py:331 issues/models.py:349
+#: issues/models.py:377 issues/models.py:440 issues/models.py:594
+msgid "Updated at"
+msgstr ""
+
+#: attachments/models.py:39
 msgid "Issue Attachment"
 msgstr ""
 
-#: attachments/models.py:39 dashboard/templates/adls/task_detail.html:37
+#: attachments/models.py:40 dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
 #: dashboard/templates/grm/new_issue_confirmation.html:181
@@ -61,27 +75,27 @@ msgstr ""
 msgid "photo"
 msgstr ""
 
-#: authentication/models.py:70
+#: authentication/models.py:71
 msgid "department"
 msgstr ""
 
-#: authentication/models.py:76
+#: authentication/models.py:77
 msgid "administrative region"
 msgstr ""
 
-#: authentication/models.py:80
+#: authentication/models.py:81
 msgid "Government Worker"
 msgstr ""
 
-#: authentication/models.py:81
+#: authentication/models.py:82
 msgid "Government Workers"
 msgstr ""
 
-#: authentication/models.py:121
+#: authentication/models.py:124
 msgid "Facilitator"
 msgstr ""
 
-#: authentication/models.py:122
+#: authentication/models.py:125
 msgid "Facilitators"
 msgstr ""
 
@@ -141,7 +155,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61
-#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:28
+#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:30
 msgid "Administrative Levels"
 msgstr ""
 
@@ -183,6 +197,10 @@ msgstr ""
 
 #: dashboard/adls/views.py:170
 msgid "The profile information was successfully edited."
+msgstr ""
+
+#: dashboard/authentication/views.py:62
+msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
 #: dashboard/diagnostics/views.py:31
@@ -284,6 +302,35 @@ msgstr ""
 msgid "Allowed file size less than or equal to %s"
 msgstr ""
 
+#: dashboard/grm/constants.py:97 dashboard/templates/layouts/navbar.html:12
+#: dashboard/templates/wizard/navbar.html:9
+msgid "Welcome"
+msgstr ""
+
+#: dashboard/grm/constants.py:98
+msgid "Admin Levels"
+msgstr ""
+
+#: dashboard/grm/constants.py:99
+msgid "Roles"
+msgstr ""
+
+#: dashboard/grm/constants.py:100
+msgid "Entry Types"
+msgstr ""
+
+#: dashboard/grm/constants.py:101
+msgid "Categories"
+msgstr ""
+
+#: dashboard/grm/constants.py:102
+msgid "Feedback"
+msgstr ""
+
+#: dashboard/grm/constants.py:103
+msgid "Complete"
+msgstr ""
+
 #: dashboard/grm/forms.py:35
 msgid "How does the citizen wish to be contacted?"
 msgstr ""
@@ -345,7 +392,7 @@ msgid "The category of grievance"
 msgstr ""
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:155
+#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:161
 msgid "Component"
 msgstr ""
 
@@ -467,7 +514,7 @@ msgstr ""
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:689 issues/serializers.py:319
+#: dashboard/grm/views.py:689 issues/serializers.py:320
 msgid "Comment cannot be empty."
 msgstr ""
 
@@ -557,7 +604,7 @@ msgid "Export complete list"
 msgstr ""
 
 #: dashboard/templates/adls/list.html:23
-#: dashboard/templates/adls/profile.html:40 issues/models.py:27
+#: dashboard/templates/adls/profile.html:40 issues/models.py:29
 msgid "Administrative Level"
 msgstr ""
 
@@ -1084,11 +1131,8 @@ msgstr ""
 msgid "Version"
 msgstr ""
 
-#: dashboard/templates/layouts/navbar.html:12
-msgid "Welcome"
-msgstr ""
-
 #: dashboard/templates/layouts/navbar.html:54
+#: dashboard/templates/wizard/navbar.html:20
 msgid "Logout"
 msgstr ""
 
@@ -1140,150 +1184,173 @@ msgstr ""
 msgid "Commune"
 msgstr ""
 
-#: grm/settings.py:137
-msgid "English"
-msgstr ""
-
-#: grm/settings.py:138
-msgid "French"
+#: dashboard/templates/wizard/chatbot.html:17
+#: dashboard/templates/wizard/chatbot.html:40
+msgid "Chat-Driven GRM Setup Wizard"
 msgstr ""
 
 #: grm/settings.py:139
-msgid "Kinyarwanda"
+msgid "English"
 msgstr ""
 
 #: grm/settings.py:140
+msgid "French"
+msgstr ""
+
+#: grm/settings.py:141
+msgid "Kinyarwanda"
+msgstr ""
+
+#: grm/settings.py:142
 msgid "Ethiopia"
 msgstr ""
 
-#: issues/models.py:47
+#: issues/models.py:51
 msgid "Administrative Region"
 msgstr ""
 
-#: issues/models.py:48
+#: issues/models.py:52
 msgid "Administrative Regions"
 msgstr ""
 
-#: issues/models.py:156
+#: issues/models.py:162
 msgid "Components"
 msgstr ""
 
-#: issues/models.py:172
+#: issues/models.py:180
 msgid "Subcomponent"
 msgstr ""
 
-#: issues/models.py:173
+#: issues/models.py:181
 msgid "Subcomponents"
 msgstr ""
 
-#: issues/models.py:187
+#: issues/models.py:197
 msgid "Subproject Group"
 msgstr ""
 
-#: issues/models.py:188
+#: issues/models.py:198
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:206 issues/models.py:207
+#: issues/models.py:218 issues/models.py:219
 msgid "Issue Status"
 msgstr ""
 
-#: issues/models.py:223
+#: issues/models.py:237
 msgid "Issue Department"
 msgstr ""
 
-#: issues/models.py:224
+#: issues/models.py:238
 msgid "Issue Departments"
 msgstr ""
 
-#: issues/models.py:249
+#: issues/models.py:267
 msgid "Issue Subtype"
 msgstr ""
 
-#: issues/models.py:250
+#: issues/models.py:268
 msgid "Issue Subtypes"
 msgstr ""
 
-#: issues/models.py:278
+#: issues/models.py:298
 msgid "Issue Category"
 msgstr ""
 
-#: issues/models.py:279
+#: issues/models.py:299
 msgid "Issue Categories"
 msgstr ""
 
-#: issues/models.py:294
+#: issues/models.py:316
 msgid "Issue Type"
 msgstr ""
 
-#: issues/models.py:295
+#: issues/models.py:317
 msgid "Issue Types"
 msgstr ""
 
-#: issues/models.py:310
+#: issues/models.py:334
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:311
+#: issues/models.py:335
 msgid "Citizen Age Groups"
 msgstr ""
 
-#: issues/models.py:326
+#: issues/models.py:352
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:327
+#: issues/models.py:353
 msgid "Citizen Groups"
 msgstr ""
 
-#: issues/models.py:352
+#: issues/models.py:380
 msgid "Citizen"
 msgstr ""
 
-#: issues/models.py:353
+#: issues/models.py:381
 msgid "Citizens"
 msgstr ""
 
-#: issues/models.py:419
+#: issues/models.py:449
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:565
+#: issues/models.py:597
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:566
+#: issues/models.py:598
 msgid "Comments"
 msgstr ""
 
-#: issues/views.py:362
+#: issues/views.py:372
 msgid "Issue created successfully."
 msgstr ""
 
-#: issues/views.py:367 issues/views.py:373 issues/views.py:1367
+#: issues/views.py:377 issues/views.py:383 issues/views.py:1571
+#: issues/views.py:1833 issues/views.py:1956
 msgid "Validation failed."
 msgstr ""
 
-#: issues/views.py:378
+#: issues/views.py:388
 msgid "An error occurred while creating the issue."
 msgstr ""
 
-#: issues/views.py:773
+#: issues/views.py:977
 msgid "An error occurred while retrieving the issue."
 msgstr ""
 
-#: issues/views.py:1226
+#: issues/views.py:1430
 msgid "Comment added successfully."
 msgstr ""
 
-#: issues/views.py:1361
+#: issues/views.py:1565 issues/views.py:1675 issues/views.py:1828
+#: issues/views.py:1950
 msgid "Not found."
 msgstr ""
 
-#: issues/views.py:1374
+#: issues/views.py:1578 issues/views.py:1963
 msgid "An error occurred while creating the comment."
 msgstr ""
 
-#: issues/views.py:1481
+#: issues/views.py:1678
+msgid "An error occurred while deleting the comment."
+msgstr ""
+
+#: issues/views.py:1785
 msgid "An error occurred while retrieving issue comments."
+msgstr ""
+
+#: issues/views.py:1822
+msgid "Attachment uploaded successfully."
+msgstr ""
+
+#: issues/views.py:1838
+msgid "An error occurred during file upload."
+msgstr ""
+
+#: issues/views.py:2079
+msgid "An error occurred while retrieving issue attachments."
 msgstr ""
