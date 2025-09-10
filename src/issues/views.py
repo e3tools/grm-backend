@@ -7,6 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.generics import (
     CreateAPIView,
+    DestroyAPIView,
     ListAPIView,
     RetrieveAPIView,
     get_object_or_404,
@@ -1579,6 +1580,106 @@ class IssueCommentCreateAPIView(CreateAPIView):
             )
 
 
+class IssueCommentDeleteAPIView(DestroyAPIView):
+    """
+    API View for deleting a specific Comment object related to an Issue.
+
+    Only the reporter or assignee of the related issue can delete the comment.
+    """
+
+    queryset = Comment.objects.select_related("issue", "user")
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
+
+    def get_issue(self):
+        """
+        Retrieve the Issue object based on the URL parameter.
+
+        Returns:
+            Issue: The issue object to which the comment will be deleted
+        """
+        comment_id = self.kwargs.get("id")
+        comment = get_object_or_404(Comment.objects.select_related("issue"), id=comment_id)
+        self.comment_instance = comment
+        return comment.issue
+
+    def get_object(self):
+        """
+        Override to return the Issue object for permission checks,
+        while keeping a reference to the Comment for deletion.
+        """
+        issue = self.get_issue()
+        return issue
+
+    def perform_destroy(self, instance):
+        """
+        Actually delete the comment after permission check.
+        """
+        self.comment_instance.delete()
+
+    @swagger_auto_schema(
+        operation_summary="Delete a comment from a specific issue",
+        operation_description="""
+        Delete an existing comment from an issue.
+
+        **Access Control:**
+        - Only users who are either the reporter or assignee of the issue can delete comments.
+        - Ensures that unauthorized users cannot remove comments from issues.
+
+        **Business Rules:**
+        - Comment must exist
+        - User must be authenticated with a valid token
+        - User must be either the issue reporter or assignee
+        """,
+        tags=["Issues", "Comments"],
+        manual_parameters=[
+            openapi.Parameter(
+                "id",
+                openapi.IN_PATH,
+                description="Unique identifier of the comment to delete",
+                type=openapi.TYPE_INTEGER,
+                required=True,
+                example=42,
+            )
+        ],
+        responses={
+            204: openapi.Response(description="Comment deleted successfully"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
+            404: openapi.Response(description="Not Found - Comment with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, example="An error occurred while deleting the comment."
+                        )
+                    },
+                ),
+            ),
+        },
+    )
+    def delete(self, request, *args, **kwargs):
+        """
+        Delete the specified Comment.
+
+        Handles permission checks and returns appropriate status codes.
+        """
+        try:
+            return super().delete(request, *args, **kwargs)
+        except Http404:
+            return Response({"detail": _("Not found.")}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response(
+                {"detail": _("An error occurred while deleting the comment.")},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class IssueCommentsListAPIView(ListAPIView):
     """
     API View for retrieving paginated comments related to a specific Issue.
@@ -1724,7 +1825,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             )
         except Http404:
             return Response(
-                {'detail': _('Issue not found.')},
+                {'detail': _('Not found.')},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:

@@ -6,6 +6,7 @@ from issues.views import (
     IssueAttachmentsListAPIView,
     IssueCategoryListAPIView,
     IssueCommentCreateAPIView,
+    IssueCommentDeleteAPIView,
     IssueCommentsListAPIView,
     IssueCreateAPIView,
     IssueRetrieveAPIView,
@@ -27,4 +28,5 @@ urlpatterns = [
     path('<int:id>/comments/', IssueCommentsListAPIView.as_view(), name='list-issue-comments'),
     path('<int:id>/add-attachment', IssueAttachmentCreateAPIView.as_view(), name='add-issue-attachment'),
     path('<int:id>/attachments/', IssueAttachmentsListAPIView.as_view(), name='list-issue-attachments'),
+    path('delete-comment/<int:id>/', IssueCommentDeleteAPIView.as_view(), name='delete-issue-comment'),
 ]
