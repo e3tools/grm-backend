@@ -301,11 +301,8 @@ class IssueCategoryListAPIViewTest(APITestCase):
         assert len(response1.data['results']) == len(response2.data['results'])
 
         # Responses should be identical (same data for all users)
-        for i, category in enumerate(response1.data['results']):
-            assert category['id'] == response2.data['results'][i]['id']
-            assert category['name'] == response2.data['results'][i]['name']
-            assert category['label'] == response2.data['results'][i]['label']
-            assert category['value'] == response2.data['results'][i]['value']
+        for i, item in enumerate(response1.data['results']):
+            assert item == response2.data['results'][i]
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""

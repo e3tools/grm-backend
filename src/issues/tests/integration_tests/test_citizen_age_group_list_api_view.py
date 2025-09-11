@@ -33,7 +33,7 @@ class CitizenAgeGroupListAPIViewTest(APITestCase):
 
         # Create test citizen age groups
         self.group = CitizenAgeGroupFactory()
-        self.group2 = CitizenAgeGroupFactory()
+        CitizenAgeGroupFactory()
 
     def authenticate_with_token(self):
         """Helper method to authenticate client with token."""
@@ -102,15 +102,15 @@ class CitizenAgeGroupListAPIViewTest(APITestCase):
         assert len(response_data['results']) > 0
 
         # Check structure of first item in results
-        first_type = response_data['results'][0]
+        first_item = response_data['results'][0]
         expected_fields = ['id', 'name']
 
         for field in expected_fields:
-            assert field in first_type
+            assert field in first_item
 
         # Verify data types
-        assert isinstance(first_type['id'], int)
-        assert isinstance(first_type['name'], str)
+        assert isinstance(first_item['id'], int)
+        assert isinstance(first_item['name'], str)
 
     def test_empty_list_when_no_citizen_age_groups(self):
         """Test paginated response when no citizen age groups exist."""
@@ -166,8 +166,7 @@ class CitizenAgeGroupListAPIViewTest(APITestCase):
 
         # Responses should be identical (same data for all users)
         for i, item in enumerate(response1.data['results']):
-            assert item['id'] == response2.data['results'][i]['id']
-            assert item['name'] == response2.data['results'][i]['name']
+            assert item == response2.data['results'][i]
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""

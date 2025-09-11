@@ -108,15 +108,15 @@ class IssueTypeListAPIViewTest(APITestCase):
         assert len(response_data['results']) > 0
 
         # Check structure of first item in results
-        first_type = response_data['results'][0]
+        first_item = response_data['results'][0]
         expected_fields = ['id', 'name']
 
         for field in expected_fields:
-            assert field in first_type
+            assert field in first_item
 
         # Verify data types
-        assert isinstance(first_type['id'], int)
-        assert isinstance(first_type['name'], str)
+        assert isinstance(first_item['id'], int)
+        assert isinstance(first_item['name'], str)
 
     def test_empty_list_when_no_types(self):
         """Test paginated response when no issue types exist."""
@@ -171,9 +171,8 @@ class IssueTypeListAPIViewTest(APITestCase):
         assert len(response1.data['results']) == len(response2.data['results'])
 
         # Responses should be identical (same data for all users)
-        for i, issue_type in enumerate(response1.data['results']):
-            assert issue_type['id'] == response2.data['results'][i]['id']
-            assert issue_type['name'] == response2.data['results'][i]['name']
+        for i, item in enumerate(response1.data['results']):
+            assert item == response2.data['results'][i]
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""
