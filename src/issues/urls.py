@@ -16,6 +16,7 @@ from issues.views import (
     IssueTypeListAPIView,
     IssueUpdateAPIView,
     ReporterIssueListAPIView,
+    SubProjectGroupListAPIView,
 )
 
 app_name = "issues"
@@ -26,6 +27,7 @@ urlpatterns = [
     path("reporter/", ReporterIssueListAPIView.as_view(), name="list-reported-issues"),
     path('<int:id>/', IssueRetrieveAPIView.as_view(), name='issue-detail'),
     path('issue-statuses/', IssueStatusListAPIView.as_view(), name='list-issue-statuses'),
+    path('subproject-groups/', SubProjectGroupListAPIView.as_view(), name='list-subproject-groups'),
     path('citizen-age-groups/', CitizenAgeGroupListAPIView.as_view(), name='list-citizen-age-groups'),
     path('citizen-groups/', CitizenGroupListAPIView.as_view(), name='list-citizen-groups'),
     path('issue-types/', IssueTypeListAPIView.as_view(), name='list-issue-types'),

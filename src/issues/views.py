@@ -31,6 +31,7 @@ from issues.models import (
     IssueCategory,
     IssueStatus,
     IssueType,
+    SubProjectGroup,
 )
 from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
@@ -47,6 +48,7 @@ from issues.serializers import (
     IssueStatusSerializer,
     IssueTypeSerializer,
     IssueUpdateSerializer,
+    SubProjectGroupSerializer,
 )
 
 
@@ -2573,5 +2575,96 @@ class CitizenAgeGroupListAPIView(ListAPIView):
 
         Returns:
             Response: JSON response with paginated list of citizen age groups
+        """
+        return super().get(request, *args, **kwargs)
+
+
+class SubProjectGroupListAPIView(ListAPIView):
+    """
+    API View for listing SubProjectGroup objects with pagination.
+
+    This view provides a paginated read-only list of all available subproject groups.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = SubProjectGroup.objects.all()
+    serializer_class = SubProjectGroupSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List Subproject Groups",
+        operation_description="Retrieve a paginated list of all subproject groups.",
+        tags=['Subproject Groups'],
+        security=[{'Token': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of subproject groups",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description="Unique identifier for the subproject group",
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the subproject group"
+                                    ),
+                                },
+                            ),
+                            description="List of subproject groups for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of SubProjectGroup objects.
+
+        Returns a paginated list of all subproject groups available in the system.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated list of subproject groups
         """
         return super().get(request, *args, **kwargs)
