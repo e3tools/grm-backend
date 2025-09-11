@@ -21,6 +21,7 @@ from issues.models import (
     IssueSubType,
     IssueType,
     SubComponent,
+    SubProjectGroup,
 )
 
 from .models import (
@@ -185,6 +186,13 @@ class AdministrativeRegionFactory(DjangoModelFactory):
     longitude = factory.Faker('longitude')
     administrative_level = factory.SubFactory(AdministrativeLevelFactory)
     parent = None
+
+
+class SubProjectGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SubProjectGroup
+
+    name = factory.Sequence(lambda n: f"{n}")
 
 
 class CitizenAgeGroupFactory(factory.django.DjangoModelFactory):

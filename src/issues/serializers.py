@@ -23,6 +23,7 @@ from issues.models import (
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueType,
+    SubProjectGroup,
 )
 
 
@@ -50,6 +51,13 @@ class IssueCategoryBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueCategory
+        fields = ['id', 'name']
+
+
+class SubProjectGroupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SubProjectGroup
         fields = ['id', 'name']
 
 
