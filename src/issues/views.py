@@ -43,6 +43,7 @@ from issues.models import (
     IssueAttachment,
     IssueCategory,
     IssueStatus,
+    IssueSubType,
     IssueType,
     SubComponent,
     SubProjectGroup,
@@ -60,6 +61,7 @@ from issues.serializers import (
     IssueDetailSerializer,
     IssueSerializer,
     IssueStatusSerializer,
+    IssueSubTypeSerializer,
     IssueTypeSerializer,
     IssueUpdateSerializer,
     SubComponentSerializer,
@@ -2769,5 +2771,106 @@ class SubComponentListAPIView(ListAPIView):
 
         Returns:
             Response: JSON response with paginated list of subcomponents
+        """
+        return super().get(request, *args, **kwargs)
+
+
+class IssueSubTypeListAPIView(ListAPIView):
+    """
+    API View for listing IssueSubType objects with pagination.
+
+    This view provides a paginated read-only list of all available issue subtypes.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = IssueSubType.objects.all()
+    serializer_class = IssueSubTypeSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List Subtypes",
+        operation_description="Retrieve a paginated list of all issue subtypes ordered by name.",
+        tags=['Issue Subtypes'],
+        security=[{'Token': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'page', openapi.IN_QUERY, description="Page number for pagination", type=openapi.TYPE_INTEGER, default=1
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of issue subtypes",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description="Unique identifier for the issue subtype",
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the issue subtype"
+                                    ),
+                                    'parent': openapi.Schema(
+                                        type=openapi.TYPE_OBJECT,
+                                        properties={
+                                            'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="Component ID"),
+                                            'name': openapi.Schema(
+                                                type=openapi.TYPE_STRING, description="Component name"
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                            description="List of issue subtypes for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of IssueSubType objects.
+
+        Returns a paginated list of all issue subtypes available in the system.
+        The list is ordered alphabetically by status name.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated list of issue subtypes
         """
         return super().get(request, *args, **kwargs)

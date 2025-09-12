@@ -122,6 +122,7 @@ class IssueSubTypeFactory(DjangoModelFactory):
         model = IssueSubType
 
     name = factory.Sequence(lambda n: f"SubType {n}")
+    parent = None
 
 
 class IssueCategoryFactory(DjangoModelFactory):
