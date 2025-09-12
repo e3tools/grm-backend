@@ -15,7 +15,7 @@ from client import (
     COUCHDB_URL,
     COUCHDB_USERNAME,
 )
-from dashboard.grm.constants import (
+from grm.constants import (
     ALERT_CHOICE,
     CONFIDENTIAL_CHOICE,
     FEMALE_CHOICE,

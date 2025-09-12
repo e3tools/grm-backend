@@ -1,11 +1,10 @@
 import pytest
-from django.contrib.auth import get_user_model
 from django.test import override_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-User = get_user_model()
+from authentication.models import User
 
 
 @pytest.mark.django_db

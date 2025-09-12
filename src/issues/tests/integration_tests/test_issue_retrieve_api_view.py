@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import ISSUE_RETRIEVE_ERROR_MESSAGE
 from grm.utils import reset_sequences
 from issues.factories import (
     AdministrativeRegionFactory,
@@ -312,4 +313,4 @@ class IssueRetrieveAPIViewTest(APITestCase):
         with patch("issues.views.IssueRetrieveAPIView.get_object", side_effect=RuntimeError("boom")):
             response = self.client.get(self.url)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['detail'] == 'An error occurred while retrieving the issue.'
+        assert response.data['detail'] == ISSUE_RETRIEVE_ERROR_MESSAGE

@@ -10,7 +10,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from authentication.models import Cdata, Facilitator, GovernmentWorker, Pdata, User
-from dashboard.grm.constants import (
+from grm.constants import (
     ALERT_CHOICE,
     ALERT_CHOICES,
     ANONYMOUS_CHOICE,

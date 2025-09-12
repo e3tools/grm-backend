@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
 from dashboard.authentication.forms import EmailAuthenticationForm
-from dashboard.grm.constants import COMPLETE_CHOICE
+from grm.constants import COMPLETE_CHOICE
 from wizard.models import WizardSession
 
 

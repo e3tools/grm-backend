@@ -8,7 +8,8 @@ from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
 from authentication.models import Cdata
-from dashboard.grm.constants import (
+from grm.celery_app import app
+from grm.constants import (
     ACCEPTED_CHOICE,
     ALERT_CHOICE,
     CLOSED_CHOICE,
@@ -16,7 +17,6 @@ from dashboard.grm.constants import (
     PHONE_CHOICE,
     REJECTED_CHOICE,
 )
-from grm.celery_app import app
 from grm.utils import normalize_phone_number
 from issues.models import Comment, Issue
 from mail_client import send_mail_notification

@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 
-from dashboard.grm.constants import COMPLETE_CHOICE
+from grm.constants import COMPLETE_CHOICE
 from wizard.models import WizardSession
 
 

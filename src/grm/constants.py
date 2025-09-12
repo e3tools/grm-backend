@@ -76,16 +76,34 @@ TEXTAREA_MAX_LENGTH = 65000
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_UPLOAD_SIZE_FILE_FORMAT = filesizeformat_en(MAX_UPLOAD_SIZE)
 MAX_ATTACHMENTS = 20
-
-CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
-CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
-CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")
-RATING_ERROR_MESSAGE = _("Rating must be between 1 and 5.")
+FILE_HELP_TEXT = _("Allowed file size less than or equal to %s") % MAX_UPLOAD_SIZE_FILE_FORMAT
 FILE_SIZE_ERROR_MESSAGE = _("Select a file with a size less than or equal to %s. The selected file is %s in size.") % (
     MAX_UPLOAD_SIZE_FILE_FORMAT,
     "%s",
 )
-FILE_HELP_TEXT = _("Allowed file size less than or equal to %s") % MAX_UPLOAD_SIZE_FILE_FORMAT
+VALIDATION_FAILED_MESSAGE = _('Validation failed.')
+NOT_FOUND_MESSAGE = _('Not found.')
+CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
+CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
+CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")
+ISSUE_CREATE_SUCCESS_MESSAGE = _('Issue created successfully.')
+ISSUE_CREATE_ERROR_MESSAGE = _('An error occurred while creating the issue.')
+ISSUE_UPDATE_SUCCESS_MESSAGE = _('Issue updated successfully.')
+ISSUE_UPDATE_ERROR_MESSAGE = _('An error occurred while updating the issue.')
+ISSUE_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving the issue.')
+RATING_ERROR_MESSAGE = _("Rating must be between 1 and 5.")
+COMMENT_CREATE_SUCCESS_MESSAGE = _('Comment added successfully.')
+COMMENT_CREATE_ERROR_MESSAGE = _('An error occurred while creating the comment.')
+COMMENT_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving issue comments.')
+COMMENT_DELETE_ERROR_MESSAGE = _("An error occurred while deleting the comment.")
+EMPTY_COMMENT_ERROR_MESSAGE = _("Comment cannot be empty.")
+ATTACHMENT_CREATE_SUCCESS_MESSAGE = _('Attachment uploaded successfully.')
+ATTACHMENT_CREATE_ERROR_MESSAGE = _('An error occurred during file upload.')
+ATTACHMENT_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving issue attachments.')
+CITIZEN_SUCCESS_MESSAGE = _('Citizen registered successfully.')
+USERNAME_ERROR_MESSAGE = _("A user with that username already exists.")
+EMAIL_ERROR_MESSAGE = _("user with this email address already exists.")
+
 
 WELCOME_CHOICE = "welcome"
 ADMIN_LEVELS_CHOICE = "admin_levels"

@@ -3,7 +3,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from authentication.models import User
-from dashboard.grm.constants import COMPLETE_CHOICE, WELCOME_CHOICE
+from grm.constants import COMPLETE_CHOICE, WELCOME_CHOICE
 from grm.tests.base import DashboardTestCase
 from wizard.models import WizardSession
 

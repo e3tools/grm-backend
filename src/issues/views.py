@@ -1,5 +1,4 @@
 from django.http import Http404
-from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -17,10 +16,24 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from dashboard.grm.constants import (
+from grm.constants import (
+    ATTACHMENT_CREATE_ERROR_MESSAGE,
+    ATTACHMENT_CREATE_SUCCESS_MESSAGE,
+    ATTACHMENT_RETRIEVE_ERROR_MESSAGE,
+    COMMENT_CREATE_ERROR_MESSAGE,
+    COMMENT_CREATE_SUCCESS_MESSAGE,
+    COMMENT_DELETE_ERROR_MESSAGE,
+    COMMENT_RETRIEVE_ERROR_MESSAGE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    ISSUE_CREATE_ERROR_MESSAGE,
+    ISSUE_CREATE_SUCCESS_MESSAGE,
+    ISSUE_RETRIEVE_ERROR_MESSAGE,
+    ISSUE_UPDATE_ERROR_MESSAGE,
+    ISSUE_UPDATE_SUCCESS_MESSAGE,
+    NOT_FOUND_MESSAGE,
     RATING_ERROR_MESSAGE,
+    VALIDATION_FAILED_MESSAGE,
 )
 from issues.models import (
     CitizenAgeGroup,
@@ -91,13 +104,9 @@ class IssueCreateAPIView(CreateAPIView):
                 'category': openapi.Schema(
                     type=openapi.TYPE_INTEGER, description='ID of the issue category', example=1
                 ),
-                'issue_type': openapi.Schema(
-                    type=openapi.TYPE_STRING, description='Type of the issue', example='infrastructure'
-                ),
+                'issue_type': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the issue type', example=1),
                 'issue_sub_type': openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description='Sub-type of the issue for more specific classification',
-                    example='water_supply',
+                    type=openapi.TYPE_INTEGER, description='ID of the issue sub type', example=1
                 ),
                 'contact_medium': openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -181,7 +190,7 @@ class IssueCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Issue created successfully.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=ISSUE_CREATE_SUCCESS_MESSAGE),
                         'data': openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
@@ -336,7 +345,7 @@ class IssueCreateAPIView(CreateAPIView):
                 description="Bad Request - Validation Failed",
                 examples={
                     "application/json": {
-                        "message": "Validation failed.",
+                        "message": VALIDATION_FAILED_MESSAGE,
                         "errors": {
                             "category": ["This field is required."],
                             "issue_type": ["This field is required."],
@@ -355,11 +364,7 @@ class IssueCreateAPIView(CreateAPIView):
                 description="Internal Server Error",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
-                    properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING, example='An error occurred while creating the issue.'
-                        )
-                    },
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example=ISSUE_CREATE_ERROR_MESSAGE)},
                 ),
             ),
         },
@@ -384,17 +389,17 @@ class IssueCreateAPIView(CreateAPIView):
                 issue = serializer.save()
                 detail_serializer = IssueDetailSerializer(issue)
                 return Response(
-                    {'message': _('Issue created successfully.'), 'data': detail_serializer.data},
+                    {'message': ISSUE_CREATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},
                     status=status.HTTP_201_CREATED,
                 )
             else:
                 return Response(
-                    {'message': _('Validation failed.'), 'errors': serializer.errors},
+                    {'message': VALIDATION_FAILED_MESSAGE, 'errors': serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Exception as e:
             return Response(
-                {'message': _('An error occurred while creating the issue.'), 'error': str(e)},
+                {'message': ISSUE_CREATE_ERROR_MESSAGE, 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -955,9 +960,7 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING, example='An error occurred while retrieving the issue.'
-                        )
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING, example=ISSUE_RETRIEVE_ERROR_MESSAGE)
                     },
                 ),
             ),
@@ -983,7 +986,7 @@ class IssueRetrieveAPIView(RetrieveAPIView):
             raise
         except Exception:
             return Response(
-                {'detail': _('An error occurred while retrieving the issue.')},
+                {'detail': ISSUE_RETRIEVE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1436,7 +1439,7 @@ class IssueCommentCreateAPIView(CreateAPIView):
         data = CommentSerializer(instance).data
         headers = self.get_success_headers(data)
         return Response(
-            {'message': _('Comment added successfully.'), 'data': data}, status=status.HTTP_201_CREATED, headers=headers
+            {'message': COMMENT_CREATE_SUCCESS_MESSAGE, 'data': data}, status=status.HTTP_201_CREATED, headers=headers
         )
 
     @swagger_auto_schema(
@@ -1479,8 +1482,6 @@ class IssueCommentCreateAPIView(CreateAPIView):
                     type=openapi.TYPE_STRING,
                     description='The comment text content',
                     example='This issue has been reviewed and requires additional information from the reporter.',
-                    minLength=1,
-                    maxLength=1000,
                 ),
             },
         ),
@@ -1490,7 +1491,7 @@ class IssueCommentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Comment added successfully.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=COMMENT_CREATE_SUCCESS_MESSAGE),
                         'data': openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
@@ -1526,7 +1527,7 @@ class IssueCommentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Validation failed.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
                         'errors': openapi.Schema(
                             type=openapi.TYPE_OBJECT, description='Field-specific validation errors'
                         ),
@@ -1544,9 +1545,7 @@ class IssueCommentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING, example='An error occurred while creating the comment.'
-                        )
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING, example=COMMENT_CREATE_ERROR_MESSAGE)
                     },
                 ),
             ),
@@ -1572,20 +1571,20 @@ class IssueCommentCreateAPIView(CreateAPIView):
 
         except Http404:
             return Response(
-                {'detail': _('Not found.')},
+                {'detail': NOT_FOUND_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
             return Response(
                 {
-                    'message': _('Validation failed.'),
-                    'errors': e.message_dict if hasattr(e, 'message_dict') else str(e),
+                    'message': VALIDATION_FAILED_MESSAGE,
+                    'errors': e.detail,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
             return Response(
-                {'detail': _('An error occurred while creating the comment.')},
+                {'detail': COMMENT_CREATE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1665,9 +1664,7 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, example="An error occurred while deleting the comment."
-                        )
+                        "detail": openapi.Schema(type=openapi.TYPE_STRING, example=COMMENT_DELETE_ERROR_MESSAGE)
                     },
                 ),
             ),
@@ -1682,10 +1679,10 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
         try:
             return super().delete(request, *args, **kwargs)
         except Http404:
-            return Response({"detail": _("Not found.")}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": NOT_FOUND_MESSAGE}, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             return Response(
-                {"detail": _("An error occurred while deleting the comment.")},
+                {"detail": COMMENT_DELETE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1771,6 +1768,15 @@ class IssueCommentsListAPIView(ListAPIView):
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING, example=COMMENT_RETRIEVE_ERROR_MESSAGE)
+                    },
+                ),
+            ),
         },
     )
     def get(self, request, *args, **kwargs):
@@ -1793,7 +1799,7 @@ class IssueCommentsListAPIView(ListAPIView):
             raise
         except Exception:
             return Response(
-                {'detail': _('An error occurred while retrieving issue comments.')},
+                {'detail': COMMENT_RETRIEVE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1821,34 +1827,16 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
         return instance
 
     def create(self, request, *args, **kwargs):
-        try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            instance = self.perform_create(serializer)
-
-            data = IssueAttachmentSerializer(instance).data
-
-            headers = self.get_success_headers(data)
-            return Response(
-                {'message': _('Attachment uploaded successfully.'), 'data': data},
-                status=status.HTTP_201_CREATED,
-                headers=headers,
-            )
-        except Http404:
-            return Response(
-                {'detail': _('Not found.')},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except ValidationError as e:
-            return Response(
-                {'message': _('Validation failed.'), 'errors': e.detail},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception:
-            return Response(
-                {'detail': _('An error occurred during file upload.')},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
+        data = IssueAttachmentSerializer(instance).data
+        headers = self.get_success_headers(data)
+        return Response(
+            {'message': ATTACHMENT_CREATE_SUCCESS_MESSAGE, 'data': data},
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
 
     @swagger_auto_schema(
         operation_summary="Add an attachment to a specific issue",
@@ -1878,7 +1866,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Attachment added successfully.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=ATTACHMENT_CREATE_SUCCESS_MESSAGE),
                         'data': openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
@@ -1913,7 +1901,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Validation failed.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
                         'errors': openapi.Schema(
                             type=openapi.TYPE_OBJECT, description='Field-specific validation errors'
                         ),
@@ -1931,9 +1919,7 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING, example='An error occurred while creating the comment.'
-                        )
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING, example=ATTACHMENT_CREATE_ERROR_MESSAGE)
                     },
                 ),
             ),
@@ -1959,20 +1945,20 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
 
         except Http404:
             return Response(
-                {'detail': _('Not found.')},
+                {'detail': NOT_FOUND_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
             return Response(
                 {
-                    'message': _('Validation failed.'),
-                    'errors': e.message_dict if hasattr(e, 'message_dict') else str(e),
+                    'message': VALIDATION_FAILED_MESSAGE,
+                    'errors': e.detail,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
             return Response(
-                {'detail': _('An error occurred while creating the comment.')},
+                {'detail': ATTACHMENT_CREATE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2067,6 +2053,15 @@ class IssueAttachmentsListAPIView(ListAPIView):
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
+            500: openapi.Response(
+                description="Internal Server Error - Unexpected server error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING, example=ATTACHMENT_RETRIEVE_ERROR_MESSAGE)
+                    },
+                ),
+            ),
         },
     )
     def get(self, request, *args, **kwargs):
@@ -2089,7 +2084,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
             raise
         except Exception:
             return Response(
-                {'detail': _('An error occurred while retrieving issue attachments.')},
+                {'detail': ATTACHMENT_RETRIEVE_ERROR_MESSAGE},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2166,7 +2161,7 @@ class IssueUpdateAPIView(UpdateAPIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(type=openapi.TYPE_STRING, example='Issue updated successfully.'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=ISSUE_UPDATE_SUCCESS_MESSAGE),
                         'data': openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
@@ -2321,7 +2316,7 @@ class IssueUpdateAPIView(UpdateAPIView):
                 description="Bad Request - Validation Failed",
                 examples={
                     "application/json": {
-                        "message": "Validation failed.",
+                        "message": VALIDATION_FAILED_MESSAGE,
                         "errors": {
                             "rating": [RATING_ERROR_MESSAGE],
                             "status": ["Invalid pk \"999\" - object does not exist."],
@@ -2339,17 +2334,13 @@ class IssueUpdateAPIView(UpdateAPIView):
             ),
             404: openapi.Response(
                 description="Not Found - Issue does not exist",
-                examples={"application/json": {"detail": "Not found."}},
+                examples={"application/json": {"detail": NOT_FOUND_MESSAGE}},
             ),
             500: openapi.Response(
                 description="Internal Server Error",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
-                    properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING, example='An error occurred while updating the issue.'
-                        )
-                    },
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example=ISSUE_UPDATE_ERROR_MESSAGE)},
                 ),
             ),
         },
@@ -2376,22 +2367,22 @@ class IssueUpdateAPIView(UpdateAPIView):
                 updated_issue = serializer.save()
                 detail_serializer = IssueDetailSerializer(updated_issue)
                 return Response(
-                    {'message': _('Issue updated successfully.'), 'data': detail_serializer.data},
+                    {'message': ISSUE_UPDATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},
                     status=status.HTTP_200_OK,
                 )
             else:
                 return Response(
-                    {'message': _('Validation failed.'), 'errors': serializer.errors},
+                    {'message': VALIDATION_FAILED_MESSAGE, 'errors': serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except Issue.DoesNotExist:
             return Response(
-                {'message': _('Not found.')},
+                {'message': NOT_FOUND_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except Exception as e:
             return Response(
-                {'message': _('An error occurred while updating the issue.'), 'error': str(e)},
+                {'message': ISSUE_UPDATE_ERROR_MESSAGE, 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 

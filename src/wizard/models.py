@@ -1,6 +1,6 @@
 from django.db import models
 
-from dashboard.grm.constants import STATE_CHOICES, WELCOME_CHOICE
+from grm.constants import STATE_CHOICES, WELCOME_CHOICE
 
 
 class WizardSession(models.Model):

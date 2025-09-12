@@ -67,7 +67,7 @@ class Cdata(AbstractKeyData):
 
 
 class GovernmentWorker(models.Model):
-    user = models.OneToOneField("User", models.PROTECT)
+    user = models.OneToOneField(User, models.PROTECT)
     department = models.ForeignKey("issues.IssueDepartment", on_delete=models.CASCADE, verbose_name=_("department"))
     administrative_region = models.ForeignKey(
         "issues.AdministrativeRegion",
@@ -108,7 +108,7 @@ class GovernmentWorker(models.Model):
 
 
 class Facilitator(models.Model):
-    user = models.OneToOneField("User", models.PROTECT)
+    user = models.OneToOneField(User, models.PROTECT)
     department = models.ForeignKey(
         "issues.IssueDepartment", blank=True, null=True, on_delete=models.CASCADE, related_name='departments'
     )
@@ -123,6 +123,20 @@ class Facilitator(models.Model):
     class Meta:
         verbose_name = _("Facilitator")
         verbose_name_plural = _("Facilitators")
+
+    @property
+    def name(self):
+        return self.user.name
+
+
+class Citizen(models.Model):
+    user = models.OneToOneField(User, models.PROTECT)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
+
+    class Meta:
+        verbose_name = _("Citizen")
+        verbose_name_plural = _("Citizens")
 
     @property
     def name(self):

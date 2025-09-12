@@ -1,8 +1,7 @@
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.serializers import UserBasicSerializer
-from dashboard.grm.constants import (
+from grm.constants import (
     ALERT_CHOICE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
@@ -215,15 +214,9 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
 class IssueCreateSerializer(serializers.ModelSerializer):
     category = serializers.IntegerField(required=True)
+    issue_type = serializers.IntegerField(required=True)
+    issue_sub_type = serializers.IntegerField(required=True)
     citizen = CitizenSerializer(required=False)
-    contact_medium = serializers.CharField(required=True)
-    contact_information = serializers.CharField(required=False, allow_null=True)
-    description = serializers.CharField(required=True)
-    intake_date = serializers.DateTimeField(required=True)
-    issue_type = serializers.CharField(required=True)
-    issue_sub_type = serializers.CharField(required=True)
-    ongoing_issue = serializers.BooleanField(required=False, default=False)
-    tracking_code = serializers.CharField(required=True)
     administrative_region = serializers.PrimaryKeyRelatedField(
         queryset=AdministrativeRegion.objects.all(), required=True
     )
@@ -250,6 +243,13 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             'issue_sub_type',
             'location_description',
         ]
+        extra_kwargs = {
+            "contact_medium": {"required": True, "allow_null": False, "allow_blank": False},
+            "contact_information": {"required": True, "allow_null": True, "allow_blank": True},
+            "description": {"required": True, "allow_null": False, "allow_blank": False},
+            "intake_date": {"required": True, "allow_null": False},
+            "ongoing_issue": {"required": False, "default": False},
+        }
 
     def create(self, validated_data):
         citizen_data = validated_data.pop('citizen')
@@ -335,31 +335,9 @@ class CommentCreateSerializer(serializers.ModelSerializer):
     in the view.
     """
 
-    comment = serializers.CharField(
-        required=True, allow_blank=False, max_length=1000, help_text="The comment text content"
-    )
-
     class Meta:
         model = Comment
         fields = ['comment']
-
-    def validate_comment(self, value):
-        """
-        Validate the comment text.
-
-        Args:
-            value: The comment text to validate
-
-        Returns:
-            str: The validated comment text
-
-        Raises:
-            ValidationError: If the comment is empty or only whitespace
-        """
-        if not value or not value.strip():
-            raise serializers.ValidationError(_("Comment cannot be empty."))
-
-        return value.strip()
 
 
 class IssueAttachmentSerializer(serializers.ModelSerializer):

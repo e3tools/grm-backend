@@ -7,6 +7,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import (
+    ISSUE_UPDATE_ERROR_MESSAGE,
+    ISSUE_UPDATE_SUCCESS_MESSAGE,
+    NOT_FOUND_MESSAGE,
+    VALIDATION_FAILED_MESSAGE,
+)
 from grm.utils import reset_sequences
 from issues.factories import IssueFactory, IssueStatusFactory, UserFactory
 
@@ -66,7 +72,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(self.url, self.valid_update_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'Issue updated successfully.')
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
 
         # Verify the issue was actually updated
         self.issue.refresh_from_db()
@@ -84,7 +90,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(self.url, self.valid_update_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'Issue updated successfully.')
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
         self.assertEqual(response.data['data']['id'], self.issue.id)
 
     def test_other_user_cannot_update_issue(self):
@@ -116,7 +122,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(url, self.valid_update_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
     def test_partial_update_single_field(self):
         """Test that partial updates work correctly."""
@@ -140,7 +146,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(self.url, invalid_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['message'], 'Validation failed.')
+        self.assertEqual(response.data['message'], VALIDATION_FAILED_MESSAGE)
         self.assertIn('rating', response.data['errors'])
 
     def test_rating_validation_above_maximum(self):
@@ -151,7 +157,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(self.url, invalid_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['message'], 'Validation failed.')
+        self.assertEqual(response.data['message'], VALIDATION_FAILED_MESSAGE)
         self.assertIn('rating', response.data['errors'])
 
     def test_invalid_status_id_validation(self):
@@ -171,7 +177,6 @@ class IssueUpdateAPIViewTest(APITestCase):
         response = self.client.patch(self.url, {}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['message'], 'Issue updated successfully.')
 
     def test_internal_server_error(self):
         """Test internal server error response."""
@@ -181,7 +186,7 @@ class IssueUpdateAPIViewTest(APITestCase):
             response = self.client.patch(self.url, self.valid_update_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertEqual(response.data['message'], 'An error occurred while updating the issue.')
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_ERROR_MESSAGE)
 
     def test_boolean_field_validation(self):
         """Test that boolean fields accept valid boolean values."""

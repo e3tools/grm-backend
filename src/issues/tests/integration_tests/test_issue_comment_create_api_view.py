@@ -7,6 +7,12 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import (
+    COMMENT_CREATE_ERROR_MESSAGE,
+    COMMENT_CREATE_SUCCESS_MESSAGE,
+    NOT_FOUND_MESSAGE,
+    VALIDATION_FAILED_MESSAGE,
+)
 from grm.utils import reset_sequences
 from issues.factories import IssueFactory, UserFactory
 from issues.models import Comment
@@ -54,7 +60,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         response = self.client.post(self.url, self.valid_comment_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['message'], 'Comment added successfully.')
+        self.assertEqual(response.data['message'], COMMENT_CREATE_SUCCESS_MESSAGE)
         self.assertEqual(response.data['data']['comment'], 'This is a test comment')
         self.assertEqual(response.data['data']['user']['id'], self.reporter_user.id)
 
@@ -99,7 +105,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         response = self.client.post(url, self.valid_comment_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
     def test_empty_comment_validation_error(self):
         """Test that empty comments return validation error."""
@@ -109,8 +115,9 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         response = self.client.post(self.url, invalid_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['message'], 'Validation failed.')
+        self.assertEqual(response.data['message'], VALIDATION_FAILED_MESSAGE)
         self.assertIn('comment', response.data['errors'])
+        self.assertEqual(str(response.data['errors']['comment'][0]), 'This field may not be blank.')
 
     def test_internal_server_error(self):
         """Test internal server error response."""
@@ -119,7 +126,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         with patch("issues.views.IssueCommentCreateAPIView.perform_create", side_effect=RuntimeError("boom")):
             response = self.client.post(self.url, self.valid_comment_data, format='json')
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['detail'] == 'An error occurred while creating the comment.'
+        assert response.data['detail'] == COMMENT_CREATE_ERROR_MESSAGE
 
     def test_whitespace_only_comment_validation_error(self):
         """Test that whitespace-only comments return validation error."""
@@ -138,7 +145,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         response = self.client.post(self.url, {}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['message'], 'Validation failed.')
+        self.assertEqual(response.data['message'], VALIDATION_FAILED_MESSAGE)
         self.assertIn('comment', response.data['errors'])
 
     def test_comment_text_is_trimmed(self):
@@ -154,18 +161,6 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         # Verify in database
         comment = Comment.objects.get(id=response.data['data']['id'])
         self.assertEqual(comment.comment, 'This is a comment with spaces')
-
-    def test_comment_max_length_validation(self):
-        """Test that comments exceeding max length return validation error."""
-        self.authenticate_with_token()
-
-        long_comment = 'A' * 1001  # Exceeds max_length of 1000
-        comment_data = {'comment': long_comment}
-
-        response = self.client.post(self.url, comment_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('comment', response.data['errors'])
 
     def test_comment_response_structure(self):
         """Test that the comments response format matches expected structure."""

@@ -1,11 +1,9 @@
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from dashboard.grm.constants import COMPLETE_CHOICE
+from authentication.models import User
+from grm.constants import COMPLETE_CHOICE
 from wizard.models import WizardSession
-
-User = get_user_model()
 
 
 @pytest.mark.django_db
