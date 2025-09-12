@@ -33,7 +33,7 @@ class SubProjectGroupListAPIViewTest(APITestCase):
 
         # Create test subproject groups
         self.group = SubProjectGroupFactory()
-        self.group2 = SubProjectGroupFactory()
+        SubProjectGroupFactory()
 
     def authenticate_with_token(self):
         """Helper method to authenticate client with token."""
@@ -102,17 +102,17 @@ class SubProjectGroupListAPIViewTest(APITestCase):
         assert len(response_data['results']) > 0
 
         # Check structure of first item in results
-        first_type = response_data['results'][0]
+        first_item = response_data['results'][0]
         expected_fields = ['id', 'name']
 
         for field in expected_fields:
-            assert field in first_type
+            assert field in first_item
 
         # Verify data types
-        assert isinstance(first_type['id'], int)
-        assert isinstance(first_type['name'], str)
+        assert isinstance(first_item['id'], int)
+        assert isinstance(first_item['name'], str)
 
-    def test_empty_list_when_no_citizen_age_groups(self):
+    def test_empty_list_when_no_subprojects(self):
         """Test paginated response when no subproject groups exist."""
         # Delete all subproject groups
         SubProjectGroup.objects.all().delete()
@@ -129,7 +129,7 @@ class SubProjectGroupListAPIViewTest(APITestCase):
         assert isinstance(response_data['results'], list)
         assert len(response_data['results']) == 0
 
-    def test_single_citizen_age_group_response(self):
+    def test_single_subproject_response(self):
         """Test paginated response when only one subproject group exists."""
         # Delete all but one subproject group
         SubProjectGroup.objects.exclude(id=self.group.id).delete()
@@ -166,8 +166,7 @@ class SubProjectGroupListAPIViewTest(APITestCase):
 
         # Responses should be identical (same data for all users)
         for i, item in enumerate(response1.data['results']):
-            assert item['id'] == response2.data['results'][i]['id']
-            assert item['name'] == response2.data['results'][i]['name']
+            assert item == response2.data['results'][i]
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""

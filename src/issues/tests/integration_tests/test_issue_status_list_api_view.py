@@ -222,9 +222,8 @@ class IssueStatusListAPIViewTest(APITestCase):
         assert len(response1.data['results']) == len(response2.data['results'])
 
         # Responses should be identical (same data for all users)
-        for i, status in enumerate(response1.data['results']):
-            assert status['id'] == response2.data['results'][i]['id']
-            assert status['name'] == response2.data['results'][i]['name']
+        for i, item in enumerate(response1.data['results']):
+            assert item == response2.data['results'][i]
 
     def test_inactive_user_authentication(self):
         """Test that inactive users cannot authenticate."""

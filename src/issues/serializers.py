@@ -16,12 +16,14 @@ from issues.models import (
     CitizenAgeGroup,
     CitizenGroup,
     Comment,
+    Component,
     Issue,
     IssueAttachment,
     IssueCategory,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueType,
+    SubComponent,
     SubProjectGroup,
 )
 
@@ -51,6 +53,21 @@ class IssueCategoryBasicSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueCategory
         fields = ['id', 'name']
+
+
+class ComponentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Component
+        fields = ['id', 'name', 'description']
+
+
+class SubComponentSerializer(serializers.ModelSerializer):
+    parent = ComponentSerializer(read_only=True)
+
+    class Meta:
+        model = SubComponent
+        fields = ['id', 'name', 'description', 'parent']
 
 
 class SubProjectGroupSerializer(serializers.ModelSerializer):
