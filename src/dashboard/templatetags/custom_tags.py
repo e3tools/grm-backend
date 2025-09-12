@@ -2,7 +2,7 @@ from django import template
 from django.utils import timezone
 
 from authentication.utils import get_validation_code
-from dashboard.grm.constants import (
+from grm.constants import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,

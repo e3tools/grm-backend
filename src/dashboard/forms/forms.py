@@ -1,11 +1,7 @@
 from django import forms
 from django.template.defaultfilters import filesizeformat
 
-from dashboard.grm.constants import (
-    FILE_HELP_TEXT,
-    FILE_SIZE_ERROR_MESSAGE,
-    MAX_UPLOAD_SIZE,
-)
+from grm.constants import FILE_HELP_TEXT, FILE_SIZE_ERROR_MESSAGE, MAX_UPLOAD_SIZE
 
 
 class FileForm(forms.Form):

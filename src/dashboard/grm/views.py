@@ -16,12 +16,6 @@ from django.views import generic
 from authentication.models import Cdata, GovernmentWorker, Pdata
 from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.forms.forms import FileForm
-from dashboard.grm.constants import (
-    ALERT_CHOICE,
-    CONFIDENTIAL_CHOICE,
-    MAX_ATTACHMENTS,
-    TEXTAREA_MAX_LENGTH,
-)
 from dashboard.grm.forms import (
     IssueCommentForm,
     IssueDetailsForm,
@@ -40,6 +34,13 @@ from dashboard.mixins import (
     JSONResponseMixin,
     ModalFormMixin,
     PageMixin,
+)
+from grm.constants import (
+    ALERT_CHOICE,
+    CONFIDENTIAL_CHOICE,
+    EMPTY_COMMENT_ERROR_MESSAGE,
+    MAX_ATTACHMENTS,
+    TEXTAREA_MAX_LENGTH,
 )
 from grm.utils import get_issue_select_options_choices
 from issues.models import (
@@ -692,7 +693,7 @@ class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JS
             msg = _("The comment was sent successfully.")
             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         else:
-            msg = _("Comment cannot be empty.")
+            msg = EMPTY_COMMENT_ERROR_MESSAGE
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)

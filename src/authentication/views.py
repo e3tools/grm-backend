@@ -1,169 +1,17 @@
-from django.conf import settings
 from django.contrib.auth import authenticate
-from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
-from drf_yasg.openapi import IN_QUERY, Parameter
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, parsers, renderers, status
+from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from authentication.constants import ADL, MAJOR
 from authentication.models import User
-from authentication.serializers import (
-    ADLActiveResponseSerializer,
-    ADLAdministrativeRegionResponseSerializer,
-    CredentialSerializer,
-    LoginSerializer,
-    RegisterSerializer,
-    UserAuthSerializer,
-)
-from client import get_db
-from grm.utils import (
-    get_administrative_level_descendants,
-    get_parent_administrative_level,
-)
-
-
-class RegisterAPIView(APIView):
-    throttle_classes = ()
-    permission_classes = ()
-    parser_classes = (
-        parsers.FormParser,
-        parsers.MultiPartParser,
-        parsers.JSONParser,
-    )
-    renderer_classes = (renderers.JSONRenderer,)
-    serializer_class = RegisterSerializer
-
-    def get_serializer_context(self):
-        return {"request": self.request, "format": self.format_kwarg, "view": self}
-
-    def get_serializer(self, *args, **kwargs):
-        kwargs["context"] = self.get_serializer_context()
-        return self.serializer_class(*args, **kwargs)
-
-    @swagger_auto_schema(
-        request_body=RegisterSerializer(),
-        responses={201: CredentialSerializer()},
-        operation_description="Allowed user types: adl or major",
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        doc_id = serializer.validated_data["doc_id"]
-        credentials = {
-            "username": settings.COUCHDB_USERNAME,
-            "password": settings.COUCHDB_PASSWORD,
-            "doc_id": doc_id,
-        }
-        credential_serializer = CredentialSerializer(data=credentials)
-        credential_serializer.is_valid(raise_exception=True)
-        return Response(credential_serializer.data, status=status.HTTP_201_CREATED)
-
-
-class AuthenticateAPIView(RegisterAPIView):
-    serializer_class = UserAuthSerializer
-
-    @swagger_auto_schema(
-        request_body=UserAuthSerializer(),
-        responses={200: CredentialSerializer()},
-        operation_description="Allowed user types: adl or major",
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        doc_id = serializer.validated_data["doc_id"]
-        credentials = {
-            "username": settings.COUCHDB_USERNAME,
-            "password": settings.COUCHDB_PASSWORD,
-            "doc_id": doc_id,
-        }
-        credential_serializer = CredentialSerializer(data=credentials)
-        credential_serializer.is_valid(raise_exception=True)
-        return Response(credential_serializer.data, status=status.HTTP_200_OK)
-
-
-class ADLActiveAPIView(generics.GenericAPIView):
-    @swagger_auto_schema(
-        responses={200: ADLActiveResponseSerializer()},
-        operation_description="Get adl user status",
-        manual_parameters=[
-            Parameter(
-                "email",
-                IN_QUERY,
-                description="Email of an facilitator user",
-                type="string",
-            )
-        ],
-    )
-    def get(self, request, *args, **kwargs):
-        email = request.GET.get("email")
-        selector = {"representative.email": email, "type": {"$in": [ADL, MAJOR]}}
-        eadl_db = get_db()
-        docs = eadl_db.get_query_result(selector)
-        try:
-            doc = eadl_db[docs[0][0]["_id"]]
-        except Exception:
-            raise Http404
-
-        is_active = (
-            doc["representative"]["is_active"]
-            if "representative" in doc and "is_active" in doc["representative"]
-            else False
-        )
-
-        reponse_data = {"is_active": is_active}
-        reponse_serializer = ADLActiveResponseSerializer(data=reponse_data)
-        reponse_serializer.is_valid(raise_exception=True)
-        return Response(reponse_data, status=status.HTTP_200_OK)
-
-
-class ADLAdministrativeRegionAPIView(generics.GenericAPIView):
-    @swagger_auto_schema(
-        responses={200: ADLAdministrativeRegionResponseSerializer()},
-        operation_description="Get adl user administrative region info",
-        manual_parameters=[
-            Parameter(
-                "email",
-                IN_QUERY,
-                description="Email of an facilitator user",
-                type="string",
-            )
-        ],
-    )
-    def get(self, request, *args, **kwargs):
-        email = request.GET.get("email")
-        selector = {"representative.email": email, "type": {"$in": [ADL, MAJOR]}}
-        eadl_db = get_db()
-        docs = eadl_db.get_query_result(selector)
-        try:
-            doc = eadl_db[docs[0][0]["_id"]]
-        except Exception:
-            raise Http404
-
-        administrative_level = doc["administrative_level"]
-        administrative_id = doc["administrative_region"]
-
-        ids = [f"${administrative_id}$"]
-        while True:
-            parent = get_parent_administrative_level(eadl_db, administrative_id)
-            ids.append("$%s$" % parent["administrative_id"])
-            administrative_id = parent["administrative_id"]
-            if parent["parent_id"] is None:
-                break
-
-        if administrative_level != "village":
-            descendants = get_administrative_level_descendants(eadl_db, doc["administrative_region"], [])
-            for descendant in descendants:
-                ids.append("$%s$" % descendant)
-
-        reponse_data = {"levels": ids}
-        reponse_serializer = ADLAdministrativeRegionResponseSerializer(data=reponse_data)
-        print(f"get-adl-region : {reponse_data}")
-        reponse_serializer.is_valid(raise_exception=True)
-        return Response(reponse_data, status=status.HTTP_200_OK)
+from authentication.serializers import CitizenRegistrationSerializer, LoginSerializer
+from grm.constants import CITIZEN_SUCCESS_MESSAGE, VALIDATION_FAILED_MESSAGE
 
 
 class LoginView(APIView):
@@ -280,3 +128,166 @@ class LoginView(APIView):
             {'token': token.key, 'user_id': user.id, 'username': user.username, 'message': 'Login successful'},
             status=status.HTTP_200_OK,
         )
+
+
+class CitizenRegistrationCreateAPIView(CreateAPIView):
+    """
+    API View for registering new Citizens.
+
+    This view handles the creation of new User accounts and associated Citizen instances.
+    No authentication is required for registration.
+    """
+
+    queryset = User.objects.all()
+    serializer_class = CitizenRegistrationSerializer
+    authentication_classes = []  # No authentication required
+    permission_classes = []  # No permissions required
+
+    @swagger_auto_schema(
+        operation_summary="Register a new citizen",
+        operation_description="""
+        Register a new citizen account. Creates both a User and associated Citizen record.
+
+        **No authentication required for this endpoint.**
+        """,
+        tags=['Authentication'],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password'],
+            properties={
+                'username': openapi.Schema(
+                    type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
+                ),
+                'first_name': openapi.Schema(
+                    type=openapi.TYPE_STRING, description='First name of the citizen', example='John', max_length=150
+                ),
+                'last_name': openapi.Schema(
+                    type=openapi.TYPE_STRING, description='Last name of the citizen', example='Doe', max_length=150
+                ),
+                'email': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_EMAIL,
+                    description='Unique email address for the account',
+                    example='john.doe@example.com',
+                ),
+                'password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Account password (must meet security requirements)',
+                    example='SecurePassword123!',
+                ),
+                'confirm_password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Password confirmation (must match password)',
+                    example='SecurePassword123!',
+                ),
+            },
+        ),
+        responses={
+            201: openapi.Response(
+                description="Citizen registered successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=CITIZEN_SUCCESS_MESSAGE),
+                        'data': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID', example=42),
+                                'username': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_EMAIL,
+                                    description='Username',
+                                    example='john.doe',
+                                ),
+                                'email': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_EMAIL,
+                                    description='User email address',
+                                    example='john.doe@example.com',
+                                ),
+                                'first_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING, description='User first name', example='John'
+                                ),
+                                'last_name': openapi.Schema(
+                                    type=openapi.TYPE_STRING, description='User last name', example='Doe'
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad Request - Validation Failed",
+                examples={
+                    "application/json": {
+                        "message": VALIDATION_FAILED_MESSAGE,
+                        "errors": {
+                            "username": ["A user with that username already exists."],
+                            "email": ["user with this email address already exists."],
+                            "confirm_password": ["Password confirmation does not match."],
+                            "password": ["This password is too short. It must contain at least 8 characters."],
+                        },
+                    }
+                },
+            ),
+            500: openapi.Response(
+                description="Internal Server Error",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(
+                            type=openapi.TYPE_STRING, example='An error occurred while registering the citizen.'
+                        )
+                    },
+                ),
+            ),
+        },
+    )
+    def post(self, request, *args, **kwargs):
+        """
+        Register a new citizen.
+
+        Creates a new User account and associated Citizen record.
+
+        Args:
+            request: HTTP request object containing registration data
+
+        Returns:
+            Response: JSON response with created user data or error details
+        """
+        try:
+            serializer = self.get_serializer(data=request.data)
+
+            if serializer.is_valid():
+                user = serializer.save()
+
+                response_data = {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                }
+
+                return Response(
+                    {'message': CITIZEN_SUCCESS_MESSAGE, 'data': response_data},
+                    status=status.HTTP_201_CREATED,
+                )
+            else:
+                return Response(
+                    {'message': VALIDATION_FAILED_MESSAGE, 'errors': serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        except ValidationError as e:
+            return Response(
+                {'message': VALIDATION_FAILED_MESSAGE, 'errors': e.detail},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            return Response(
+                {'message': _('An error occurred while registering the citizen.'), 'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

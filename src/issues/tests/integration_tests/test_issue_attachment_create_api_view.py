@@ -10,6 +10,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import (
+    ATTACHMENT_CREATE_ERROR_MESSAGE,
+    ATTACHMENT_CREATE_SUCCESS_MESSAGE,
+    NOT_FOUND_MESSAGE,
+)
 from grm.utils import reset_sequences
 from issues.factories import IssueFactory, UserFactory
 from issues.models import IssueAttachment
@@ -63,7 +68,7 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
         response = self.client.post(self.url, self.valid_data, format='multipart')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['message'], 'Attachment uploaded successfully.')
+        self.assertEqual(response.data['message'], ATTACHMENT_CREATE_SUCCESS_MESSAGE)
         self.assertEqual(response.data['data']['uploaded_by']['id'], self.reporter_user.id)
 
         # Verify that the attachment was actually created in the database
@@ -120,7 +125,7 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
         response = self.client.post(url, self.valid_data, format='multipart')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
     def test_empty_attachment_validation_error(self):
         """Test that empty attachments return validation error."""
@@ -138,7 +143,7 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
         with patch("issues.views.IssueAttachmentCreateAPIView.perform_create", side_effect=RuntimeError("boom")):
             response = self.client.post(self.url, self.valid_data, format='multipart')
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['detail'] == 'An error occurred during file upload.'
+        assert response.data['detail'] == ATTACHMENT_CREATE_ERROR_MESSAGE
 
     def test_missing_attachment_field_validation_error(self):
         """Test that missing attachment field returns validation error."""

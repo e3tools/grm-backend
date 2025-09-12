@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import ATTACHMENT_RETRIEVE_ERROR_MESSAGE, NOT_FOUND_MESSAGE
 from grm.utils import reset_sequences
 from issues.factories import IssueAttachmentFactory, IssueFactory, UserFactory
 from issues.models import IssueAttachment
@@ -98,7 +99,7 @@ class IssueAttachmentsListAPIViewTest(APITestCase):
         response = self.client.get(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
     def test_internal_server_error(self):
         """Test internal server error response."""
@@ -107,7 +108,7 @@ class IssueAttachmentsListAPIViewTest(APITestCase):
             response = self.client.get(self.url)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data["detail"] == "An error occurred while retrieving issue attachments."
+        assert response.data["detail"] == ATTACHMENT_RETRIEVE_ERROR_MESSAGE
 
     # -----------------------------
     # Data retrieval tests

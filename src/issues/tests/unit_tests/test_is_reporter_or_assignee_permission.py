@@ -1,11 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory, IssueFactory, UserFactory
 from issues.permissions import IsReporterOrAssigneePermission
-
-User = get_user_model()
 
 
 class IsReporterOrAssigneePermissionTest(TestCase):

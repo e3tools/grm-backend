@@ -1,13 +1,15 @@
 import django.contrib.auth.password_validation as validators
 from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.constants import ADL, MAJOR
-from authentication.models import User
+from authentication.models import Citizen, User
 from authentication.utils import get_validation_code
 from client import get_db
+from grm.constants import EMAIL_ERROR_MESSAGE, USERNAME_ERROR_MESSAGE
 
 
 class CredentialSerializer(serializers.Serializer):
@@ -151,3 +153,68 @@ class UserBasicSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name']
         read_only_fields = ['id', 'name']
+
+
+class CitizenRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for citizen registration.
+
+    Handles user creation with required fields and password confirmation validation.
+    """
+
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password']
+        extra_kwargs = {
+            "first_name": {"required": True, "allow_blank": False},
+            "last_name": {"required": True, "allow_blank": False},
+        }
+
+    def validate_username(self, value):
+        """Validate username is unique."""
+        if User.objects.filter(username=value.lower()).exists():
+            raise serializers.ValidationError(USERNAME_ERROR_MESSAGE)
+        return value
+
+    def validate_email(self, value):
+        """Validate email is unique."""
+        if User.objects.filter(email=value.lower()).exists():
+            raise serializers.ValidationError(EMAIL_ERROR_MESSAGE)
+        return value
+
+    def validate(self, attrs):
+        """Validate password confirmation and strength."""
+        password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+
+        if password != confirm_password:
+            raise serializers.ValidationError({'confirm_password': 'Password confirmation does not match.'})
+
+        # Validate password strength using Django's built-in validators
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
+
+        return attrs
+
+    def create(self, validated_data):
+        """Create user and associated citizen."""
+        validated_data.pop('confirm_password')  # Remove confirm_password
+
+        # Create user
+        user = User.objects.create_user(
+            username=validated_data['username'].lower(),
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'].lower(),
+            password=validated_data['password'],
+        )
+
+        # Create associated citizen
+        Citizen.objects.create(user=user)
+
+        return user

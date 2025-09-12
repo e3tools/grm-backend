@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from dashboard.grm.constants import (
+from grm.constants import (
     ALERT_CHOICE,
     ANONYMOUS_CHOICE,
     FACILITATOR_CHOICE,

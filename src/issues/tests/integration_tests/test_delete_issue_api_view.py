@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from grm.constants import COMMENT_DELETE_ERROR_MESSAGE, NOT_FOUND_MESSAGE
 from grm.utils import reset_sequences
 from issues.factories import CommentFactory, IssueFactory, UserFactory
 from issues.models import Comment
@@ -74,7 +75,7 @@ class IssueCommentDeleteAPIViewTest(APITestCase):
         response = self.client.delete(url)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        self.assertEqual(response.data['detail'], 'Not found.')
+        self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
     def test_delete_comment_as_unrelated_user(self):
         """Users who are not reporter or assignee cannot delete comments."""
@@ -92,7 +93,7 @@ class IssueCommentDeleteAPIViewTest(APITestCase):
             response = self.client.delete(self.url)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['detail'] == 'An error occurred while deleting the comment.'
+        assert response.data['detail'] == COMMENT_DELETE_ERROR_MESSAGE
 
     def test_delete_method_only_allowed(self):
         """Ensure only DELETE is permitted."""

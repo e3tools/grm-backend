@@ -1,15 +1,19 @@
+from unittest.mock import patch
+
 import pytest
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from dashboard.grm.constants import (
+from grm.constants import (
     ALERT_CHOICE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
     FACILITATOR_CHOICE,
+    ISSUE_CREATE_ERROR_MESSAGE,
+    ISSUE_CREATE_SUCCESS_MESSAGE,
 )
 from grm.utils import reset_sequences
 from issues.factories import (
@@ -83,6 +87,7 @@ class IssueCreateAPIViewTest(APITestCase):
         response = self.client.post(self.url, data=data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['message'], ISSUE_CREATE_SUCCESS_MESSAGE)
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
         self.assertEqual(created_issue.description, "This is a test issue.")
@@ -227,6 +232,44 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(Issue.objects.count(), 1)
         created_issue = Issue.objects.get()
         self.assertEqual(created_issue.description, "This is a test issue.")
+
+    def test_empty_field_validation(self):
+        """Test registration with empty fields."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        expected_fields = [
+            'description',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'reporter',
+            'citizen',
+            'contact_medium',
+            'ongoing_issue',
+            'tracking_code',
+            'intake_date',
+            'issue_sub_type',
+        ]
+        for field in expected_fields:
+            data[field] = ''
+
+        response = self.client.post(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'errors' in response.data
+
+        # All fields should have validation errors
+        for field in expected_fields:
+            assert field in response.data['errors']
+
+    def test_internal_server_error(self):
+        """Test internal server error response."""
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        with patch("issues.views.IssueCreateAPIView.get_serializer", side_effect=RuntimeError("boom")):
+            response = self.client.post(self.url, data, format='json')
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.data['message'] == ISSUE_CREATE_ERROR_MESSAGE
 
     def __get_valid_data(self):
         return {

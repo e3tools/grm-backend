@@ -32,11 +32,6 @@ def get_month_range(start, end=datetime.now(), fmt="Y F"):
     return months
 
 
-def unix_time_millis(dt):
-    epoch = datetime.utcfromtimestamp(0)
-    return int((dt - epoch).total_seconds() * 1000)
-
-
 def get_choices(query_result, empty_choice=True):
     choices = [(i.id, i.name) for i in query_result]
     if empty_choice:
@@ -56,80 +51,6 @@ def get_issue_select_options_choices(model_class, parent_id=None, empty_choice=T
 
     query_result = apps.get_model("issues", model_class).objects.filter(parent=parent_id)
     return get_choices_select2(query_result, empty_choice)
-
-
-def get_issue_subproject_group_choices(grm_db, empty_choice=True):
-    query_result = grm_db.get_query_result({"type": "issue_subproject_group"})
-    return get_choices(query_result, empty_choice)
-
-
-def get_issue_options_choices(grm_db, type, empty_choice=True):
-    query_result = grm_db.get_query_result({"type": type})
-    return get_choices(query_result, empty_choice)
-
-
-def get_administrative_region_name(eadl_db, administrative_id):
-    not_found_message = f'[Missing region with administrative_id "{administrative_id}"]'
-    if not administrative_id:
-        return not_found_message
-
-    region_names = []
-    has_parent = True
-
-    while has_parent:
-        docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
-
-        try:
-            doc = eadl_db[docs[0][0]["_id"]]
-            region_names.append(doc["name"])
-            administrative_id = doc["parent_id"]
-            has_parent = administrative_id is not None
-        except Exception:
-            region_names.append(not_found_message)
-            has_parent = False
-
-    return ", ".join(region_names)
-
-
-def get_administrative_level_descendants(eadl_db, parent_id, ids):
-    data = eadl_db.get_query_result(
-        {
-            "type": "administrative_level",
-            "parent_id": {"$in": parent_id if isinstance(parent_id, list) else [parent_id]},
-        }
-    )
-
-    data = [doc for doc in data]
-    if len(data) > 0:
-        descendants_ids = [region["administrative_id"] for region in data]
-        for descendant in descendants_ids:
-            ids.append(descendant)
-        get_administrative_level_descendants(eadl_db, descendants_ids, ids)
-
-    return ids
-
-
-def get_parent_administrative_level(eadl_db, administrative_id):
-    parent = None
-    docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
-
-    try:
-        doc = eadl_db[docs[0][0]["_id"]]
-        if "parent_id" in doc and doc["parent_id"]:
-            administrative_id = doc["parent_id"]
-            docs = eadl_db.get_query_result({"administrative_id": administrative_id, "type": "administrative_level"})
-            parent = eadl_db[docs[0][0]["_id"]]
-    except Exception:
-        pass
-    return parent
-
-
-def get_auto_increment_id(grm_db):
-    try:
-        max_auto_increment_id = grm_db.get_view_result("issues", "auto_increment_id_stats")[0][0]["value"]["max"]
-    except Exception:
-        max_auto_increment_id = 0
-    return max_auto_increment_id + 1
 
 
 def normalize_phone_number(phone_number):
