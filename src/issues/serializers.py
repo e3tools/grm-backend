@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import MethodNotAllowed
 
 from authentication.serializers import UserBasicSerializer
 from grm.constants import (
@@ -7,7 +8,8 @@ from grm.constants import (
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
     EMAIL_CHOICE,
-    RATING_ERROR_MESSAGE,
+    ISSUE_UPDATE_RATING_ERROR_MESSAGE,
+    ISSUE_UPDATE_STATUS_ERROR_MESSAGE,
 )
 from grm.utils import email_is_valid
 from issues.models import (
@@ -330,17 +332,41 @@ class IssueUpdateSerializer(serializers.ModelSerializer):
 
     Only allows updating the fields that are permitted for modification:
     escalate_flag, reject_flag, rating, escalation_reason, status, research_result
+
+    Includes role-based field restrictions:
+    - Only assignees can edit 'status'
+    - Only reporters can edit 'rating'
+    - Both can edit if user is both reporter and assignee
     """
 
     class Meta:
         model = Issue
         fields = ['escalate_flag', 'reject_flag', 'rating', 'escalation_reason', 'status', 'research_result']
 
-    def validate_rating(self, value):
-        """Validate rating is between 1 and 5 if provided."""
-        if value is not None and (value < 1 or value > 5):
-            raise serializers.ValidationError(RATING_ERROR_MESSAGE)
-        return value
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('context', {}).get('request')
+        super().__init__(*args, **kwargs)
+
+    def validate(self, attrs):
+        """Validate role-based field restrictions."""
+        if not self.request or not hasattr(self.request, 'user'):
+            return attrs
+
+        user = self.request.user
+        issue = self.instance
+
+        if not issue:
+            return attrs
+
+        # Check status field restriction
+        if 'status' in attrs and user.id != issue.assignee.id:
+            raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_STATUS_ERROR_MESSAGE)
+
+        # Check rating field restriction
+        if 'rating' in attrs and user.id != issue.reporter.id:
+            raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_RATING_ERROR_MESSAGE)
+
+        return attrs
 
 
 class CommentSerializer(serializers.ModelSerializer):

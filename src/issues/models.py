@@ -450,6 +450,7 @@ class Issue(models.Model):
     reject_flag = models.BooleanField(default=False)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=0)
     escalation_reason = models.TextField(null=True, blank=True)
+    appeal_status = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _("Issue")
