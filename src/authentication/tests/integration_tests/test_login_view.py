@@ -1,15 +1,23 @@
 import pytest
 from django.test import override_settings
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.constants import (
+    INACTIVE_USER_ERROR_MESSAGE,
+    INVALID_INPUT_ERROR_MESSAGE,
+    LOGIN_ERROR_MESSAGE,
+    LOGIN_SUCCESS_MESSAGE,
+)
+from authentication.factories import UserFactory
 from authentication.models import User
 
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class AuthLoginViewTest(APITestCase):
+class LoginViewTest(APITestCase):
     """
     Test cases for the authentication login API endpoint.
 
@@ -19,12 +27,12 @@ class AuthLoginViewTest(APITestCase):
 
     def setUp(self):
         """Set up test data and URL for each test."""
-        self.url = reverse("authentication:auth-login")
+        self.url = reverse("authentication:login")
 
         # Create test user with known credentials
         self.username = "testuser"
         self.password = "testpassword123"
-        self.user = User.objects.create_user(username=self.username, password=self.password, is_active=True)
+        self.user = UserFactory(username=self.username, password=self.password, is_active=True)
 
     def test_successful_login(self):
         """Test successful login with valid credentials."""
@@ -32,7 +40,7 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, dict)
 
         # Check required fields in response
@@ -43,7 +51,7 @@ class AuthLoginViewTest(APITestCase):
         # Verify response data
         assert response.data['user_id'] == self.user.id
         assert response.data['username'] == self.username
-        assert response.data['message'] == 'Login successful'
+        assert response.data['message'] == LOGIN_SUCCESS_MESSAGE
         assert isinstance(response.data['token'], str)
         assert len(response.data['token']) == 40  # Token length
 
@@ -57,9 +65,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 401
-        assert 'error' in response.data
-        assert response.data['error'] == 'Invalid username or password'
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.data['error'] == LOGIN_ERROR_MESSAGE
 
     def test_invalid_password(self):
         """Test login with invalid password."""
@@ -67,9 +74,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 401
-        assert 'error' in response.data
-        assert response.data['error'] == 'Invalid username or password'
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.data['error'] == LOGIN_ERROR_MESSAGE
 
     def test_missing_username(self):
         """Test login with missing username field."""
@@ -77,10 +83,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 400
-        assert 'error' in response.data
-        assert 'details' in response.data
-        assert response.data['error'] == 'Invalid input data'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['error'] == INVALID_INPUT_ERROR_MESSAGE
         assert 'username' in response.data['details']
 
     def test_missing_password(self):
@@ -89,10 +93,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 400
-        assert 'error' in response.data
-        assert 'details' in response.data
-        assert response.data['error'] == 'Invalid input data'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['error'] == INVALID_INPUT_ERROR_MESSAGE
         assert 'password' in response.data['details']
 
     def test_empty_credentials(self):
@@ -101,27 +103,24 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 400
-        assert 'error' in response.data
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'details' in response.data
-        assert response.data['error'] == 'Invalid input data'
+        assert response.data['error'] == INVALID_INPUT_ERROR_MESSAGE
 
     def test_inactive_user(self):
         """Test login with inactive user account."""
         # Create inactive user
-        User.objects.create_user(
-            username='inactiveuser', email='inactiveuser@example.com', password='password123', is_active=False
-        )
+        password = 'password123'
+        inactive_user = UserFactory(password=password, is_active=False)
 
-        login_data = {'username': 'inactiveuser', 'password': 'password123'}
+        login_data = {'username': inactive_user.username, 'password': password}
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 403
-        assert 'error' in response.data
-        assert response.data['error'] == 'User account is inactive'
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.data['error'] == INACTIVE_USER_ERROR_MESSAGE
 
-    def test_token_reuse_for_existing_user(self):
+    def test_reuse_existing_token(self):
         """Test that existing token is returned for user who already has one."""
         # Create token for user first
         existing_token = Token.objects.create(user=self.user)
@@ -130,7 +129,7 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data['token'] == existing_token.key
 
         # Verify only one token exists for user
@@ -143,12 +142,12 @@ class AuthLoginViewTest(APITestCase):
 
         # First login
         response1 = self.client.post(self.url, login_data, format='json')
-        assert response1.status_code == 200
+        assert response1.status_code == status.HTTP_200_OK
         token1 = response1.data['token']
 
         # Second login
         response2 = self.client.post(self.url, login_data, format='json')
-        assert response2.status_code == 200
+        assert response2.status_code == status.HTTP_200_OK
         token2 = response2.data['token']
 
         # Should be the same token
@@ -160,8 +159,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 401
-        assert response.data['error'] == 'Invalid username or password'
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.data['error'] == LOGIN_ERROR_MESSAGE
 
     def test_whitespace_in_username(self):
         """Test login with whitespace in credentials."""
@@ -172,7 +171,7 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data['token'] == existing_token.key
 
     def test_sql_injection_attempt(self):
@@ -181,8 +180,8 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 401
-        assert response.data['error'] == 'Invalid username or password'
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.data['error'] == LOGIN_ERROR_MESSAGE
 
         # Verify user still exists (table wasn't dropped)
         assert User.objects.filter(username=self.username).exists()
@@ -193,23 +192,23 @@ class AuthLoginViewTest(APITestCase):
 
         # GET should not be allowed
         response_get = self.client.get(self.url)
-        assert response_get.status_code == 405
+        assert response_get.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # PUT should not be allowed
         response_put = self.client.put(self.url, login_data, format='json')
-        assert response_put.status_code == 405
+        assert response_put.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # DELETE should not be allowed
         response_delete = self.client.delete(self.url)
-        assert response_delete.status_code == 405
+        assert response_delete.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # PATCH should not be allowed
         response_patch = self.client.patch(self.url, login_data, format='json')
-        assert response_patch.status_code == 405
+        assert response_patch.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
         # POST should work
         response_post = self.client.post(self.url, login_data, format='json')
-        assert response_post.status_code == 200
+        assert response_post.status_code == status.HTTP_200_OK
 
     def test_content_type_header(self):
         """Test that the response has correct content type."""
@@ -217,7 +216,7 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert 'application/json' in response.get('Content-Type', '')
 
     def test_response_format_consistency(self):
@@ -226,14 +225,14 @@ class AuthLoginViewTest(APITestCase):
         login_data = {'username': self.username, 'password': self.password}
 
         response = self.client.post(self.url, login_data, format='json')
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, dict)
 
         # Test error format
         invalid_login_data = {'username': 'invalid', 'password': 'invalid'}
 
         error_response = self.client.post(self.url, invalid_login_data, format='json')
-        assert error_response.status_code == 401
+        assert error_response.status_code == status.HTTP_401_UNAUTHORIZED
         assert isinstance(error_response.data, dict)
         assert 'error' in error_response.data
 
@@ -245,9 +244,8 @@ class AuthLoginViewTest(APITestCase):
         response = self.client.post(self.url, login_data, format='json')
 
         # Should return validation error for too long username
-        assert response.status_code == 400
-        assert 'error' in response.data
-        assert response.data['error'] == 'Invalid input data'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['error'] == INVALID_INPUT_ERROR_MESSAGE
 
     def test_unicode_credentials(self):
         """Test handling of Unicode characters in credentials."""
@@ -255,7 +253,7 @@ class AuthLoginViewTest(APITestCase):
         unicode_username = "тестユーザー"
         unicode_password = "пароль123"
 
-        unicode_user = User.objects.create_user(
+        unicode_user = UserFactory(
             username=unicode_username, email='user@example.com', password=unicode_password, is_active=True
         )
 
@@ -263,6 +261,6 @@ class AuthLoginViewTest(APITestCase):
 
         response = self.client.post(self.url, login_data, format='json')
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data['username'] == unicode_username
         assert response.data['user_id'] == unicode_user.id

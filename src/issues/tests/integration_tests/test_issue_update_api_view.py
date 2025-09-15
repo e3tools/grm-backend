@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.factories import UserFactory
 from grm.constants import (
     ISSUE_UPDATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
@@ -16,7 +17,7 @@ from grm.constants import (
     VALIDATION_FAILED_MESSAGE,
 )
 from grm.utils import reset_sequences
-from issues.factories import IssueFactory, IssueStatusFactory, UserFactory
+from issues.factories import IssueFactory, IssueStatusFactory
 
 
 @pytest.mark.django_db

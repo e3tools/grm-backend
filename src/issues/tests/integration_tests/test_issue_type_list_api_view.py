@@ -4,7 +4,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
-from issues.factories import IssueTypeFactory, UserFactory
+from authentication.factories import UserFactory
+from issues.factories import IssueTypeFactory
 from issues.models import IssueType
 
 

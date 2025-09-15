@@ -1,6 +1,8 @@
 import factory
+from factory.django import DjangoModelFactory
 
 from authentication.constants import ADL, MAJOR
+from authentication.models import User
 from client import get_db
 
 
@@ -67,12 +69,23 @@ class CouchdbUserFactory(factory.Factory):
         return eadl_db.create_document(self.data)
 
 
-class UserFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "authentication.User"
+class UserFactory(DjangoModelFactory):
+    """Factory for creating User instances for testing."""
 
-    email = factory.Faker("email")
-    phone_number = factory.Faker("phone_number")
-    first_name = factory.Faker("first_name")
-    last_name = factory.Faker("last_name")
+    class Meta:
+        model = User
+
+    username = factory.Sequence(lambda n: f"user{n}")
+    email = factory.LazyAttribute(lambda obj: f"{obj.username}@example.com")
+    first_name = factory.Faker('first_name')
+    last_name = factory.Faker('last_name')
+    is_active = True
     grm_manager = False
+
+    @factory.post_generation
+    def password(self, create, extracted, **kwargs):
+        if not create:
+            return
+        password = extracted or 'defaultpass123'
+        self.set_password(password)
+        self.save()

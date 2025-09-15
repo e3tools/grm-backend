@@ -7,6 +7,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.factories import UserFactory
 from grm.constants import (
     COMMENT_CREATE_ERROR_MESSAGE,
     COMMENT_CREATE_SUCCESS_MESSAGE,
@@ -14,7 +15,7 @@ from grm.constants import (
     VALIDATION_FAILED_MESSAGE,
 )
 from grm.utils import reset_sequences
-from issues.factories import IssueFactory, UserFactory
+from issues.factories import IssueFactory
 from issues.models import Comment
 
 

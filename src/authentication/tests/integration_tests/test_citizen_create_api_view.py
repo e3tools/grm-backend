@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.factories import UserFactory
 from authentication.models import Citizen, User
 from grm.constants import (
     CITIZEN_SUCCESS_MESSAGE,
@@ -74,13 +75,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
     def test_duplicate_username_validation(self):
         """Test registration with duplicate username."""
-        User.objects.create_user(
-            email='new.email@example.com',
-            username='john.doe',
-            password='password123',
-            first_name='Existing',
-            last_name='User',
-        )
+        UserFactory(username='john.doe')
 
         response = self.client.post(self.url, self.valid_registration_data, format='json')
 
@@ -89,13 +84,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
     def test_duplicate_email_validation(self):
         """Test registration with duplicate email address."""
-        User.objects.create_user(
-            email='john.doe@example.com',
-            username='new.username',
-            password='password123',
-            first_name='Existing',
-            last_name='User',
-        )
+        UserFactory(email='john.doe@example.com')
 
         response = self.client.post(self.url, self.valid_registration_data, format='json')
 

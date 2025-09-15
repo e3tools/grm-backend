@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from authentication.factories import UserFactory
 from grm.constants import (
     ALERT_CHOICE,
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
@@ -30,7 +31,6 @@ from issues.factories import (
     IssueSubTypeFactory,
     IssueTypeFactory,
     SubComponentFactory,
-    UserFactory,
 )
 from issues.models import Issue
 
