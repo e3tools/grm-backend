@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-10 13:17+0000\n"
+"POT-Creation-Date: 2025-09-15 10:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,56 +19,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: attachments/models.py:23 issues/models.py:452
-msgid "Issue"
-msgstr "Problème"
-
-#: attachments/models.py:25
-msgid "File attached to the issue"
-msgstr "Fichier joint au numéro"
-
-#: attachments/models.py:33
-msgid "Uploaded by"
-msgstr "Téléchargé par"
-
-#: attachments/models.py:35 authentication/models.py:120 issues/models.py:26
-#: issues/models.py:48 issues/models.py:158 issues/models.py:177
-#: issues/models.py:194 issues/models.py:215 issues/models.py:234
-#: issues/models.py:249 issues/models.py:264 issues/models.py:295
-#: issues/models.py:313 issues/models.py:331 issues/models.py:349
-#: issues/models.py:377 issues/models.py:597
-msgid "Created at"
-msgstr "Créé à"
-
-#: attachments/models.py:36 authentication/models.py:121 issues/models.py:27
-#: issues/models.py:49 issues/models.py:159 issues/models.py:178
-#: issues/models.py:195 issues/models.py:216 issues/models.py:235
-#: issues/models.py:250 issues/models.py:265 issues/models.py:296
-#: issues/models.py:314 issues/models.py:332 issues/models.py:350
-#: issues/models.py:378 issues/models.py:441 issues/models.py:598
-msgid "Updated at"
-msgstr "Mis à jour à"
-
-#: attachments/models.py:39
-msgid "Issue Attachment"
-msgstr "Pièce jointe au problème"
-
-#: attachments/models.py:40 dashboard/templates/adls/task_detail.html:37
-#: dashboard/templates/grm/issue_attachments.html:6
-#: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181
-msgid "Attachments"
-msgstr "Pièces jointes"
-
-#: attachments/serializers.py:24
-msgid "Unauthorized access with the credentials provided."
-msgstr "Accès non autorisé avec les informations d'identification fournies."
-
 #: authentication/models.py:16
 msgid "email address"
 msgstr "adresse mail"
 
-#: authentication/models.py:17 dashboard/grm/constants.py:20
+#: authentication/models.py:17 grm/constants.py:20
 msgid "phone number"
 msgstr "numéro de téléphone"
 
@@ -92,6 +47,26 @@ msgstr "Employé du Gouvernement"
 msgid "Government Workers"
 msgstr "Travailleurs du Gouvernement"
 
+#: authentication/models.py:120 authentication/models.py:134
+#: issues/models.py:29 issues/models.py:51 issues/models.py:161
+#: issues/models.py:180 issues/models.py:197 issues/models.py:218
+#: issues/models.py:237 issues/models.py:252 issues/models.py:267
+#: issues/models.py:298 issues/models.py:316 issues/models.py:334
+#: issues/models.py:352 issues/models.py:380 issues/models.py:602
+#: issues/models.py:636
+msgid "Created at"
+msgstr "Créé à"
+
+#: authentication/models.py:121 authentication/models.py:135
+#: issues/models.py:30 issues/models.py:52 issues/models.py:162
+#: issues/models.py:181 issues/models.py:198 issues/models.py:219
+#: issues/models.py:238 issues/models.py:253 issues/models.py:268
+#: issues/models.py:299 issues/models.py:317 issues/models.py:335
+#: issues/models.py:353 issues/models.py:381 issues/models.py:444
+#: issues/models.py:603 issues/models.py:637
+msgid "Updated at"
+msgstr "Mis à jour à"
+
 #: authentication/models.py:124
 msgid "Facilitator"
 msgstr "L'animateur"
@@ -100,47 +75,59 @@ msgstr "L'animateur"
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/serializers.py:20 dashboard/authentication/forms.py:11
+#: authentication/models.py:138 issues/models.py:384
+msgid "Citizen"
+msgstr "Citoyen"
+
+#: authentication/models.py:139 issues/models.py:385
+msgid "Citizens"
+msgstr "Citoyens"
+
+#: authentication/serializers.py:22 dashboard/authentication/forms.py:11
 #: dashboard/templates/adls/profile.html:51
 msgid "Email"
 msgstr "Email"
 
-#: authentication/serializers.py:22
+#: authentication/serializers.py:24
 msgid "Password"
 msgstr "Mot de passe"
 
-#: authentication/serializers.py:29 authentication/serializers.py:68
+#: authentication/serializers.py:31 authentication/serializers.py:70
 #, python-brace-format
 msgid "Invalid data. Expected a dictionary, but got {datatype}."
 msgstr "Données invalides. dictionnaire requis, mais {datatype} reçu."
 
-#: authentication/serializers.py:30
+#: authentication/serializers.py:32
 msgid "Unable to log in with provided credentials."
 msgstr "Impossible de se connecter avec les informations fournies"
 
-#: authentication/serializers.py:56
+#: authentication/serializers.py:58
 msgid "Must include \"email\" and \"password\"."
 msgstr "Doit inclure \"email\" et \"mot de pass\"."
 
-#: authentication/serializers.py:69
+#: authentication/serializers.py:71
 msgid "Unable to register with provided credentials."
 msgstr "Impossible de s'enregistrer avec les informations fournies."
 
-#: authentication/serializers.py:70
+#: authentication/serializers.py:72
 msgid "A user with that email is already registered."
 msgstr "Un utilisateur ayant cette adresse mail est déjà enregistré."
 
-#: authentication/serializers.py:71
+#: authentication/serializers.py:73
 msgid "Unable to register with provided validation code."
 msgstr "Impossible d'enregistrer avec le code de validation fourni."
 
-#: authentication/serializers.py:139
+#: authentication/serializers.py:141
 msgid "Username for authentication"
 msgstr "Nom d'utilisateur pour l'authentification"
 
-#: authentication/serializers.py:141
+#: authentication/serializers.py:143
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
+
+#: authentication/views.py:291
+msgid "An error occurred while registering the citizen."
+msgstr "Une erreur s'est produite lors de l'enregistrement du citoyen."
 
 #: dashboard/adls/forms.py:24 dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:75
@@ -156,7 +143,7 @@ msgid "This email is already registered."
 msgstr "Cet email est déjà enregistré."
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61
-#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:31
+#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:34
 msgid "Administrative Levels"
 msgstr "Niveaux Administratifs"
 
@@ -172,7 +159,7 @@ msgstr "Le compte a été désactivé avec succès."
 msgid "The account was activated successfully."
 msgstr "Le compte a été activé avec succès."
 
-#: dashboard/adls/views.py:105 dashboard/grm/views.py:863
+#: dashboard/adls/views.py:105 dashboard/grm/views.py:870
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
@@ -181,8 +168,8 @@ msgstr ""
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/adls/views.py:125 dashboard/grm/views.py:750
-#: dashboard/grm/views.py:785 dashboard/templates/grm/issue_detail.html:191
+#: dashboard/adls/views.py:125 dashboard/grm/views.py:757
+#: dashboard/grm/views.py:792 dashboard/templates/grm/issue_detail.html:191
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -224,137 +211,6 @@ msgid ""
 msgstr ""
 "Erreur interne lors de l'exécution d'etl_fetch_issue_data. Pour plus de "
 "détails, consultez les journaux du serveur."
-
-#: dashboard/grm/constants.py:9
-msgid "Remain anonymous"
-msgstr "Rester anonyme"
-
-#: dashboard/grm/constants.py:10
-msgid "Receive updates from facilitator"
-msgstr "Recevoir les mises à jour du comité de gestion des plaintes"
-
-#: dashboard/grm/constants.py:11
-msgid "Receive updates directly"
-msgstr "Recevez directement les mises à jour"
-
-#: dashboard/grm/constants.py:19
-msgid "email"
-msgstr "email"
-
-#: dashboard/grm/constants.py:21
-msgid "whatsapp"
-msgstr "sms/whatsapp"
-
-#: dashboard/grm/constants.py:30
-msgid ""
-"Keep name confidential. Only the person resolving the issue will see the "
-"name."
-msgstr ""
-"Gardez le nom confidentiel. Seule la personne résolvant le problème verra le "
-"nom."
-
-#: dashboard/grm/constants.py:32
-msgid "This is an individual filing on behalf of someone else."
-msgstr "Il s'agit d'un dépôt individuel au nom de quelqu'un d'autre."
-
-#: dashboard/grm/constants.py:33
-msgid "This is an organization filing on behalf of someone else."
-msgstr "Il s'agit d'une organisation qui dépose au nom de quelqu'un d'autre."
-
-#: dashboard/grm/constants.py:36
-msgid "Complainant"
-msgstr "Plaignant"
-
-#: dashboard/grm/constants.py:40
-msgid "Citizen on behalf of others"
-msgstr "Citoyen au nom d'autrui"
-
-#: dashboard/grm/constants.py:41
-msgid "Organization on behalf of others"
-msgstr "Organisation pour le compte d'autrui"
-
-#: dashboard/grm/constants.py:50
-msgid "Male"
-msgstr "Masculin"
-
-#: dashboard/grm/constants.py:51
-msgid "Female"
-msgstr "Féminin"
-
-#: dashboard/grm/constants.py:71
-msgid "Citizen group"
-msgstr "Groupe de citoyens"
-
-#: dashboard/grm/constants.py:72
-msgid "Citizen group 2"
-msgstr "Groupe de citoyens 2"
-
-#: dashboard/grm/constants.py:80
-msgid ""
-"You must define the contact method is your contact medium is channel alert"
-msgstr ""
-"Vous devez définir la méthode de contact si votre moyen de contact est le "
-"canal d'alerte"
-
-#: dashboard/grm/constants.py:81
-msgid "If email contact method is selected, provide a valid email"
-msgstr ""
-"Si la méthode de contact par e-mail est sélectionnée, fournissez une adresse "
-"e-mail valide"
-
-#: dashboard/grm/constants.py:82
-msgid ""
-"If phone or whatsapp contact method is selected, provide a valid phone number"
-msgstr ""
-"Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
-"indiquez un numéro de téléphone valide"
-
-#: dashboard/grm/constants.py:83
-msgid "Rating must be between 1 and 5."
-msgstr ""
-
-#: dashboard/grm/constants.py:84
-#, python-format
-msgid ""
-"Select a file with a size less than or equal to %s. The selected file is %s "
-"in size."
-msgstr ""
-"Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
-"taille du fichier sélectionné est de %s."
-
-#: dashboard/grm/constants.py:88
-#, python-format
-msgid "Allowed file size less than or equal to %s"
-msgstr "Taille de fichier autorisée inférieure ou égale à %s"
-
-#: dashboard/grm/constants.py:98 dashboard/templates/layouts/navbar.html:12
-#: dashboard/templates/wizard/navbar.html:9
-msgid "Welcome"
-msgstr "Bienvenue"
-
-#: dashboard/grm/constants.py:99
-msgid "Admin Levels"
-msgstr "Niveaux Administratifs"
-
-#: dashboard/grm/constants.py:100
-msgid "Roles"
-msgstr "Rôles"
-
-#: dashboard/grm/constants.py:101
-msgid "Entry Types"
-msgstr "Types d'entrée"
-
-#: dashboard/grm/constants.py:102
-msgid "Categories"
-msgstr "Catégories"
-
-#: dashboard/grm/constants.py:103
-msgid "Feedback"
-msgstr "Retour"
-
-#: dashboard/grm/constants.py:104
-msgid "Complete"
-msgstr "Complet"
 
 #: dashboard/grm/forms.py:35
 msgid "How does the citizen wish to be contacted?"
@@ -417,7 +273,7 @@ msgid "The category of grievance"
 msgstr "La catégorie de la réclamation"
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:162
+#: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:165
 msgid "Component"
 msgstr "Composante"
 
@@ -470,33 +326,33 @@ msgstr "Assigné à"
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
-#: dashboard/grm/views.py:54 dashboard/grm/views.py:315
-#: dashboard/grm/views.py:338 dashboard/grm/views.py:357
-#: dashboard/grm/views.py:376 dashboard/grm/views.py:407
-#: dashboard/grm/views.py:451 dashboard/grm/views.py:487
-#: dashboard/grm/views.py:633 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:61 dashboard/grm/views.py:322
+#: dashboard/grm/views.py:345 dashboard/grm/views.py:364
+#: dashboard/grm/views.py:383 dashboard/grm/views.py:414
+#: dashboard/grm/views.py:458 dashboard/grm/views.py:494
+#: dashboard/grm/views.py:640 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:63
 msgid "GRM"
 msgstr "eMGP"
 
-#: dashboard/grm/views.py:146
+#: dashboard/grm/views.py:153
 msgid "Add attachment"
 msgstr "Ajouter une pièce jointe"
 
-#: dashboard/grm/views.py:147
+#: dashboard/grm/views.py:154
 msgid "Upload"
 msgstr "Téléverser"
 
-#: dashboard/grm/views.py:159
+#: dashboard/grm/views.py:166
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr "Une nouvelle pièce jointe %s a été ajouté à la réclamation."
 
-#: dashboard/grm/views.py:161
+#: dashboard/grm/views.py:168
 msgid "The attachment was successfully uploaded."
 msgstr "La pièce jointe a été téléverser avec succès."
 
-#: dashboard/grm/views.py:165
+#: dashboard/grm/views.py:172
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
@@ -505,7 +361,7 @@ msgstr ""
 "jointe dans la base de données. S'il vous plaît signaler au personnel des "
 "TIC."
 
-#: dashboard/grm/views.py:171
+#: dashboard/grm/views.py:178
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
@@ -514,60 +370,56 @@ msgstr ""
 "Le fichier n'a pas pu être téléverser car il a déjà atteint la limite de "
 "%(max)d pièces jointes."
 
-#: dashboard/grm/views.py:190
+#: dashboard/grm/views.py:197
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr "La pièce jointe %s a été supprimée."
 
-#: dashboard/grm/views.py:193
+#: dashboard/grm/views.py:200
 msgid "The attachment was successfully deleted."
 msgstr "La pièce jointe a été supprimée avec succès."
 
-#: dashboard/grm/views.py:300
+#: dashboard/grm/views.py:307
 msgid ""
 "There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
 "Il n'y a aucun membre du personnel à qui attribuer le problème. Veuillez le "
 "signaler au personnel informatique."
 
-#: dashboard/grm/views.py:484 dashboard/grm/views.py:636
+#: dashboard/grm/views.py:491 dashboard/grm/views.py:643
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:630
+#: dashboard/grm/views.py:637
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:671
+#: dashboard/grm/views.py:678
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:686
+#: dashboard/grm/views.py:693
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:689 issues/serializers.py:344
-msgid "Comment cannot be empty."
-msgstr "Le commentaire ne peut pas être vide"
-
-#: dashboard/grm/views.py:734 dashboard/grm/views.py:768
-#: dashboard/grm/views.py:803
+#: dashboard/grm/views.py:741 dashboard/grm/views.py:775
+#: dashboard/grm/views.py:810
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
-#: dashboard/grm/views.py:749
+#: dashboard/grm/views.py:756
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:766
+#: dashboard/grm/views.py:773
 msgid "The complaint has been resolved"
 msgstr "La réclamation a été résolue"
 
-#: dashboard/grm/views.py:784
+#: dashboard/grm/views.py:791
 msgid "Enter the reason for rejecting this issue"
 msgstr "Entrez la raison du rejet de ce problème"
 
-#: dashboard/grm/views.py:801
+#: dashboard/grm/views.py:808
 msgid "The complaint has been rejected"
 msgstr "La réclamation a été réjetée"
 
@@ -646,7 +498,7 @@ msgid "Export complete list"
 msgstr "Exporter la liste complète"
 
 #: dashboard/templates/adls/list.html:23
-#: dashboard/templates/adls/profile.html:40 issues/models.py:30
+#: dashboard/templates/adls/profile.html:40 issues/models.py:33
 msgid "Administrative Level"
 msgstr "Niveau Administratif"
 
@@ -770,6 +622,13 @@ msgstr "Aller à la phase"
 #: dashboard/templates/grm/review_issues.html:258
 msgid "Status"
 msgstr "Statut"
+
+#: dashboard/templates/adls/task_detail.html:37
+#: dashboard/templates/grm/issue_attachments.html:6
+#: dashboard/templates/grm/issue_attachments_column1.html:6
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:641
+msgid "Attachments"
+msgstr "Pièces jointes"
 
 #: dashboard/templates/adls/task_detail.html:45
 msgid "No attachments"
@@ -1187,6 +1046,11 @@ msgstr "Tous droits réservés"
 msgid "Version"
 msgstr "Version"
 
+#: dashboard/templates/layouts/navbar.html:12
+#: dashboard/templates/wizard/navbar.html:9 grm/constants.py:118
+msgid "Welcome"
+msgstr "Bienvenue"
+
 #: dashboard/templates/layouts/navbar.html:54
 #: dashboard/templates/wizard/navbar.html:20
 msgid "Logout"
@@ -1245,183 +1109,342 @@ msgstr "Commune"
 msgid "Chat-Driven GRM Setup Wizard"
 msgstr "Assistant de configuration eMGP piloté par chat"
 
-#: grm/settings.py:139
-msgid "English"
-msgstr "Anglais"
+#: grm/constants.py:9
+msgid "Remain anonymous"
+msgstr "Rester anonyme"
 
-#: grm/settings.py:140
-msgid "French"
-msgstr "Français"
+#: grm/constants.py:10
+msgid "Receive updates from facilitator"
+msgstr "Recevoir les mises à jour du comité de gestion des plaintes"
 
-#: grm/settings.py:141
-msgid "Kinyarwanda"
-msgstr "Kinyarwanda"
+#: grm/constants.py:11
+msgid "Receive updates directly"
+msgstr "Recevez directement les mises à jour"
 
-#: grm/settings.py:142
-msgid "Ethiopia"
-msgstr "Ethiopie"
+#: grm/constants.py:19
+msgid "email"
+msgstr "email"
 
-#: issues/models.py:52
-msgid "Administrative Region"
-msgstr "Région administrative"
+#: grm/constants.py:21
+msgid "whatsapp"
+msgstr "sms/whatsapp"
 
-#: issues/models.py:53
-msgid "Administrative Regions"
-msgstr "Région administratives"
+#: grm/constants.py:30
+msgid ""
+"Keep name confidential. Only the person resolving the issue will see the "
+"name."
+msgstr ""
+"Gardez le nom confidentiel. Seule la personne résolvant le problème verra le "
+"nom."
 
-#: issues/models.py:163
-msgid "Components"
-msgstr "Composants"
+#: grm/constants.py:32
+msgid "This is an individual filing on behalf of someone else."
+msgstr "Il s'agit d'un dépôt individuel au nom de quelqu'un d'autre."
 
-#: issues/models.py:181
-msgid "Subcomponent"
-msgstr "Sous-Composante"
+#: grm/constants.py:33
+msgid "This is an organization filing on behalf of someone else."
+msgstr "Il s'agit d'une organisation qui dépose au nom de quelqu'un d'autre."
 
-#: issues/models.py:182
-msgid "Subcomponents"
-msgstr "Sous-Composants"
+#: grm/constants.py:36
+msgid "Complainant"
+msgstr "Plaignant"
 
-#: issues/models.py:198
-msgid "Subproject Group"
-msgstr "Groupe de sous-projets"
+#: grm/constants.py:40
+msgid "Citizen on behalf of others"
+msgstr "Citoyen au nom d'autrui"
 
-#: issues/models.py:199
-msgid "Subproject Groups"
-msgstr "Groupes de sous-projets"
+#: grm/constants.py:41
+msgid "Organization on behalf of others"
+msgstr "Organisation pour le compte d'autrui"
 
-#: issues/models.py:219 issues/models.py:220
-msgid "Issue Status"
-msgstr "Détails du problème"
+#: grm/constants.py:50
+msgid "Male"
+msgstr "Masculin"
 
-#: issues/models.py:238
-msgid "Issue Department"
-msgstr "Département des émissions"
+#: grm/constants.py:51
+msgid "Female"
+msgstr "Féminin"
 
-#: issues/models.py:239
-msgid "Issue Departments"
-msgstr "Départements concernés"
-
-#: issues/models.py:268
-msgid "Issue Subtype"
-msgstr "Sous-type de problème"
-
-#: issues/models.py:269
-msgid "Issue Subtypes"
-msgstr "Sous-types de problèmes"
-
-#: issues/models.py:299
-msgid "Issue Category"
-msgstr "Catégorie de problème"
-
-#: issues/models.py:300
-msgid "Issue Categories"
-msgstr "Catégories de problème"
-
-#: issues/models.py:317
-msgid "Issue Type"
-msgstr "Type de problème"
-
-#: issues/models.py:318
-msgid "Issue Types"
-msgstr "Types de problème"
-
-#: issues/models.py:335
-msgid "Citizen Age Group"
-msgstr "Groupe d'âge des citoyens"
-
-#: issues/models.py:336
-msgid "Citizen Age Groups"
-msgstr "Groupes d'âge des citoyens"
-
-#: issues/models.py:353
-msgid "Citizen Group"
+#: grm/constants.py:71
+msgid "Citizen group"
 msgstr "Groupe de citoyens"
 
-#: issues/models.py:354
-msgid "Citizen Groups"
-msgstr "Groupes de citoyens"
+#: grm/constants.py:72
+msgid "Citizen group 2"
+msgstr "Groupe de citoyens 2"
 
-#: issues/models.py:381
-msgid "Citizen"
-msgstr "Citoyen"
+#: grm/constants.py:79
+#, python-format
+msgid "Allowed file size less than or equal to %s"
+msgstr "Taille de fichier autorisée inférieure ou égale à %s"
 
-#: issues/models.py:382
-msgid "Citizens"
-msgstr "Citoyens"
+#: grm/constants.py:80
+#, python-format
+msgid ""
+"Select a file with a size less than or equal to %s. The selected file is %s "
+"in size."
+msgstr ""
+"Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
+"taille du fichier sélectionné est de %s."
 
-#: issues/models.py:453
-msgid "Issues"
-msgstr "Problèmes"
-
-#: issues/models.py:601
-msgid "Comment"
-msgstr "Commentaire"
-
-#: issues/models.py:602
-msgid "Comments"
-msgstr "Commentaires"
-
-#: issues/views.py:372
-msgid "Issue created successfully."
-msgstr "Problème créé avec succès."
-
-#: issues/views.py:377 issues/views.py:1566 issues/views.py:1829
-#: issues/views.py:1953 issues/views.py:2380
+#: grm/constants.py:84
 msgid "Validation failed."
 msgstr "La validation a échoué."
 
-#: issues/views.py:382
-msgid "An error occurred while creating the issue."
-msgstr "Une erreur s'est produite lors de la création du problème."
-
-#: issues/views.py:971
-msgid "An error occurred while retrieving the issue."
-msgstr "Une erreur s'est produite lors de la récupération du problème."
-
-#: issues/views.py:1424
-msgid "Comment added successfully."
-msgstr "Commentaire ajouté avec succès."
-
-#: issues/views.py:1560 issues/views.py:1670 issues/views.py:1824
-#: issues/views.py:1947 issues/views.py:2385
+#: grm/constants.py:85
 msgid "Not found."
 msgstr "Non trouvé"
 
-#: issues/views.py:1573 issues/views.py:1960
+#: grm/constants.py:86
+msgid ""
+"You must define the contact method is your contact medium is channel alert"
+msgstr ""
+"Vous devez définir la méthode de contact si votre moyen de contact est le "
+"canal d'alerte"
+
+#: grm/constants.py:87
+msgid "If email contact method is selected, provide a valid email"
+msgstr ""
+"Si la méthode de contact par e-mail est sélectionnée, fournissez une adresse "
+"e-mail valide"
+
+#: grm/constants.py:88
+msgid ""
+"If phone or whatsapp contact method is selected, provide a valid phone number"
+msgstr ""
+"Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
+"indiquez un numéro de téléphone valide"
+
+#: grm/constants.py:89
+msgid "Issue created successfully."
+msgstr "Problème créé avec succès."
+
+#: grm/constants.py:90
+msgid "An error occurred while creating the issue."
+msgstr "Une erreur s'est produite lors de la création du problème."
+
+#: grm/constants.py:91
+msgid "Issue updated successfully."
+msgstr "Problème mis à jour avec succès."
+
+#: grm/constants.py:92
+msgid "An error occurred while updating the issue."
+msgstr "Une erreur s'est produite lors de la mise à jour du problème."
+
+#: grm/constants.py:93
+msgid "Only assignees can update the status field."
+msgstr "Seuls les cessionnaires peuvent mettre à jour le champ de statut."
+
+#: grm/constants.py:94
+msgid "Only reporters can update the rating field."
+msgstr "Seuls les journalistes peuvent mettre à jour le champ de notation."
+
+#: grm/constants.py:95
+msgid "Rating must be between 1 and 5."
+msgstr "La note doit être comprise entre 1 et 5."
+
+#: grm/constants.py:96
+msgid "An error occurred while retrieving the issue."
+msgstr "Une erreur s'est produite lors de la récupération du problème."
+
+#: grm/constants.py:97
+msgid "Comment added successfully."
+msgstr "Commentaire ajouté avec succès."
+
+#: grm/constants.py:98
 msgid "An error occurred while creating the comment."
 msgstr "Une erreur s'est produite lors de la création du commentaire."
 
-#: issues/views.py:1673
-msgid "An error occurred while deleting the comment."
-msgstr "Une erreur s'est produite lors de la suppression du commentaire."
-
-#: issues/views.py:1781
+#: grm/constants.py:99
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des commentaires sur le "
 "problème."
 
-#: issues/views.py:1818
+#: grm/constants.py:100
+msgid "An error occurred while deleting the comment."
+msgstr "Une erreur s'est produite lors de la suppression du commentaire."
+
+#: grm/constants.py:101
+msgid "Comment cannot be empty."
+msgstr "Le commentaire ne peut pas être vide"
+
+#: grm/constants.py:102
 msgid "Attachment uploaded successfully."
 msgstr "Pièce jointe téléchargée avec succès."
 
-#: issues/views.py:1834
+#: grm/constants.py:103
 msgid "An error occurred during file upload."
 msgstr "Une erreur s'est produite lors du téléchargement du fichier."
 
-#: issues/views.py:2077
+#: grm/constants.py:104
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des pièces jointes du "
 "problème."
 
-#: issues/views.py:2373
-msgid "Issue updated successfully."
-msgstr "Problème mis à jour avec succès."
+#: grm/constants.py:105
+msgid "Citizen registered successfully."
+msgstr "Citoyen enregistré avec succès."
 
-#: issues/views.py:2390
-msgid "An error occurred while updating the issue."
-msgstr "Une erreur s'est produite lors de la mise à jour du problème."
+#: grm/constants.py:106
+msgid "A user with that username already exists."
+msgstr "Un utilisateur avec ce nom d'utilisateur existe déjà."
+
+#: grm/constants.py:107
+msgid "user with this email address already exists."
+msgstr "un utilisateur avec cette adresse email existe déjà."
+
+#: grm/constants.py:119
+msgid "Admin Levels"
+msgstr "Niveaux Administratifs"
+
+#: grm/constants.py:120
+msgid "Roles"
+msgstr "Rôles"
+
+#: grm/constants.py:121
+msgid "Entry Types"
+msgstr "Types d'entrée"
+
+#: grm/constants.py:122
+msgid "Categories"
+msgstr "Catégories"
+
+#: grm/constants.py:123
+msgid "Feedback"
+msgstr "Retour"
+
+#: grm/constants.py:124
+msgid "Complete"
+msgstr "Complet"
+
+#: grm/settings.py:138
+msgid "English"
+msgstr "Anglais"
+
+#: grm/settings.py:139
+msgid "French"
+msgstr "Français"
+
+#: grm/settings.py:140
+msgid "Kinyarwanda"
+msgstr "Kinyarwanda"
+
+#: grm/settings.py:141
+msgid "Ethiopia"
+msgstr "Ethiopie"
+
+#: issues/models.py:55
+msgid "Administrative Region"
+msgstr "Région administrative"
+
+#: issues/models.py:56
+msgid "Administrative Regions"
+msgstr "Région administratives"
+
+#: issues/models.py:166
+msgid "Components"
+msgstr "Composants"
+
+#: issues/models.py:184
+msgid "Subcomponent"
+msgstr "Sous-Composante"
+
+#: issues/models.py:185
+msgid "Subcomponents"
+msgstr "Sous-Composants"
+
+#: issues/models.py:201
+msgid "Subproject Group"
+msgstr "Groupe de sous-projets"
+
+#: issues/models.py:202
+msgid "Subproject Groups"
+msgstr "Groupes de sous-projets"
+
+#: issues/models.py:222 issues/models.py:223
+msgid "Issue Status"
+msgstr "Détails du problème"
+
+#: issues/models.py:241
+msgid "Issue Department"
+msgstr "Département des émissions"
+
+#: issues/models.py:242
+msgid "Issue Departments"
+msgstr "Départements concernés"
+
+#: issues/models.py:271
+msgid "Issue Subtype"
+msgstr "Sous-type de problème"
+
+#: issues/models.py:272
+msgid "Issue Subtypes"
+msgstr "Sous-types de problèmes"
+
+#: issues/models.py:302
+msgid "Issue Category"
+msgstr "Catégorie de problème"
+
+#: issues/models.py:303
+msgid "Issue Categories"
+msgstr "Catégories de problème"
+
+#: issues/models.py:320
+msgid "Issue Type"
+msgstr "Type de problème"
+
+#: issues/models.py:321
+msgid "Issue Types"
+msgstr "Types de problème"
+
+#: issues/models.py:338
+msgid "Citizen Age Group"
+msgstr "Groupe d'âge des citoyens"
+
+#: issues/models.py:339
+msgid "Citizen Age Groups"
+msgstr "Groupes d'âge des citoyens"
+
+#: issues/models.py:356
+msgid "Citizen Group"
+msgstr "Groupe de citoyens"
+
+#: issues/models.py:357
+msgid "Citizen Groups"
+msgstr "Groupes de citoyens"
+
+#: issues/models.py:457 issues/models.py:624
+msgid "Issue"
+msgstr "Problème"
+
+#: issues/models.py:458
+msgid "Issues"
+msgstr "Problèmes"
+
+#: issues/models.py:606
+msgid "Comment"
+msgstr "Commentaire"
+
+#: issues/models.py:607
+msgid "Comments"
+msgstr "Commentaires"
+
+#: issues/models.py:626
+msgid "File attached to the issue"
+msgstr "Fichier joint au numéro"
+
+#: issues/models.py:634
+msgid "Uploaded by"
+msgstr "Téléchargé par"
+
+#: issues/models.py:640
+msgid "Issue Attachment"
+msgstr "Pièce jointe au problème"
+
+#~ msgid "Unauthorized access with the credentials provided."
+#~ msgstr "Accès non autorisé avec les informations d'identification fournies."
 
 #~ msgid "Synchronized"
 #~ msgstr "Synchronisée"

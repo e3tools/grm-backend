@@ -3,7 +3,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.exceptions import APIException, MethodNotAllowed, ValidationError
 from rest_framework.generics import (
     CreateAPIView,
     DestroyAPIView,
@@ -32,7 +32,6 @@ from grm.constants import (
     ISSUE_UPDATE_ERROR_MESSAGE,
     ISSUE_UPDATE_SUCCESS_MESSAGE,
     NOT_FOUND_MESSAGE,
-    RATING_ERROR_MESSAGE,
     VALIDATION_FAILED_MESSAGE,
 )
 from issues.models import (
@@ -2322,7 +2321,7 @@ class IssueUpdateAPIView(UpdateAPIView):
                     "application/json": {
                         "message": VALIDATION_FAILED_MESSAGE,
                         "errors": {
-                            "rating": [RATING_ERROR_MESSAGE],
+                            "rating": ["Ensure this value is less than or equal to 5."],
                             "status": ["Invalid pk \"999\" - object does not exist."],
                         },
                     }
@@ -2356,6 +2355,10 @@ class IssueUpdateAPIView(UpdateAPIView):
         Overrides the default update method to provide custom response format
         and error handling. Only allows updating specific permitted fields.
 
+        Role-based restrictions:
+        - Only assignees can edit 'status'
+        - Only reporters can edit 'rating'
+
         Args:
             request: HTTP request object containing updated issue data
             *args: Variable length argument list
@@ -2379,6 +2382,11 @@ class IssueUpdateAPIView(UpdateAPIView):
                     {'message': VALIDATION_FAILED_MESSAGE, 'errors': serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+        except MethodNotAllowed as e:
+            return Response(
+                {'message': str(e.detail)},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
         except Issue.DoesNotExist:
             return Response(
                 {'message': NOT_FOUND_MESSAGE},
