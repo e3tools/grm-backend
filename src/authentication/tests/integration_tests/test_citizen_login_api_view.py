@@ -17,7 +17,7 @@ from authentication.models import Citizen
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class CitizenLoginViewTest(APITestCase):
+class CitizenLoginAPIViewTest(APITestCase):
     """
     Test cases for the citizen authentication login API endpoint.
 

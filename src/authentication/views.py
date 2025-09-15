@@ -1,4 +1,8 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -14,13 +18,19 @@ from authentication.constants import (
     INVALID_INPUT_ERROR_MESSAGE,
     LOGIN_ERROR_MESSAGE,
     LOGIN_SUCCESS_MESSAGE,
+    PASSWORD_RESET_REQUEST_MESSAGE,
 )
 from authentication.models import User
-from authentication.serializers import CitizenRegistrationSerializer, LoginSerializer
+from authentication.serializers import (
+    CitizenRegistrationSerializer,
+    LoginSerializer,
+    PasswordResetSerializer,
+)
 from grm.constants import CITIZEN_SUCCESS_MESSAGE, VALIDATION_FAILED_MESSAGE
+from grm.settings import EMAIL_HOST_USER
 
 
-class BaseLoginView(APIView):
+class BaseLoginAPIView(APIView):
     """
     Base API endpoint for user authentication and token generation.
 
@@ -107,7 +117,7 @@ class BaseLoginView(APIView):
         return self.handle_login(username, password)
 
 
-class LoginView(BaseLoginView):
+class LoginAPIView(BaseLoginAPIView):
     """
     API endpoint for user authentication and token generation.
 
@@ -179,7 +189,7 @@ class LoginView(BaseLoginView):
         return super().post(request)
 
 
-class CitizenLoginView(BaseLoginView):
+class CitizenLoginAPIView(BaseLoginAPIView):
     """
     API endpoint for user authentication and token generation.
 
@@ -420,3 +430,92 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                 {'message': _('An error occurred while registering the citizen.'), 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class PasswordResetAPIView(APIView):
+    """
+    API endpoint for requesting a password reset.
+
+    This view allows users to request a password reset by providing
+    their registered email address. If the email exists in the system,
+    a password reset token and UID are generated and sent to the user's email.
+
+    Authentication is not required for this endpoint.
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    @swagger_auto_schema(
+        operation_summary="Password Reset Request",
+        operation_description="Send password reset instructions to a user via email.",
+        request_body=PasswordResetSerializer,
+        responses={
+            200: openapi.Response(
+                description="Password reset email sent successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={"message": openapi.Schema(type=openapi.TYPE_STRING, description="Success message")},
+                ),
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(type=openapi.TYPE_STRING, description="Error message"),
+                        "details": openapi.Schema(type=openapi.TYPE_OBJECT, description="Validation errors"),
+                    },
+                ),
+            ),
+        },
+        tags=["Authentication"],
+    )
+    def post(self, request):
+        """
+        Handle POST request for initiating password reset.
+
+        Args:
+            request: HTTP request containing the user's email.
+
+        Returns:
+            Response: JSON response with success or error message.
+        """
+        serializer = PasswordResetSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {"error": INVALID_INPUT_ERROR_MESSAGE, "details": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email = serializer.validated_data["email"]
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Do not reveal whether email exists (security best practice)
+            return Response(
+                {"message": PASSWORD_RESET_REQUEST_MESSAGE},
+                status=status.HTTP_200_OK,
+            )
+
+        # Generate token and UID
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        # Example reset link (frontend should handle this)
+        reset_link = f"https://yourfrontend.com/reset-password/{uid}/{token}/"
+
+        # Send email
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Please click the following link to reset your password: {reset_link}",
+            from_email=EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=True,
+        )
+
+        return Response(
+            {"message": PASSWORD_RESET_REQUEST_MESSAGE},
+            status=status.HTTP_200_OK,
+        )

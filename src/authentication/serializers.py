@@ -218,3 +218,7 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
         Citizen.objects.create(user=user)
 
         return user
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
