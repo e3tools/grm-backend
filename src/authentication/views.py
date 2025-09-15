@@ -9,12 +9,105 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from authentication.constants import (
+    INACTIVE_USER_ERROR_MESSAGE,
+    INVALID_INPUT_ERROR_MESSAGE,
+    LOGIN_ERROR_MESSAGE,
+    LOGIN_SUCCESS_MESSAGE,
+)
 from authentication.models import User
 from authentication.serializers import CitizenRegistrationSerializer, LoginSerializer
 from grm.constants import CITIZEN_SUCCESS_MESSAGE, VALIDATION_FAILED_MESSAGE
 
 
-class LoginView(APIView):
+class BaseLoginView(APIView):
+    """
+    Base API endpoint for user authentication and token generation.
+
+    Subclasses can extend `extra_validations(user)` to add specific checks
+    (e.g., require that the user has a Citizen profile).
+    """
+
+    authentication_classes = []  # No authentication required
+    permission_classes = []  # No permissions required
+
+    def extra_validations(self, user):
+        """
+        Hook for subclasses to add extra validation on the authenticated user.
+        Must raise a Response if validation fails.
+        """
+        return None
+
+    def handle_login(self, username, password):
+        """
+        Core login logic shared by all login views.
+        """
+        # Check if user exists and active
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None and not user.is_active:
+            return Response(
+                {"error": INACTIVE_USER_ERROR_MESSAGE},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response(
+                {"error": LOGIN_ERROR_MESSAGE},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        # Subclass hook
+        extra_error = self.extra_validations(user)
+        if extra_error:
+            return extra_error
+
+        # Get or create token for the user
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.id,
+                "username": user.username,
+                "message": LOGIN_SUCCESS_MESSAGE,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def post(self, request):
+        """
+        Handle POST request for user authentication.
+
+        Validates user credentials and returns authentication token.
+
+        Args:
+            request: HTTP request containing username and password
+
+        Returns:
+            Response: JSON response with token and user info or error message
+        """
+        serializer = LoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "error": INVALID_INPUT_ERROR_MESSAGE,
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        username = serializer.validated_data["username"]
+        password = serializer.validated_data["password"]
+
+        return self.handle_login(username, password)
+
+
+class LoginView(BaseLoginView):
     """
     API endpoint for user authentication and token generation.
 
@@ -23,9 +116,6 @@ class LoginView(APIView):
 
     Authentication is not required for this endpoint as it's used to obtain tokens.
     """
-
-    authentication_classes = []  # No authentication required
-    permission_classes = []  # No permissions required
 
     @swagger_auto_schema(
         operation_summary="User Login",
@@ -86,48 +176,88 @@ class LoginView(APIView):
         tags=['Authentication'],
     )
     def post(self, request):
-        """
-        Handle POST request for user authentication.
+        return super().post(request)
 
-        Validates user credentials and returns authentication token.
 
-        Args:
-            request: HTTP request containing username and password
+class CitizenLoginView(BaseLoginView):
+    """
+    API endpoint for user authentication and token generation.
 
-        Returns:
-            Response: JSON response with token and user info or error message
-        """
-        serializer = LoginSerializer(data=request.data)
+    This view authenticates users with username/password and returns
+    an authentication token for subsequent API requests.
 
-        if not serializer.is_valid():
+    Authentication is not required for this endpoint as it's used to obtain tokens.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="Citizen Login",
+        operation_description="Authenticate user credentials and return authentication token. "
+        "Only users linked to a Citizen profile are allowed.",
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Login successful",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'token': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Authentication token for API requests"
+                        ),
+                        'user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="Unique identifier for the authenticated user"
+                        ),
+                        'username': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Username of the authenticated user"
+                        ),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
+                    },
+                ),
+            ),
+            400: openapi.Response(
+                description="Bad request - Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message describing the validation issue"
+                        ),
+                        'details': openapi.Schema(
+                            type=openapi.TYPE_OBJECT, description="Field-specific validation errors"
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid credentials or missing Citizen relation",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Authentication error message"),
+                    },
+                ),
+            ),
+            403: openapi.Response(
+                description="Forbidden - User account is inactive",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(type=openapi.TYPE_STRING, description="Account status error message"),
+                    },
+                ),
+            ),
+        },
+        tags=['Authentication'],
+    )
+    def post(self, request):
+        return super().post(request)
+
+    def extra_validations(self, user):
+        if not hasattr(user, "citizen"):
             return Response(
-                {'error': 'Invalid input data', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST
+                {"error": LOGIN_ERROR_MESSAGE},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-
-        # Authenticate user
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = None
-
-        if user is not None and not user.is_active:
-            return Response({'error': 'User account is inactive'}, status=status.HTTP_403_FORBIDDEN)
-
-        user = authenticate(username=username, password=password)
-
-        if user is None:
-            return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        # Get or create token for the user
-        token, created = Token.objects.get_or_create(user=user)
-
-        return Response(
-            {'token': token.key, 'user_id': user.id, 'username': user.username, 'message': 'Login successful'},
-            status=status.HTTP_200_OK,
-        )
+        return None
 
 
 class CitizenRegistrationCreateAPIView(CreateAPIView):
@@ -138,7 +268,6 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
     No authentication is required for registration.
     """
 
-    queryset = User.objects.all()
     serializer_class = CitizenRegistrationSerializer
     authentication_classes = []  # No authentication required
     permission_classes = []  # No permissions required

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 10:31+0000\n"
+"POT-Creation-Date: 2025-09-15 14:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: authentication/constants.py:7
+msgid "Login successful."
+msgstr "Connexion réussie."
+
+#: authentication/constants.py:8
+msgid "Invalid input data."
+msgstr "Données d'entrée non valides."
+
+#: authentication/constants.py:9
+msgid "User account is inactive."
+msgstr "Le compte utilisateur est inactif."
+
+#: authentication/constants.py:10
+msgid "Invalid username or password."
+msgstr "Nom d'utilisateur ou mot de passe invalide."
 
 #: authentication/models.py:16
 msgid "email address"
@@ -52,8 +68,8 @@ msgstr "Travailleurs du Gouvernement"
 #: issues/models.py:180 issues/models.py:197 issues/models.py:218
 #: issues/models.py:237 issues/models.py:252 issues/models.py:267
 #: issues/models.py:298 issues/models.py:316 issues/models.py:334
-#: issues/models.py:352 issues/models.py:380 issues/models.py:602
-#: issues/models.py:636
+#: issues/models.py:352 issues/models.py:380 issues/models.py:601
+#: issues/models.py:635
 msgid "Created at"
 msgstr "Créé à"
 
@@ -63,7 +79,7 @@ msgstr "Créé à"
 #: issues/models.py:238 issues/models.py:253 issues/models.py:268
 #: issues/models.py:299 issues/models.py:317 issues/models.py:335
 #: issues/models.py:353 issues/models.py:381 issues/models.py:444
-#: issues/models.py:603 issues/models.py:637
+#: issues/models.py:602 issues/models.py:636
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -125,7 +141,7 @@ msgstr "Nom d'utilisateur pour l'authentification"
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
 
-#: authentication/views.py:291
+#: authentication/views.py:420
 msgid "An error occurred while registering the citizen."
 msgstr "Une erreur s'est produite lors de l'enregistrement du citoyen."
 
@@ -626,7 +642,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:641
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:640
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -1047,7 +1063,7 @@ msgid "Version"
 msgstr "Version"
 
 #: dashboard/templates/layouts/navbar.html:12
-#: dashboard/templates/wizard/navbar.html:9 grm/constants.py:118
+#: dashboard/templates/wizard/navbar.html:9 grm/constants.py:117
 msgid "Welcome"
 msgstr "Bienvenue"
 
@@ -1240,82 +1256,78 @@ msgid "Only reporters can update the rating field."
 msgstr "Seuls les journalistes peuvent mettre à jour le champ de notation."
 
 #: grm/constants.py:95
-msgid "Rating must be between 1 and 5."
-msgstr "La note doit être comprise entre 1 et 5."
-
-#: grm/constants.py:96
 msgid "An error occurred while retrieving the issue."
 msgstr "Une erreur s'est produite lors de la récupération du problème."
 
-#: grm/constants.py:97
+#: grm/constants.py:96
 msgid "Comment added successfully."
 msgstr "Commentaire ajouté avec succès."
 
-#: grm/constants.py:98
+#: grm/constants.py:97
 msgid "An error occurred while creating the comment."
 msgstr "Une erreur s'est produite lors de la création du commentaire."
 
-#: grm/constants.py:99
+#: grm/constants.py:98
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des commentaires sur le "
 "problème."
 
-#: grm/constants.py:100
+#: grm/constants.py:99
 msgid "An error occurred while deleting the comment."
 msgstr "Une erreur s'est produite lors de la suppression du commentaire."
 
-#: grm/constants.py:101
+#: grm/constants.py:100
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: grm/constants.py:102
+#: grm/constants.py:101
 msgid "Attachment uploaded successfully."
 msgstr "Pièce jointe téléchargée avec succès."
 
-#: grm/constants.py:103
+#: grm/constants.py:102
 msgid "An error occurred during file upload."
 msgstr "Une erreur s'est produite lors du téléchargement du fichier."
 
-#: grm/constants.py:104
+#: grm/constants.py:103
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des pièces jointes du "
 "problème."
 
-#: grm/constants.py:105
+#: grm/constants.py:104
 msgid "Citizen registered successfully."
 msgstr "Citoyen enregistré avec succès."
 
-#: grm/constants.py:106
+#: grm/constants.py:105
 msgid "A user with that username already exists."
 msgstr "Un utilisateur avec ce nom d'utilisateur existe déjà."
 
-#: grm/constants.py:107
+#: grm/constants.py:106
 msgid "user with this email address already exists."
 msgstr "un utilisateur avec cette adresse email existe déjà."
 
-#: grm/constants.py:119
+#: grm/constants.py:118
 msgid "Admin Levels"
 msgstr "Niveaux Administratifs"
 
-#: grm/constants.py:120
+#: grm/constants.py:119
 msgid "Roles"
 msgstr "Rôles"
 
-#: grm/constants.py:121
+#: grm/constants.py:120
 msgid "Entry Types"
 msgstr "Types d'entrée"
 
-#: grm/constants.py:122
+#: grm/constants.py:121
 msgid "Categories"
 msgstr "Catégories"
 
-#: grm/constants.py:123
+#: grm/constants.py:122
 msgid "Feedback"
 msgstr "Retour"
 
-#: grm/constants.py:124
+#: grm/constants.py:123
 msgid "Complete"
 msgstr "Complet"
 
@@ -1415,33 +1427,36 @@ msgstr "Groupe de citoyens"
 msgid "Citizen Groups"
 msgstr "Groupes de citoyens"
 
-#: issues/models.py:457 issues/models.py:624
+#: issues/models.py:456 issues/models.py:623
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:458
+#: issues/models.py:457
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:606
+#: issues/models.py:605
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:607
+#: issues/models.py:606
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:626
+#: issues/models.py:625
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:634
+#: issues/models.py:633
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:640
+#: issues/models.py:639
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
+
+#~ msgid "Rating must be between 1 and 5."
+#~ msgstr "La note doit être comprise entre 1 et 5."
 
 #~ msgid "Unauthorized access with the credentials provided."
 #~ msgstr "Accès non autorisé avec les informations d'identification fournies."

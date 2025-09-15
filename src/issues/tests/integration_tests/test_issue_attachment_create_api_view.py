@@ -10,13 +10,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.factories import UserFactory
 from grm.constants import (
     ATTACHMENT_CREATE_ERROR_MESSAGE,
     ATTACHMENT_CREATE_SUCCESS_MESSAGE,
     NOT_FOUND_MESSAGE,
 )
 from grm.utils import reset_sequences
-from issues.factories import IssueFactory, UserFactory
+from issues.factories import IssueFactory
 from issues.models import IssueAttachment
 
 

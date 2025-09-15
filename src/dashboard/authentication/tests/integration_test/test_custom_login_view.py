@@ -2,7 +2,7 @@ import pytest
 from django.test import override_settings
 from django.urls import reverse
 
-from authentication.models import User
+from authentication.factories import UserFactory
 from grm.constants import COMPLETE_CHOICE, WELCOME_CHOICE
 from grm.tests.base import DashboardTestCase
 from wizard.models import WizardSession
@@ -13,17 +13,8 @@ from wizard.models import WizardSession
 class CustomLoginViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
-        self.grm_manager_user = User.objects.create_user(
-            username="manager",
-            email="manager@test.com",
-            password="pass123",
-            grm_manager=True,
-        )
-        self.normal_user = User.objects.create_user(
-            username="normal",
-            email="normal@test.com",
-            password="pass123",
-        )
+        self.grm_manager_user = UserFactory(password="pass123", grm_manager=True)
+        self.normal_user = UserFactory(password="pass123")
         self.url = reverse("dashboard:authentication:login")
 
     def test_grm_manager_can_login_even_if_wizard_incomplete(self):

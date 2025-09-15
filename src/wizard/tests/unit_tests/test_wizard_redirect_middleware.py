@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from authentication.models import User
+from authentication.factories import UserFactory
 from grm.constants import COMPLETE_CHOICE
 from wizard.models import WizardSession
 
@@ -10,11 +10,11 @@ from wizard.models import WizardSession
 class TestWizardRedirectMiddleware:
     @pytest.fixture
     def grm_manager_user(self):
-        return User.objects.create_user(username="manager", password="pass123", grm_manager=True)
+        return UserFactory(grm_manager=True)
 
     @pytest.fixture
     def normal_user(self):
-        return User.objects.create_user(username="normal", password="pass123", grm_manager=False)
+        return UserFactory()
 
     def test_login_url_is_accessible_for_unauthenticated_user(self, client):
         """Login page should never redirect to wizard when unauthenticated."""

@@ -1,7 +1,8 @@
 from django.test import TestCase
 
+from authentication.factories import UserFactory
 from grm.utils import reset_sequences
-from issues.factories import AdministrativeRegionFactory, IssueFactory, UserFactory
+from issues.factories import AdministrativeRegionFactory, IssueFactory
 from issues.permissions import IsReporterOrAssigneePermission
 
 
