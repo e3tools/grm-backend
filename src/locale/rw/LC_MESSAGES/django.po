@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-16 21:51+0000\n"
+"POT-Creation-Date: 2025-09-17 10:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -150,13 +150,21 @@ msgstr ""
 msgid "Password for authentication"
 msgstr ""
 
-#: authentication/views.py:565 authentication/views.py:585
+#: authentication/views.py:517 authentication/views.py:531
+msgid "Password Reset"
+msgstr ""
+
+#: authentication/views.py:529
+msgid "Password Reset Sent"
+msgstr ""
+
+#: authentication/views.py:566 authentication/views.py:583
 #: dashboard/templates/authentication/password_reset_confirm.html:19
 msgid "Reset Password"
 msgstr ""
 
-#: authentication/views.py:598
-#: dashboard/templates/authentication/password_reset_complete.html:3
+#: authentication/views.py:594
+#: dashboard/templates/authentication/password_reset_complete.html:6
 msgid "Password reset complete"
 msgstr ""
 
@@ -174,7 +182,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61
-#: dashboard/templates/layouts/sidebar.html:42 issues/models.py:34
+#: dashboard/templates/layouts/sidebar.html:38 issues/models.py:34
 msgid "Administrative Levels"
 msgstr ""
 
@@ -219,7 +227,7 @@ msgid "The profile information was successfully edited."
 msgstr ""
 
 #: dashboard/authentication/views.py:55
-#: dashboard/templates/authentication/login.html:17
+#: dashboard/templates/authentication/login.html:14
 msgid "Log in"
 msgstr ""
 
@@ -228,7 +236,7 @@ msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
 #: dashboard/diagnostics/views.py:31
-#: dashboard/templates/layouts/sidebar.html:35
+#: dashboard/templates/layouts/sidebar.html:31
 msgid "Diagnostics"
 msgstr ""
 
@@ -357,7 +365,7 @@ msgstr ""
 #: dashboard/grm/views.py:383 dashboard/grm/views.py:414
 #: dashboard/grm/views.py:458 dashboard/grm/views.py:494
 #: dashboard/grm/views.py:640 dashboard/templates/adls/profile.html:111
-#: dashboard/templates/layouts/sidebar.html:63
+#: dashboard/templates/layouts/sidebar.html:59
 msgid "GRM"
 msgstr ""
 
@@ -657,11 +665,11 @@ msgstr ""
 msgid "Location"
 msgstr ""
 
-#: dashboard/templates/authentication/login.html:10
+#: dashboard/templates/authentication/login.html:7
 msgid "Log in to start your session"
 msgstr ""
 
-#: dashboard/templates/authentication/password_reset_complete.html:5
+#: dashboard/templates/authentication/password_reset_complete.html:8
 msgid ""
 "Your password has been successfully reset. You may now log in with your new "
 "password."
@@ -673,6 +681,10 @@ msgstr ""
 
 #: dashboard/templates/authentication/password_reset_confirm.html:28
 msgid "The reset link is invalid or has expired."
+msgstr ""
+
+#: dashboard/templates/authentication/password_reset_form.html:18
+msgid "Send reset link"
 msgstr ""
 
 #: dashboard/templates/common/400.html:10
@@ -1034,7 +1046,7 @@ msgstr ""
 msgid "Days Open"
 msgstr ""
 
-#: dashboard/templates/layouts/base_error.html:14
+#: dashboard/templates/layouts/base_error.html:13
 msgid "Error"
 msgstr ""
 
@@ -1060,7 +1072,7 @@ msgstr ""
 msgid "Logout"
 msgstr ""
 
-#: dashboard/templates/layouts/sidebar.html:86
+#: dashboard/templates/layouts/sidebar.html:82
 msgid "Toggle Sidebar"
 msgstr ""
 
@@ -1108,8 +1120,8 @@ msgstr ""
 msgid "Commune"
 msgstr ""
 
-#: dashboard/templates/wizard/chatbot.html:17
-#: dashboard/templates/wizard/chatbot.html:40
+#: dashboard/templates/wizard/chatbot.html:15
+#: dashboard/templates/wizard/chatbot.html:38
 msgid "Chat-Driven GRM Setup Wizard"
 msgstr ""
 
