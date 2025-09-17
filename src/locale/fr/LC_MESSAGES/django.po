@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-17 10:46+0000\n"
+"POT-Creation-Date: 2025-09-17 11:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,8 +182,7 @@ msgstr "Tel"
 msgid "This email is already registered."
 msgstr "Cet email est déjà enregistré."
 
-#: dashboard/adls/views.py:27 dashboard/adls/views.py:61
-#: dashboard/templates/layouts/sidebar.html:38 issues/models.py:34
+#: dashboard/adls/views.py:27 dashboard/adls/views.py:61 issues/models.py:34
 msgid "Administrative Levels"
 msgstr "Niveaux Administratifs"
 
@@ -376,7 +375,7 @@ msgstr "Ajouter un commentaire"
 #: dashboard/grm/views.py:383 dashboard/grm/views.py:414
 #: dashboard/grm/views.py:458 dashboard/grm/views.py:494
 #: dashboard/grm/views.py:640 dashboard/templates/adls/profile.html:111
-#: dashboard/templates/layouts/sidebar.html:59
+#: dashboard/templates/layouts/sidebar.html:38
 msgid "GRM"
 msgstr "eMGP"
 
@@ -697,6 +696,10 @@ msgstr "Emplacement"
 #: dashboard/templates/authentication/login.html:7
 msgid "Log in to start your session"
 msgstr "Connectez-vous pour démarrer votre session"
+
+#: dashboard/templates/authentication/login.html:21
+msgid "I forgot my password"
+msgstr "J'ai oublié mon mot de passe"
 
 #: dashboard/templates/authentication/password_reset_complete.html:8
 msgid ""
@@ -1116,7 +1119,7 @@ msgstr "Bienvenue"
 msgid "Logout"
 msgstr "Se déconnecter"
 
-#: dashboard/templates/layouts/sidebar.html:82
+#: dashboard/templates/layouts/sidebar.html:85
 msgid "Toggle Sidebar"
 msgstr "Basculer la barre latérale"
 
