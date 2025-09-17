@@ -8,7 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-{#    <link href="{% static 'images/eADL_logo.png' %}" type="image/png" rel="shortcut icon"/>#}
 
     <title>
         {% translate "Error" %} {% block title %}{% endblock %}
@@ -23,14 +22,7 @@
 </head>
 
 <body>
-<section class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-        </div>
-    </div>
-</section>
-
-<section class="content">
+<section class="content m-5">
     {% block content %}{% endblock content %}
 </section>
 </body>

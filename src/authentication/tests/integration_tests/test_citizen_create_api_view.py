@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from authentication.constants import CITIZEN_CREATE_ERROR_MESSAGE
 from authentication.factories import UserFactory
 from authentication.models import Citizen, User
 from grm.constants import (
@@ -286,7 +287,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
             response = self.client.post(self.url, self.valid_registration_data, format='json')
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.data['message'] == 'An error occurred while registering the citizen.'
+        assert response.data['message'] == CITIZEN_CREATE_ERROR_MESSAGE
 
     def test_post_method_only(self):
         """Test that only POST method is allowed."""

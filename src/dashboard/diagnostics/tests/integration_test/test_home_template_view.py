@@ -1,13 +1,9 @@
-import pytest
-from django.test import override_settings
 from django.urls import reverse
 
 from dashboard.diagnostics.views import HomeFormView
 from grm.tests.base import DashboardTestCase
 
 
-@pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
 class HomeFormViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()

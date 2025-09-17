@@ -1,11 +1,10 @@
 import json
 
 import pytest
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
-from client import bulk_delete, get_db
 from grm.constants import COMPLETE_CHOICE
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
@@ -18,39 +17,30 @@ AJAX_HEADER_VALUE = "XMLHttpRequest"
 
 
 @pytest.mark.django_db
-class BaseTestCase(APITestCase):
-    rest = True
-    content_type = JSON_TYPE
-    eadl_db = get_db()
+@override_settings(LANGUAGE_CODE='en-us')
+class DashboardTestCase(APITestCase):
+    content_type = URLENCODED_TYPE
     user = None
 
-    def tearDown(self):
-        super().tearDown()
-        docs_to_delete = [d for d in self.eadl_db if "type" in d and d["type"] != "administrative_level"]
-        bulk_delete(self.eadl_db, docs_to_delete)
+    def setUp(self):
+        reset_sequences()
+        WizardSession.update_state(COMPLETE_CHOICE)
+        root_region = AdministrativeRegionFactory()
+        AdministrativeRegionFactory(parent=root_region)
+        super().setUp()
 
     @staticmethod
     def create_user(is_active=True, **kwargs):
         return UserFactory(is_active=is_active)
 
-    @staticmethod
-    def create_file(size=1):
-        content = b"x" * size  # Creates file of the desired size
-        return SimpleUploadedFile(f"test_file_{size}B.txt", content)
-
     def authenticate(self, user):
         self.user = self.create_user() if not self.user else self.user
         request_user = user if user else self.user
-        if self.rest:
-            self.client.force_authenticate(user=request_user)
-        else:
-            self.client.force_login(user=request_user)
+        self.client.force_login(user=request_user)
 
     def get(self, uri, data=None, authorized=True, user=None, ajax=None, **kwargs):
         if authorized:
             self.authenticate(user)
-        elif self.rest:
-            self.client.force_authenticate(user=None)
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.get(uri, data, **kwargs)
@@ -96,15 +86,3 @@ class BaseTestCase(APITestCase):
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.delete(uri, **kwargs)
-
-
-class DashboardTestCase(BaseTestCase):
-    rest = False
-    content_type = URLENCODED_TYPE
-
-    def setUp(self):
-        reset_sequences()
-        WizardSession.update_state(COMPLETE_CHOICE)
-        root_region = AdministrativeRegionFactory()
-        AdministrativeRegionFactory(parent=root_region)
-        super().setUp()

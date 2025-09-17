@@ -1,4 +1,4 @@
-{% load bootstrap4 static i18n %}
+{% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -12,11 +12,10 @@
 	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
 	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
 	<meta name="msapplication-TileColor" content="#da532c">
-	<title>{% translate 'Chat-Driven GRM Setup Wizard' %}</title>
+	<title>{{ title }}</title>
 
-	<!-- Font Awesome Free 5.13.0 -->
+	<!-- Font Awesome -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/all.min.css' %}"/>
-	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/v4-shims.min.css' %}"/>
 	<!-- icheck bootstrap -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}"/>
 	<!-- Theme style -->
@@ -24,26 +23,22 @@
 	<link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 </head>
 
-<body class="hold-transition layout-fixed">
-<div class="wrapper">
-    {% include 'wizard/navbar.html' %}
+<body class="hold-transition login-page">
+{% block language %}
+	{% if OTHER_LANGUAGES %}
+		<nav class="main-header navbar navbar-expand" style="border-bottom: none">
+			<ul class="navbar-nav ml-auto">
+				{% include 'layouts/language_dropdown.html' %}
+			</ul>
+		</nav>
+	{% endif %}
+{% endblock %}
 
-	<!-- Content Header (Page header) -->
-	<div class="content-header">
-		<div class="container-fluid">
-			<div class="row mb-2">
-				<div class="col-12">
-					<div class="card">
-						<div class="card-body">
-							{% translate "Chat-Driven GRM Setup Wizard" %}
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="login-logo">
+	<img src="{% static 'images/cosologo.png' %}" width="80" alt="COSO">
 </div>
-<!-- ./wrapper -->
+
+{% block content %}{% endblock %}
 
 <!-- jQuery -->
 <script src="{% static 'AdminLTE/plugins/jquery/jquery.min.js' %}"></script>
@@ -55,4 +50,3 @@
 <script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
 </body>
 </html>
-
