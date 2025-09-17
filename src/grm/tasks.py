@@ -28,13 +28,14 @@ COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 @app.task
 def check_issues():
     """
-    Check the issues without 'auto_increment_id', 'internal_code' or 'assignee', and try to set a value for these fields
+    Check the issues without internal_code, citizen information anonymization
+    or assignee, and try to set a value for these fields
     """
 
     issues = Issue.objects.filter(
         Q(confirmed=True)
         & (
-            ~Q(internal_code_in=[None, ""])
+            Q(internal_code_in=[None, ""])
             | ~Q(citizen_in=[None, ""])
             | ~Q(contact_information__in=[None, "", "*"])
             | Q(assignee_in=[None, ""])
@@ -128,7 +129,7 @@ def escalate_issues():
 @app.task
 def escalate_old_issues():
     """
-    Browse confirmed issues. If an issue is not closed (status.id != 4 or status.name != 'Terminée')
+    Browse confirmed issues. If an issue is not closed (not status.final_status)
     and was created or last escalated more than 3.5 days ago, it is marked for escalation
     by adding `escalate_flag: True` and updating `escalated_date`.
     Additionally, a comment is added to the issue history to document the escalation.
@@ -143,40 +144,66 @@ def escalate_old_issues():
 
     for issue in issues:
         # Check if the issue is already closed
-        # and skip closed issues
-        status = issue.status
-        if status.id == 4 and status.name == "Terminée":
-            continue
+        if not issue.status.final_status:
 
-        # Retrieve the issue creation date
-        created_date = issue.created_date
+            # Retrieve the issue creation date
+            created_date = issue.created_date
 
-        # Retrieve the last escalation date, if any
-        escalated_date = issue.escalated_date
+            # Retrieve the last escalation date, if any
+            escalated_date = issue.escalated_date
 
-        # Determine if the issue should be escalated
-        should_escalate = False
-        if escalated_date:  # Issue has been escalated before
-            if escalated_date < threshold:
-                should_escalate = True
-        else:  # First escalation
-            if created_date < threshold:
-                should_escalate = True
+            # Determine if the issue should be escalated
+            should_escalate = False
+            if escalated_date:  # Issue has been escalated before
+                if escalated_date < threshold:
+                    should_escalate = True
+            else:  # First escalation
+                if created_date < threshold:
+                    should_escalate = True
 
-        if should_escalate:
-            issue.escalated_date = now
-            issue.escalate_flag = True
+            if should_escalate:
+                issue.escalated_date = now
+                issue.escalate_flag = True
 
-            Comment.objects.create(
-                user=None,  # take None like user system
-                comment=_("The complaint has been escalated automatically because the processing time has passed."),
-                issue=issue,
-            )
+                Comment.objects.create(
+                    user=None,  # take None like user system
+                    comment=_("The complaint has been escalated automatically because the processing time has passed."),
+                    issue=issue,
+                )
 
-            issue.save()
-            updated_issues += 1
+                issue.save()
+                updated_issues += 1
 
     return {"updated_issues": updated_issues, "errors": errors}
+
+
+@app.task
+def reassign_issues_to_appeal():
+    issues = Issue.objects.filter(confirmed=True, appeal_status=True).select_related(
+        'category__assigned_appeal_department__department__head'
+    )
+    result = {
+        "errors": [],
+        "issues_updated": [],
+        "appeal_is_not_available": [],
+    }
+    updated_issues = 0
+    for issue in issues:
+        try:
+            assignee = issue.category.assigned_appeal_department.department.head
+            issue.assignee = assignee
+            if assignee:
+                issue.appeal_status = False
+                result["issues_updated"].append(issue.id)
+                issue.save()
+                updated_issues += 1
+            else:
+                result["appeal_is_not_available"].append(issue.id)
+        except Exception:
+            result["appeal_is_not_available"].append(issue.id)
+
+    result["updated_issues"] = updated_issues
+    return result
 
 
 @app.task
@@ -342,3 +369,6 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Calls escalate_old_issues() every day
     sender.add_periodic_task(86400, escalate_old_issues.s(), name="escalate old issues every day")
+
+    # Calls reassign_issues_to_appeal() every hour.
+    sender.add_periodic_task(3600, reassign_issues_to_appeal.s(), name="reassign issues to appeal every hour")
