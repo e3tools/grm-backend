@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 14:27+0000\n"
+"POT-Creation-Date: 2025-09-16 21:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,19 +19,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: authentication/constants.py:7
-msgid "Login successful."
+msgid "An error occurred while registering the citizen."
 msgstr ""
 
 #: authentication/constants.py:8
-msgid "Invalid input data."
+msgid "Login successful."
 msgstr ""
 
 #: authentication/constants.py:9
-msgid "User account is inactive."
+msgid "Invalid input data."
 msgstr ""
 
 #: authentication/constants.py:10
+msgid "User account is inactive."
+msgstr ""
+
+#: authentication/constants.py:11
 msgid "Invalid username or password."
+msgstr ""
+
+#: authentication/constants.py:12
+msgid ""
+"If an account exists with this email, password reset instructions have been "
+"sent."
 msgstr ""
 
 #: authentication/models.py:16
@@ -140,8 +150,14 @@ msgstr ""
 msgid "Password for authentication"
 msgstr ""
 
-#: authentication/views.py:420
-msgid "An error occurred while registering the citizen."
+#: authentication/views.py:565 authentication/views.py:585
+#: dashboard/templates/authentication/password_reset_confirm.html:19
+msgid "Reset Password"
+msgstr ""
+
+#: authentication/views.py:598
+#: dashboard/templates/authentication/password_reset_complete.html:3
+msgid "Password reset complete"
 msgstr ""
 
 #: dashboard/adls/forms.py:24 dashboard/templates/adls/list.html:25
@@ -202,7 +218,12 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr ""
 
-#: dashboard/authentication/views.py:62
+#: dashboard/authentication/views.py:55
+#: dashboard/templates/authentication/login.html:17
+msgid "Log in"
+msgstr ""
+
+#: dashboard/authentication/views.py:63
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
@@ -636,13 +657,22 @@ msgstr ""
 msgid "Location"
 msgstr ""
 
-#: dashboard/templates/authentication/login.html:17
-#: dashboard/templates/authentication/login.html:53
-msgid "Log in"
+#: dashboard/templates/authentication/login.html:10
+msgid "Log in to start your session"
 msgstr ""
 
-#: dashboard/templates/authentication/login.html:44
-msgid "Log in to start your session"
+#: dashboard/templates/authentication/password_reset_complete.html:5
+msgid ""
+"Your password has been successfully reset. You may now log in with your new "
+"password."
+msgstr ""
+
+#: dashboard/templates/authentication/password_reset_confirm.html:8
+msgid "Set a new password"
+msgstr ""
+
+#: dashboard/templates/authentication/password_reset_confirm.html:28
+msgid "The reset link is invalid or has expired."
 msgstr ""
 
 #: dashboard/templates/common/400.html:10

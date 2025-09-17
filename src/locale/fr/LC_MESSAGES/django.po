@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 14:27+0000\n"
+"POT-Creation-Date: 2025-09-16 21:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,20 +20,30 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: authentication/constants.py:7
+msgid "An error occurred while registering the citizen."
+msgstr "Une erreur s'est produite lors de l'enregistrement du citoyen."
+
+#: authentication/constants.py:8
 msgid "Login successful."
 msgstr "Connexion réussie."
 
-#: authentication/constants.py:8
+#: authentication/constants.py:9
 msgid "Invalid input data."
 msgstr "Données d'entrée non valides."
 
-#: authentication/constants.py:9
+#: authentication/constants.py:10
 msgid "User account is inactive."
 msgstr "Le compte utilisateur est inactif."
 
-#: authentication/constants.py:10
+#: authentication/constants.py:11
 msgid "Invalid username or password."
 msgstr "Nom d'utilisateur ou mot de passe invalide."
+
+#: authentication/constants.py:12
+msgid ""
+"If an account exists with this email, password reset instructions have been "
+"sent."
+msgstr ""
 
 #: authentication/models.py:16
 msgid "email address"
@@ -141,9 +151,15 @@ msgstr "Nom d'utilisateur pour l'authentification"
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
 
-#: authentication/views.py:420
-msgid "An error occurred while registering the citizen."
-msgstr "Une erreur s'est produite lors de l'enregistrement du citoyen."
+#: authentication/views.py:565 authentication/views.py:585
+#: dashboard/templates/authentication/password_reset_confirm.html:19
+msgid "Reset Password"
+msgstr "Réinitialiser le mot de passe"
+
+#: authentication/views.py:598
+#: dashboard/templates/authentication/password_reset_complete.html:3
+msgid "Password reset complete"
+msgstr ""
 
 #: dashboard/adls/forms.py:24 dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:75
@@ -209,7 +225,12 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr "Les informations de profil ont été modifiées avec succès."
 
-#: dashboard/authentication/views.py:62
+#: dashboard/authentication/views.py:55
+#: dashboard/templates/authentication/login.html:17
+msgid "Log in"
+msgstr "Se Connecter"
+
+#: dashboard/authentication/views.py:63
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 "La connexion n'est pas autorisée tant que l'assistant de personnalisation "
@@ -665,14 +686,25 @@ msgstr "Pas de remarques"
 msgid "Location"
 msgstr "Emplacement"
 
-#: dashboard/templates/authentication/login.html:17
-#: dashboard/templates/authentication/login.html:53
-msgid "Log in"
-msgstr "Se Connecter"
-
-#: dashboard/templates/authentication/login.html:44
+#: dashboard/templates/authentication/login.html:10
 msgid "Log in to start your session"
 msgstr "Connectez-vous pour démarrer votre session"
+
+#: dashboard/templates/authentication/password_reset_complete.html:5
+msgid ""
+"Your password has been successfully reset. You may now log in with your new "
+"password."
+msgstr ""
+"Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant "
+"vous connecter avec votre nouveau mot de passe."
+
+#: dashboard/templates/authentication/password_reset_confirm.html:8
+msgid "Set a new password"
+msgstr "Définir un nouveau mot de passe"
+
+#: dashboard/templates/authentication/password_reset_confirm.html:28
+msgid "The reset link is invalid or has expired."
+msgstr "Le lien de réinitialisation n'est pas valide ou a expiré."
 
 #: dashboard/templates/common/400.html:10
 msgid "BAD REQUEST"

@@ -52,6 +52,7 @@ class CustomLoginView(LoginView):
     authentication_form = EmailAuthenticationForm
     template_name = "authentication/login.html"
     redirect_authenticated_user = True
+    extra_context = {'title': _("Log in")}
 
     def form_valid(self, form):
         user = form.get_user()

@@ -1,8 +1,11 @@
+from urllib.parse import urlparse
+
 import pytest
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.test import override_settings
-from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
@@ -50,7 +53,8 @@ class PasswordResetAPIViewTest(APITestCase):
 
         # Extract uid and token from email body (simple check)
         body = email.body
-        assert str(self.user.pk) in body or urlsafe_base64_decode in body
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        assert uid in body
         assert default_token_generator.check_token(self.user, body.split("/")[-2]) or True
 
     def test_password_reset_with_nonexistent_email(self):
@@ -93,3 +97,26 @@ class PasswordResetAPIViewTest(APITestCase):
         # POST should still work
         response_post = self.client.post(self.url, {"email": self.email}, format="json")
         assert response_post.status_code == status.HTTP_200_OK
+
+    def test_password_reset_link_is_correct(self):
+        """
+        Test that the reset link in the email is generated correctly.
+        """
+        response = self.client.post(self.url, {"email": self.user.email}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+        from django.core import mail
+
+        email = mail.outbox[0]
+
+        # Parse link from email
+        link = [line for line in email.body.split() if "http" in line][0]
+        parsed = urlparse(link)
+
+        # Check path contains correct uid
+        uid = urlsafe_base64_encode(force_bytes(self.user.pk))
+        assert f"/authentication/password-reset-confirm/{uid}/" in parsed.path
+
+        # Ensure token is present (non-empty string)
+        token = parsed.path.split("/")[-2]  # or last segment depending on format
+        assert token
