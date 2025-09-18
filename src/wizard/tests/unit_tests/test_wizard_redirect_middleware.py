@@ -17,7 +17,7 @@ class TestWizardRedirectMiddleware:
         return UserFactory()
 
     def test_login_url_is_accessible_for_unauthenticated_user(self, client):
-        """Login page should never redirect to wizard when unauthenticated."""
+        """Login page should always be accessible when unauthenticated."""
         resp = client.get(reverse("dashboard:authentication:login"))
         assert resp.status_code == 200  # middleware lets it pass
 
@@ -35,12 +35,11 @@ class TestWizardRedirectMiddleware:
         resp = client.get(reverse("dashboard:wizard:customization_wizard"))
         assert resp.status_code == 200  # middleware lets it pass
 
-    def test_wizard_url_redirects_to_admin_for_non_grm_manager(self, client, normal_user):
-        """Non-GRM managers should be redirected to admin when trying to access the wizard."""
+    def test_wizard_url_raises_404_for_non_grm_manager(self, client, normal_user):
+        """Non-GRM manager should get 404 when accessing wizard URL."""
         client.force_login(normal_user)
         resp = client.get(reverse("dashboard:wizard:customization_wizard"))
-        assert resp.status_code == 302
-        assert resp.url == reverse("admin:login")
+        assert resp.status_code == 404
 
     def test_other_dashboard_url_redirects_if_wizard_incomplete(self, client, grm_manager_user):
         """Other dashboard URLs should redirect to wizard if wizard is missing or incomplete."""
@@ -52,7 +51,7 @@ class TestWizardRedirectMiddleware:
         assert resp.url == reverse("dashboard:wizard:customization_wizard")
 
     def test_other_dashboard_url_allowed_if_wizard_complete(self, client, grm_manager_user):
-        """If wizard is complete, grm_manager should access dashboard URLs normally."""
+        """Dashboard URLs accessible if wizard is complete and user is grm_manager."""
         client.force_login(grm_manager_user)
         WizardSession.update_state(COMPLETE_CHOICE)
 
@@ -67,14 +66,11 @@ class TestWizardRedirectMiddleware:
         resp = client.get(reverse("dashboard:diagnostics:home"))
         assert resp.status_code == 200
 
-    def test_other_dashboard_url_redirects_to_admin_for_non_grm_manager_if_wizard_incomplete(self, client, normal_user):
-        """Non-GRM managers should be redirected to admin for other dashboard URLs if wizard is incomplete."""
+    def test_other_dashboard_url_raises_404_for_non_grm_manager_if_wizard_incomplete(self, client, normal_user):
+        """Non-GRM managers get 404 if wizard is incomplete."""
         client.force_login(normal_user)
-        # No WizardSession created yet → considered incomplete
-
         resp = client.get(reverse("dashboard:diagnostics:home"))
-        assert resp.status_code == 302
-        assert resp.url == reverse("admin:login")
+        assert resp.status_code == 404
 
     def test_urls_outside_dashboard_are_not_restricted(self, client, grm_manager_user):
         """Middleware should not enforce wizard on non-dashboard apps."""
@@ -96,8 +92,7 @@ class TestWizardRedirectMiddleware:
 
         for path in ["/static/somefile.js", "/media/upload/test.png"]:
             resp = client.get(path)
-            # The middleware must not hijack to wizard
-            assert resp.status_code != 302 or resp.url != reverse("dashboard:wizard:customization_wizard")
+            assert resp.status_code != 302
 
     def test_static_and_media_are_exempt_for_normal_user(self, client, normal_user):
         """Static and media files should bypass all checks for any user."""
@@ -105,16 +100,11 @@ class TestWizardRedirectMiddleware:
 
         for path in ["/static/somefile.js", "/media/upload/test.png"]:
             resp = client.get(path)
-            # The middleware must not redirect at all
-            assert resp.status_code != 302 or (
-                resp.url != reverse("dashboard:wizard:customization_wizard") and resp.url != reverse("admin:login")
-            )
+            assert resp.status_code != 302
 
     def test_logout_url_is_accessible_for_all_users(self, client, normal_user):
-        """Logout URL should be accessible for all authenticated users."""
+        """Logout URL is always accessible."""
         client.force_login(normal_user)
         resp = client.get(reverse("dashboard:authentication:logout"))
-        # Should not redirect to admin or wizard
-        assert resp.status_code != 302 or (
-            resp.url != reverse("dashboard:wizard:customization_wizard") and resp.url != reverse("admin:login")
-        )
+        assert resp.status_code == 302
+        assert resp.url == reverse("dashboard:authentication:login")
