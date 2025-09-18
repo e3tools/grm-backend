@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 
@@ -12,36 +13,40 @@ class WizardRedirectMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.exempt_urls = {
-            reverse("dashboard:wizard:customization_wizard"),
-            reverse("dashboard:authentication:logout"),
-        }
+        self.customization_url = reverse("dashboard:wizard:customization_wizard")
+        self.login_url = reverse("dashboard:authentication:login")
+        self.logout_url = reverse("dashboard:authentication:logout")
+
+        self.exempt_urls_incomplete_manager = {self.logout_url, self.customization_url}
+        self.exempt_urls_incomplete_non_manager = {self.login_url, self.logout_url}
 
     def __call__(self, request):
         resolver = resolve(request.path_info)
 
-        # Enforce wizard only for dashboard namespace
+        # Enforce only under dashboard
         if "dashboard" not in resolver.namespaces:
             return self.get_response(request)
 
-        # Allow static files and media
+        # Allow static and media
         if request.path.startswith("/static/") or request.path.startswith("/media/"):
             return self.get_response(request)
 
-        # Check wizard state for authenticated users
-        if request.user.is_authenticated:
-            session = WizardSession.get_wizard_session()
-            if not session or session.state != COMPLETE_CHOICE:
-                # Block non-GRM managers from dashboard
-                if request.user.grm_manager:
-                    if request.path not in self.exempt_urls:
-                        return redirect("dashboard:wizard:customization_wizard")
-                else:
-                    if request.path != reverse("dashboard:authentication:logout"):
-                        return redirect("admin:login")
+        session = WizardSession.get_wizard_session()
+        wizard_complete = session and session.state == COMPLETE_CHOICE
 
-        # Skip exempt URLs
-        if request.path in self.exempt_urls | {reverse("dashboard:authentication:login")}:
+        # Wizard incomplete
+        if not wizard_complete:
+            if request.user.is_authenticated and request.user.grm_manager:
+                if request.path not in self.exempt_urls_incomplete_manager:
+                    return redirect(self.customization_url)
+            else:
+                if request.path not in self.exempt_urls_incomplete_non_manager:
+                    raise Http404()
             return self.get_response(request)
+
+        # Wizard complete
+        if request.user.is_authenticated and not request.user.grm_manager:
+            if request.path == self.customization_url:
+                raise Http404()
 
         return self.get_response(request)
