@@ -4003,8 +4003,8 @@ input[type="button"].btn-block {
 .input-group > .input-group-prepend:not(:first-child) > .input-group-text,
 .input-group > .input-group-prepend:first-child > .btn:not(:first-child),
 .input-group > .input-group-prepend:first-child > .input-group-text:not(:first-child) {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
 }
 
 .custom-control {
@@ -7016,6 +7016,10 @@ a.close.disabled, a.disabled.mailbox-attachment-close {
 
 .align-text-top {
     vertical-align: text-top !important;
+}
+
+.bg-primary-light {
+    background-color: #d2f1e3 !important;
 }
 
 .bg-primary {
@@ -10975,7 +10979,7 @@ a.text-dark:hover, a.text-dark:focus {
 }
 
 .text-muted {
-    color: #dedede !important;
+    color: #a4a4a4 !important;
 }
 
 .text-black-50 {
@@ -11128,7 +11132,7 @@ body,
     position: relative;
 }
 
-.wrapper .content-wrapper {
+.wrapper .content-wrapper, .wrapper .no-sidebar-content-wrapper {
     min-height: calc(100vh - calc(3.5rem + 1px) - calc(3.5rem + 1px));
 }
 
@@ -12413,7 +12417,7 @@ body.sidebar-collapse:not(.sidebar-mini-md):not(.sidebar-mini) .main-header::bef
     }
 }
 
-.content-wrapper > .content {
+.content-wrapper > .content, .no-sidebar-content-wrapper > .content {
     padding: 0 0.5rem;
 }
 
@@ -20250,6 +20254,15 @@ html.maximized-card {
     width: 4px;
 }
 
+.timeline > div:last-child::before {
+  content: '';
+  position: absolute;
+  left: 31px;
+  width: 4px;
+  height: 100%;
+  background: #fff;
+}
+
 .timeline > div {
     margin-bottom: 15px;
     margin-right: 10px;
@@ -20344,6 +20357,14 @@ html.maximized-card {
 
 .timeline-inverse > div > .timeline-item > .timeline-header {
     border-bottom-color: #efefef;
+}
+
+.simple-timeline > div > .timeline-item {
+    box-shadow: none;
+}
+
+.simple-timeline > div > .timeline-item > .timeline-header {
+    border: 0 !important;
 }
 
 .products-list {
@@ -32255,6 +32276,14 @@ a.text-muted:hover {
     text-align: center;
     height: 32px;
     width: 32px;
+}
+
+.center-42 {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    height: 42px;
+    width: 42px;
 }
 
 .circle-icon {

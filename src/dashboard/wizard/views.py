@@ -3,4 +3,4 @@ from django.views.generic import TemplateView
 
 
 class CustomizationWizardView(LoginRequiredMixin, TemplateView):
-    template_name = "wizard/chatbot.html"
+    template_name = "wizard/grm_customization.html"
