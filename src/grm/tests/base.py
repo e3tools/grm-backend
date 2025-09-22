@@ -5,10 +5,10 @@ from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETE_CHOICE
+from grm.constants import COMPLETED_CHOICE
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
-from wizard.models import WizardSession
+from wizard.factories import WizardSectionFactory
 
 JSON_TYPE = "application/json"
 URLENCODED_TYPE = "application/x-www-form-urlencoded"
@@ -24,7 +24,7 @@ class DashboardTestCase(APITestCase):
 
     def setUp(self):
         reset_sequences()
-        WizardSession.update_state(COMPLETE_CHOICE)
+        WizardSectionFactory(status=COMPLETED_CHOICE)
         root_region = AdministrativeRegionFactory()
         AdministrativeRegionFactory(parent=root_region)
         super().setUp()
