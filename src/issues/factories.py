@@ -9,6 +9,7 @@ from faker import Faker
 
 from authentication.factories import UserFactory
 from issues.models import (
+    AdministrativeLevel,
     AdministrativeRegion,
     Citizen,
     CitizenAgeGroup,
@@ -17,18 +18,14 @@ from issues.models import (
     Component,
     Issue,
     IssueAttachment,
+    IssueCategory,
+    IssueDepartment,
+    IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueSubType,
     IssueType,
     SubComponent,
     SubProjectGroup,
-)
-
-from .models import (
-    AdministrativeLevel,
-    IssueCategory,
-    IssueDepartment,
-    IssueDepartmentAdministrativeLevel,
 )
 
 fake = Faker()

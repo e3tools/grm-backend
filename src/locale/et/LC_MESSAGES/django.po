@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-17 11:02+0000\n"
+"POT-Creation-Date: 2025-09-22 11:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -469,41 +469,6 @@ msgstr ""
 msgid "Subprojects"
 msgstr ""
 
-#: dashboard/tasks.py:85
-#, python-format
-msgid "The issue has been assigned to %s."
-msgstr ""
-
-#: dashboard/tasks.py:172
-msgid ""
-"The complaint has been escalated automatically because the processing time "
-"has passed."
-msgstr ""
-
-#: dashboard/tasks.py:185 dashboard/tasks.py:251
-#, python-format
-msgid ""
-"Your issue submitted has been accepted into the system with the tracking "
-"code %s"
-msgstr ""
-
-#: dashboard/tasks.py:186
-#, python-format
-msgid ""
-"Your issue %s(tracking_code)s has been rejected with the following response: "
-"%s"
-msgstr ""
-
-#: dashboard/tasks.py:187 dashboard/tasks.py:253
-#, python-format
-msgid "Your issue %s has been resolved with the following response: %s"
-msgstr ""
-
-#: dashboard/tasks.py:252
-#, python-format
-msgid "Your issue %s has been rejected with the following response: %s"
-msgstr ""
-
 #: dashboard/templates/adls/list.html:11
 #: dashboard/templates/participatory_budget/dashboard.html:97
 msgid "Search"
@@ -540,6 +505,7 @@ msgstr ""
 #: dashboard/templates/participatory_budget/dashboard.html:5
 #: dashboard/templates/participatory_budget/statement.html:3
 #: dashboard/templates/participatory_budget/task_list.html:27
+#: grm/constants.py:114
 msgid "Completed"
 msgstr ""
 
@@ -1066,16 +1032,22 @@ msgid "Version"
 msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:12
-#: dashboard/templates/wizard/navbar.html:9 grm/constants.py:117
+#: dashboard/templates/wizard/navbar.html:9
 msgid "Welcome"
 msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:54
-#: dashboard/templates/wizard/navbar.html:20
+#: dashboard/templates/wizard/navbar.html:25
 msgid "Logout"
 msgstr ""
 
-#: dashboard/templates/layouts/sidebar.html:85
+#: dashboard/templates/layouts/sidebar.html:46
+#: dashboard/templates/wizard/grm_customization.html:15
+#: dashboard/templates/wizard/grm_customization.html:39
+msgid "GRM Customization"
+msgstr ""
+
+#: dashboard/templates/layouts/sidebar.html:94
 msgid "Toggle Sidebar"
 msgstr ""
 
@@ -1123,9 +1095,28 @@ msgstr ""
 msgid "Commune"
 msgstr ""
 
-#: dashboard/templates/wizard/chatbot.html:15
-#: dashboard/templates/wizard/chatbot.html:38
-msgid "Chat-Driven GRM Setup Wizard"
+#: dashboard/templates/wizard/grm_customization.html:59
+msgid "Setup Progress"
+msgstr ""
+
+#: dashboard/templates/wizard/grm_customization.html:132
+msgid "Configuration Options"
+msgstr ""
+
+#: dashboard/templates/wizard/grm_customization.html:187
+msgid "Save Changes"
+msgstr ""
+
+#: dashboard/templates/wizard/grm_customization.html:190
+msgid "Discard"
+msgstr ""
+
+#: dashboard/templates/wizard/grm_customization.html:219
+msgid "Send"
+msgstr ""
+
+#: dashboard/templates/wizard/navbar.html:18
+msgid "Dashboard"
 msgstr ""
 
 #: grm/constants.py:9
@@ -1296,28 +1287,12 @@ msgstr ""
 msgid "user with this email address already exists."
 msgstr ""
 
-#: grm/constants.py:118
-msgid "Admin Levels"
+#: grm/constants.py:112
+msgid "Not Started"
 msgstr ""
 
-#: grm/constants.py:119
-msgid "Roles"
-msgstr ""
-
-#: grm/constants.py:120
-msgid "Entry Types"
-msgstr ""
-
-#: grm/constants.py:121
-msgid "Categories"
-msgstr ""
-
-#: grm/constants.py:122
-msgid "Feedback"
-msgstr ""
-
-#: grm/constants.py:123
-msgid "Complete"
+#: grm/constants.py:113
+msgid "In Progress"
 msgstr ""
 
 #: grm/settings.py:138
@@ -1334,6 +1309,41 @@ msgstr ""
 
 #: grm/settings.py:141
 msgid "Ethiopia"
+msgstr ""
+
+#: grm/tasks.py:86
+#, python-format
+msgid "The issue has been assigned to %s."
+msgstr ""
+
+#: grm/tasks.py:170
+msgid ""
+"The complaint has been escalated automatically because the processing time "
+"has passed."
+msgstr ""
+
+#: grm/tasks.py:212 grm/tasks.py:278
+#, python-format
+msgid ""
+"Your issue submitted has been accepted into the system with the tracking "
+"code %s"
+msgstr ""
+
+#: grm/tasks.py:213
+#, python-format
+msgid ""
+"Your issue %s(tracking_code)s has been rejected with the following response: "
+"%s"
+msgstr ""
+
+#: grm/tasks.py:214 grm/tasks.py:280
+#, python-format
+msgid "Your issue %s has been resolved with the following response: %s"
+msgstr ""
+
+#: grm/tasks.py:279
+#, python-format
+msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""
 
 #: issues/models.py:55

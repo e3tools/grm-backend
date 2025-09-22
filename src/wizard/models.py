@@ -1,34 +1,19 @@
 from django.db import models
 
-from grm.constants import STATE_CHOICES, WELCOME_CHOICE
+from grm.constants import NOT_STARTED_CHOICE, STATUS_CHOICES
 
 
-class WizardSession(models.Model):
-    """
-    Model for storing the wizard's global state.
-    The table is expected to have only one row.
-    """
-
-    state = models.CharField(max_length=50, choices=STATE_CHOICES, default=WELCOME_CHOICE)
-    data = models.JSONField(default=dict)
-
+class WizardSection(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    prompt = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=NOT_STARTED_CHOICE)
+    template_name = models.CharField(max_length=255, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Wizard Session"
-        verbose_name_plural = "Wizard Sessions"
+        verbose_name = "Wizard Section"
+        verbose_name_plural = "Wizard Section"
 
     @classmethod
-    def get_wizard_session(cls):
-        """
-        Returns the global instance of the wizard.
-        If it doesn't exist, creates it with the initial state.
-        """
-        session, created = cls.objects.get_or_create(pk=1)
-        return session
-
-    @classmethod
-    def update_state(cls, state: str):
-        session = cls.get_wizard_session()
-        session.state = state
-        session.save()
+    def get_wizard_setup_status(cls):
+        return cls.objects.last().status

@@ -105,20 +105,11 @@ CITIZEN_SUCCESS_MESSAGE = _('Citizen registered successfully.')
 USERNAME_ERROR_MESSAGE = _("A user with that username already exists.")
 EMAIL_ERROR_MESSAGE = _("user with this email address already exists.")
 
-
-WELCOME_CHOICE = "welcome"
-ADMIN_LEVELS_CHOICE = "admin_levels"
-ROLES_CHOICE = "roles"
-ENTRY_TYPES_CHOICE = "entry_types"
-CATEGORIES_CHOICE = "categories"
-FEEDBACK_CHOICE = "feedback"
-COMPLETE_CHOICE = "complete"
-STATE_CHOICES = [
-    (WELCOME_CHOICE, _("Welcome")),
-    (ADMIN_LEVELS_CHOICE, _("Admin Levels")),
-    (ROLES_CHOICE, _("Roles")),
-    (ENTRY_TYPES_CHOICE, _("Entry Types")),
-    (CATEGORIES_CHOICE, _("Categories")),
-    (FEEDBACK_CHOICE, _("Feedback")),
-    (COMPLETE_CHOICE, _("Complete")),
+NOT_STARTED_CHOICE = "not_started"
+IN_PROGRESS_CHOICE = "in_progress"
+COMPLETED_CHOICE = "completed"
+STATUS_CHOICES = [
+    (NOT_STARTED_CHOICE, _("Not Started")),
+    (IN_PROGRESS_CHOICE, _("In Progress")),
+    (COMPLETED_CHOICE, _("Completed")),
 ]

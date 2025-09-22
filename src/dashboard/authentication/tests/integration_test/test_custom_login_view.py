@@ -3,9 +3,9 @@ from django.test import override_settings
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETE_CHOICE, WELCOME_CHOICE
+from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import DashboardTestCase
-from wizard.models import WizardSession
+from wizard.factories import WizardSectionFactory
 
 
 @pytest.mark.django_db
@@ -18,7 +18,8 @@ class CustomLoginViewTest(DashboardTestCase):
         self.url = reverse("dashboard:authentication:login")
 
     def test_grm_manager_can_login_even_if_wizard_incomplete(self):
-        WizardSession.update_state(WELCOME_CHOICE)  # wizard not complete
+        # wizard not complete
+        WizardSectionFactory(status=NOT_STARTED_CHOICE)
 
         resp = self.post(
             self.url,
@@ -32,7 +33,8 @@ class CustomLoginViewTest(DashboardTestCase):
         assert resp.context["user"].is_authenticated
 
     def test_normal_user_blocked_if_wizard_incomplete(self):
-        WizardSession.update_state(WELCOME_CHOICE)  # wizard not complete
+        # wizard not complete
+        WizardSectionFactory(status=NOT_STARTED_CHOICE)
 
         resp = self.post(
             self.url,
@@ -47,7 +49,8 @@ class CustomLoginViewTest(DashboardTestCase):
         assert "Login is not allowed until the customization wizard is completed." in resp.content.decode()
 
     def test_normal_user_can_login_if_wizard_complete(self):
-        WizardSession.update_state(COMPLETE_CHOICE)  # wizard complete
+        # wizard complete
+        WizardSectionFactory(status=COMPLETED_CHOICE)
 
         resp = self.post(
             self.url,

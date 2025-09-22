@@ -2,8 +2,8 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 
-from grm.constants import COMPLETE_CHOICE
-from wizard.models import WizardSession
+from grm.constants import COMPLETED_CHOICE
+from wizard.models import WizardSection
 
 
 class WizardRedirectMiddleware:
@@ -31,11 +31,10 @@ class WizardRedirectMiddleware:
         if request.path.startswith("/static/") or request.path.startswith("/media/"):
             return self.get_response(request)
 
-        session = WizardSession.get_wizard_session()
-        wizard_complete = session and session.state == COMPLETE_CHOICE
+        wizard_setup_status = WizardSection.get_wizard_setup_status()
 
         # Wizard incomplete
-        if not wizard_complete:
+        if wizard_setup_status != COMPLETED_CHOICE:
             if request.user.is_authenticated and request.user.grm_manager:
                 if request.path not in self.exempt_urls_incomplete_manager:
                     return redirect(self.customization_url)
