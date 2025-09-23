@@ -3640,7 +3640,8 @@ input[type="button"].btn-block {
     border: 0;
 }
 
-.dropdown-item:hover, .dropdown-item:focus {
+.dropdown-item:hover, .dropdown-item:focus,
+.timeline-item.pointer:hover, .timeline-item.pointer:focus {
     color: #16181b;
     text-decoration: none;
     background-color: #f8f9fa;
@@ -4553,7 +4554,8 @@ input[type="button"].btn-block {
 }
 
 .nav-pills .nav-link.active,
-.nav-pills .show > .nav-link {
+.nav-pills .show > .nav-link,
+.timeline-item.active {
     border-right: 4px solid #24c38b
 }
 
@@ -20367,6 +20369,13 @@ html.maximized-card {
     border: 0 !important;
 }
 
+.timeline-item.disabled > .timeline-header,
+.timeline-item.disabled > .timeline-body {
+    color: #a4a4a4 !important;
+    pointer-events: none;
+    cursor: none;
+}
+
 .products-list {
     list-style: none;
     margin: 0;
@@ -32370,7 +32379,7 @@ a.text-muted:hover {
     padding: 9px;
 }
 
-.nav .card-item {
+.nav .card-item, .pointer {
     cursor: pointer;
 }
 

@@ -2,12 +2,13 @@
 
 from django.db import migrations, transaction
 
+from grm.constants import IN_PROGRESS_CHOICE
+
 
 def create_wizard_sections(apps, schema_editor):
     WizardSection = apps.get_model('wizard', 'WizardSection')
-    objects_to_create = []
+    objects_to_create = [WizardSection(name='Project Description', status=IN_PROGRESS_CHOICE)]
     wizard_sections = (
-        'Project Description',
         'Administrative Levels',
         'GRM Roles & Responsibilities',
         'Grievance Types',
@@ -17,7 +18,7 @@ def create_wizard_sections(apps, schema_editor):
     )
 
     for name in wizard_sections:
-        objects_to_create.append(WizardSection(name=name, template_name=f'{name.lower().replace(' ', '_')}.html'))
+        objects_to_create.append(WizardSection(name=name))
 
     WizardSection.objects.bulk_create(objects_to_create)
 

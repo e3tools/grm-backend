@@ -13,7 +13,7 @@ class WizardRedirectMiddleware:
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.customization_url = reverse("dashboard:wizard:customization_wizard")
+        self.customization_url = reverse("wizard:customization_wizard")
         self.login_url = reverse("dashboard:authentication:login")
         self.logout_url = reverse("dashboard:authentication:logout")
 
@@ -24,7 +24,7 @@ class WizardRedirectMiddleware:
         resolver = resolve(request.path_info)
 
         # Enforce only under dashboard
-        if "dashboard" not in resolver.namespaces:
+        if "dashboard" not in resolver.namespaces and request.path != self.customization_url:
             return self.get_response(request)
 
         # Allow static and media

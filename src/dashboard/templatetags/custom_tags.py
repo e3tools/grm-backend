@@ -7,6 +7,7 @@ from grm.constants import (
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,
     MEDIUM_CHOICES,
+    STATUS_CHOICES,
 )
 
 register = template.Library()
@@ -108,6 +109,13 @@ def get_contact_type_display(value):
 @register.simple_tag
 def get_contact_medium_display(value):
     for key, label in MEDIUM_CHOICES:
+        if key == value:
+            return label
+
+
+@register.simple_tag
+def get_status_display(value):
+    for key, label in STATUS_CHOICES:
         if key == value:
             return label
 
