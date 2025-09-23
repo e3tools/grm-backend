@@ -15,7 +15,7 @@ class TestWizardRedirectMiddleware(TestCase):
         WizardSectionFactory(status=NOT_STARTED_CHOICE)
         self.grm_manager_user = UserFactory(grm_manager=True)
         self.normal_user = UserFactory()
-        self.customization_url = reverse("dashboard:wizard:customization_wizard")
+        self.customization_url = reverse("wizard:customization_wizard")
         self.login_url = reverse("dashboard:authentication:login")
         self.logout_url = reverse("dashboard:authentication:logout")
 

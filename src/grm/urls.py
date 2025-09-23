@@ -35,6 +35,7 @@ urlpatterns = [
     path("issues/", include("issues.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     path("", include("dashboard.urls")),
+    path("wizard/", include("wizard.urls")),
 ]
 
 schema_view = get_schema_view(

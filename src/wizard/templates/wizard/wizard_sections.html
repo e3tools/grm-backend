@@ -1,0 +1,26 @@
+{% load custom_tags %}
+
+<div class="timeline simple-timeline">
+	{% for obj in wizard_sections %}
+		<div>
+			{% if obj.status == 'completed' %}
+				<i class="fas fa-check bg-primary"></i>
+			{% elif obj.status == 'in_progress' %}
+				<i class="fas fa-dot-circle bg-primary-light text-primary"></i>
+			{% else %}
+				<i class="fas fa-border bg-white"></i>
+			{% endif %}
+			<div id="{{ forloop.counter }}" class="timeline-item {% if obj.status == 'not_started' %}
+			disabled{% else %}pointer{% endif %} {% if obj.status == 'in_progress' %}active{% endif %}">
+				<h3 class="timeline-header {% if obj.status == 'in_progress' %}text-primary{% endif %} pb-0">
+					{{ obj.name }}
+				</h3>
+				{% if obj.status != 'not_started' %}
+					<div class="timeline-body text-muted pt-0">
+						{% get_status_display obj.status %}
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	{% endfor %}
+</div>
