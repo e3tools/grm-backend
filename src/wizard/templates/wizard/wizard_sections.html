@@ -11,7 +11,7 @@
 				<i class="fas fa-border bg-white"></i>
 			{% endif %}
 			<div id="{{ forloop.counter }}" class="timeline-item {% if obj.status == 'not_started' %}
-			disabled{% else %}pointer{% endif %} {% if obj.status == 'in_progress' %}active{% endif %}">
+			disabled{% else %}pointer{% endif %} {% if forloop.counter == step %}active{% endif %}">
 				<h3 class="timeline-header {% if obj.status == 'in_progress' %}text-primary{% endif %} pb-0">
 					{{ obj.name }}
 				</h3>
