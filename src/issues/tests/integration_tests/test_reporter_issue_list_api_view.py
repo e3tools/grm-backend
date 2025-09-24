@@ -413,3 +413,93 @@ class ReporterIssueListAPIViewTest(APITestCase):
         assert self.issue_other.id in issue_ids_user2
         assert self.issue1.id not in issue_ids_user2
         assert self.issue2.id not in issue_ids_user2
+
+    def test_filter_by_created_date_returns_only_recent_issues(self):
+        """Test filtering issues by created_date only returns those created after the given datetime."""
+        self.authenticate_with_token()
+
+        # Force issue1 to be older than issue2
+        self.issue1.created_date = self.issue1.created_date.replace(year=self.issue1.created_date.year - 1)
+        self.issue1.save(update_fields=["created_date"])
+
+        # Filter by date after issue1
+        created_after = self.issue1.created_date.isoformat().replace("+00:00", "Z")
+        response = self.client.get(self.url, {"created_date": created_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        issue_ids = {i["id"] for i in response.data["results"]}
+        assert self.issue2.id in issue_ids
+        assert self.issue1.id not in issue_ids
+
+    def test_filter_by_updated_date_returns_only_recently_updated_issues(self):
+        """Test filtering issues by updated_date only returns those updated after the given datetime."""
+        self.authenticate_with_token()
+
+        # Force issue1 to be updated much earlier
+        old_updated_date = self.issue1.updated_date.replace(year=self.issue1.updated_date.year - 1)
+        Issue.objects.filter(id=self.issue1.id).update(updated_date=old_updated_date)
+        self.issue1.refresh_from_db()
+
+        updated_after = self.issue1.updated_date.isoformat().replace("+00:00", "Z")
+        response = self.client.get(self.url, {"updated_date": updated_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        issue_ids = {i["id"] for i in response.data["results"]}
+        assert self.issue2.id in issue_ids
+        assert self.issue1.id not in issue_ids
+
+    def test_filter_by_created_and_updated_date_combined(self):
+        """Test filtering issues with both created_date and updated_date applied together."""
+        self.authenticate_with_token()
+
+        # Set issue1 as old in created_date and updated_date
+        old_created_date = self.issue1.created_date.replace(year=self.issue1.created_date.year - 1)
+        old_updated_date = self.issue1.updated_date.replace(year=self.issue1.updated_date.year - 1)
+        Issue.objects.filter(id=self.issue1.id).update(created_date=old_created_date, updated_date=old_updated_date)
+        self.issue1.refresh_from_db()
+
+        created_after = self.issue1.created_date.isoformat().replace("+00:00", "Z")
+        updated_after = self.issue1.updated_date.isoformat().replace("+00:00", "Z")
+
+        response = self.client.get(self.url, {"created_date": created_after, "updated_date": updated_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        issue_ids = {i["id"] for i in response.data["results"]}
+        assert self.issue2.id in issue_ids
+        assert self.issue1.id not in issue_ids
+
+    def test_invalid_created_date_returns_400(self):
+        """Test API returns 400 when created_date has invalid format."""
+        self.authenticate_with_token()
+
+        response = self.client.get(self.url, {"created_date": "not-a-valid-datetime"})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "created_date" in response.data
+        assert "Invalid datetime format" in response.data["created_date"]
+
+    def test_invalid_updated_date_returns_400(self):
+        """Test API returns 400 when updated_date has invalid format."""
+        self.authenticate_with_token()
+
+        response = self.client.get(self.url, {"updated_date": "not-a-valid-datetime"})
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "updated_date" in response.data
+        assert "Invalid datetime format" in response.data["updated_date"]
+
+    def test_empty_created_date(self):
+        """Test empty string for created_date does not crash and returns unfiltered queryset."""
+        self.authenticate_with_token()
+
+        response = self.client.get(self.url, {"created_date": ""})
+        assert response.status_code == status.HTTP_200_OK
+        # No crash, normal count
+        assert response.data["count"] == 2
+
+    def test_empty_updated_date(self):
+        """Test empty string for updated_date does not crash and returns unfiltered queryset."""
+        self.authenticate_with_token()
+
+        response = self.client.get(self.url, {"updated_date": ""})
+        assert response.status_code == status.HTTP_200_OK
+        # No crash, normal count
+        assert response.data["count"] == 2
