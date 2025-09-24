@@ -1,4 +1,5 @@
 from django.http import Http404
+from django.utils.dateparse import parse_datetime
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -28,6 +29,7 @@ from grm.constants import (
     CONTACT_MEDIUM_ERROR_MESSAGE,
     ISSUE_CREATE_ERROR_MESSAGE,
     ISSUE_CREATE_SUCCESS_MESSAGE,
+    ISSUE_LIST_ERROR_MESSAGE,
     ISSUE_RETRIEVE_ERROR_MESSAGE,
     ISSUE_UPDATE_ERROR_MESSAGE,
     ISSUE_UPDATE_SUCCESS_MESSAGE,
@@ -421,7 +423,12 @@ class AssigneeIssueListAPIView(ListAPIView):
 
     @swagger_auto_schema(
         operation_summary="List issues (paginated) assigned to the authenticated user",
-        operation_description="Retrieve a paginated list of issues where the authenticated user is the assignee.",
+        operation_description=(
+            "Retrieve a paginated list of issues where the authenticated user is the assignee.\n\n"
+            "Optional filters:\n"
+            "- `created_date`: Only include issues created after the given datetime.\n"
+            "- `updated_date`: Only include issues updated after the given datetime."
+        ),
         tags=['Issues'],
         security=[{'Token': []}],
         manual_parameters=[
@@ -434,6 +441,22 @@ class AssigneeIssueListAPIView(ListAPIView):
                 description="Number of results per page (max: 100)",
                 type=openapi.TYPE_INTEGER,
                 default=20,
+            ),
+            openapi.Parameter(
+                'created_date',
+                openapi.IN_QUERY,
+                description="Filter issues created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'updated_date',
+                openapi.IN_QUERY,
+                description="Filter issues updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
             ),
         ],
         responses={
@@ -578,6 +601,10 @@ class AssigneeIssueListAPIView(ListAPIView):
         Returns a paginated list of issues assigned to the authenticated user.
         The list is ordered by intake date in descending order (most recent first).
 
+        Query Parameters:
+        - created_date: Filter issues created after this datetime (ISO 8601).
+        - updated_date: Filter issues updated after this datetime (ISO 8601).
+
         Args:
             request: HTTP request object
 
@@ -587,13 +614,22 @@ class AssigneeIssueListAPIView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return (
-            Issue.objects.select_related(
-                'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-            )
-            .filter(assignee=self.request.user)
-            .order_by("-intake_date")
-        )
+        qs = Issue.objects.select_related(
+            'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
+        ).filter(assignee=self.request.user)
+        created_date = self.request.query_params.get("created_date")
+        if created_date:
+            dt = parse_datetime(created_date)
+            if not dt:
+                raise ValidationError({"created_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(created_date__gt=dt)
+        updated_date = self.request.query_params.get("updated_date")
+        if updated_date:
+            dt = parse_datetime(updated_date)
+            if not dt:
+                raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(updated_date__gt=dt)
+        return qs.order_by("-intake_date")
 
 
 class ReporterIssueListAPIView(ListAPIView):
@@ -610,7 +646,12 @@ class ReporterIssueListAPIView(ListAPIView):
 
     @swagger_auto_schema(
         operation_summary="List issues (paginated) reported by the authenticated user",
-        operation_description="Retrieve a paginated list of issues where the authenticated user is the reporter.",
+        operation_description=(
+            "Retrieve a paginated list of issues where the authenticated user is the reporter.\n\n"
+            "Optional filters:\n"
+            "- `created_date`: Only include issues created after the given datetime.\n"
+            "- `updated_date`: Only include issues updated after the given datetime."
+        ),
         tags=['Issues'],
         security=[{'Token': []}],
         manual_parameters=[
@@ -623,6 +664,22 @@ class ReporterIssueListAPIView(ListAPIView):
                 description="Number of results per page (max: 100)",
                 type=openapi.TYPE_INTEGER,
                 default=20,
+            ),
+            openapi.Parameter(
+                'created_date',
+                openapi.IN_QUERY,
+                description="Filter issues created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'updated_date',
+                openapi.IN_QUERY,
+                description="Filter issues updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
             ),
         ],
         responses={
@@ -767,6 +824,10 @@ class ReporterIssueListAPIView(ListAPIView):
         Returns a paginated list of issues reported by the authenticated user.
         The list is ordered by intake date in descending order (most recent first).
 
+        Query Parameters:
+        - created_date: Filter issues created after this datetime (ISO 8601).
+        - updated_date: Filter issues updated after this datetime (ISO 8601).
+
         Args:
             request: HTTP request object
 
@@ -776,13 +837,22 @@ class ReporterIssueListAPIView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return (
-            Issue.objects.select_related(
-                'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-            )
-            .filter(reporter=self.request.user)
-            .order_by("-intake_date")
-        )
+        qs = Issue.objects.select_related(
+            'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
+        ).filter(reporter=self.request.user)
+        created_date = self.request.query_params.get("created_date")
+        if created_date:
+            dt = parse_datetime(created_date)
+            if not dt:
+                raise ValidationError({"created_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(created_date__gt=dt)
+        updated_date = self.request.query_params.get("updated_date")
+        if updated_date:
+            dt = parse_datetime(updated_date)
+            if not dt:
+                raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(updated_date__gt=dt)
+        return qs.order_by("-intake_date")
 
 
 class IssueRetrieveAPIView(RetrieveAPIView):
