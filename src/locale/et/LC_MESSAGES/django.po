@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-22 11:30+0000\n"
+"POT-Creation-Date: 2025-09-25 12:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,6 +182,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61 issues/models.py:34
+#: wizard/views.py:103
 msgid "Administrative Levels"
 msgstr ""
 
@@ -453,6 +454,14 @@ msgstr ""
 msgid "Logs"
 msgstr ""
 
+#: dashboard/models.py:10
+msgid "Project"
+msgstr ""
+
+#: dashboard/models.py:11
+msgid "Projects"
+msgstr ""
+
 #: dashboard/participatory_budget/forms.py:22
 msgid "Show:"
 msgstr ""
@@ -505,7 +514,7 @@ msgstr ""
 #: dashboard/templates/participatory_budget/dashboard.html:5
 #: dashboard/templates/participatory_budget/statement.html:3
 #: dashboard/templates/participatory_budget/task_list.html:27
-#: grm/constants.py:114
+#: grm/constants.py:81
 msgid "Completed"
 msgstr ""
 
@@ -688,6 +697,10 @@ msgstr ""
 msgid ""
 "We track these errors automatically, but if the problem persists feel free "
 "to contact us. In the meantime, try refreshing."
+msgstr ""
+
+#: dashboard/templates/common/toast_template.html:8
+msgid "Close"
 msgstr ""
 
 #: dashboard/templates/common/under_construction.html:7
@@ -902,6 +915,8 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_details.html:44
 #: dashboard/templates/grm/new_issue_location.html:38
 #: dashboard/templates/grm/new_issue_person.html:38
+#: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
+#: wizard/templates/wizard/formset.html:81
 msgid "SAVE & NEXT"
 msgstr ""
 
@@ -909,6 +924,8 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_details.html:49
 #: dashboard/templates/grm/new_issue_location.html:43
 #: dashboard/templates/grm/new_issue_person.html:43
+#: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
+#: wizard/templates/wizard/formset.html:88
 msgid "BACK"
 msgstr ""
 
@@ -1032,18 +1049,18 @@ msgid "Version"
 msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:12
-#: dashboard/templates/wizard/navbar.html:9
+#: wizard/templates/wizard/navbar.html:9
 msgid "Welcome"
 msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:54
-#: dashboard/templates/wizard/navbar.html:25
+#: wizard/templates/wizard/navbar.html:25
 msgid "Logout"
 msgstr ""
 
 #: dashboard/templates/layouts/sidebar.html:46
-#: dashboard/templates/wizard/grm_customization.html:15
-#: dashboard/templates/wizard/grm_customization.html:39
+#: wizard/templates/wizard/grm_customization.html:15
+#: wizard/templates/wizard/grm_customization.html:39
 msgid "GRM Customization"
 msgstr ""
 
@@ -1093,30 +1110,6 @@ msgstr ""
 
 #: dashboard/templates/participatory_budget/task_list.html:21
 msgid "Commune"
-msgstr ""
-
-#: dashboard/templates/wizard/grm_customization.html:59
-msgid "Setup Progress"
-msgstr ""
-
-#: dashboard/templates/wizard/grm_customization.html:132
-msgid "Configuration Options"
-msgstr ""
-
-#: dashboard/templates/wizard/grm_customization.html:187
-msgid "Save Changes"
-msgstr ""
-
-#: dashboard/templates/wizard/grm_customization.html:190
-msgid "Discard"
-msgstr ""
-
-#: dashboard/templates/wizard/grm_customization.html:219
-msgid "Send"
-msgstr ""
-
-#: dashboard/templates/wizard/navbar.html:18
-msgid "Dashboard"
 msgstr ""
 
 #: grm/constants.py:9
@@ -1182,117 +1175,127 @@ msgid "Citizen group 2"
 msgstr ""
 
 #: grm/constants.py:79
+msgid "Not Started"
+msgstr ""
+
+#: grm/constants.py:80
+msgid "In Progress"
+msgstr ""
+
+#: grm/constants.py:88
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr ""
 
-#: grm/constants.py:80
+#: grm/constants.py:89
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
 "in size."
 msgstr ""
 
-#: grm/constants.py:84
+#: grm/constants.py:93
 msgid "Validation failed."
 msgstr ""
 
-#: grm/constants.py:85
+#: grm/constants.py:94
 msgid "Not found."
 msgstr ""
 
-#: grm/constants.py:86
+#: grm/constants.py:95
 msgid ""
 "You must define the contact method is your contact medium is channel alert"
 msgstr ""
 
-#: grm/constants.py:87
+#: grm/constants.py:96
 msgid "If email contact method is selected, provide a valid email"
 msgstr ""
 
-#: grm/constants.py:88
+#: grm/constants.py:97
 msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 
-#: grm/constants.py:89
+#: grm/constants.py:98
 msgid "Issue created successfully."
 msgstr ""
 
-#: grm/constants.py:90
+#: grm/constants.py:99
 msgid "An error occurred while creating the issue."
 msgstr ""
 
-#: grm/constants.py:91
+#: grm/constants.py:100
 msgid "Issue updated successfully."
 msgstr ""
 
-#: grm/constants.py:92
+#: grm/constants.py:101
 msgid "An error occurred while updating the issue."
 msgstr ""
 
-#: grm/constants.py:93
+#: grm/constants.py:102
 msgid "Only assignees can update the status field."
 msgstr ""
 
-#: grm/constants.py:94
+#: grm/constants.py:103
 msgid "Only reporters can update the rating field."
 msgstr ""
 
-#: grm/constants.py:95
+#: grm/constants.py:104
 msgid "An error occurred while retrieving the issue."
 msgstr ""
 
-#: grm/constants.py:96
-msgid "Comment added successfully."
-msgstr ""
-
-#: grm/constants.py:97
-msgid "An error occurred while creating the comment."
-msgstr ""
-
-#: grm/constants.py:98
-msgid "An error occurred while retrieving issue comments."
-msgstr ""
-
-#: grm/constants.py:99
-msgid "An error occurred while deleting the comment."
-msgstr ""
-
-#: grm/constants.py:100
-msgid "Comment cannot be empty."
-msgstr ""
-
-#: grm/constants.py:101
-msgid "Attachment uploaded successfully."
-msgstr ""
-
-#: grm/constants.py:102
-msgid "An error occurred during file upload."
-msgstr ""
-
-#: grm/constants.py:103
-msgid "An error occurred while retrieving issue attachments."
-msgstr ""
-
-#: grm/constants.py:104
-msgid "Citizen registered successfully."
-msgstr ""
-
 #: grm/constants.py:105
-msgid "A user with that username already exists."
+msgid "Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z)."
 msgstr ""
 
 #: grm/constants.py:106
-msgid "user with this email address already exists."
+msgid "Comment added successfully."
+msgstr ""
+
+#: grm/constants.py:107
+msgid "An error occurred while creating the comment."
+msgstr ""
+
+#: grm/constants.py:108
+msgid "An error occurred while retrieving issue comments."
+msgstr ""
+
+#: grm/constants.py:109
+msgid "An error occurred while deleting the comment."
+msgstr ""
+
+#: grm/constants.py:110
+msgid "Comment cannot be empty."
+msgstr ""
+
+#: grm/constants.py:111
+msgid "Attachment uploaded successfully."
 msgstr ""
 
 #: grm/constants.py:112
-msgid "Not Started"
+msgid "An error occurred during file upload."
 msgstr ""
 
 #: grm/constants.py:113
-msgid "In Progress"
+msgid "An error occurred while retrieving issue attachments."
+msgstr ""
+
+#: grm/constants.py:114
+msgid "Citizen registered successfully."
+msgstr ""
+
+#: grm/constants.py:115
+msgid "A user with that username already exists."
+msgstr ""
+
+#: grm/constants.py:116
+msgid "user with this email address already exists."
+msgstr ""
+
+#: grm/constants.py:118
+#, python-format
+msgid ""
+"You cannot delete '%(name)s' because it is linked to issues or departments."
 msgstr ""
 
 #: grm/settings.py:138
@@ -1452,4 +1455,74 @@ msgstr ""
 
 #: issues/models.py:639
 msgid "Issue Attachment"
+msgstr ""
+
+#: wizard/forms.py:13
+msgid "Project Name"
+msgstr ""
+
+#: wizard/forms.py:14
+msgid "Enter the project name"
+msgstr ""
+
+#: wizard/forms.py:19
+msgid "Please describe the project"
+msgstr ""
+
+#: wizard/forms.py:20
+msgid "Project Description"
+msgstr ""
+
+#: wizard/forms.py:30
+msgid "Enter administrative level name"
+msgstr ""
+
+#: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
+#: wizard/templates/wizard/formset.html:79
+msgid "SAVE"
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:3
+msgid "Action not permitted"
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:3
+msgid "This administrative level cannot be deleted because it is in use."
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:47
+msgid "Delete"
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:52
+#: wizard/templates/wizard/formset.html:115
+msgid "Remove this row"
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:63
+msgid "Maximum number of forms reached."
+msgstr ""
+
+#: wizard/templates/wizard/formset.html:68
+msgid "Add Level"
+msgstr ""
+
+#: wizard/templates/wizard/grm_customization.html:59
+msgid "Setup Progress"
+msgstr ""
+
+#: wizard/templates/wizard/grm_customization.html:76
+msgid "Configuration Options"
+msgstr ""
+
+#: wizard/templates/wizard/grm_customization.html:277
+msgid "Delete this administrative level"
+msgstr ""
+
+#: wizard/templates/wizard/grm_customization.html:283
+msgid "Undo deletion"
+msgstr ""
+
+#: wizard/templates/wizard/navbar.html:18
+msgid "Dashboard"
 msgstr ""
