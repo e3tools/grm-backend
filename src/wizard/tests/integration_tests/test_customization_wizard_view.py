@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from authentication.factories import UserFactory
+from grm.constants import IN_PROGRESS_CHOICE
 from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
@@ -28,14 +29,28 @@ class CustomizationWizardViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/grm_customization.html")
 
-    def test_context_total_steps_with_sections(self):
-        """Test that total_steps reflects the number of WizardSections."""
+    def test_context_total_and_current_steps_with_sections(self):
+        """Test that total_steps and current_step are correctly set with WizardSections."""
         self.client.login(username="testuser", password="testpass")
 
         # Remove all WizardSections created by the migration
         WizardSection.objects.all().delete()
 
-        WizardSectionFactory.create_batch(5)
+        # Create 5 sections
+        sections = WizardSectionFactory.create_batch(5)
+
         response = self.client.get(self.url)
 
         self.assertEqual(response.context["total_steps"], 5)
+        # No section is in progress → current_step should equal total_steps
+        self.assertEqual(response.context["current_step"], 5)
+
+        # Mark one section as IN_PROGRESS and test again
+        section_in_progress = sections[2]
+        section_in_progress.status = IN_PROGRESS_CHOICE
+        section_in_progress.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["total_steps"], 5)
+        # current_step should be the index of the in-progress section + 1
+        self.assertEqual(response.context["current_step"], 3)

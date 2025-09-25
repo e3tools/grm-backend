@@ -1,8 +1,10 @@
 from django import forms
-from django.forms import modelformset_factory
+from django.core.exceptions import ValidationError
+from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from dashboard.models import Project
+from grm.constants import ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE
 from issues.models import AdministrativeLevel
 
 
@@ -33,9 +35,29 @@ class AdministrativeLevelForm(forms.ModelForm):
         fields = ["name"]
 
 
+class AdministrativeLevelBaseFormSet(BaseModelFormSet):
+    def clean(self):
+        super().clean()
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            instance = form.instance
+            marked_for_delete = form.cleaned_data.get("DELETE", False)
+
+            if marked_for_delete and getattr(instance, "restricted_deletion", False):
+                raise ValidationError(
+                    ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
+                    code="restricted_deletion",
+                    params={"name": instance.name},
+                )
+
+
 AdministrativeLevelFormSet = modelformset_factory(
     AdministrativeLevel,
     form=AdministrativeLevelForm,
+    formset=AdministrativeLevelBaseFormSet,
     extra=0,
     min_num=1,
     max_num=100,
