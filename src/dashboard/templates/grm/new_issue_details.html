@@ -128,7 +128,6 @@
         let modal = $('#formModal');
 
         function loadAttachments() {
-            console.log('entraaaa!')
             load_attachments_spin.show();
             $('#attachments').load("{% url 'dashboard:grm:issue_attachments' obj.id %}", function (
                 response, status, xhr) {

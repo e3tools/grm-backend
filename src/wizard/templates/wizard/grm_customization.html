@@ -136,16 +136,18 @@
 <script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
 <!-- Custom javascript -->
 <script src="{% static 'js/grm.js' %}"></script>
+<script src="{% static 'js/disableOnSubmit.js' %}"></script>
 <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+<script src="{% static 'js/customToast.js' %}"></script>
 <script type="text/javascript">
     let wizard_sections_spin = $('#wizard-sections-spin');
     let wizard_sections = $('#wizard-sections');
 
-    function loadWizardSections() {
+    function loadWizardSections(step) {
         wizard_sections_spin.show();
         $.ajax({
             type: "GET",
-            url: "{% url 'wizard:wizard_section_list' %}",
+            url: "{% url 'wizard:wizard_section_list' %}?step=" + step,
             complete: function () {
                 wizard_sections_spin.hide();
                 loadWizardSectionForm($('#formAjax'));
@@ -159,6 +161,10 @@
             }
         });
     }
+    
+    // For handling formset
+    let formIndex;
+    let maxForms;
 
     function loadWizardSectionForm($formAjax) {
         let section_id = $(".timeline-item.active").attr("id");
@@ -170,13 +176,17 @@
         $formAjax.load(url, function (response, status) {
             if (status === "error") {
                 alert(error_server_message);
+            } else {
+                formIndex = parseInt($('#id_form-TOTAL_FORMS').val());
+                maxForms = parseInt($('#id_form-MAX_NUM_FORMS').val());
             }
         });
     }
 
     $(document).on("submit", "#form", function (e) {
         e.preventDefault();
-        let url = "{% url 'wizard:setup_step_1' %}".replace("1", $(".timeline-item.active").attr("id"));
+        let step = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
         $.ajax({
             type: "post",
             url: url,
@@ -186,7 +196,9 @@
             contentType: false,
             success: function (response) {
                 $("#formAjax").html(response);
-                loadWizardSections();
+                if ($(response).find('.is-invalid').length === 0 && $(response).find('.errorlist').length === 0) {
+                    loadWizardSections(Number(step) + 1);
+                }
             },
             error: function () {
                 alert(error_server_message);
@@ -207,7 +219,122 @@
         loadWizardSectionForm($('#formAjax'));
     });
 
-    loadWizardSections();
+    loadWizardSections({{ current_step }});
+
+    // Formset management ---------------------------------------------------
+	
+    // Add new form
+    $(document).on('click', '#add-more', function () {
+        if (formIndex >= maxForms) {
+            $('#max-forms-alert').removeClass('d-none');
+            return;
+        }
+
+        // Clone the empty form template
+        let newForm = $('#empty-form-template').html();
+
+        // Replace __prefix__ with the current form index
+        newForm = newForm.replace(/__prefix__/g, formIndex);
+
+        // Update data-form-index
+        let $newForm = $(newForm);
+        $newForm.attr('data-form-index', formIndex);
+
+        // Add to container
+        $('#formset-container').append($newForm);
+
+        // Update form count
+        formIndex++;
+        $('#id_form-TOTAL_FORMS').val(formIndex);
+
+        // Focus on the new input
+        $newForm.find('input[type="text"]').focus();
+    });
+
+    // Remove form (for new forms without instance.pk)
+    $(document).on('click', '.remove-row', function () {
+        let $row = $(this).closest('.formset-row');
+        $row.remove();
+
+        // Update form indices and total count
+        updateFormIndices();
+
+        // Hide alert
+        $('#max-forms-alert').addClass('d-none');
+    });
+
+    // Mark for deletion (for existing forms with instance.pk)
+    $(document).on('click', '.delete-row', function () {
+        let $row = $(this).closest('.formset-row');
+        let $deleteCheckbox = $row.find('input[name$="-DELETE"]');
+
+        if ($deleteCheckbox.prop('checked')) {
+            // Unmark for deletion
+            $deleteCheckbox.prop('checked', false);
+            $row.removeClass('marked-for-deletion');
+            $(this).find('i').removeClass('fa-undo').addClass('fa-times-circle');
+            $(this).attr('title', '{% trans "Delete this administrative level" %}');
+        } else {
+            // Mark for deletion
+            $deleteCheckbox.prop('checked', true);
+            $row.addClass('marked-for-deletion');
+            $(this).find('i').removeClass('fa-times-circle').addClass('fa-undo');
+            $(this).attr('title', '{% trans "Undo deletion" %}');
+        }
+
+    });
+
+    // Update form indices after removal
+    function updateFormIndices() {
+        let currentIndex = 0;
+        $('#formset-container .formset-row').each(function () {
+            let $row = $(this);
+
+            // Update all input names and ids
+            $row.find('input, select, textarea').each(function () {
+                let $input = $(this);
+                let name = $input.attr('name');
+                let id = $input.attr('id');
+
+                if (name) {
+                    // Replace form-X- with form-currentIndex-
+                    name = name.replace(/form-\d+-/, 'form-' + currentIndex + '-');
+                    $input.attr('name', name);
+                }
+
+                if (id) {
+                    // Replace id_form-X- with id_form-currentIndex-
+                    id = id.replace(/id_form-\d+-/, 'id_form-' + currentIndex + '-');
+                    $input.attr('id', id);
+                }
+            });
+
+            // Update labels' for attributes
+            $row.find('label').each(function () {
+                let $label = $(this);
+                let forAttr = $label.attr('for');
+
+                if (forAttr) {
+                    forAttr = forAttr.replace(/id_form-\d+-/, 'id_form-' + currentIndex + '-');
+                    $label.attr('for', forAttr);
+                }
+            });
+
+            // Update data-form-index
+            $row.attr('data-form-index', currentIndex);
+
+            currentIndex++;
+        });
+
+        // Update total forms count
+        $('#id_form-TOTAL_FORMS').val(currentIndex);
+        formIndex = currentIndex;
+    }
+
+    $(document).on("click", ".restricted-deletion", function () {
+        showToast();
+    });
+
 </script>
 </body>
 </html>

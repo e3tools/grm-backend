@@ -1,0 +1,24 @@
+{% load bootstrap4 i18n %}
+<div class="card-body">
+	<div class="form-group">
+		<label>
+			Dummy template for step {{ step }} of customization
+		</label>
+	</div>
+</div>
+<div class="card-footer mb-2">
+	<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+		{% if step == total_steps %}
+			{% translate "SAVE" %}
+		{% else %}
+			{% translate "SAVE & NEXT" %}
+		{% endif %}
+	</button>
+	{% if step != 1 %}
+		<button id="back" data-step="{{ step }}" class="btn btn-secondary btn-sm rounded-xl float-right mr-4 
+			disabled-on-submit">
+			<i class="fa fa-chevron-left mr-2"></i>
+			{% translate "BACK" %}
+		</button>
+	{% endif %}
+</div>

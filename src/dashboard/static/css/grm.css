@@ -225,7 +225,7 @@ th {
     font-weight: normal;
 }
 
-label {
+label, .label {
     display: inline-block;
     margin-bottom: 0.5rem;
     font-family: poppinsbold;
@@ -4556,7 +4556,8 @@ input[type="button"].btn-block {
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link,
 .timeline-item.active {
-    border-right: 4px solid #24c38b
+    border-right: 4px solid #24c38b;
+    background-color: #f8f9fa !important;
 }
 
 .nav-pills .nav-link.active i, .nav-pills .show > .nav-link i {
@@ -13639,6 +13640,7 @@ body.sidebar-collapse:not(.sidebar-mini-md):not(.sidebar-mini) .main-header::bef
     .sidebar-mini.sidebar-collapse .main-header {
         margin-left: 4.6rem !important;
     }
+
     .wizard-header {
         margin-left: 0 !important;
     }
@@ -20257,12 +20259,12 @@ html.maximized-card {
 }
 
 .timeline > div:last-child::before {
-  content: '';
-  position: absolute;
-  left: 31px;
-  width: 4px;
-  height: 100%;
-  background: #fff;
+    content: '';
+    position: absolute;
+    left: 31px;
+    width: 4px;
+    height: 100%;
+    background: #fff;
 }
 
 .timeline > div {
@@ -32099,7 +32101,6 @@ a.text-muted:hover {
 }
 
 /*# sourceMappingURL=../AdminLTE/dist/css/adminlte.css.map */
-
 .main-title {
     font-family: poppinsbold;
     font-size: 22px;
@@ -33012,4 +33013,22 @@ a.text-muted:hover {
     right: 80px !important;
     position: absolute;
     top: 11px;
+}
+
+.marked-for-deletion {
+    opacity: 0.5;
+    background-color: #f8d7da;
+    border-radius: 0.25rem;
+}
+
+.marked-for-deletion input {
+    text-decoration: line-through;
+}
+
+.toast-center {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1060;
 }

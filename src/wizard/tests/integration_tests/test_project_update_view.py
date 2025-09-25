@@ -34,6 +34,7 @@ class ProjectUpdateViewTest(TestCase):
         self.assertTemplateUsed(response, "wizard/form.html")
 
     def test_get_context_contains_step_and_total_steps(self):
+        """Test that context includes step and total steps."""
         response = self.client.get(self.url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
         self.assertEqual(response.context["step"], 1)
         self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
@@ -119,3 +120,23 @@ class ProjectUpdateViewTest(TestCase):
         self.section2.refresh_from_db()
         self.assertEqual(self.section1.status, NOT_STARTED_CHOICE)
         self.assertEqual(self.section2.status, NOT_STARTED_CHOICE)
+
+    def test_update_status_does_not_override_next_section(self):
+        """Test that update_status does not override if next section already has different status."""
+        # Mark section2 as already IN_PROGRESS
+        self.section2.status = IN_PROGRESS_CHOICE
+        self.section2.save()
+
+        data = {"name": "Test Project", "description": "desc"}
+        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        self.assertEqual(response.status_code, 302)
+
+        self.section1.refresh_from_db()
+        self.section2.refresh_from_db()
+
+        # section1 should still become COMPLETED
+        self.assertEqual(self.section1.status, COMPLETED_CHOICE)
+
+        # section2 should remain IN_PROGRESS (not overridden)
+        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)

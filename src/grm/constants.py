@@ -72,6 +72,15 @@ CITIZEN_GROUP_CHOICES = (
     (CITIZEN_GROUP2_CHOICE, _('Citizen group 2')),
 )
 
+NOT_STARTED_CHOICE = "not_started"
+IN_PROGRESS_CHOICE = "in_progress"
+COMPLETED_CHOICE = "completed"
+STATUS_CHOICES = [
+    (NOT_STARTED_CHOICE, _("Not Started")),
+    (IN_PROGRESS_CHOICE, _("In Progress")),
+    (COMPLETED_CHOICE, _("Completed")),
+]
+
 TEXTAREA_MAX_LENGTH = 65000
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_UPLOAD_SIZE_FILE_FORMAT = filesizeformat_en(MAX_UPLOAD_SIZE)
@@ -105,12 +114,6 @@ ATTACHMENT_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving issue 
 CITIZEN_SUCCESS_MESSAGE = _('Citizen registered successfully.')
 USERNAME_ERROR_MESSAGE = _("A user with that username already exists.")
 EMAIL_ERROR_MESSAGE = _("user with this email address already exists.")
-
-NOT_STARTED_CHOICE = "not_started"
-IN_PROGRESS_CHOICE = "in_progress"
-COMPLETED_CHOICE = "completed"
-STATUS_CHOICES = [
-    (NOT_STARTED_CHOICE, _("Not Started")),
-    (IN_PROGRESS_CHOICE, _("In Progress")),
-    (COMPLETED_CHOICE, _("Completed")),
-]
+ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE = _(
+    "You cannot delete '%(name)s' because it is linked to issues or departments."
+)

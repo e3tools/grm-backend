@@ -1,0 +1,120 @@
+{% load bootstrap4 i18n %}
+
+{% translate "Action not permitted" as toast_title %}{% translate "This administrative level cannot be deleted because it is in use." as toast_message %}{% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
+
+<form id="form" enctype="multipart/form-data">
+	{% csrf_token %}
+	<div class="card-body">
+		<div class="overlay-wrapper">
+			{{ formset.management_form }}
+
+			<!-- Error messages -->
+			{% if formset.non_form_errors %}
+				<div class="alert alert-danger">
+					{{ formset.non_form_errors }}
+				</div>
+			{% endif %}
+
+			<div class="label">
+				{{ formset_label }}
+			</div>
+
+			<div id="formset-container">
+				{% for form in formset %}
+					<div class="form-row formset-row pt-3" data-form-index="{{ forloop.counter0 }}">
+						<div class="col-md-10">
+							<!-- Hidden fields (like id and DELETE) -->
+							{% for hidden in form.hidden_fields %}
+								{{ hidden }}
+							{% endfor %}
+
+							<!-- Name field -->
+							{% bootstrap_field form.name show_label=False %}
+
+							<!-- Delete checkbox (hidden, controlled by JS) -->
+							{% if form.DELETE %}
+								<div class="d-none">
+									{{ form.DELETE }}
+								</div>
+							{% endif %}
+						</div>
+
+						<div class="col-md-2 d-flex align-items-start">
+							{% if form.instance.pk %}
+								<button type="button"
+										class="btn text-secondary {% if form.instance.restricted_deletion %}
+										restricted-deletion disabled{% else %}delete-row{% endif %}"
+										title="{% trans 'Delete' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% else %}
+								<button type="button" class="btn text-secondary remove-row"
+										title="{% trans 'Remove this row' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% endif %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+
+			<!-- Alert text -->
+			<div id="max-forms-alert" class="d-none text-danger mt-1">
+				{% trans "Maximum number of forms reached." %}
+			</div>
+
+			<!-- Add more button -->
+			<button type="button" id="add-more" class="btn btn-link-primary fs12 pl-0">
+				<i class="fas fa-plus"></i> {% trans "Add Level" %}
+			</button>
+
+			<div class="overlay submit-spin d-none">
+				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+			</div>
+		</div>
+	</div>
+	<div class="card-footer mb-2">
+		<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+			{% if step == total_steps %}
+				{% translate "SAVE" %}
+			{% else %}
+				{% translate "SAVE & NEXT" %}
+			{% endif %}
+		</button>
+		{% if step != 1 %}
+			<button id="back" data-step="{{ step }}" class="btn btn-secondary btn-sm rounded-xl float-right mr-4 
+			disabled-on-submit">
+				<i class="fa fa-chevron-left mr-2"></i>
+				{% translate "BACK" %}
+			</button>
+		{% endif %}
+	</div>
+</form>
+
+<!-- Empty form template for JavaScript -->
+<div id="empty-form-template" style="display: none;">
+	<div class="form-row formset-row pt-3" data-form-index="__prefix__">
+		<div class="col-md-10">
+			{% with form=formset.empty_form %}
+				<!-- Hidden fields -->
+				{% for hidden in form.hidden_fields %}
+					{{ hidden }}
+				{% endfor %}
+
+				<!-- Name field -->
+				{% bootstrap_field form.name show_label=False %}
+
+				<!-- Delete checkbox (hidden) -->
+				{% if form.DELETE %}
+					{{ form.DELETE.as_hidden }}
+				{% endif %}
+			{% endwith %}
+		</div>
+
+		<div class="col-md-2 d-flex align-items-start">
+			<button type="button" class="btn text-secondary remove-row" title="{% trans 'Remove this row' %}">
+				<i class="fas fa-times-circle"></i>
+			</button>
+		</div>
+	</div>
+</div>

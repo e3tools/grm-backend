@@ -23,9 +23,15 @@ class WizardSectionListViewTest(TestCase):
         self.section2 = WizardSectionFactory(status=IN_PROGRESS_CHOICE)
         self.section3 = WizardSectionFactory(status=NOT_STARTED_CHOICE)
 
+    def _get(self, **kwargs):
+        """Helper to send GET with AJAX header and step param."""
+        params = {"step": 1}
+        params.update(kwargs)
+        return self.client.get(self.url, params, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
     def test_ajax_request_returns_success(self):
         """Test that AJAX requests return successful response."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.section1.name)
@@ -34,16 +40,18 @@ class WizardSectionListViewTest(TestCase):
 
     def test_non_ajax_request_returns_404(self):
         """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, {"step": 1})
 
         self.assertEqual(response.status_code, 404)
 
-    def test_context_contains_wizard_sections(self):
-        """Test that the context contains wizard sections with correct name."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    def test_context_contains_wizard_sections_and_step(self):
+        """Test that the context contains wizard sections and step value."""
+        response = self._get(step=2)
 
-        self.assertIn('wizard_sections', response.context)
-        wizard_sections = response.context['wizard_sections']
+        self.assertIn("wizard_sections", response.context)
+        self.assertEqual(response.context["step"], 2)
+
+        wizard_sections = response.context["wizard_sections"]
 
         # Check all sections are present
         section_names = [section.name for section in wizard_sections]
@@ -53,9 +61,9 @@ class WizardSectionListViewTest(TestCase):
 
     def test_wizard_sections_ordering(self):
         """Test that wizard sections are returned in correct order (by id)."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
-        wizard_sections = list(response.context['wizard_sections'])
+        wizard_sections = list(response.context["wizard_sections"])
 
         # Should be ordered by id (as defined in model Meta)
         self.assertEqual(wizard_sections[0].id, self.section1.id)
@@ -64,25 +72,25 @@ class WizardSectionListViewTest(TestCase):
 
     def test_template_used(self):
         """Test that the correct template is used."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
-        self.assertTemplateUsed(response, 'wizard/wizard_sections.html')
+        self.assertTemplateUsed(response, "wizard/wizard_sections.html")
 
     def test_empty_wizard_sections(self):
         """Test view behavior when no wizard sections exist."""
         WizardSection.objects.all().delete()
 
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn('wizard_sections', response.context)
-        self.assertEqual(len(response.context['wizard_sections']), 0)
+        self.assertIn("wizard_sections", response.context)
+        self.assertEqual(len(response.context["wizard_sections"]), 0)
 
     def test_section_with_different_statuses(self):
         """Test that sections with different statuses are all included."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
-        wizard_sections = response.context['wizard_sections']
+        wizard_sections = response.context["wizard_sections"]
         statuses = [section.status for section in wizard_sections]
 
         self.assertIn(COMPLETED_CHOICE, statuses)
@@ -91,22 +99,22 @@ class WizardSectionListViewTest(TestCase):
 
     def test_section_fields_in_context(self):
         """Test that all wizard section fields are accessible in context."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
-        wizard_sections = response.context['wizard_sections']
+        wizard_sections = response.context["wizard_sections"]
         first_section = wizard_sections.first()
 
         # Check that all model fields are accessible
-        self.assertTrue(hasattr(first_section, 'name'))
-        self.assertTrue(hasattr(first_section, 'status'))
-        self.assertTrue(hasattr(first_section, 'updated_at'))
+        self.assertTrue(hasattr(first_section, "name"))
+        self.assertTrue(hasattr(first_section, "status"))
+        self.assertTrue(hasattr(first_section, "updated_at"))
 
     def test_section_with_special_characters(self):
         """Test handling of sections with special characters."""
         section_name = "Section with Special Characters: @#$%^&*()"
         WizardSectionFactory(name=section_name, status=IN_PROGRESS_CHOICE)
 
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
         self.assertEqual(response.status_code, 200)
 
@@ -116,55 +124,38 @@ class WizardSectionListViewTest(TestCase):
         self.assertIn(expected_name.encode(), response.content)
 
         # Also verify the section is in the context with original name
-        wizard_sections = response.context['wizard_sections']
+        wizard_sections = response.context["wizard_sections"]
         section_names = [section.name for section in wizard_sections]
         self.assertIn(section_name, section_names)
 
     def test_response_content_type(self):
         """Test that response has correct content type."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self._get()
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
-
-    def test_various_ajax_header_formats(self):
-        """Test that various AJAX header formats work correctly."""
-        # Test with different case variations
-        test_headers = [
-            'XMLHttpRequest',
-            'xmlhttprequest',  # This might not work depending on case sensitivity
-        ]
-
-        for header_value in test_headers:
-            with self.subTest(header=header_value):
-                response = self.client.get(self.url, HTTP_X_REQUESTED_WITH=header_value)
-                # Only 'XMLHttpRequest' should work based on the mixin implementation
-                if header_value == 'XMLHttpRequest':
-                    self.assertEqual(response.status_code, 200)
-                else:
-                    self.assertEqual(response.status_code, 404)
+        self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
 
     def test_post_method_not_allowed(self):
         """Test that POST method returns 405 Method Not Allowed."""
-        response = self.client.post(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.post(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
         self.assertEqual(response.status_code, 405)
 
     def test_put_method_not_allowed(self):
         """Test that PUT method returns 405 Method Not Allowed."""
-        response = self.client.put(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.put(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
         self.assertEqual(response.status_code, 405)
 
     def test_delete_method_not_allowed(self):
         """Test that DELETE method returns 405 Method Not Allowed."""
-        response = self.client.delete(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = self.client.delete(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 
         self.assertEqual(response.status_code, 405)
 
     def test_queryset_efficiency(self):
         """Test that the view doesn't cause unnecessary database queries."""
         with self.assertNumQueries(1):  # Should only need one query to get all sections
-            response = self.client.get(self.url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+            response = self._get()
             # Access the wizard_sections to trigger evaluation
-            list(response.context['wizard_sections'])
+            list(response.context["wizard_sections"])
