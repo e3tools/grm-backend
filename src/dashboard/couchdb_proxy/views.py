@@ -1,14 +1,13 @@
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import generic
 
 from client import get_db
-from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin
+from dashboard.mixins import JSONResponseMixin, LoginRequiredAndAJAXRequestMixin
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
-class StatisticsOfTasksUpdatedByRegionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class StatisticsOfTasksUpdatedByRegionView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         eadl_db = get_db()
         administrative_id = self.request.GET.get("administrative_id", None)

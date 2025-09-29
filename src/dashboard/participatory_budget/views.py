@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from client import get_db
-from dashboard.mixins import AJAXRequestMixin, PageMixin
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin, PageMixin
 from dashboard.participatory_budget.forms import CommuneSelectForm, MonthSelectForm
 from grm.utils import sort_dictionary_list_by_field
 
@@ -24,7 +24,7 @@ class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView)
         return context
 
 
-class UpdatedTaskListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+class UpdatedTaskListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
     template_name = "participatory_budget/task_list.html"
     context_object_name = "tasks"
 
@@ -48,7 +48,7 @@ class UpdatedTaskListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView
         return tasks[index : index + offset]
 
 
-class StatementListView(AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+class StatementListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
     template_name = "participatory_budget/statement.html"
     context_object_name = "phases"
 

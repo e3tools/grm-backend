@@ -10,6 +10,7 @@ def create_wizard_sections(apps, schema_editor):
     objects_to_create = [WizardSection(name='Project Description', status=IN_PROGRESS_CHOICE)]
     wizard_sections = (
         'Administrative Levels',
+        'Administrative Regions',
         'GRM Roles & Responsibilities',
         'Grievance Types',
         'Categories & Teams',

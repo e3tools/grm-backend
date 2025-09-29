@@ -125,7 +125,7 @@
         }
 
         let file_form_ajax = new FileFormAjaxSubmit();
-        let modal = $('#formModal');
+        let file_form_modal = $('#formModal');
 
         function loadAttachments() {
             load_attachments_spin.show();
@@ -135,12 +135,13 @@
                     alert(error_server_message + "Error " + response.status);
                 }
                 load_attachments_spin.hide();
-                $('#add_attachment').click(function () {
-                    let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
-                    file_form_ajax.load_form('#form', modal, url, false, true);
-                });
             });
         }
+        
+		$(document).on('click', '#add_attachment', function () {
+			let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
+			file_form_ajax.load_form('#form', file_form_modal, url, false, true);
+		});
 
         $(document).ready(function () {
             loadAttachments();

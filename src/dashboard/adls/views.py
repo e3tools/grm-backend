@@ -14,8 +14,8 @@ from authentication.utils import get_validation_code
 from client import COUCHDB_ATTACHMENT_DATABASE, get_db, upload_file
 from dashboard.adls.forms import AdlProfileForm, PasswordConfirmForm
 from dashboard.mixins import (
-    AJAXRequestMixin,
     JSONResponseMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
     PageMixin,
 )
@@ -112,9 +112,8 @@ class ToggleAdlStatusView(LoginRequiredMixin, generic.View):
 
 class EditAdlProfileFormView(
     ADLMixin,
-    AJAXRequestMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    LoginRequiredMixin,
     JSONResponseMixin,
     generic.FormView,
 ):

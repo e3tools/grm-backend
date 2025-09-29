@@ -85,13 +85,11 @@ TEXTAREA_MAX_LENGTH = 65000
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 MAX_UPLOAD_SIZE_FILE_FORMAT = filesizeformat_en(MAX_UPLOAD_SIZE)
 MAX_ATTACHMENTS = 20
-FILE_HELP_TEXT = _("Allowed file size less than or equal to %s") % MAX_UPLOAD_SIZE_FILE_FORMAT
-FILE_SIZE_ERROR_MESSAGE = _("Select a file with a size less than or equal to %s. The selected file is %s in size.") % (
-    MAX_UPLOAD_SIZE_FILE_FORMAT,
-    "%s",
-)
+FILE_HELP_TEXT = _("Allowed file size less than or equal to %s")
+FILE_SIZE_ERROR_MESSAGE = _("Select a file with a size less than or equal to %s. The selected file is %s in size.")
 VALIDATION_FAILED_MESSAGE = _('Validation failed.')
 NOT_FOUND_MESSAGE = _('Not found.')
+NOT_PERMITTED_TEXT = _('Action not permitted')
 CONTACT_MEDIUM_ERROR_MESSAGE = _("You must define the contact method is your contact medium is channel alert")
 CONTACT_INFO_EMAIL_ERROR_MESSAGE = _("If email contact method is selected, provide a valid email")
 CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE = _("If phone or whatsapp contact method is selected, provide a valid phone number")
@@ -117,3 +115,22 @@ EMAIL_ERROR_MESSAGE = _("user with this email address already exists.")
 ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE = _(
     "You cannot delete '%(name)s' because it is linked to issues or departments."
 )
+ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE = _('This administrative level cannot be deleted because it is in use.')
+ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE = _("Administrative Level Instances")
+ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE = _("Successfully created %(count)d administrative level instances.")
+ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE = _("Skipped %(count)d duplicates that already existed.")
+ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE = _(
+    "%(count)d administrative level instances could not be modified because they are already in use."
+)
+ADMINISTRATIVE_LEVEL_UPLOAD_NOT_FOUND_MESSAGE = _("Administrative level %(level)s not found in database")
+ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE = _("The Excel file must contain a header row.")
+ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_ALREADY_EXISTS_MESSAGE = _(
+    "The first administrative level instance already exists with the name %(root)s. "
+    "The instance with the value %(new)s does not match this level in the Excel file."
+)
+ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE = _(
+    "The value of the instance of the first administrative level (first column) must be the same value for all cells "
+    "in the column. Expected %(root)s, found %(new)s."
+)
+ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE = _("Only Excel files (.xls, .xlsx) are allowed.")
+INVALID_EXCEL_FILE_ERROR_MESSAGE = _("The uploaded file is not a valid Excel file.")

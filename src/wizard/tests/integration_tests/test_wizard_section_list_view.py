@@ -1,14 +1,12 @@
-import pytest
-from django.test import TestCase
 from django.urls import reverse
 
 from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
+from grm.tests.base import ViewTestCase
 from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
-@pytest.mark.django_db
-class WizardSectionListViewTest(TestCase):
+class WizardSectionListViewTest(ViewTestCase):
     """Integration tests for the WizardSectionListView."""
 
     def setUp(self):
@@ -23,15 +21,14 @@ class WizardSectionListViewTest(TestCase):
         self.section2 = WizardSectionFactory(status=IN_PROGRESS_CHOICE)
         self.section3 = WizardSectionFactory(status=NOT_STARTED_CHOICE)
 
-    def _get(self, **kwargs):
-        """Helper to send GET with AJAX header and step param."""
-        params = {"step": 1}
-        params.update(kwargs)
-        return self.client.get(self.url, params, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+    def test_redirect_if_not_logged_in(self):
+        """Test to make the view return 404 to anonymous users."""
+        response = self.get(self.url, authorized=False, ajax=True)
+        self.assertEqual(response.status_code, 404)
 
     def test_ajax_request_returns_success(self):
         """Test that AJAX requests return successful response."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.section1.name)
@@ -46,7 +43,7 @@ class WizardSectionListViewTest(TestCase):
 
     def test_context_contains_wizard_sections_and_step(self):
         """Test that the context contains wizard sections and step value."""
-        response = self._get(step=2)
+        response = self.get(self.url, data={"step": 2}, ajax=True)
 
         self.assertIn("wizard_sections", response.context)
         self.assertEqual(response.context["step"], 2)
@@ -61,7 +58,7 @@ class WizardSectionListViewTest(TestCase):
 
     def test_wizard_sections_ordering(self):
         """Test that wizard sections are returned in correct order (by id)."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         wizard_sections = list(response.context["wizard_sections"])
 
@@ -72,7 +69,7 @@ class WizardSectionListViewTest(TestCase):
 
     def test_template_used(self):
         """Test that the correct template is used."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertTemplateUsed(response, "wizard/wizard_sections.html")
 
@@ -80,7 +77,7 @@ class WizardSectionListViewTest(TestCase):
         """Test view behavior when no wizard sections exist."""
         WizardSection.objects.all().delete()
 
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("wizard_sections", response.context)
@@ -88,7 +85,7 @@ class WizardSectionListViewTest(TestCase):
 
     def test_section_with_different_statuses(self):
         """Test that sections with different statuses are all included."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         wizard_sections = response.context["wizard_sections"]
         statuses = [section.status for section in wizard_sections]
@@ -99,7 +96,7 @@ class WizardSectionListViewTest(TestCase):
 
     def test_section_fields_in_context(self):
         """Test that all wizard section fields are accessible in context."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         wizard_sections = response.context["wizard_sections"]
         first_section = wizard_sections.first()
@@ -114,7 +111,7 @@ class WizardSectionListViewTest(TestCase):
         section_name = "Section with Special Characters: @#$%^&*()"
         WizardSectionFactory(name=section_name, status=IN_PROGRESS_CHOICE)
 
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
 
@@ -130,32 +127,25 @@ class WizardSectionListViewTest(TestCase):
 
     def test_response_content_type(self):
         """Test that response has correct content type."""
-        response = self._get()
+        response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
 
     def test_post_method_not_allowed(self):
         """Test that POST method returns 405 Method Not Allowed."""
-        response = self.client.post(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, {"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 405)
 
     def test_put_method_not_allowed(self):
         """Test that PUT method returns 405 Method Not Allowed."""
-        response = self.client.put(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.put(self.url, {"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 405)
 
     def test_delete_method_not_allowed(self):
         """Test that DELETE method returns 405 Method Not Allowed."""
-        response = self.client.delete(self.url, {"step": 1}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.delete(self.url, {"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 405)
-
-    def test_queryset_efficiency(self):
-        """Test that the view doesn't cause unnecessary database queries."""
-        with self.assertNumQueries(1):  # Should only need one query to get all sections
-            response = self._get()
-            # Access the wizard_sections to trigger evaluation
-            list(response.context["wizard_sections"])

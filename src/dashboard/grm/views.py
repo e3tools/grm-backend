@@ -30,8 +30,8 @@ from dashboard.grm.forms import (
     SearchIssueForm,
 )
 from dashboard.mixins import (
-    AJAXRequestMixin,
     JSONResponseMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
     PageMixin,
 )
@@ -143,9 +143,8 @@ class IssueMixin:
 
 class UploadIssueAttachmentFormView(
     IssueMixin,
-    AJAXRequestMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    LoginRequiredMixin,
     JSONResponseMixin,
     generic.FormView,
 ):
@@ -183,7 +182,7 @@ class UploadIssueAttachmentFormView(
 
 
 class IssueAttachmentDeleteView(
-    IssueMixin, AJAXRequestMixin, ModalFormMixin, LoginRequiredMixin, JSONResponseMixin, generic.View
+    IssueMixin, LoginRequiredAndAJAXRequestMixin, ModalFormMixin, JSONResponseMixin, generic.View
 ):
     permissions = ("read",)
 
@@ -203,7 +202,7 @@ class IssueAttachmentDeleteView(
         return self.render_to_json_response(context, safe=False)
 
 
-class IssueAttachmentListView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.ListView):
+class IssueAttachmentListView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.ListView):
     template_name = "grm/issue_attachments.html"
     context_object_name = "attachments"
 
@@ -496,7 +495,7 @@ class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     ]
 
 
-class IssueListView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     template_name = "grm/issue_list.html"
     context_object_name = "issues"
 
@@ -667,7 +666,7 @@ class IssueDetailsFormView(
         return context
 
 
-class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     permissions = ("read",)
 
     def post(self, request, *args, **kwargs):
@@ -681,7 +680,7 @@ class EditIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONRespon
         return self.render_to_json_response(context, safe=False)
 
 
-class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
         user = request.user
         if not self.obj.is_piu_staff(user):
@@ -702,8 +701,7 @@ class AddCommentToIssueView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JS
 class IssueCommentListView(
     IssueMixin,
     IssueCommentsContextMixin,
-    AJAXRequestMixin,
-    LoginRequiredMixin,
+    LoginRequiredAndAJAXRequestMixin,
     generic.ListView,
 ):
     template_name = "grm/issue_comments.html"
@@ -714,7 +712,7 @@ class IssueCommentListView(
         return self.obj.comments.select_related("user")
 
 
-class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, generic.TemplateView):
+class IssueStatusButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.TemplateView):
     template_name = "grm/issue_status_buttons.html"
 
     def get_context_data(self, **kwargs):
@@ -724,7 +722,7 @@ class IssueStatusButtonsTemplateView(IssueMixin, AJAXRequestMixin, LoginRequired
         return context
 
 
-class SubmitIssueOpenStatusView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     permissions = ("read",)
 
     def check_permissions(self):
@@ -745,9 +743,8 @@ class SubmitIssueOpenStatusView(IssueMixin, AJAXRequestMixin, LoginRequiredMixin
 
 
 class SubmitIssueResearchResultFormView(
-    AJAXRequestMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    LoginRequiredMixin,
     JSONResponseMixin,
     IssueFormMixin,
 ):
@@ -780,9 +777,8 @@ class SubmitIssueResearchResultFormView(
 
 
 class SubmitIssueRejectReasonFormView(
-    AJAXRequestMixin,
+    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    LoginRequiredMixin,
     JSONResponseMixin,
     IssueFormMixin,
 ):
@@ -814,7 +810,7 @@ class SubmitIssueRejectReasonFormView(
         return self.render_to_json_response(context, safe=False)
 
 
-class GetChoicesForOptionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class GetChoicesForOptionView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         model_class = request.GET.get("model_class")
         parent_id = int(request.GET.get("parent_id"))
@@ -822,7 +818,7 @@ class GetChoicesForOptionView(AJAXRequestMixin, LoginRequiredMixin, JSONResponse
         return render(self.request, "common/options.html", {"values": data})
 
 
-class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         region = get_object_or_404(AdministrativeRegion, id=request.GET.get("parent_id"))
         exclude_lower_level = request.GET.get("exclude_lower_level", None)
@@ -835,7 +831,7 @@ class GetChoicesForNextAdministrativeLevelView(AJAXRequestMixin, LoginRequiredMi
         return self.render_to_json_response(data, safe=False)
 
 
-class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class GetAncestorAdministrativeLevelsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
 
     def get(self, request, *args, **kwargs):
         region_id = request.GET.get("region_id")
@@ -846,7 +842,7 @@ class GetAncestorAdministrativeLevelsView(AJAXRequestMixin, LoginRequiredMixin, 
         return self.render_to_json_response(ancestors, safe=False)
 
 
-class GetSensitiveIssueDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
         context = {
             "data": None,
