@@ -32,7 +32,7 @@ class AdministrativeLevel(models.Model):
     class Meta:
         verbose_name = _("Administrative Level")
         verbose_name_plural = _("Administrative Levels")
-        ordering = ['name']
+        ordering = ['id']
 
     def __str__(self):
         return self.name

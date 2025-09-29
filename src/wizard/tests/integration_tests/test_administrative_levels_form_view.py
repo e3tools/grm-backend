@@ -1,14 +1,14 @@
-import pytest
-from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from grm.constants import (
     ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
+    ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE,
     COMPLETED_CHOICE,
     IN_PROGRESS_CHOICE,
+    NOT_PERMITTED_TEXT,
     NOT_STARTED_CHOICE,
 )
-from grm.utils import reset_sequences
+from grm.tests.base import ViewTestCase
 from issues.factories import (
     AdministrativeLevelFactory,
     AdministrativeRegionFactory,
@@ -19,46 +19,41 @@ from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
-@pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
-class AdministrativeLevelsFormViewTest(TestCase):
+class AdministrativeLevelsFormViewTest(ViewTestCase):
     """Integration tests for the AdministrativeLevelsFormView."""
 
     def setUp(self):
+        super().setUp()
         self.url = reverse("wizard:setup_step_2")
-
-        reset_sequences()
 
         # remove all WizardSections created by the migration
         WizardSection.objects.all().delete()
-
-        # remove all AdministrativeLevels created by the migration
-        AdministrativeLevel.objects.all().delete()
 
         # Create test wizard sections
         self.section1 = WizardSectionFactory(id=1, status=COMPLETED_CHOICE)
         self.section2 = WizardSectionFactory(id=2, status=IN_PROGRESS_CHOICE)
         self.section3 = WizardSectionFactory(id=3, status=NOT_STARTED_CHOICE)
 
-    def test_non_ajax_request_returns_404(self):
-        """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
-        response = self.client.get(self.url)
+    def test_redirect_if_not_logged_in(self):
+        """Test to make the view return 404 to anonymous users."""
+        response = self.get(self.url, authorized=False, ajax=True)
         self.assertEqual(response.status_code, 404)
 
-    def test_get_ajax_request_renders_form(self):
-        """Test that GET request renders the form correctly via AJAX."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "wizard/formset.html")
+    def test_non_ajax_request_returns_404(self):
+        """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
+        response = self.get(self.url)
+        self.assertEqual(response.status_code, 404)
 
-    def test_get_ajax_request_renders_formset(self):
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+    def test_get_ajax_request_renders(self):
+        response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 2)
-        self.assertEqual(response.context["formset_label"], "Administrative Levels")
         self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
+        self.assertEqual(response.context["formset_label"], "Administrative Levels")
+        self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
+        self.assertEqual(response.context["toast_message"], ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE)
 
     def test_post_creates_new_administrative_level(self):
         """Submitting valid data should create a new AdministrativeLevel."""
@@ -72,7 +67,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-MAX_NUM_FORMS": "100",
             "form-0-name": level_name,
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_3"))
@@ -99,7 +94,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-0-id": level.id,
             "form-0-name": level_name,
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         level.refresh_from_db()
@@ -126,7 +121,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-1-id": level2.id,
             "form-1-name": "New name",
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # Should re-render the form with errors (200, not redirect)
         self.assertEqual(response.status_code, 200)
@@ -155,7 +150,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-0-name": level.name,
             "form-1-name": level.name,
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # Should re-render the form with errors (200, not redirect)
         self.assertEqual(response.status_code, 200)
@@ -185,7 +180,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-1-id": level2.id,
             "form-1-name": level.name,
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # Should re-render the form with errors (200, not redirect)
         self.assertEqual(response.status_code, 200)
@@ -216,7 +211,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-0-name": level.name,
             "form-0-DELETE": "on",  # marked for deletion
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # No redirect, the form is re-rendered with error
         self.assertEqual(response.status_code, 200)
@@ -246,7 +241,7 @@ class AdministrativeLevelsFormViewTest(TestCase):
             "form-0-name": level.name,
             "form-0-DELETE": "on",  # marked for deletion
         }
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_3"))

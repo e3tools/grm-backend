@@ -1,8 +1,7 @@
 import json
 
 import pytest
-from django.test import override_settings
-from rest_framework.test import APITestCase
+from django.test import TestCase, override_settings
 
 from authentication.factories import UserFactory
 from grm.constants import COMPLETED_CHOICE
@@ -18,15 +17,12 @@ AJAX_HEADER_VALUE = "XMLHttpRequest"
 
 @pytest.mark.django_db
 @override_settings(LANGUAGE_CODE='en-us')
-class DashboardTestCase(APITestCase):
+class ViewTestCase(TestCase):
     content_type = URLENCODED_TYPE
     user = None
 
     def setUp(self):
         reset_sequences()
-        WizardSectionFactory(status=COMPLETED_CHOICE)
-        root_region = AdministrativeRegionFactory()
-        AdministrativeRegionFactory(parent=root_region)
         super().setUp()
 
     @staticmethod
@@ -86,3 +82,12 @@ class DashboardTestCase(APITestCase):
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.delete(uri, **kwargs)
+
+
+class DashboardTestCase(ViewTestCase):
+
+    def setUp(self):
+        WizardSectionFactory(status=COMPLETED_CHOICE)
+        root_region = AdministrativeRegionFactory()
+        AdministrativeRegionFactory(parent=root_region)
+        super().setUp()

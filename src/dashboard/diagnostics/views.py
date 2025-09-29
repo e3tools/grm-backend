@@ -12,7 +12,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from dashboard.grm.forms import NewSearchIssueForm
-from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
+from dashboard.mixins import (
+    JSONResponseMixin,
+    LoginRequiredAndAJAXRequestMixin,
+    PageMixin,
+)
 from etl.models import ETLExecutionLog
 from issues.models import (
     AdministrativeRegion,
@@ -44,7 +48,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
@@ -84,7 +88,7 @@ class UpdateIssuesDataView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMix
         return self.render_to_json_response(context, safe=False)
 
 
-class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
+class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def get(self, request, *args, **kwargs):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')

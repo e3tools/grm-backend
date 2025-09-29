@@ -1,15 +1,13 @@
-import pytest
-from django.test import TestCase
 from django.urls import reverse
 
 from dashboard.models import Project
 from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
+from grm.tests.base import ViewTestCase
 from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
-@pytest.mark.django_db
-class ProjectUpdateViewTest(TestCase):
+class ProjectUpdateViewTest(ViewTestCase):
     """Integration tests for the ProjectUpdateView."""
 
     def setUp(self):
@@ -22,20 +20,25 @@ class ProjectUpdateViewTest(TestCase):
         self.section1 = WizardSectionFactory()
         self.section2 = WizardSectionFactory()
 
+    def test_redirect_if_not_logged_in(self):
+        """Test to make the view return 404 to anonymous users."""
+        response = self.get(self.url, authorized=False, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
     def test_non_ajax_request_returns_404(self):
         """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
-        response = self.client.get(self.url)
+        response = self.get(self.url)
         self.assertEqual(response.status_code, 404)
 
     def test_get_ajax_request_renders_form(self):
         """Test that GET request renders the form correctly via AJAX."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/form.html")
 
     def test_get_context_contains_step_and_total_steps(self):
         """Test that context includes step and total steps."""
-        response = self.client.get(self.url, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.get(self.url, ajax=True)
         self.assertEqual(response.context["step"], 1)
         self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
 
@@ -46,7 +49,7 @@ class ProjectUpdateViewTest(TestCase):
         project_name = "Test Project"
         project_description = "This is a test project."
         data = {"name": project_name, "description": project_description}
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # Should redirect to success_url
         self.assertEqual(response.status_code, 302)
@@ -72,7 +75,7 @@ class ProjectUpdateViewTest(TestCase):
         project_name = "Updated Project"
         project_description = "Updated description"
         data = {"name": project_name, "description": project_description}
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_2"))
@@ -91,7 +94,7 @@ class ProjectUpdateViewTest(TestCase):
 
         project_name = "Updated Project"
         data = {"name": project_name, "description": ""}
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_2"))
@@ -106,7 +109,7 @@ class ProjectUpdateViewTest(TestCase):
     def test_invalid_form_does_not_update_sections(self):
         """Test that invalid form does not update project or sections."""
         data = {"name": "", "description": ""}  # Invalid because name is required
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         # Should re-render the form with errors (200, not redirect)
         self.assertEqual(response.status_code, 200)
@@ -128,7 +131,7 @@ class ProjectUpdateViewTest(TestCase):
         self.section2.save()
 
         data = {"name": "Test Project", "description": "desc"}
-        response = self.client.post(self.url, data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
 

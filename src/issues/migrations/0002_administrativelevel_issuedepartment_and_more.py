@@ -5,20 +5,6 @@ from django.conf import settings
 from django.db import migrations, models
 
 
-def create_default_assigned_department(apps, schema_editor):
-    IssueDepartment = apps.get_model("issues", "IssueDepartment")
-    AdministrativeLevel = apps.get_model("issues", "AdministrativeLevel")
-    IssueDepartmentAdministrativeLevel = apps.get_model("issues", "IssueDepartmentAdministrativeLevel")
-
-    IssueDepartment.objects.get_or_create(id=1)
-    AdministrativeLevel.objects.get_or_create(id=1, name="country")
-    IssueDepartmentAdministrativeLevel.objects.create(
-        id=1,
-        department_id=1,
-        administrative_level_id=1,
-    )
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -131,7 +117,6 @@ class Migration(migrations.Migration):
                 to="issues.administrativelevel",
             ),
         ),
-        migrations.RunPython(create_default_assigned_department),
         migrations.AddField(
             model_name="issuecategory",
             name="assigned_appeal_department",

@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import AccessMixin
 from django.http import Http404, JsonResponse
 
 
@@ -36,9 +37,9 @@ class ModalFormMixin:
         return ctx
 
 
-class AJAXRequestMixin:
+class LoginRequiredAndAJAXRequestMixin(AccessMixin):
     def dispatch(self, request, *args, **kwargs):
-        if request.headers.get("x-requested-with") != "XMLHttpRequest":
+        if not request.user.is_authenticated or request.headers.get("x-requested-with") != "XMLHttpRequest":
             raise Http404
         return super().dispatch(request, *args, **kwargs)
 

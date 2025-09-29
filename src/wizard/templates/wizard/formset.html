@@ -1,10 +1,10 @@
 {% load bootstrap4 i18n %}
 
-{% translate "Action not permitted" as toast_title %}{% translate "This administrative level cannot be deleted because it is in use." as toast_message %}{% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
+{% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
 
-<form id="form" enctype="multipart/form-data">
+<form id="form" enctype="multipart/form-data" class="d-flex flex-column h-100">
 	{% csrf_token %}
-	<div class="card-body">
+	<div class="card-body flex-grow-1">
 		<div class="overlay-wrapper">
 			{{ formset.management_form }}
 
@@ -73,19 +73,19 @@
 			</div>
 		</div>
 	</div>
-	<div class="card-footer mb-2">
+	<div class="card-footer mb-2 mt-auto">
 		<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
 			{% if step == total_steps %}
-				{% translate "SAVE" %}
+				{% translate "Save" %}
 			{% else %}
-				{% translate "SAVE & NEXT" %}
+				{% translate "Next" %}
 			{% endif %}
 		</button>
 		{% if step != 1 %}
-			<button id="back" data-step="{{ step }}" class="btn btn-secondary btn-sm rounded-xl float-right mr-4 
-			disabled-on-submit">
+			<button id="previous_step" data-step="{{ step }}" 
+					class="btn btn-secondary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
 				<i class="fa fa-chevron-left mr-2"></i>
-				{% translate "BACK" %}
+				{% translate "Previous" %}
 			</button>
 		{% endif %}
 	</div>

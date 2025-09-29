@@ -33,6 +33,11 @@
 		<!-- Content Header (Page header) -->
 		<div class="content-header">
 			<div class="container-fluid">
+                <div class="alert-div-content">
+                    <span id="popup-messages-content">
+                        {% include 'common/messages.html' %}
+                    </span>
+                </div>
 				<div class="row mb-2">
 					<div class="col-sm-6">
 						<div class="m-0 main-title">
@@ -68,8 +73,8 @@
 							</div>
 						</div>
 					</div>
-					<div class="col-md-6 display-flex flex-flow-column">
-						<div class="card h-100">
+					<div class="col-md-6 d-flex flex-column">
+            			<div class="card h-100 d-flex flex-column">
 							<div class="card-header border-0">
 								<div class="card-title">
 									<div class="pt-1 fs20 lh25 text-bold-family">
@@ -77,7 +82,7 @@
 									</div>
 								</div>
 							</div>
-							<div id="formAjax"></div>
+							<div id="formAjax" class="d-flex flex-column flex-grow-1"></div>
 						</div>
 					</div>
 					{% comment %}
@@ -161,7 +166,7 @@
             }
         });
     }
-    
+
     // For handling formset
     let formIndex;
     let maxForms;
@@ -176,6 +181,8 @@
         $formAjax.load(url, function (response, status) {
             if (status === "error") {
                 alert(error_server_message);
+                $(".disabled-on-submit").removeClass('disabled').removeAttr('disabled');
+                enableButton($("form"));
             } else {
                 formIndex = parseInt($('#id_form-TOTAL_FORMS').val());
                 maxForms = parseInt($('#id_form-MAX_NUM_FORMS').val());
@@ -185,6 +192,7 @@
 
     $(document).on("submit", "#form", function (e) {
         e.preventDefault();
+        let $this = $(this);
         let step = $(".timeline-item.active").attr("id");
         let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
         $.ajax({
@@ -202,6 +210,7 @@
             },
             error: function () {
                 alert(error_server_message);
+                enableButton($this);
             }
         });
     });
@@ -212,17 +221,18 @@
         loadWizardSectionForm($('#formAjax'));
     });
 
-    $(document).on("click", "#back", function () {
+    $(document).on("click", "#previous_step", function () {
+        $('#popup-messages-content').html('');
         $(".timeline-item.pointer").removeClass("active");
-        let back_step = $(this).data("step") - 1;
-        $("#" + back_step).addClass("active");
+        let previous_step = $(this).data("step") - 1;
+        $("#" + previous_step).addClass("active");
         loadWizardSectionForm($('#formAjax'));
     });
 
     loadWizardSections({{ current_step }});
 
     // Formset management ---------------------------------------------------
-	
+
     // Add new form
     $(document).on('click', '#add-more', function () {
         if (formIndex >= maxForms) {
@@ -335,6 +345,64 @@
         showToast();
     });
 
+    // Upload regions file management ---------------------------------------------
+
+    $(document).on("submit", "#formUploadModal", function (e) {
+        e.preventDefault();
+        let $this = $(this);
+        let url = $this.attr("action");
+        $.ajax({
+            type: "post",
+            url: url,
+            data: new FormData($("#formUploadModal").get(0)),
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                if ($(response).find('.is-invalid').length > 0 || $(response).find('.errorlist').length > 0) {
+                    $("#uploadModal .modal-content").html($(response).find(".modal-content").html());
+                } else {
+                    $("#uploadModal").modal('hide');
+        			let step = $(".timeline-item.active").attr("id");
+                    console.log('step', step);
+                    loadWizardSections(step);
+                    showPopupMessage(response.msg);
+                }
+            },
+            error: function () {
+                alert(error_server_message);
+                enableButton($this);
+            }
+        });
+    });
+
+    // Next Step ---------------------------------------------
+
+    $(document).on("click", "#next_step", function (e) {
+        e.preventDefault();
+        let $this = $(this);
+        $('#popup-messages-content').html('');
+        let step = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:next_step' 0 %}".replace("0", step);
+        $.ajax({
+            type: "post",
+            url: url,
+            cache: false,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+				$(".timeline-item.pointer").removeClass("active");
+				let step = response.step;
+				$("#" + step).addClass("active");
+                loadWizardSections(response.step);
+            },
+            error: function () {
+                alert(error_server_message);
+                $this.removeClass('disabled').removeAttr('disabled');
+                enableButton($("form"));
+            }
+        });
+    });
 </script>
 </body>
 </html>
