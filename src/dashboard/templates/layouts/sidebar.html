@@ -38,15 +38,6 @@
 						<p>{% translate "GRM" %}</p>
 					</a>
 				</li>
-				{% if user.grm_manager %}
-					<li class="nav-item">
-						<a href="{% url 'wizard:customization_wizard' %}"
-						   class="nav-link">
-							<i class="nav-icon fa fa-wrench"></i>
-							<p>{% translate "GRM Customization" %}</p>
-						</a>
-					</li>
-				{% endif %}
 			</ul>
 		</nav>
 

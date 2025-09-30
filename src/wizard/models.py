@@ -1,6 +1,6 @@
 from django.db import models
 
-from grm.constants import NOT_STARTED_CHOICE, STATUS_CHOICES
+from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE, STATUS_CHOICES
 
 
 class WizardSection(models.Model):
@@ -15,5 +15,5 @@ class WizardSection(models.Model):
         ordering = ['id']
 
     @classmethod
-    def get_wizard_setup_status(cls):
-        return cls.objects.last().status
+    def wizard_setup_is_completed(cls):
+        return not cls.objects.exclude(status=COMPLETED_CHOICE).exists()

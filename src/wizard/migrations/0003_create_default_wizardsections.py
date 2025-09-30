@@ -9,8 +9,8 @@ def create_wizard_sections(apps, schema_editor):
     WizardSection = apps.get_model('wizard', 'WizardSection')
     objects_to_create = [WizardSection(name='Project Description', status=IN_PROGRESS_CHOICE)]
     wizard_sections = (
-        'Administrative Levels',
-        'Administrative Regions',
+        'Administrative Level Structure Configuration',
+        'Load Administrative Levels',
         'GRM Roles & Responsibilities',
         'Grievance Types',
         'Categories & Teams',

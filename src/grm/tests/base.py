@@ -7,7 +7,7 @@ from authentication.factories import UserFactory
 from grm.constants import COMPLETED_CHOICE
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
-from wizard.factories import WizardSectionFactory
+from wizard.models import WizardSection
 
 JSON_TYPE = "application/json"
 URLENCODED_TYPE = "application/x-www-form-urlencoded"
@@ -87,7 +87,7 @@ class ViewTestCase(TestCase):
 class DashboardTestCase(ViewTestCase):
 
     def setUp(self):
-        WizardSectionFactory(status=COMPLETED_CHOICE)
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
         root_region = AdministrativeRegionFactory()
         AdministrativeRegionFactory(parent=root_region)
         super().setUp()

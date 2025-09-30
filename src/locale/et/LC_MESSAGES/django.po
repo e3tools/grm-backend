@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-25 12:36+0000\n"
+"POT-Creation-Date: 2025-09-30 13:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,7 +182,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61 issues/models.py:34
-#: wizard/views.py:103
+#: wizard/templates/wizard/regions.html:8
 msgid "Administrative Levels"
 msgstr ""
 
@@ -198,31 +198,33 @@ msgstr ""
 msgid "The account was activated successfully."
 msgstr ""
 
-#: dashboard/adls/views.py:105 dashboard/grm/views.py:870
+#: dashboard/adls/views.py:105 dashboard/grm/views.py:866
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
-#: dashboard/adls/views.py:122
+#: dashboard/adls/views.py:121
 msgid "Profile information"
 msgstr ""
 
-#: dashboard/adls/views.py:125 dashboard/grm/views.py:757
-#: dashboard/grm/views.py:792 dashboard/templates/grm/issue_detail.html:191
+#: dashboard/adls/views.py:124 dashboard/grm/views.py:754
+#: dashboard/grm/views.py:788 dashboard/templates/grm/issue_detail.html:191
+#: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
+#: wizard/templates/wizard/formset.html:79
 msgid "Save"
 msgstr ""
 
-#: dashboard/adls/views.py:156
+#: dashboard/adls/views.py:155
 msgid ""
 "An error has occurred that did not allow the profile picture to be uploaded "
 "to the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/adls/views.py:165
+#: dashboard/adls/views.py:164
 msgid ""
 "Please note that the Facilitator Code has changed due to the email change."
 msgstr ""
 
-#: dashboard/adls/views.py:170
+#: dashboard/adls/views.py:169
 msgid "The profile information was successfully edited."
 msgstr ""
 
@@ -235,12 +237,12 @@ msgstr ""
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
-#: dashboard/diagnostics/views.py:31
+#: dashboard/diagnostics/views.py:35
 #: dashboard/templates/layouts/sidebar.html:31
 msgid "Diagnostics"
 msgstr ""
 
-#: dashboard/diagnostics/views.py:63
+#: dashboard/diagnostics/views.py:67
 msgid ""
 "Internal error while running etl_fetch_issue_data. For more details, check "
 "the server logs."
@@ -360,93 +362,93 @@ msgstr ""
 msgid "Add comment"
 msgstr ""
 
-#: dashboard/grm/views.py:61 dashboard/grm/views.py:322
-#: dashboard/grm/views.py:345 dashboard/grm/views.py:364
-#: dashboard/grm/views.py:383 dashboard/grm/views.py:414
-#: dashboard/grm/views.py:458 dashboard/grm/views.py:494
-#: dashboard/grm/views.py:640 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:61 dashboard/grm/views.py:321
+#: dashboard/grm/views.py:344 dashboard/grm/views.py:363
+#: dashboard/grm/views.py:382 dashboard/grm/views.py:413
+#: dashboard/grm/views.py:457 dashboard/grm/views.py:493
+#: dashboard/grm/views.py:639 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:38
 msgid "GRM"
 msgstr ""
 
-#: dashboard/grm/views.py:153
+#: dashboard/grm/views.py:152
 msgid "Add attachment"
 msgstr ""
 
-#: dashboard/grm/views.py:154
+#: dashboard/grm/views.py:153 wizard/templates/wizard/regions.html:85
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:166
+#: dashboard/grm/views.py:165
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:168
+#: dashboard/grm/views.py:167
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:172
+#: dashboard/grm/views.py:171
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:178
+#: dashboard/grm/views.py:177
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:197
+#: dashboard/grm/views.py:196
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:200
+#: dashboard/grm/views.py:199
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:307
+#: dashboard/grm/views.py:306
 msgid ""
 "There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:491 dashboard/grm/views.py:643
+#: dashboard/grm/views.py:490 dashboard/grm/views.py:642
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:637
+#: dashboard/grm/views.py:636
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:678
+#: dashboard/grm/views.py:677
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:693
+#: dashboard/grm/views.py:692
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:741 dashboard/grm/views.py:775
-#: dashboard/grm/views.py:810
+#: dashboard/grm/views.py:739 dashboard/grm/views.py:772
+#: dashboard/grm/views.py:806
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:756
+#: dashboard/grm/views.py:753
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:773
+#: dashboard/grm/views.py:770
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:791
+#: dashboard/grm/views.py:787
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:808
+#: dashboard/grm/views.py:804
 msgid "The complaint has been rejected"
 msgstr ""
 
@@ -489,6 +491,7 @@ msgstr ""
 
 #: dashboard/templates/adls/list.html:23
 #: dashboard/templates/adls/profile.html:40 issues/models.py:33
+#: wizard/templates/wizard/regions.html:24
 msgid "Administrative Level"
 msgstr ""
 
@@ -769,7 +772,7 @@ msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:482
 #: dashboard/templates/grm/new_issue_confirm.html:222
-#: dashboard/templates/grm/new_issue_confirm.html:400
+#: dashboard/templates/grm/new_issue_confirm.html:401
 #: dashboard/templates/grm/new_issue_location.html:56
 #: dashboard/templates/grm/new_issue_location.html:72
 msgid "Click to select location"
@@ -915,8 +918,6 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_details.html:44
 #: dashboard/templates/grm/new_issue_location.html:38
 #: dashboard/templates/grm/new_issue_person.html:38
-#: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
-#: wizard/templates/wizard/formset.html:81
 msgid "SAVE & NEXT"
 msgstr ""
 
@@ -924,8 +925,6 @@ msgstr ""
 #: dashboard/templates/grm/new_issue_details.html:49
 #: dashboard/templates/grm/new_issue_location.html:43
 #: dashboard/templates/grm/new_issue_person.html:43
-#: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
-#: wizard/templates/wizard/formset.html:88
 msgid "BACK"
 msgstr ""
 
@@ -1054,17 +1053,11 @@ msgid "Welcome"
 msgstr ""
 
 #: dashboard/templates/layouts/navbar.html:54
-#: wizard/templates/wizard/navbar.html:25
+#: wizard/templates/wizard/navbar.html:20
 msgid "Logout"
 msgstr ""
 
-#: dashboard/templates/layouts/sidebar.html:46
-#: wizard/templates/wizard/grm_customization.html:15
-#: wizard/templates/wizard/grm_customization.html:39
-msgid "GRM Customization"
-msgstr ""
-
-#: dashboard/templates/layouts/sidebar.html:94
+#: dashboard/templates/layouts/sidebar.html:85
 msgid "Toggle Sidebar"
 msgstr ""
 
@@ -1194,108 +1187,174 @@ msgid ""
 "in size."
 msgstr ""
 
-#: grm/constants.py:93
+#: grm/constants.py:90
 msgid "Validation failed."
 msgstr ""
 
-#: grm/constants.py:94
+#: grm/constants.py:91
 msgid "Not found."
 msgstr ""
 
-#: grm/constants.py:95
+#: grm/constants.py:92
+msgid "Action not permitted"
+msgstr ""
+
+#: grm/constants.py:93
 msgid ""
 "You must define the contact method is your contact medium is channel alert"
 msgstr ""
 
-#: grm/constants.py:96
+#: grm/constants.py:94
 msgid "If email contact method is selected, provide a valid email"
 msgstr ""
 
-#: grm/constants.py:97
+#: grm/constants.py:95
 msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 
-#: grm/constants.py:98
+#: grm/constants.py:96
 msgid "Issue created successfully."
 msgstr ""
 
-#: grm/constants.py:99
+#: grm/constants.py:97
 msgid "An error occurred while creating the issue."
 msgstr ""
 
-#: grm/constants.py:100
+#: grm/constants.py:98
 msgid "Issue updated successfully."
 msgstr ""
 
-#: grm/constants.py:101
+#: grm/constants.py:99
 msgid "An error occurred while updating the issue."
 msgstr ""
 
-#: grm/constants.py:102
+#: grm/constants.py:100
 msgid "Only assignees can update the status field."
 msgstr ""
 
-#: grm/constants.py:103
+#: grm/constants.py:101
 msgid "Only reporters can update the rating field."
 msgstr ""
 
-#: grm/constants.py:104
+#: grm/constants.py:102
 msgid "An error occurred while retrieving the issue."
 msgstr ""
 
-#: grm/constants.py:105
+#: grm/constants.py:103
 msgid "Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z)."
 msgstr ""
 
-#: grm/constants.py:106
+#: grm/constants.py:104
 msgid "Comment added successfully."
 msgstr ""
 
-#: grm/constants.py:107
+#: grm/constants.py:105
 msgid "An error occurred while creating the comment."
 msgstr ""
 
-#: grm/constants.py:108
+#: grm/constants.py:106
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 
-#: grm/constants.py:109
+#: grm/constants.py:107
 msgid "An error occurred while deleting the comment."
 msgstr ""
 
-#: grm/constants.py:110
+#: grm/constants.py:108
 msgid "Comment cannot be empty."
 msgstr ""
 
-#: grm/constants.py:111
+#: grm/constants.py:109
 msgid "Attachment uploaded successfully."
 msgstr ""
 
-#: grm/constants.py:112
+#: grm/constants.py:110
 msgid "An error occurred during file upload."
 msgstr ""
 
-#: grm/constants.py:113
+#: grm/constants.py:111
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 
-#: grm/constants.py:114
+#: grm/constants.py:112
 msgid "Citizen registered successfully."
 msgstr ""
 
-#: grm/constants.py:115
+#: grm/constants.py:113
 msgid "A user with that username already exists."
 msgstr ""
 
-#: grm/constants.py:116
+#: grm/constants.py:114
 msgid "user with this email address already exists."
 msgstr ""
 
-#: grm/constants.py:118
+#: grm/constants.py:116
 #, python-format
 msgid ""
 "You cannot delete '%(name)s' because it is linked to issues or departments."
+msgstr ""
+
+#: grm/constants.py:118
+msgid "This administrative level cannot be deleted because it is in use."
+msgstr ""
+
+#: grm/constants.py:119
+msgid "Administrative Level Instances"
+msgstr ""
+
+#: grm/constants.py:120
+#, python-format
+msgid "Successfully created %(count)d administrative level instances."
+msgstr ""
+
+#: grm/constants.py:121
+#, python-format
+msgid "Skipped %(count)d duplicates that already existed."
+msgstr ""
+
+#: grm/constants.py:123
+#, python-format
+msgid ""
+"%(count)d administrative level instances could not be modified because they "
+"are already in use."
+msgstr ""
+
+#: grm/constants.py:125
+msgid "All administrative level instances have been deleted."
+msgstr ""
+
+#: grm/constants.py:126
+#, python-format
+msgid "Administrative level %(level)s not found in database"
+msgstr ""
+
+#: grm/constants.py:127
+msgid "The Excel file must contain a header row."
+msgstr ""
+
+#: grm/constants.py:129
+#, python-format
+msgid ""
+"The first administrative level instance already exists with the name "
+"%(root)s. The instance with the value %(new)s does not match this level in "
+"the Excel file."
+msgstr ""
+
+#: grm/constants.py:133
+#, python-format
+msgid ""
+"The value of the instance of the first administrative level (first column) "
+"must be the same value for all cells in the column. Expected %(root)s, found "
+"%(new)s."
+msgstr ""
+
+#: grm/constants.py:136
+msgid "Only Excel files (.xls, .xlsx) are allowed."
+msgstr ""
+
+#: grm/constants.py:137
+msgid "The uploaded file is not a valid Excel file."
 msgstr ""
 
 #: grm/settings.py:138
@@ -1457,37 +1516,40 @@ msgstr ""
 msgid "Issue Attachment"
 msgstr ""
 
-#: wizard/forms.py:13
+#: wizard/forms.py:21
 msgid "Project Name"
 msgstr ""
 
-#: wizard/forms.py:14
+#: wizard/forms.py:22
 msgid "Enter the project name"
 msgstr ""
 
-#: wizard/forms.py:19
+#: wizard/forms.py:27
 msgid "Please describe the project"
 msgstr ""
 
-#: wizard/forms.py:20
+#: wizard/forms.py:28
 msgid "Project Description"
 msgstr ""
 
-#: wizard/forms.py:30
+#: wizard/forms.py:38
 msgid "Enter administrative level name"
 msgstr ""
 
-#: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
-#: wizard/templates/wizard/formset.html:79
-msgid "SAVE"
+#: wizard/forms.py:79
+msgid "Upload Excel File"
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:3
-msgid "Action not permitted"
+#: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
+#: wizard/templates/wizard/formset.html:81
+#: wizard/templates/wizard/regions.html:45
+msgid "Next"
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:3
-msgid "This administrative level cannot be deleted because it is in use."
+#: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
+#: wizard/templates/wizard/formset.html:88
+#: wizard/templates/wizard/regions.html:50
+msgid "Previous"
 msgstr ""
 
 #: wizard/templates/wizard/formset.html:47
@@ -1507,22 +1569,48 @@ msgstr ""
 msgid "Add Level"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:59
+#: wizard/templates/wizard/grm_customization.html:15
+#: wizard/templates/wizard/grm_customization.html:44
+msgid "GRM Customization"
+msgstr ""
+
+#: wizard/templates/wizard/grm_customization.html:64
 msgid "Setup Progress"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:76
+#: wizard/templates/wizard/grm_customization.html:81
 msgid "Configuration Options"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:277
+#: wizard/templates/wizard/grm_customization.html:287
 msgid "Delete this administrative level"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:283
+#: wizard/templates/wizard/grm_customization.html:293
 msgid "Undo deletion"
 msgstr ""
 
-#: wizard/templates/wizard/navbar.html:18
-msgid "Dashboard"
+#: wizard/templates/wizard/regions.html:3
+msgid "Upload Administrative Levels"
+msgstr ""
+
+#: wizard/templates/wizard/regions.html:13
+msgid "Download Sample Excel"
+msgstr ""
+
+#: wizard/templates/wizard/regions.html:25
+msgid "Number of Instances"
+msgstr ""
+
+#: wizard/templates/wizard/regions.html:36
+msgid "No administrative levels found."
+msgstr ""
+
+#: wizard/views.py:129
+msgid "Administrative Level Names"
+msgstr ""
+
+#: wizard/views.py:271
+#, python-format
+msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
