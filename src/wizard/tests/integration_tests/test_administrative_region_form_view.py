@@ -5,7 +5,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from openpyxl import Workbook
 
+from authentication.factories import UserFactory
 from grm.constants import (
+    ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_NOT_FOUND_MESSAGE,
@@ -13,6 +15,8 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
     INVALID_EXCEL_FILE_ERROR_MESSAGE,
     ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
 )
@@ -31,6 +35,8 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
 
     def setUp(self):
         self.url = reverse("wizard:setup_step_3")
+        self.user = UserFactory(grm_manager=True)
+        self.current_section = WizardSection.objects.all()[2]
 
         # Common levels used in most tests
         self.country = AdministrativeLevelFactory(name="Country")
@@ -65,6 +71,13 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
         response = self.get(self.url)
         self.assertEqual(response.status_code, 404)
 
+    def test_logged_in_non_grm_manager_user_cannot_access(self):
+        """Test that logged-in non grm manager users cannot access the view."""
+
+        self.user = UserFactory()
+        response = self.get(self.url, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
     def test_get_ajax_request_renders(self):
         response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 200)
@@ -86,6 +99,8 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
             rows=[["Argentina", "Buenos Aires"], ["Argentina", "Córdoba"]],
         )
 
+        self.assertNotEqual(self.current_section.status, COMPLETED_CHOICE)
+
         response = self.post(self.url, {"file": excel_file}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
@@ -98,6 +113,34 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
         messages = list(get_messages(response.wsgi_request))
         success_msgs = [m.message for m in messages if m.level_tag == "success"]
         self.assertEqual(success_msgs[0], ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE % {"count": 3})
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+
+    def test_post_excel_to_delete_regions(self):
+        """Uploading an Excel file should delete regions and update current step status to in_progress."""
+
+        excel_file = self._make_excel(
+            headers=["Country"],
+            rows=[[]],
+        )
+
+        self.assertNotEqual(self.current_section.status, COMPLETED_CHOICE)
+
+        response = self.post(self.url, {"file": excel_file}, ajax=True)
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("msg", data)
+
+        # All regions have been deleted
+        self.assertEqual(AdministrativeRegion.objects.count(), 0)
+
+        messages = list(get_messages(response.wsgi_request))
+        success_msgs = [m.message for m in messages if m.level_tag == "warning"]
+        self.assertEqual(success_msgs[0], ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE)
+
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
 
     def test_post_excel_without_header_returns_error(self):
         """

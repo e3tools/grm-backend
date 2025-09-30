@@ -17,6 +17,7 @@ from dashboard.models import Project
 from grm.constants import (
     ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE,
     ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE,
+    ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
@@ -81,9 +82,9 @@ class WizardFormView(LoginRequiredAndAJAXRequestMixin, FormView):
     def get_success_url(self):
         return reverse(f"wizard:setup_step_{self.step + 1}")
 
-    def update_status(self, only_current_step=False):
+    def update_status(self, only_current_step=False, status=COMPLETED_CHOICE):
         current_section = WizardSection.objects.all()[self.step - 1]
-        WizardSection.objects.filter(id=current_section.id).update(status=COMPLETED_CHOICE)
+        WizardSection.objects.filter(id=current_section.id).update(status=status)
         if not only_current_step:
             WizardSection.objects.filter(id=current_section.id + 1, status=NOT_STARTED_CHOICE).update(
                 status=IN_PROGRESS_CHOICE
@@ -126,7 +127,7 @@ class AdministrativeLevelsFormView(WizardFormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['formset'] = context['form']  # Aliases for clarity in the template
-        context['formset_label'] = _('Administrative Levels')
+        context['formset_label'] = _('Administrative Level Names')
         context['toast_title'] = NOT_PERMITTED_TEXT
         context['toast_message'] = ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE
         return context
@@ -271,6 +272,14 @@ class AdministrativeRegionFormView(JSONResponseMixin, WizardFormView):
                 _("There was an error processing the Excel file: %(error)s") % {"error": str(e)},
                 extra_tags="danger",
             )
+
+        if not AdministrativeRegion.objects.exists():
+            messages.warning(
+                self.request,
+                ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE,
+                extra_tags="warning",
+            )
+        self.update_status(only_current_step=True, status=IN_PROGRESS_CHOICE)
 
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)

@@ -3,6 +3,7 @@ import io
 from django.urls import reverse
 from openpyxl import load_workbook
 
+from authentication.factories import UserFactory
 from grm.constants import ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE
 from grm.tests.base import ViewTestCase
 from issues.factories import AdministrativeLevelFactory, AdministrativeRegionFactory
@@ -14,6 +15,7 @@ class DownloadRegionsSampleViewTest(ViewTestCase):
 
     def setUp(self):
         self.url = reverse("wizard:download_regions_sample")
+        self.user = UserFactory(grm_manager=True)
 
         # Create administrative levels
         self.level1 = AdministrativeLevelFactory(name="Country")
@@ -33,7 +35,14 @@ class DownloadRegionsSampleViewTest(ViewTestCase):
         """Test that login is required to access the view."""
         response = self.get(self.url, authorized=False)
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_non_grm_manager_user_cannot_access(self):
+        """Test that logged-in non grm manager users cannot access the view."""
+
+        self.user = UserFactory()
+        response = self.get(self.url)
+        self.assertEqual(response.status_code, 404)
 
     def test_authenticated_user_can_download(self):
         """Test that authenticated user can download the file."""

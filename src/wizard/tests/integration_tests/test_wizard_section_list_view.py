@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from authentication.factories import UserFactory
 from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import ViewTestCase
 from wizard.factories import WizardSectionFactory
@@ -12,6 +13,7 @@ class WizardSectionListViewTest(ViewTestCase):
     def setUp(self):
         """Set up test data and URL for each test."""
         self.url = reverse("wizard:wizard_section_list")
+        self.user = UserFactory(grm_manager=True)
 
         # remove all WizardSections created by the migration
         WizardSection.objects.all().delete()
@@ -24,6 +26,13 @@ class WizardSectionListViewTest(ViewTestCase):
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
         response = self.get(self.url, authorized=False, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_non_grm_manager_user_cannot_access(self):
+        """Test that logged-in non grm manager users cannot access the view."""
+
+        self.user = UserFactory()
+        response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 404)
 
     def test_ajax_request_returns_success(self):

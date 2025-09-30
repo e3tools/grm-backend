@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
 from dashboard.authentication.forms import EmailAuthenticationForm
-from grm.constants import COMPLETED_CHOICE
 from wizard.models import WizardSection
 
 
@@ -58,8 +57,8 @@ class CustomLoginView(LoginView):
         user = form.get_user()
 
         # Wizard check
-        wizard_setup_statu = WizardSection.get_wizard_setup_status()
-        if not user.grm_manager and wizard_setup_statu != COMPLETED_CHOICE:
+        wizard_setup_is_completed = WizardSection.wizard_setup_is_completed()
+        if not user.grm_manager and not wizard_setup_is_completed:
             form.add_error(None, _("Login is not allowed until the customization wizard is completed."))
             return self.form_invalid(form)
 

@@ -3,16 +3,14 @@ from django.test import TestCase
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
-from wizard.factories import WizardSectionFactory
+from grm.constants import COMPLETED_CHOICE
+from wizard.models import WizardSection
 
 
 @pytest.mark.django_db
 class TestWizardRedirectMiddleware(TestCase):
 
     def setUp(self):
-        super().setUp()
-        WizardSectionFactory(status=NOT_STARTED_CHOICE)
         self.grm_manager_user = UserFactory(grm_manager=True)
         self.normal_user = UserFactory()
         self.customization_url = reverse("wizard:customization_wizard")
@@ -56,7 +54,7 @@ class TestWizardRedirectMiddleware(TestCase):
     def test_other_dashboard_url_allowed_if_wizard_complete(self):
         """Dashboard URLs accessible if wizard is complete and user is grm_manager."""
         self.client.force_login(self.grm_manager_user)
-        WizardSectionFactory(status=COMPLETED_CHOICE)
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
 
         resp = self.client.get(reverse("dashboard:diagnostics:home"))
         assert resp.status_code == 200
@@ -64,7 +62,7 @@ class TestWizardRedirectMiddleware(TestCase):
     def test_other_dashboard_url_accessible_for_non_grm_manager_if_wizard_complete(self):
         """Non-GRM managers should be able to access other dashboard URLs (not the wizard) if wizard is complete."""
         self.client.force_login(self.normal_user)
-        WizardSectionFactory(status=COMPLETED_CHOICE)
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
 
         resp = self.client.get(reverse("dashboard:diagnostics:home"))
         assert resp.status_code == 200

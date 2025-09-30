@@ -122,6 +122,7 @@ ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE = _("Skipped %(count)d duplicates
 ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE = _(
     "%(count)d administrative level instances could not be modified because they are already in use."
 )
+ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE = _("All administrative level instances have been deleted.")
 ADMINISTRATIVE_LEVEL_UPLOAD_NOT_FOUND_MESSAGE = _("Administrative level %(level)s not found in database")
 ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE = _("The Excel file must contain a header row.")
 ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_ALREADY_EXISTS_MESSAGE = _(

@@ -13,11 +13,6 @@
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'dashboard:diagnostics:home' %}" role="button">
-                {% translate 'Dashboard' %}
-            </a>
-        </li>
         {% if OTHER_LANGUAGES %}
             {% include 'layouts/language_dropdown.html' %}
         {% endif %}

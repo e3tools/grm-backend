@@ -2,7 +2,6 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 
-from grm.constants import COMPLETED_CHOICE
 from wizard.models import WizardSection
 
 
@@ -24,28 +23,25 @@ class WizardRedirectMiddleware:
         resolver = resolve(request.path_info)
 
         # Enforce only under dashboard
-        if "dashboard" not in resolver.namespaces and request.path != self.customization_url:
+        if "dashboard" not in resolver.namespaces and "wizard" not in resolver.namespace:
             return self.get_response(request)
 
         # Allow static and media
         if request.path.startswith("/static/") or request.path.startswith("/media/"):
             return self.get_response(request)
 
-        wizard_setup_status = WizardSection.get_wizard_setup_status()
-
-        # Wizard incomplete
-        if wizard_setup_status != COMPLETED_CHOICE:
+        # Wizard complete
+        if WizardSection.wizard_setup_is_completed():
+            if request.user.is_authenticated and not request.user.grm_manager:
+                if request.path == self.customization_url:
+                    raise Http404()
+        else:
+            # Wizard incomplete
             if request.user.is_authenticated and request.user.grm_manager:
-                if request.path not in self.exempt_urls_incomplete_manager:
+                if request.path != self.logout_url and "wizard" not in resolver.namespaces:
                     return redirect(self.customization_url)
             else:
                 if request.path not in self.exempt_urls_incomplete_non_manager:
                     raise Http404()
-            return self.get_response(request)
-
-        # Wizard complete
-        if request.user.is_authenticated and not request.user.grm_manager:
-            if request.path == self.customization_url:
-                raise Http404()
 
         return self.get_response(request)

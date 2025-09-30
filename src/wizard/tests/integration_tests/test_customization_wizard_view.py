@@ -19,6 +19,13 @@ class CustomizationWizardViewTest(ViewTestCase):
         response = self.get(self.url, authorized=False)
         self.assertEqual(response.status_code, 404)
 
+    def test_logged_in_non_grm_manager_user_cannot_access(self):
+        """Test that logged-in non grm manager users cannot access the view."""
+
+        self.user = UserFactory()
+        response = self.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
     def test_logged_in_user_can_access(self):
         """Test that logged-in users can access the view."""
 

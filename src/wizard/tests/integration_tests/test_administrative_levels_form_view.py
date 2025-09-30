@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from authentication.factories import UserFactory
 from grm.constants import (
     ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
     ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE,
@@ -25,6 +26,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("wizard:setup_step_2")
+        self.user = UserFactory(grm_manager=True)
 
         # remove all WizardSections created by the migration
         WizardSection.objects.all().delete()
@@ -44,6 +46,13 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         response = self.get(self.url)
         self.assertEqual(response.status_code, 404)
 
+    def test_logged_in_non_grm_manager_user_cannot_access(self):
+        """Test that logged-in non grm manager users cannot access the view."""
+
+        self.user = UserFactory()
+        response = self.get(self.url, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
     def test_get_ajax_request_renders(self):
         response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 200)
@@ -51,7 +60,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 2)
         self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
-        self.assertEqual(response.context["formset_label"], "Administrative Levels")
+        self.assertEqual(response.context["formset_label"], "Administrative Level Names")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE)
 
