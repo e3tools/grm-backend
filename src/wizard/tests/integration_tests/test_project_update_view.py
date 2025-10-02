@@ -4,7 +4,6 @@ from authentication.factories import UserFactory
 from dashboard.models import Project
 from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import ViewTestCase
-from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
@@ -15,12 +14,9 @@ class ProjectUpdateViewTest(ViewTestCase):
         self.url = reverse("wizard:setup_step_1")
         self.user = UserFactory(grm_manager=True)
 
-        # Remove all WizardSections created by the migration
-        WizardSection.objects.all().delete()
-
         # Create ordered wizard sections
-        self.section1 = WizardSectionFactory()
-        self.section2 = WizardSectionFactory()
+        self.current_section = WizardSection.objects.get(id=1)
+        self.next_section = WizardSection.objects.get(id=2)
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -71,10 +67,10 @@ class ProjectUpdateViewTest(ViewTestCase):
         self.assertEqual(project.description, project_description)
 
         # Wizard sections should be updated
-        self.section1.refresh_from_db()
-        self.section2.refresh_from_db()
-        self.assertEqual(self.section1.status, COMPLETED_CHOICE)
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
     def test_post_updates_existing_project(self):
         """Test that POST request updates existing project instead of creating new one."""
@@ -128,27 +124,27 @@ class ProjectUpdateViewTest(ViewTestCase):
         self.assertEqual(Project.objects.count(), 0)
 
         # Sections should remain unchanged
-        self.section1.refresh_from_db()
-        self.section2.refresh_from_db()
-        self.assertEqual(self.section1.status, NOT_STARTED_CHOICE)
-        self.assertEqual(self.section2.status, NOT_STARTED_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
 
     def test_update_status_does_not_override_next_section(self):
         """Test that update_status does not override if next section already has different status."""
         # Mark section2 as already IN_PROGRESS
-        self.section2.status = IN_PROGRESS_CHOICE
-        self.section2.save()
+        self.next_section.status = IN_PROGRESS_CHOICE
+        self.next_section.save()
 
         data = {"name": "Test Project", "description": "desc"}
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
 
-        self.section1.refresh_from_db()
-        self.section2.refresh_from_db()
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
 
         # section1 should still become COMPLETED
-        self.assertEqual(self.section1.status, COMPLETED_CHOICE)
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
 
         # section2 should remain IN_PROGRESS (not overridden)
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)

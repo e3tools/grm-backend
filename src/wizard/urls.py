@@ -5,6 +5,7 @@ from wizard.views import (
     AdministrativeRegionFormView,
     CustomizationWizardView,
     DownloadRegionsSampleView,
+    IssueDepartmentsFormView,
     NextStepView,
     ProjectUpdateView,
     RolesAndResponsibilitiesFormView,
@@ -20,5 +21,6 @@ urlpatterns = [
     path("setup-step-1", ProjectUpdateView.as_view(), name="setup_step_1"),
     path("setup-step-2", AdministrativeLevelsFormView.as_view(), name="setup_step_2"),
     path("setup-step-3", AdministrativeRegionFormView.as_view(), name="setup_step_3"),
-    path("setup-step-4", RolesAndResponsibilitiesFormView.as_view(), name="setup_step_4"),
+    path("setup-step-4", IssueDepartmentsFormView.as_view(), name="setup_step_4"),
+    path("setup-step-5", RolesAndResponsibilitiesFormView.as_view(), name="setup_step_5"),
 ]

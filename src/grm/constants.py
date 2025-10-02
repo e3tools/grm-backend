@@ -135,3 +135,5 @@ ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE = _(
 )
 ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE = _("Only Excel files (.xls, .xlsx) are allowed.")
 INVALID_EXCEL_FILE_ERROR_MESSAGE = _("The uploaded file is not a valid Excel file.")
+DEPARTMENT_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is linked to administrative level.")
+DEPARTMENT_TOAST_ERROR_MESSAGE = _('This department cannot be deleted because it is in use.')

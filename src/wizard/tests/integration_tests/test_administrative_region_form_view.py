@@ -36,7 +36,8 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
     def setUp(self):
         self.url = reverse("wizard:setup_step_3")
         self.user = UserFactory(grm_manager=True)
-        self.current_section = WizardSection.objects.all()[2]
+
+        self.current_section = WizardSection.objects.get(id=3)
 
         # Common levels used in most tests
         self.country = AdministrativeLevelFactory(name="Country")

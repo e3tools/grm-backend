@@ -11,6 +11,7 @@ def create_wizard_sections(apps, schema_editor):
     wizard_sections = (
         'Administrative Level Structure Configuration',
         'Load Administrative Levels',
+        'Departments',
         'GRM Roles & Responsibilities',
         'Grievance Types',
         'Categories & Teams',
