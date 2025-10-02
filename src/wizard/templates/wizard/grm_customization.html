@@ -19,6 +19,8 @@
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/v4-shims.min.css' %}"/>
 	<!-- icheck bootstrap -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}"/>
+	<!-- Select2 -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/select2/css/select2.min.css' %}"/>
 	<!-- Theme style -->
 	<link rel="stylesheet" href="{% static 'css/grm.css' %}"/>
 	<link href="{% static 'css/fonts.css' %}" rel="stylesheet">
@@ -33,11 +35,11 @@
 		<!-- Content Header (Page header) -->
 		<div class="content-header">
 			<div class="container-fluid">
-                <div class="alert-div-content">
+				<div class="alert-div-content">
                     <span id="popup-messages-content">
                         {% include 'common/messages.html' %}
                     </span>
-                </div>
+				</div>
 				<div class="row mb-2">
 					<div class="col-sm-6">
 						<div class="m-0 main-title">
@@ -74,7 +76,7 @@
 						</div>
 					</div>
 					<div class="col-md-6 d-flex flex-column">
-            			<div class="card h-100 d-flex flex-column">
+						<div class="card h-100 d-flex flex-column">
 							<div class="card-header border-0">
 								<div class="card-title">
 									<div class="pt-1 fs20 lh25 text-bold-family">
@@ -137,6 +139,8 @@
 <script src="{% static 'AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <!-- AdminLTE App -->
 <script src="{% static 'AdminLTE/dist/js/adminlte.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'AdminLTE/plugins/select2/js/select2.full.min.js' %}"></script>
 <!-- Django Translation -->
 <script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
 <!-- Custom javascript -->
@@ -170,6 +174,24 @@
     // For handling formset
     let formIndex;
     let maxForms;
+    
+    function initSelect2(element) {
+		if (!element.hasClass("select2-hidden-accessible")) {
+            console.log(element.attr("placeholder"));
+            console.log(element);
+			element.select2({
+				placeholder: element.attr("placeholder") || "",
+				allowClear: true
+			});
+		}
+    }
+
+	// When new content arrives via AJAX
+	$(document).ajaxSuccess(function () {
+        $(document).find("form select").each(function () {
+			initSelect2($(this));
+        });
+	});
 
     function loadWizardSectionForm($formAjax) {
         let section_id = $(".timeline-item.active").attr("id");
@@ -259,6 +281,11 @@
 
         // Focus on the new input
         $newForm.find('input[type="text"]').focus();
+
+        // Initialize select2 only for the selects of the new form
+        $newForm.find('select').each(function () {
+            initSelect2($(this));
+        });
     });
 
     // Remove form (for new forms without instance.pk)
@@ -363,7 +390,7 @@
                     $("#uploadModal .modal-content").html($(response).find(".modal-content").html());
                 } else {
                     $("#uploadModal").modal('hide');
-        			let step = $(".timeline-item.active").attr("id");
+                    let step = $(".timeline-item.active").attr("id");
                     console.log('step', step);
                     loadWizardSections(step);
                     showPopupMessage(response.msg);
@@ -391,9 +418,9 @@
             processData: false,
             contentType: false,
             success: function (response) {
-				$(".timeline-item.pointer").removeClass("active");
-				let step = response.step;
-				$("#" + step).addClass("active");
+                $(".timeline-item.pointer").removeClass("active");
+                let step = response.step;
+                $("#" + step).addClass("active");
                 loadWizardSections(response.step);
             },
             error: function () {

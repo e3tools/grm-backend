@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-30 13:00+0000\n"
+"POT-Creation-Date: 2025-10-02 12:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,7 +182,7 @@ msgid "This email is already registered."
 msgstr ""
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61 issues/models.py:34
-#: wizard/templates/wizard/regions.html:8
+#: wizard/forms.py:92 wizard/templates/wizard/regions.html:8
 msgid "Administrative Levels"
 msgstr ""
 
@@ -209,7 +209,7 @@ msgstr ""
 #: dashboard/adls/views.py:124 dashboard/grm/views.py:754
 #: dashboard/grm/views.py:788 dashboard/templates/grm/issue_detail.html:191
 #: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
-#: wizard/templates/wizard/formset.html:79
+#: wizard/templates/wizard/formset.html:83
 msgid "Save"
 msgstr ""
 
@@ -228,12 +228,12 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr ""
 
-#: dashboard/authentication/views.py:55
+#: dashboard/authentication/views.py:54
 #: dashboard/templates/authentication/login.html:14
 msgid "Log in"
 msgstr ""
 
-#: dashboard/authentication/views.py:63
+#: dashboard/authentication/views.py:62
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
@@ -1357,6 +1357,16 @@ msgstr ""
 msgid "The uploaded file is not a valid Excel file."
 msgstr ""
 
+#: grm/constants.py:138
+#, python-format
+msgid ""
+"You cannot delete '%(name)s' because it is linked to administrative level."
+msgstr ""
+
+#: grm/constants.py:139
+msgid "This department cannot be deleted because it is in use."
+msgstr ""
+
 #: grm/settings.py:138
 msgid "English"
 msgstr ""
@@ -1516,77 +1526,85 @@ msgstr ""
 msgid "Issue Attachment"
 msgstr ""
 
-#: wizard/forms.py:21
+#: wizard/forms.py:26
 msgid "Project Name"
 msgstr ""
 
-#: wizard/forms.py:22
+#: wizard/forms.py:27
 msgid "Enter the project name"
 msgstr ""
 
-#: wizard/forms.py:27
+#: wizard/forms.py:32
 msgid "Please describe the project"
 msgstr ""
 
-#: wizard/forms.py:28
+#: wizard/forms.py:33
 msgid "Project Description"
 msgstr ""
 
-#: wizard/forms.py:38
+#: wizard/forms.py:43
 msgid "Enter administrative level name"
 msgstr ""
 
-#: wizard/forms.py:79
+#: wizard/forms.py:91
+msgid "Click to select administrative levels"
+msgstr ""
+
+#: wizard/forms.py:99
+msgid "Department Name"
+msgstr ""
+
+#: wizard/forms.py:172
 msgid "Upload Excel File"
 msgstr ""
 
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
-#: wizard/templates/wizard/formset.html:81
+#: wizard/templates/wizard/formset.html:85
 #: wizard/templates/wizard/regions.html:45
 msgid "Next"
 msgstr ""
 
 #: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
-#: wizard/templates/wizard/formset.html:88
+#: wizard/templates/wizard/formset.html:92
 #: wizard/templates/wizard/regions.html:50
 msgid "Previous"
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:47
+#: wizard/templates/wizard/formset.html:51
 msgid "Delete"
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:52
-#: wizard/templates/wizard/formset.html:115
+#: wizard/templates/wizard/formset.html:56
+#: wizard/templates/wizard/formset.html:123
 msgid "Remove this row"
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:63
+#: wizard/templates/wizard/formset.html:67
 msgid "Maximum number of forms reached."
 msgstr ""
 
-#: wizard/templates/wizard/formset.html:68
-msgid "Add Level"
+#: wizard/templates/wizard/formset.html:72
+msgid "Add row"
 msgstr ""
 
 #: wizard/templates/wizard/grm_customization.html:15
-#: wizard/templates/wizard/grm_customization.html:44
+#: wizard/templates/wizard/grm_customization.html:46
 msgid "GRM Customization"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:64
+#: wizard/templates/wizard/grm_customization.html:66
 msgid "Setup Progress"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:81
+#: wizard/templates/wizard/grm_customization.html:83
 msgid "Configuration Options"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:287
+#: wizard/templates/wizard/grm_customization.html:314
 msgid "Delete this administrative level"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:293
+#: wizard/templates/wizard/grm_customization.html:320
 msgid "Undo deletion"
 msgstr ""
 
@@ -1613,4 +1631,8 @@ msgstr ""
 #: wizard/views.py:271
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
+msgstr ""
+
+#: wizard/views.py:319
+msgid "Departments"
 msgstr ""

@@ -16,7 +16,6 @@ from issues.factories import (
     IssueFactory,
 )
 from issues.models import AdministrativeLevel
-from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
@@ -28,13 +27,9 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.url = reverse("wizard:setup_step_2")
         self.user = UserFactory(grm_manager=True)
 
-        # remove all WizardSections created by the migration
-        WizardSection.objects.all().delete()
-
-        # Create test wizard sections
-        self.section1 = WizardSectionFactory(id=1, status=COMPLETED_CHOICE)
-        self.section2 = WizardSectionFactory(id=2, status=IN_PROGRESS_CHOICE)
-        self.section3 = WizardSectionFactory(id=3, status=NOT_STARTED_CHOICE)
+        self.current_section = WizardSection.objects.get(id=2)
+        WizardSection.objects.filter(id=2).update(status=IN_PROGRESS_CHOICE)
+        self.next_section = WizardSection.objects.get(id=3)
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -86,10 +81,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(level.name, level_name)
 
         # Wizard sections should be updated
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, COMPLETED_CHOICE)
-        self.assertEqual(self.section3.status, IN_PROGRESS_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
     def test_post_updates_existing_administrative_level(self):
         level = AdministrativeLevelFactory(name="Old Level")
@@ -110,10 +105,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(level.name, level_name)
 
         # Wizard sections should be updated
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, COMPLETED_CHOICE)
-        self.assertEqual(self.section3.status, IN_PROGRESS_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
     def test_invalid_form_does_not_update_administrative_levels(self):
         """Test that invalid form does not administrative levels or sections."""
@@ -141,10 +136,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertTrue(AdministrativeLevel.objects.filter(id=level2.id, name=level2.name).exists())
 
         # Sections should remain unchanged
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
-        self.assertEqual(self.section3.status, NOT_STARTED_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
 
     def test_duplicate_name_validation_on_create(self):
         """Test create with duplicate name."""
@@ -169,10 +164,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(AdministrativeLevel.objects.count(), 1)
 
         # Sections should remain unchanged
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
-        self.assertEqual(self.section3.status, NOT_STARTED_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
 
     def test_duplicate_name_validation_on_update(self):
         """Test update with duplicate name."""
@@ -200,10 +195,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertTrue(AdministrativeLevel.objects.filter(id=level2.id, name=level2.name).exists())
 
         # Sections should remain unchanged
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
-        self.assertEqual(self.section3.status, NOT_STARTED_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
 
     def test_post_cannot_delete_restricted_level(self):
         """Deletion should fail if restricted_deletion = True."""
@@ -232,10 +227,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertTrue(AdministrativeLevel.objects.filter(id=level.id, name=level.name).exists())
 
         # Sections should remain unchanged
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, IN_PROGRESS_CHOICE)
-        self.assertEqual(self.section3.status, NOT_STARTED_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
 
     def test_post_can_delete_non_restricted_level(self):
         """Deletion should succeed if restricted_deletion = False."""
@@ -257,7 +252,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(AdministrativeLevel.objects.count(), 0)
 
         # Wizard sections should be updated
-        self.section2.refresh_from_db()
-        self.section3.refresh_from_db()
-        self.assertEqual(self.section2.status, COMPLETED_CHOICE)
-        self.assertEqual(self.section3.status, IN_PROGRESS_CHOICE)
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)

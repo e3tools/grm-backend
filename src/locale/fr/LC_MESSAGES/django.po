@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-30 13:00+0000\n"
+"POT-Creation-Date: 2025-10-02 12:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,8 +44,8 @@ msgid ""
 "If an account exists with this email, password reset instructions have been "
 "sent."
 msgstr ""
-"Si un compte existe avec cet e-mail, les instructions de réinitialisation du mot "
-"de passe ont été envoyées."
+"Si un compte existe avec cet e-mail, les instructions de réinitialisation du "
+"mot de passe ont été envoyées."
 
 #: authentication/models.py:16
 msgid "email address"
@@ -185,7 +185,7 @@ msgid "This email is already registered."
 msgstr "Cet email est déjà enregistré."
 
 #: dashboard/adls/views.py:27 dashboard/adls/views.py:61 issues/models.py:34
-#: wizard/templates/wizard/regions.html:8
+#: wizard/forms.py:92 wizard/templates/wizard/regions.html:8
 msgid "Administrative Levels"
 msgstr "Niveaux Administratifs"
 
@@ -213,7 +213,7 @@ msgstr "Informations de profil"
 #: dashboard/adls/views.py:124 dashboard/grm/views.py:754
 #: dashboard/grm/views.py:788 dashboard/templates/grm/issue_detail.html:191
 #: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
-#: wizard/templates/wizard/formset.html:79
+#: wizard/templates/wizard/formset.html:83
 msgid "Save"
 msgstr "Sauvegarder"
 
@@ -237,12 +237,12 @@ msgstr ""
 msgid "The profile information was successfully edited."
 msgstr "Les informations de profil ont été modifiées avec succès."
 
-#: dashboard/authentication/views.py:55
+#: dashboard/authentication/views.py:54
 #: dashboard/templates/authentication/login.html:14
 msgid "Log in"
 msgstr "Se Connecter"
 
-#: dashboard/authentication/views.py:63
+#: dashboard/authentication/views.py:62
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 "La connexion n'est pas autorisée tant que l'assistant de personnalisation "
@@ -1362,7 +1362,8 @@ msgstr "Instances de niveau administratif"
 #: grm/constants.py:120
 #, python-format
 msgid "Successfully created %(count)d administrative level instances."
-msgstr "%(count)d instances de niveau administratif ont été créées avec succès."
+msgstr ""
+"%(count)d instances de niveau administratif ont été créées avec succès."
 
 #: grm/constants.py:121
 #, python-format
@@ -1370,6 +1371,7 @@ msgid "Skipped %(count)d duplicates that already existed."
 msgstr "%(count)d doublons qui existaient déjà ont été ignorés."
 
 #: grm/constants.py:123
+#, python-format
 msgid ""
 "%(count)d administrative level instances could not be modified because they "
 "are already in use."
@@ -1408,9 +1410,9 @@ msgid ""
 "must be the same value for all cells in the column. Expected %(root)s, found "
 "%(new)s."
 msgstr ""
-"La valeur de l'instance du premier niveau administratif (première colonne) doit "
-"être identique pour toutes les cellules de la colonne. %(root)s attendus, %(new)s "
-"trouvés."
+"La valeur de l'instance du premier niveau administratif (première colonne) "
+"doit être identique pour toutes les cellules de la colonne. %(root)s "
+"attendus, %(new)s trouvés."
 
 #: grm/constants.py:136
 msgid "Only Excel files (.xls, .xlsx) are allowed."
@@ -1419,6 +1421,16 @@ msgstr "Seuls les fichiers Excel (.xls, .xlsx) sont autorisés."
 #: grm/constants.py:137
 msgid "The uploaded file is not a valid Excel file."
 msgstr "Le fichier téléchargé n'est pas un fichier Excel valide."
+
+#: grm/constants.py:138
+msgid ""
+"You cannot delete '%(name)s' because it is linked to administrative level."
+msgstr ""
+"Vous ne pouvez pas supprimer '%(name)s' car il est lié au niveau administratif."
+
+#: grm/constants.py:139
+msgid "This department cannot be deleted because it is in use."
+msgstr "Ce département ne peut pas être supprimé car il est en cours d'utilisation."
 
 #: grm/settings.py:138
 msgid "English"
@@ -1589,77 +1601,85 @@ msgstr "Téléchargé par"
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 
-#: wizard/forms.py:21
+#: wizard/forms.py:26
 msgid "Project Name"
 msgstr "Nom du projet"
 
-#: wizard/forms.py:22
+#: wizard/forms.py:27
 msgid "Enter the project name"
 msgstr "Entrez le nom du projet"
 
-#: wizard/forms.py:27
+#: wizard/forms.py:32
 msgid "Please describe the project"
 msgstr "Veuillez décrire le projet"
 
-#: wizard/forms.py:28
+#: wizard/forms.py:33
 msgid "Project Description"
 msgstr "Description du projet"
 
-#: wizard/forms.py:38
+#: wizard/forms.py:43
 msgid "Enter administrative level name"
 msgstr "Entrez le nom du niveau administratif"
 
-#: wizard/forms.py:79
+#: wizard/forms.py:91
+msgid "Click to select administrative levels"
+msgstr "Cliquez pour sélectionner les niveaux administratifs"
+
+#: wizard/forms.py:99
+msgid "Department Name"
+msgstr "Nom du département"
+
+#: wizard/forms.py:172
 msgid "Upload Excel File"
 msgstr "Télécharger un fichier Excel"
 
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
-#: wizard/templates/wizard/formset.html:81
+#: wizard/templates/wizard/formset.html:85
 #: wizard/templates/wizard/regions.html:45
 msgid "Next"
 msgstr "Suivante"
 
 #: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
-#: wizard/templates/wizard/formset.html:88
+#: wizard/templates/wizard/formset.html:92
 #: wizard/templates/wizard/regions.html:50
 msgid "Previous"
 msgstr "Précédente"
 
-#: wizard/templates/wizard/formset.html:47
+#: wizard/templates/wizard/formset.html:51
 msgid "Delete"
 msgstr "Supprimer"
 
-#: wizard/templates/wizard/formset.html:52
-#: wizard/templates/wizard/formset.html:115
+#: wizard/templates/wizard/formset.html:56
+#: wizard/templates/wizard/formset.html:123
 msgid "Remove this row"
 msgstr "Supprimer cette ligne"
 
-#: wizard/templates/wizard/formset.html:63
+#: wizard/templates/wizard/formset.html:67
 msgid "Maximum number of forms reached."
 msgstr "Nombre maximum de formulaires atteint."
 
-#: wizard/templates/wizard/formset.html:68
-msgid "Add Level"
-msgstr "Ajouter un niveau"
+#: wizard/templates/wizard/formset.html:72
+msgid "Add row"
+msgstr "Ajouter une ligne"
 
 #: wizard/templates/wizard/grm_customization.html:15
-#: wizard/templates/wizard/grm_customization.html:44
+#: wizard/templates/wizard/grm_customization.html:46
 msgid "GRM Customization"
 msgstr "Personnalisation eMGP"
 
-#: wizard/templates/wizard/grm_customization.html:64
+#: wizard/templates/wizard/grm_customization.html:66
 msgid "Setup Progress"
 msgstr "Progression de l'installation"
 
-#: wizard/templates/wizard/grm_customization.html:81
+#: wizard/templates/wizard/grm_customization.html:83
 msgid "Configuration Options"
 msgstr "Options de configuration"
 
-#: wizard/templates/wizard/grm_customization.html:287
+#: wizard/templates/wizard/grm_customization.html:314
 msgid "Delete this administrative level"
 msgstr "Supprimer ce niveau administratif"
 
-#: wizard/templates/wizard/grm_customization.html:293
+#: wizard/templates/wizard/grm_customization.html:320
 msgid "Undo deletion"
 msgstr "Annuler la suppression"
 
@@ -1686,7 +1706,12 @@ msgstr "Noms des niveaux administratifs"
 #: wizard/views.py:271
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
-msgstr "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
+msgstr ""
+"Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
+
+#: wizard/views.py:319
+msgid "Departments"
+msgstr "Départements"
 
 #~ msgid "Send"
 #~ msgstr "Envoyer"
@@ -1711,9 +1736,6 @@ msgstr "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s
 
 #~ msgid "Click to select occupation status"
 #~ msgstr "Cliquez pour sélectionner le statut d'occupation"
-
-#~ msgid "Click to select educational level"
-#~ msgstr "Cliquez pour sélectionner le niveau d'instruction"
 
 #~ msgid "Resolution Message"
 #~ msgstr "Message de résolution"

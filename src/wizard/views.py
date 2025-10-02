@@ -2,7 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef, Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -22,6 +22,7 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
     COMPLETED_CHOICE,
+    DEPARTMENT_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
     NOT_PERMITTED_TEXT,
     NOT_STARTED_CHOICE,
@@ -30,10 +31,13 @@ from issues.models import (
     AdministrativeLevel,
     AdministrativeRegion,
     Issue,
+    IssueCategory,
+    IssueDepartment,
     IssueDepartmentAdministrativeLevel,
 )
 from wizard.forms import (
     AdministrativeLevelFormSet,
+    IssueDepartmentFormSet,
     ProjectForm,
     UploadAdministrativeRegionForm,
 )
@@ -112,11 +116,6 @@ class AdministrativeLevelsFormView(WizardFormView):
 
     def get_form(self, form_class=None):
         queryset = AdministrativeLevel.objects.annotate(
-            has_issue=Exists(Issue.objects.filter(administrative_region__administrative_level=OuterRef("pk"))),
-            has_issue_department=Exists(
-                IssueDepartmentAdministrativeLevel.objects.filter(administrative_level=OuterRef("pk"))
-            ),
-        ).annotate(
             restricted_deletion=(
                 Exists(Issue.objects.filter(administrative_region__administrative_level=OuterRef("pk")))
                 | Exists(IssueDepartmentAdministrativeLevel.objects.filter(administrative_level=OuterRef("pk")))
@@ -279,7 +278,7 @@ class AdministrativeRegionFormView(JSONResponseMixin, WizardFormView):
                 ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE,
                 extra_tags="warning",
             )
-        self.update_status(only_current_step=True, status=IN_PROGRESS_CHOICE)
+            self.update_status(only_current_step=True, status=IN_PROGRESS_CHOICE)
 
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
         return self.render_to_json_response(context, safe=False)
@@ -297,6 +296,32 @@ class NextStepView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, View):
         return self.render_to_json_response({"step": step}, safe=False)
 
 
+class IssueDepartmentsFormView(WizardFormView):
+    form_class = IssueDepartmentFormSet
+    template_name = "wizard/formset.html"
+    step = 4
+
+    def get_form(self, form_class=None):
+        queryset = IssueDepartment.objects.annotate(
+            restricted_deletion=Exists(
+                IssueCategory.objects.filter(
+                    Q(assigned_department__department=OuterRef("pk"))
+                    | Q(assigned_appeal_department__department=OuterRef("pk"))
+                    | Q(assigned_escalation_department__department=OuterRef("pk"))
+                )
+            )
+        )
+        return IssueDepartmentFormSet(queryset=queryset, **self.get_form_kwargs())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']  # Aliases for clarity in the template
+        context['formset_label'] = _('Departments')
+        context['toast_title'] = NOT_PERMITTED_TEXT
+        context['toast_message'] = DEPARTMENT_TOAST_ERROR_MESSAGE
+        return context
+
+
 class RolesAndResponsibilitiesFormView(WizardFormView):
     template_name = "wizard/example.html"
-    step = 4
+    step = 5
