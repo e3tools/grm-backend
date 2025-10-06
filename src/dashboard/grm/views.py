@@ -443,7 +443,6 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
 
         self.set_contact_fields(data)
         self.obj.internal_code = self.obj.get_internal_code()
-        self.obj.status = IssueStatus.objects.get(open_status=True)
         self.obj.confirmed = True
         self.obj.anonymize_issue_data()
         self.obj.save()
@@ -618,7 +617,7 @@ class IssueCommentsContextMixin:
             "danger",
         ]
         if not department.head:
-            msg = _(f"There is no head member for {department.name}. Please report to IT staff.")
+            msg = _(f"There is no head member for '{department.name}'. Please report to IT staff.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         return context
