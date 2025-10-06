@@ -10,6 +10,7 @@ from wizard.views import (
     IssueDepartmentsFormView,
     NextStepView,
     ProjectUpdateView,
+    ResolutionProcessFormView,
     WizardSectionListView,
 )
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path("setup-step-3", AdministrativeRegionFormView.as_view(), name="setup_step_3"),
     path("setup-step-4", IssueDepartmentsFormView.as_view(), name="setup_step_4"),
     path("setup-step-5", IssueCategoriesFormView.as_view(), name="setup_step_5"),
-    path("setup-step-6", FeedbackAndAppealFormView.as_view(), name="setup_step_6"),
+    path("setup-step-6", ResolutionProcessFormView.as_view(), name="setup_step_6"),
+    path("setup-step-7", FeedbackAndAppealFormView.as_view(), name="setup_step_7"),
 ]

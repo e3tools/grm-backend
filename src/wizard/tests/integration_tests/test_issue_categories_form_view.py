@@ -4,6 +4,7 @@ from authentication.factories import UserFactory
 from grm.constants import (
     CATEGORY_DELETE_ERROR_MESSAGE,
     CATEGORY_TOAST_ERROR_MESSAGE,
+    COMPLETED_CHOICE,
     FEWER_ISSUES_CHOICE,
     IN_PROGRESS_CHOICE,
     LOW_CHOICE,
@@ -62,6 +63,7 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.assertEqual(response.context["formset_label"], "Categories")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], CATEGORY_TOAST_ERROR_MESSAGE)
+        self.assertTrue(response.context["two_fields_by_row"])
 
     def test_post_creates_new_category_with_existing_subtype(self):
         """Submitting valid data with an existing IssueSubType should create a category."""
@@ -85,6 +87,12 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         category = IssueCategory.objects.first()
         self.assertEqual(category.name, "Category 1")
         self.assertEqual(category.parent, subtype)
+
+        # Wizard sections should be updated
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
     def test_post_creates_new_category_with_new_subtype_string(self):
         """Submitting valid data with a new string for parent should create IssueSubType automatically."""

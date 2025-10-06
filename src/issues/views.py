@@ -1079,7 +1079,7 @@ class IssueStatusListAPIView(ListAPIView):
 
     @swagger_auto_schema(
         operation_summary="List all issue statuses (paginated)",
-        operation_description="Retrieve a paginated list of all issue statuses ordered by name.",
+        operation_description="Retrieve a paginated list of all issue statuses ordered by id.",
         tags=['Issue Statuses'],
         security=[{'Token': []}],
         manual_parameters=[
@@ -1181,7 +1181,7 @@ class IssueStatusListAPIView(ListAPIView):
         Retrieve paginated list of IssueStatus objects.
 
         Returns a paginated list of all issue statuses available in the system.
-        The list is ordered alphabetically by status name.
+        The list is ordered ascending by status id.
 
         Args:
             request: HTTP request object

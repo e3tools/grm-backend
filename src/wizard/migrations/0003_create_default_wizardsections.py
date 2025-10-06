@@ -13,10 +13,7 @@ def create_wizard_sections(apps, schema_editor):
         'Load Administrative Levels',
         'Departments',
         'Issues Categories',
-        'GRM Roles & Responsibilities',
-        'Grievance Types',
-        'Categories & Teams',
-        'Routing Rules',
+        'Resolution Process',
         'Feedback & Appeal',
     )
 

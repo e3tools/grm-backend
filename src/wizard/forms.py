@@ -3,7 +3,6 @@ from zipfile import BadZipFile
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.forms import BaseModelFormSet, modelformset_factory
 from django.utils.translation import gettext_lazy as _
 from openpyxl.utils.exceptions import InvalidFileException
 
@@ -21,6 +20,7 @@ from issues.models import (
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
+    IssueStatus,
     IssueSubType,
 )
 
@@ -54,7 +54,7 @@ class AdministrativeLevelForm(forms.ModelForm):
         }
 
 
-class CustomBaseModelFormSet(BaseModelFormSet):
+class CustomBaseModelFormSet(forms.BaseModelFormSet):
     validation_error_message = ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE
 
     def clean(self):
@@ -79,7 +79,7 @@ class AdministrativeLevelBaseFormSet(CustomBaseModelFormSet):
     pass
 
 
-AdministrativeLevelFormSet = modelformset_factory(
+AdministrativeLevelFormSet = forms.modelformset_factory(
     AdministrativeLevel,
     form=AdministrativeLevelForm,
     formset=AdministrativeLevelBaseFormSet,
@@ -164,7 +164,7 @@ class IssueDepartmentBaseFormSet(CustomBaseModelFormSet):
         return instances
 
 
-IssueDepartmentFormSet = modelformset_factory(
+IssueDepartmentFormSet = forms.modelformset_factory(
     IssueDepartment,
     form=IssueDepartmentForm,
     formset=IssueDepartmentBaseFormSet,
@@ -267,7 +267,7 @@ class IssueCategoryBaseFormSet(CustomBaseModelFormSet):
         return instances
 
 
-IssueCategoryFormSet = modelformset_factory(
+IssueCategoryFormSet = forms.modelformset_factory(
     IssueCategory,
     form=IssueCategoryForm,
     formset=IssueCategoryBaseFormSet,
@@ -308,3 +308,85 @@ class UploadAdministrativeRegionForm(FileForm):
             raise forms.ValidationError(INVALID_EXCEL_FILE_ERROR_MESSAGE)
 
         return value
+
+
+class IssueStatusForm(forms.ModelForm):
+    """Form for an IssueStatus, only allows editing the name."""
+
+    class Meta:
+        model = IssueStatus
+        fields = ["name"]
+        labels = {"name": _("Status name")}
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": _("Enter status name")}),
+        }
+
+    def has_changed(self):
+        """Force it to always be considered changed to run validation."""
+        return True
+
+
+# Define metadata for each status flag
+ISSUE_STATUS_DEFINITIONS = {
+    'initial_status': {
+        'name': _('Created'),
+        'label': _('Represents the starting point of the issue.'),
+        "help_text": _("This status indicates that the issue has just been created or initiated."),
+    },
+    'open_status': {
+        'name': _('Open'),
+        "label": _("Denotes that the issue is actively being worked on or is pending resolution."),
+        "help_text": "",
+    },
+    'rejected_status': {
+        'name': _('Rejected'),
+        "label": _("Indicates that the issue has been reviewed and rejected."),
+        "help_text": _("This status is used when the issue is deemed invalid or unnecessary."),
+    },
+    'final_status': {
+        'name': _('Resolved'),
+        "label": _("Marks the resolution or closure of the issue."),
+        "help_text": _("This status signifies that the issue has been successfully completed or resolved."),
+    },
+}
+
+STATUS_METADATA = [
+    {'label': item['label'], 'help_text': item['help_text']} for item in ISSUE_STATUS_DEFINITIONS.values()
+]
+
+
+class IssueStatusBaseFormSet(forms.BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for i, form in enumerate(self.forms):
+            instance = form.instance
+            if instance.pk:
+                for flag in ('initial_status', 'open_status', 'rejected_status', 'final_status'):
+                    if getattr(instance, flag):
+                        form.fields['name'].label = ISSUE_STATUS_DEFINITIONS[flag]['label']
+                        form.fields['name'].help_text = ISSUE_STATUS_DEFINITIONS[flag]['help_text']
+                        break
+            else:
+                if i < len(STATUS_METADATA):
+                    metadata = STATUS_METADATA[i]
+                    if 'name' in form.fields:
+                        form.fields['name'].label = metadata['label']
+                        form.fields['name'].help_text = metadata['help_text']
+
+
+ExistingIssueStatusFormSet = forms.modelformset_factory(
+    IssueStatus,
+    form=IssueStatusForm,
+    formset=IssueStatusBaseFormSet,
+    extra=0,
+    can_delete=False,
+)
+
+NewIssueStatusFormSet = forms.modelformset_factory(
+    IssueStatus,
+    form=IssueStatusForm,
+    formset=IssueStatusBaseFormSet,
+    extra=4,
+    can_delete=False,
+)

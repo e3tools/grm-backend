@@ -218,14 +218,14 @@ class IssueStatus(models.Model):
     final_status = models.BooleanField(default=False)
     initial_status = models.BooleanField(default=False)
     rejected_status = models.BooleanField(default=False)
-    open_status = models.BooleanField(default=True)
+    open_status = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
     class Meta:
         verbose_name = _("Issue Status")
         verbose_name_plural = _("Issue Status")
-        ordering = ['name']
+        ordering = ['id']
 
     def __str__(self):
         return self.name

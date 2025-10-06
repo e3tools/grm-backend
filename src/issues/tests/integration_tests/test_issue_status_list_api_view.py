@@ -90,10 +90,11 @@ class IssueStatusListAPIViewTest(APITestCase):
         assert isinstance(response_data['results'], list)
         assert len(response_data['results']) == 4
 
-        # Verify ordering (alphabetical by name)
-        status_names = [status['name'] for status in response_data['results']]
-        expected_order = ["Closed", "In Progress", "Open", "Rejected"]
-        assert status_names == expected_order
+        # Verify ordering (ascending by id)
+        status_ids = [status['id'] for status in response_data['results']]
+        first_status_id = IssueStatus.objects.first().id
+        expected_order = [first_status_id, first_status_id + 1, first_status_id + 2, first_status_id + 3]
+        assert status_ids == expected_order
 
     def test_response_format_structure_paginated(self):
         """Test that the paginated response format matches expected structure."""
@@ -255,30 +256,8 @@ class IssueStatusListAPIViewTest(APITestCase):
         assert response_data['previous'] is None  # First page
 
         # Verify they're still properly ordered
-        status_names = [status['name'] for status in response_data['results']]
-        assert status_names == sorted(status_names)
-
-    def test_status_ordering_case_insensitive(self):
-        """Test that status ordering is case-insensitive in paginated response."""
-        # Create statuses with different cases
-        IssueStatusFactory(name="Apple")
-        IssueStatusFactory(name="Banana")
-        IssueStatusFactory(name="Cherry")
-        IssueStatusFactory(name="Date")
-
-        self.authenticate_with_token()
-        response = self.client.get(self.url)
-        response_data = response.data
-
-        assert response.status_code == 200
-
-        # Extract names and verify alphabetical ordering
-        status_names = [status['name'] for status in response_data['results']]
-
-        # Should be ordered alphabetically regardless of case
-        expected_start = ["Apple", "Banana", "Cherry", "Closed", "Date"]
-        actual_start = status_names[:5]
-        assert actual_start == expected_start
+        status_ids = [status['id'] for status in response_data['results']]
+        assert status_ids == sorted(status_ids)
 
     def test_content_type_header(self):
         """Test that the response has correct content type."""
