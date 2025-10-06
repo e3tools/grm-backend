@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from authentication.constants import ADL, MAJOR
 from client import get_db
-from dashboard.forms.forms import FileForm
+from common.utils.forms import FileForm
 
 
 class PasswordConfirmForm(forms.Form):

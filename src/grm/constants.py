@@ -20,10 +20,10 @@ CONTACT_CHOICES = [
     (PHONE_CHOICE, _("phone number")),
     (WHATSAPP_CHOICE, _("whatsapp")),
 ]
+
 CONFIDENTIAL_CHOICE = 'keep_name_confidential'
 INDIVIDUAL_CHOICE = 'on_behalf_of_someone'
 ORGANIZATION_CHOICE = 'organization_behalf_someone'
-
 CITIZEN_TYPE_CHOICES = [
     (
         CONFIDENTIAL_CHOICE,
@@ -56,7 +56,6 @@ GENDER_CHOICES = [
 ACCEPTED_CHOICE = "accepted"
 REJECTED_CHOICE = "rejected"
 CLOSED_CHOICE = "closed"
-
 ALERT_CHOICES = [
     ("", ""),
     (ACCEPTED_CHOICE, ACCEPTED_CHOICE),
@@ -66,7 +65,6 @@ ALERT_CHOICES = [
 
 CITIZEN_GROUP_CHOICE = "citizen_group"
 CITIZEN_GROUP2_CHOICE = "citizen_group_2"
-
 CITIZEN_GROUP_CHOICES = (
     (CITIZEN_GROUP_CHOICE, _('Citizen group')),
     (CITIZEN_GROUP2_CHOICE, _('Citizen group 2')),
@@ -79,6 +77,19 @@ STATUS_CHOICES = [
     (NOT_STARTED_CHOICE, _("Not Started")),
     (IN_PROGRESS_CHOICE, _("In Progress")),
     (COMPLETED_CHOICE, _("Completed")),
+]
+
+DEPARTMENT_HEAD_CHOICE = "department_head"
+FEWER_ISSUES_CHOICE = "fewer_issues"
+REDIRECTION_PROTOCOL_CHOICES = [
+    (DEPARTMENT_HEAD_CHOICE, _("Department head")),
+    (FEWER_ISSUES_CHOICE, _("Person with fewer issues")),
+]
+
+LOW_CHOICE = "low"
+CONFIDENTIALITY_LEVEL_CHOICES = [
+    (LOW_CHOICE, _("Low")),
+    (ANONYMOUS_CHOICE, _("Anonymous")),
 ]
 
 TEXTAREA_MAX_LENGTH = 65000
@@ -137,3 +148,5 @@ ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE = _("Only Excel files (.xls, .xlsx) are
 INVALID_EXCEL_FILE_ERROR_MESSAGE = _("The uploaded file is not a valid Excel file.")
 DEPARTMENT_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is linked to administrative level.")
 DEPARTMENT_TOAST_ERROR_MESSAGE = _('This department cannot be deleted because it is in use.')
+CATEGORY_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is linked to issues.")
+CATEGORY_TOAST_ERROR_MESSAGE = _('This category cannot be deleted because it is in use.')

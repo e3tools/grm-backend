@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from authentication.models import GovernmentWorker
-from dashboard.forms.widgets import RadioSelect
+from common.utils.widgets import RadioSelect
 from grm.constants import (
     ALERT_CHOICE,
     CITIZEN_TYPE_CHOICES,

@@ -1403,10 +1403,10 @@ class IssueCategoryListAPIView(ListAPIView):
                                         description="Assigned escalation department information",
                                     ),
                                     'confidentiality_level': openapi.Schema(
-                                        type=openapi.TYPE_STRING, description="Confidentiality level", nullable=True
+                                        type=openapi.TYPE_STRING, description="Confidentiality level"
                                     ),
                                     'redirection_protocol': openapi.Schema(
-                                        type=openapi.TYPE_INTEGER, description="Redirection protocol number"
+                                        type=openapi.TYPE_STRING, description="Redirection protocol number"
                                     ),
                                     'label': openapi.Schema(
                                         type=openapi.TYPE_STRING,

@@ -6,7 +6,7 @@ from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE, STATUS_CHOICES
 class WizardSection(models.Model):
     name = models.CharField(max_length=255, unique=True)
     prompt = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=NOT_STARTED_CHOICE)
+    status = models.SlugField(choices=STATUS_CHOICES, default=NOT_STARTED_CHOICE)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

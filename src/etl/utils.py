@@ -18,7 +18,9 @@ from client import (
 from grm.constants import (
     ALERT_CHOICE,
     CONFIDENTIAL_CHOICE,
+    DEPARTMENT_HEAD_CHOICE,
     FEMALE_CHOICE,
+    FEWER_ISSUES_CHOICE,
     INDIVIDUAL_CHOICE,
     MALE_CHOICE,
     ORGANIZATION_CHOICE,
@@ -411,6 +413,10 @@ def process_category_data(data: list[dict]) -> list[dict]:
             new_item[f'{field}_id'] = existing_department_levels.get(
                 f"{field_data['name']}{field_data['administrative_level']}"
             )
+
+        # --- Handle redirection_protocol ---
+        redirection_protocol = new_item.get('redirection_protocol')
+        new_item['redirection_protocol'] = FEWER_ISSUES_CHOICE if redirection_protocol else DEPARTMENT_HEAD_CHOICE
 
         processed.append(new_item)
 

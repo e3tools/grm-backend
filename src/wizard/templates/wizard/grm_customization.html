@@ -68,10 +68,12 @@
 								</div>
 							</div>
 							<div class="card-body">
-								<div id="wizard-sections"></div>
-							</div>
-							<div class="overlay" id="wizard-sections-spin">
-								<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+								<div class="overlay-wrapper">
+									<div id="wizard-sections"></div>
+									<div class="overlay" id="wizard-sections-spin">
+										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -84,7 +86,12 @@
 									</div>
 								</div>
 							</div>
-							<div id="formAjax" class="d-flex flex-column flex-grow-1"></div>
+							<div class="overlay-wrapper">
+								<div id="formAjax" class="d-flex flex-column flex-grow-1"></div>
+								<div class="overlay" id="wizard-form-spin">
+									<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+								</div>
+							</div>
 						</div>
 					</div>
 					{% comment %}
@@ -151,6 +158,16 @@
 <script type="text/javascript">
     let wizard_sections_spin = $('#wizard-sections-spin');
     let wizard_sections = $('#wizard-sections');
+    
+    function updateStepParam(step){
+		const url = new URL(window.location.href);
+	
+		// Update or add the 'step' parameter
+		url.searchParams.set('step', step);
+	
+		// Change the URL without reloading the page
+		window.history.pushState({}, '', url.toString());
+	}
 
     function loadWizardSections(step) {
         wizard_sections_spin.show();
@@ -174,31 +191,34 @@
     // For handling formset
     let formIndex;
     let maxForms;
-    
+    let wizard_form_spin = $('#wizard-form-spin');
+
     function initSelect2(element) {
-		if (!element.hasClass("select2-hidden-accessible")) {
-            console.log(element.attr("placeholder"));
-            console.log(element);
-			element.select2({
-				placeholder: element.attr("placeholder") || "",
-				allowClear: true
-			});
-		}
+        if (!element.hasClass("select2-hidden-accessible")) {
+            let options = {
+                placeholder: element.attr("placeholder") || "",
+                allowClear: true
+            };
+
+            // If the element is writable, allow custom tags
+            if (element.hasClass("writable")) {
+                options.tags = true;
+            }
+
+            element.select2(options);
+        }
     }
 
-	// When new content arrives via AJAX
-	$(document).ajaxSuccess(function () {
+    // When new content arrives via AJAX
+    $(document).ajaxSuccess(function () {
         $(document).find("form select").each(function () {
-			initSelect2($(this));
+            initSelect2($(this));
         });
-	});
+    });
 
     function loadWizardSectionForm($formAjax) {
+        wizard_form_spin.show();
         let section_id = $(".timeline-item.active").attr("id");
-        if (!section_id) {
-            section_id = {{ total_steps }}; // fallback
-            $("#" + section_id).addClass("active");
-        }
         let url = "{% url 'wizard:setup_step_1' %}".replace("1", section_id);
         $formAjax.load(url, function (response, status) {
             if (status === "error") {
@@ -208,7 +228,9 @@
             } else {
                 formIndex = parseInt($('#id_form-TOTAL_FORMS').val());
                 maxForms = parseInt($('#id_form-MAX_NUM_FORMS').val());
+                updateStepParam(section_id);
             }
+        	wizard_form_spin.hide();
         });
     }
 
@@ -391,7 +413,6 @@
                 } else {
                     $("#uploadModal").modal('hide');
                     let step = $(".timeline-item.active").attr("id");
-                    console.log('step', step);
                     loadWizardSections(step);
                     showPopupMessage(response.msg);
                 }

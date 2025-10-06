@@ -136,8 +136,8 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
         self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
-    def test_invalid_form_with_empty_name_does_not_update_issue_departments(self):
-        """Invalid name should not update departments or their administrative levels."""
+    def test_invalid_form_does_not_update_issue_departments(self):
+        """Invalid form should not update departments or their administrative levels."""
         department = IssueDepartmentFactory(name="department1")
         IssueDepartmentAdministrativeLevelFactory(department=department, administrative_level=self.level1)
         department2 = IssueDepartmentFactory(name="department2")
@@ -152,7 +152,6 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
             "form-0-administrative_levels": [self.level2.id],  # should be ignored
             "form-1-id": department2.id,
             "form-1-name": "New name",  # should be ignored
-            "form-1-administrative_levels": [self.level2.id],  # should be ignored
         }
         response = self.post(self.url, data, ajax=True)
 
@@ -172,56 +171,8 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         )
         self.assertTrue(IssueDepartment.objects.filter(id=department2.id, name=department2.name).exists())
 
-        self.assertEqual(
-            'This field is required.',
-            response.context["form"].errors[0]['name'][0],
-        )
-
-        # Sections remain unchanged
-        self.current_section.refresh_from_db()
-        self.next_section.refresh_from_db()
-        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
-        self.assertEqual(self.next_section.status, NOT_STARTED_CHOICE)
-
-    def test_invalid_form_with_empty_administrative_levels_does_not_update_issue_departments(self):
-        """Empty administrative levels should not update departments or their administrative levels."""
-        department = IssueDepartmentFactory(name="department1")
-        IssueDepartmentAdministrativeLevelFactory(department=department, administrative_level=self.level1)
-        department2 = IssueDepartmentFactory(name="department2")
-
-        data = {
-            "form-TOTAL_FORMS": "2",
-            "form-INITIAL_FORMS": "2",
-            "form-MIN_NUM_FORMS": "1",
-            "form-MAX_NUM_FORMS": "100",
-            "form-0-id": department.id,
-            "form-0-name": " New department1 name",  # should be ignored
-            "form-0-administrative_levels": [self.level2.id],  # should be ignored
-            "form-1-id": department2.id,
-            "form-1-name": "New department2 name",  # should be ignored
-        }
-        response = self.post(self.url, data, ajax=True)
-
-        # Expect re-render (200) with errors
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "wizard/formset.html")
-
-        # No updates applied
-        self.assertTrue(IssueDepartment.objects.filter(id=department.id, name=department.name).exists())
-        self.assertSetEqual(
-            set(
-                IssueDepartmentAdministrativeLevel.objects.filter(department=department).values_list(
-                    "administrative_level", flat=True
-                )
-            ),
-            {self.level1.id},  # still level1, not replaced by level2
-        )
-        self.assertTrue(IssueDepartment.objects.filter(id=department2.id, name=department2.name).exists())
-
-        self.assertEqual(
-            'This field is required.',
-            response.context["form"].errors[1]['administrative_levels'][0],
-        )
+        self.assertFormError(response.context["formset"].forms[0], "name", "This field is required.")
+        self.assertFormError(response.context["formset"].forms[1], "administrative_levels", "This field is required.")
 
         # Sections remain unchanged
         self.current_section.refresh_from_db()
@@ -249,9 +200,8 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertEqual(IssueDepartment.objects.count(), 1)
-        self.assertEqual(
-            'Issue Department with this Name already exists.',
-            response.context["form"].errors[1]['name'][0],
+        self.assertFormError(
+            response.context["formset"].forms[1], "name", 'Issue Department with this Name already exists.'
         )
 
         # Sections unchanged
