@@ -16,10 +16,14 @@ from grm.constants import (
     ANONYMOUS_CHOICE,
     CITIZEN_GROUP_CHOICES,
     CITIZEN_TYPE_CHOICES,
+    CONFIDENTIALITY_LEVEL_CHOICES,
     CONTACT_CHOICES,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    FEWER_ISSUES_CHOICE,
     GENDER_CHOICES,
+    LOW_CHOICE,
     MEDIUM_CHOICES,
+    REDIRECTION_PROTOCOL_CHOICES,
 )
 from grm.utils import filesizeformat_en, get_choices
 
@@ -293,8 +297,8 @@ class IssueCategory(models.Model):
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_escalation_categories'
     )
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
-    confidentiality_level = models.CharField(max_length=255, null=True, blank=True)
-    redirection_protocol = models.IntegerField(default=0)
+    confidentiality_level = models.SlugField(default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES)
+    redirection_protocol = models.SlugField(default=FEWER_ISSUES_CHOICE, choices=REDIRECTION_PROTOCOL_CHOICES)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -348,7 +352,7 @@ class CitizenAgeGroup(models.Model):
 
 class CitizenGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES)
+    type = models.SlugField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -369,8 +373,8 @@ class Citizen(models.Model):
     age_group = models.ForeignKey(
         CitizenAgeGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="age_group_citizen"
     )
-    type = models.CharField(max_length=50, null=True, blank=True, choices=CITIZEN_TYPE_CHOICES)
-    gender = models.CharField(max_length=50, null=True, blank=True, choices=GENDER_CHOICES)
+    type = models.SlugField(null=True, blank=True, choices=CITIZEN_TYPE_CHOICES)
+    gender = models.SlugField(null=True, blank=True, choices=GENDER_CHOICES)
     group = models.ForeignKey(
         CitizenGroup, null=True, blank=True, on_delete=models.CASCADE, related_name="group_citizen"
     )
@@ -406,8 +410,8 @@ class Issue(models.Model):
     contact_information = models.CharField(
         max_length=255, blank=True, null=True, help_text="The contact phone, email, whatsapp or other method data"
     )
-    contact_medium = models.CharField(max_length=50, blank=True, choices=MEDIUM_CHOICES, default=ANONYMOUS_CHOICE)
-    contact_method = models.CharField(max_length=255, choices=CONTACT_CHOICES, default=None, null=True, blank=True)
+    contact_medium = models.SlugField(blank=True, choices=MEDIUM_CHOICES, default=ANONYMOUS_CHOICE)
+    contact_method = models.SlugField(choices=CONTACT_CHOICES, default=None, null=True, blank=True)
     component = models.ForeignKey(Component, on_delete=models.CASCADE, related_name='issues', null=True, blank=True)
     created_date = models.DateTimeField(
         blank=True, editable=False, null=True, default=now, help_text="When was the issue created in DB"
@@ -446,7 +450,7 @@ class Issue(models.Model):
     confirmed = models.BooleanField(default=False)
     escalated_date = models.DateTimeField(blank=True, editable=False, null=True)
     escalate_flag = models.BooleanField(default=False)
-    alert_message_status = models.CharField(max_length=50, blank=True, default="", choices=ALERT_CHOICES)
+    alert_message_status = models.SlugField(blank=True, default="", choices=ALERT_CHOICES)
     reject_flag = models.BooleanField(default=False)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=0)
     escalation_reason = models.TextField(null=True, blank=True)

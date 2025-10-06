@@ -8,6 +8,7 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 
 from authentication.factories import UserFactory
+from grm.constants import CONFIDENTIALITY_LEVEL_CHOICES, REDIRECTION_PROTOCOL_CHOICES
 from issues.models import (
     AdministrativeLevel,
     AdministrativeRegion,
@@ -119,8 +120,8 @@ class IssueCategoryFactory(DjangoModelFactory):
     parent = factory.SubFactory(IssueSubTypeFactory)
 
     # Optional fields with sensible defaults
-    confidentiality_level = fuzzy.FuzzyChoice(['Public', 'Internal', 'Confidential', 'Restricted', 'Secret'])
-    redirection_protocol = fuzzy.FuzzyInteger(0, 5)
+    confidentiality_level = fuzzy.FuzzyChoice([item[0] for item in CONFIDENTIALITY_LEVEL_CHOICES])
+    redirection_protocol = fuzzy.FuzzyChoice([item[0] for item in REDIRECTION_PROTOCOL_CHOICES])
 
     class Meta:
         model = IssueCategory

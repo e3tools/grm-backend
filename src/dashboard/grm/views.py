@@ -14,8 +14,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from authentication.models import Cdata, GovernmentWorker, Pdata
+from common.utils.forms import FileForm
 from dashboard.adls.forms import PasswordConfirmForm
-from dashboard.forms.forms import FileForm
 from dashboard.grm.forms import (
     IssueCommentForm,
     IssueDetailsForm,

@@ -21,6 +21,7 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
+    CATEGORY_TOAST_ERROR_MESSAGE,
     COMPLETED_CHOICE,
     DEPARTMENT_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
@@ -37,6 +38,7 @@ from issues.models import (
 )
 from wizard.forms import (
     AdministrativeLevelFormSet,
+    IssueCategoryFormSet,
     IssueDepartmentFormSet,
     ProjectForm,
     UploadAdministrativeRegionForm,
@@ -52,12 +54,14 @@ class CustomizationWizardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        sections = list(WizardSection.objects.values_list('id', flat=True))
-        total_steps = len(sections)
-        context['total_steps'] = total_steps
-        in_progress_section = WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).first()
-        ips_id = in_progress_section.id if in_progress_section else None
-        context['current_step'] = sections.index(ips_id) + 1 if ips_id else total_steps
+        current_step = self.request.GET.get('step')
+        if not current_step:
+            sections = list(WizardSection.objects.values_list('id', flat=True))
+            total_steps = len(sections)
+            in_progress_section = WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).first()
+            ips_id = in_progress_section.id if in_progress_section else None
+            current_step = sections.index(ips_id) + 1 if ips_id else total_steps
+        context['current_step'] = current_step
         return context
 
 
@@ -121,7 +125,7 @@ class AdministrativeLevelsFormView(WizardFormView):
                 | Exists(IssueDepartmentAdministrativeLevel.objects.filter(administrative_level=OuterRef("pk")))
             )
         )
-        return AdministrativeLevelFormSet(queryset=queryset, **self.get_form_kwargs())
+        return self.form_class(queryset=queryset, **self.get_form_kwargs())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -311,7 +315,7 @@ class IssueDepartmentsFormView(WizardFormView):
                 )
             )
         )
-        return IssueDepartmentFormSet(queryset=queryset, **self.get_form_kwargs())
+        return self.form_class(queryset=queryset, **self.get_form_kwargs())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -319,9 +323,31 @@ class IssueDepartmentsFormView(WizardFormView):
         context['formset_label'] = _('Departments')
         context['toast_title'] = NOT_PERMITTED_TEXT
         context['toast_message'] = DEPARTMENT_TOAST_ERROR_MESSAGE
+        context['two_fields_by_row'] = True
         return context
 
 
-class RolesAndResponsibilitiesFormView(WizardFormView):
-    template_name = "wizard/example.html"
+class IssueCategoriesFormView(WizardFormView):
+    form_class = IssueCategoryFormSet
+    template_name = "wizard/formset.html"
     step = 5
+
+    def get_form(self, form_class=None):
+        queryset = IssueCategory.objects.annotate(
+            restricted_deletion=Exists(Issue.objects.filter(category=OuterRef("pk")))
+        )
+        return self.form_class(queryset=queryset, **self.get_form_kwargs())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']  # Aliases for clarity in the template
+        context['formset_label'] = _('Categories')
+        context['toast_title'] = NOT_PERMITTED_TEXT
+        context['toast_message'] = CATEGORY_TOAST_ERROR_MESSAGE
+        context['two_fields_by_row'] = True
+        return context
+
+
+class FeedbackAndAppealFormView(WizardFormView):
+    template_name = "wizard/example.html"
+    step = 6

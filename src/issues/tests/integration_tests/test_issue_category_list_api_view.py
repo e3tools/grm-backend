@@ -70,8 +70,6 @@ class IssueCategoryListAPIViewTest(APITestCase):
             assigned_department=self.env_dept_district,
             assigned_appeal_department=self.appeals_dept_county,
             assigned_escalation_department=self.monitoring_dept_subcounty,
-            confidentiality_level="Public",
-            redirection_protocol=1,
             parent=self.parent,
         )
         self.corruption = IssueCategoryFactory(
@@ -80,8 +78,6 @@ class IssueCategoryListAPIViewTest(APITestCase):
             assigned_department=self.appeals_dept_county,
             assigned_appeal_department=self.monitoring_dept_subcounty,
             assigned_escalation_department=self.env_dept_district,
-            confidentiality_level="Confidential",
-            redirection_protocol=2,
             parent=self.parent,
         )
         self.abuse = IssueCategoryFactory(
@@ -90,8 +86,6 @@ class IssueCategoryListAPIViewTest(APITestCase):
             assigned_department=self.monitoring_dept_subcounty,
             assigned_appeal_department=self.env_dept_district,
             assigned_escalation_department=self.appeals_dept_county,
-            confidentiality_level="Restricted",
-            redirection_protocol=0,
             parent=self.parent,
         )
 
@@ -190,7 +184,8 @@ class IssueCategoryListAPIViewTest(APITestCase):
         assert isinstance(first_category['name'], str)
         assert isinstance(first_category['label'], str)
         assert isinstance(first_category['value'], int)
-        assert isinstance(first_category['redirection_protocol'], int)
+        assert isinstance(first_category['confidentiality_level'], str)
+        assert isinstance(first_category['redirection_protocol'], str)
         assert isinstance(first_category['parent_id'], int)
 
         # Check department structure
@@ -431,30 +426,6 @@ class IssueCategoryListAPIViewTest(APITestCase):
         assert no_abbrev_result is not None
         assert no_abbrev_result['abbreviation'] is None
 
-    def test_confidentiality_level_field_nullable(self):
-        """Test that confidentiality_level field can be null or blank."""
-        # Create category without confidentiality level
-        IssueCategoryFactory(
-            name="No Confidentiality Category",
-            confidentiality_level=None,
-            assigned_department=self.env_dept_district,
-            assigned_appeal_department=self.appeals_dept_county,
-            assigned_escalation_department=self.monitoring_dept_subcounty,
-        )
-
-        self.authenticate_with_token()
-        response = self.client.get(self.url)
-        response_data = response.data
-
-        assert response.status_code == 200
-
-        # Find the category without confidentiality level
-        no_conf_result = next(
-            (cat for cat in response_data['results'] if cat['name'] == 'No Confidentiality Category'), None
-        )
-        assert no_conf_result is not None
-        assert no_conf_result['confidentiality_level'] is None
-
     def test_parent_field_nullable(self):
         """Test that parent field can be null or blank."""
         # Create category without parent
@@ -494,8 +465,8 @@ class IssueCategoryListAPIViewTest(APITestCase):
         assert environmental_result['id'] == self.environmental.id
         assert environmental_result['name'] == 'Environmental'
         assert environmental_result['abbreviation'] == 'ENV'
-        assert environmental_result['confidentiality_level'] == 'Public'
-        assert environmental_result['redirection_protocol'] == 1
+        assert environmental_result['confidentiality_level'] == self.environmental.confidentiality_level
+        assert environmental_result['redirection_protocol'] == self.environmental.redirection_protocol
         assert environmental_result['label'] == 'Environmental'
         assert environmental_result['value'] == self.environmental.id
         assert environmental_result['parent_id'] == self.parent.id
