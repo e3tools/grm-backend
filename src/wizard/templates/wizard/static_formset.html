@@ -1,0 +1,62 @@
+{% load bootstrap4 i18n %}
+
+<form id="form" enctype="multipart/form-data" class="d-flex flex-column h-100">
+	{% csrf_token %}
+	<div class="card-body flex-grow-1">
+		<div class="overlay-wrapper">
+			{{ formset.management_form }}
+
+			<!-- Error messages -->
+			{% if formset.non_form_errors %}
+				<div class="alert alert-danger">
+					{{ formset.non_form_errors }}
+				</div>
+			{% endif %}
+
+			<div class="label">
+				{{ formset_label }}
+			</div>
+
+			<div id="formset-container">
+				{% for form in formset %}
+					<div class="form-row formset-row pt-3" data-form-index="{{ forloop.counter0 }}">
+						<div class="col-md-12">
+							<!-- Hidden fields (like id) -->
+							{% for hidden in form.hidden_fields %}
+								{{ hidden }}
+							{% endfor %}
+
+							<!-- Visible form fields, without label -->
+							<div class="row">
+								{% for field in form.visible_fields %}
+									<div class="col-md-{% if two_fields_by_row %}6{% else %}12{% endif %}">
+										{% bootstrap_field field %}
+									</div>
+								{% endfor %}
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+			<div class="overlay submit-spin d-none">
+				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+			</div>
+		</div>
+	</div>
+	<div class="card-footer mb-2 mt-auto">
+		<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+			{% if step == total_steps %}
+				{% translate "Save" %}
+			{% else %}
+				{% translate "Next" %}
+			{% endif %}
+		</button>
+		{% if step != 1 %}
+			<button id="previous_step" data-step="{{ step }}"
+					class="btn btn-secondary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
+				<i class="fa fa-chevron-left mr-2"></i>
+				{% translate "Previous" %}
+			</button>
+		{% endif %}
+	</div>
+</form>

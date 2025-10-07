@@ -56,7 +56,17 @@ class CustomizationWizardViewTest(ViewTestCase):
         # current_step should be the index of the in-progress section + 1
         self.assertEqual(response.context["current_step"], 3)
 
-        # Pass the step parameter with the current step value
-        response = self.get(self.url, {"step": 4})
+        # Pass the step parameter with valid value
+        response = self.get(self.url, {"step": 1})
         # current_step must be the same as the one passed in as parameter
-        self.assertEqual(response.context["current_step"], '4')
+        self.assertEqual(response.context["current_step"], 1)
+
+        # Pass the step parameter with invalid value (not started step)
+        response = self.get(self.url, {"step": 4})
+        # current_step should not be greater than the one in progress
+        self.assertEqual(response.context["current_step"], 3)
+
+        # Pass the step parameter with invalid value (string)
+        response = self.get(self.url, {"step": "invalid"})
+        # current_step should default to the step of the section in progress
+        self.assertEqual(response.context["current_step"], 3)

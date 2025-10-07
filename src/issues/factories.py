@@ -40,7 +40,7 @@ class IssueStatusFactory(DjangoModelFactory):
 
     name = factory.Sequence(lambda n: f"Status {n}")
     final_status = False
-    initial_status = True
+    initial_status = False
     rejected_status = False
     open_status = True
 

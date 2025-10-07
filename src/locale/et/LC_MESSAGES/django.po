@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-06 11:23+0000\n"
+"POT-Creation-Date: 2025-10-07 11:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -199,7 +199,7 @@ msgstr ""
 msgid "The account was activated successfully."
 msgstr ""
 
-#: dashboard/adls/views.py:105 dashboard/grm/views.py:866
+#: dashboard/adls/views.py:105 dashboard/grm/views.py:865
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
@@ -207,10 +207,11 @@ msgstr ""
 msgid "Profile information"
 msgstr ""
 
-#: dashboard/adls/views.py:124 dashboard/grm/views.py:754
-#: dashboard/grm/views.py:788 dashboard/templates/grm/issue_detail.html:191
+#: dashboard/adls/views.py:124 dashboard/grm/views.py:753
+#: dashboard/grm/views.py:787 dashboard/templates/grm/issue_detail.html:191
 #: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
 #: wizard/templates/wizard/formset.html:87
+#: wizard/templates/wizard/static_formset.html:49
 msgid "Save"
 msgstr ""
 
@@ -366,8 +367,8 @@ msgstr ""
 #: dashboard/grm/views.py:61 dashboard/grm/views.py:321
 #: dashboard/grm/views.py:344 dashboard/grm/views.py:363
 #: dashboard/grm/views.py:382 dashboard/grm/views.py:413
-#: dashboard/grm/views.py:457 dashboard/grm/views.py:493
-#: dashboard/grm/views.py:639 dashboard/templates/adls/profile.html:111
+#: dashboard/grm/views.py:456 dashboard/grm/views.py:492
+#: dashboard/grm/views.py:638 dashboard/templates/adls/profile.html:111
 #: dashboard/templates/layouts/sidebar.html:38
 msgid "GRM"
 msgstr ""
@@ -416,40 +417,40 @@ msgid ""
 "There is no staff member to assign the issue to. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:490 dashboard/grm/views.py:642
+#: dashboard/grm/views.py:489 dashboard/grm/views.py:641
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:636
+#: dashboard/grm/views.py:635
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:677
+#: dashboard/grm/views.py:676
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:692
+#: dashboard/grm/views.py:691
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:739 dashboard/grm/views.py:772
-#: dashboard/grm/views.py:806
+#: dashboard/grm/views.py:738 dashboard/grm/views.py:771
+#: dashboard/grm/views.py:805
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:753
+#: dashboard/grm/views.py:752
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:770
+#: dashboard/grm/views.py:769
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:787
+#: dashboard/grm/views.py:786
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:804
+#: dashboard/grm/views.py:803
 msgid "The complaint has been rejected"
 msgstr ""
 
@@ -1472,7 +1473,7 @@ msgstr ""
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:226 issues/models.py:227
+#: issues/models.py:226 issues/models.py:227 wizard/views.py:395
 msgid "Issue Status"
 msgstr ""
 
@@ -1640,15 +1641,73 @@ msgstr ""
 msgid "Upload Excel File"
 msgstr ""
 
+#: wizard/forms.py:319
+msgid "Status name"
+msgstr ""
+
+#: wizard/forms.py:321
+msgid "Enter status name"
+msgstr ""
+
+#: wizard/forms.py:332
+msgid "Created"
+msgstr ""
+
+#: wizard/forms.py:333
+msgid "Represents the starting point of the issue."
+msgstr ""
+
+#: wizard/forms.py:334
+msgid ""
+"This status indicates that the issue has just been created or initiated."
+msgstr ""
+
+#: wizard/forms.py:337
+msgid "Open"
+msgstr ""
+
+#: wizard/forms.py:338
+msgid ""
+"Denotes that the issue is actively being worked on or is pending resolution."
+msgstr ""
+
+#: wizard/forms.py:342
+msgid "Rejected"
+msgstr ""
+
+#: wizard/forms.py:343
+msgid "Indicates that the issue has been reviewed and rejected."
+msgstr ""
+
+#: wizard/forms.py:344
+msgid "This status is used when the issue is deemed invalid or unnecessary."
+msgstr ""
+
+#: wizard/forms.py:347
+msgid "Resolved"
+msgstr ""
+
+#: wizard/forms.py:348
+msgid "Marks the resolution or closure of the issue."
+msgstr ""
+
+#: wizard/forms.py:349
+msgid ""
+"This status signifies that the issue has been successfully completed or "
+"resolved."
+msgstr ""
+
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
 #: wizard/templates/wizard/formset.html:89
 #: wizard/templates/wizard/regions.html:45
+#: wizard/templates/wizard/static_formset.html:51
 msgid "Next"
 msgstr ""
 
 #: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
 #: wizard/templates/wizard/formset.html:96
 #: wizard/templates/wizard/regions.html:50
+#: wizard/templates/wizard/static_formset.html:58
 msgid "Previous"
 msgstr ""
 
@@ -1706,19 +1765,19 @@ msgstr ""
 msgid "No administrative levels found."
 msgstr ""
 
-#: wizard/views.py:133
+#: wizard/views.py:142
 msgid "Administrative Level Names"
 msgstr ""
 
-#: wizard/views.py:275
+#: wizard/views.py:284
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 
-#: wizard/views.py:323
+#: wizard/views.py:332
 msgid "Departments"
 msgstr ""
 
-#: wizard/views.py:344
+#: wizard/views.py:353
 msgid "Categories"
 msgstr ""

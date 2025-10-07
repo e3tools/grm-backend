@@ -3,7 +3,7 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Exists, OuterRef, Q
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -35,11 +35,15 @@ from issues.models import (
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
+    IssueStatus,
 )
 from wizard.forms import (
+    ISSUE_STATUS_DEFINITIONS,
     AdministrativeLevelFormSet,
+    ExistingIssueStatusFormSet,
     IssueCategoryFormSet,
     IssueDepartmentFormSet,
+    NewIssueStatusFormSet,
     ProjectForm,
     UploadAdministrativeRegionForm,
 )
@@ -54,13 +58,18 @@ class CustomizationWizardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        sections = list(WizardSection.objects.values_list('id', flat=True))
+        total_steps = len(sections)
+        in_progress_section = WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).first()
+        ips_id = in_progress_section.id if in_progress_section else None
+        in_progress_step = sections.index(ips_id) + 1 if ips_id else total_steps
+
         current_step = self.request.GET.get('step')
-        if not current_step:
-            sections = list(WizardSection.objects.values_list('id', flat=True))
-            total_steps = len(sections)
-            in_progress_section = WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).first()
-            ips_id = in_progress_section.id if in_progress_section else None
-            current_step = sections.index(ips_id) + 1 if ips_id else total_steps
+        if current_step and current_step.isdigit():
+            current_step = min(int(current_step), in_progress_step)
+        else:
+            current_step = in_progress_step
+
         context['current_step'] = current_step
         return context
 
@@ -348,6 +357,45 @@ class IssueCategoriesFormView(WizardFormView):
         return context
 
 
+class ResolutionProcessFormView(WizardFormView):
+    form_class = NewIssueStatusFormSet
+    template_name = "wizard/static_formset.html"
+    step = 6
+
+    def get_form(self, form_class=None):
+        queryset = IssueStatus.objects.all()
+
+        if queryset.exists():
+            return ExistingIssueStatusFormSet(queryset=queryset, **self.get_form_kwargs())
+        else:
+            initial_data = [{'name': item['name']} for item in ISSUE_STATUS_DEFINITIONS.values()]
+            kwargs = self.get_form_kwargs()
+            kwargs['initial'] = initial_data
+            kwargs['queryset'] = IssueStatus.objects.none()
+
+            return self.form_class(**kwargs)
+
+    def form_valid(self, formset):
+        instances = formset.save(commit=False)
+
+        for instance, flag in zip(instances, ISSUE_STATUS_DEFINITIONS.keys()):
+            if not instance.pk:
+                instance.initial_status = flag == "initial_status"
+                instance.open_status = flag == "open_status"
+                instance.final_status = flag == "final_status"
+                instance.rejected_status = flag == "rejected_status"
+            instance.save()
+
+        self.update_status()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']  # Aliases for clarity in the template
+        context['formset_label'] = _('Issue Status')
+        return context
+
+
 class FeedbackAndAppealFormView(WizardFormView):
     template_name = "wizard/example.html"
-    step = 6
+    step = 7

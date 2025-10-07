@@ -64,6 +64,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertEqual(response.context["formset_label"], "Departments")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], DEPARTMENT_TOAST_ERROR_MESSAGE)
+        self.assertTrue(response.context["two_fields_by_row"])
 
     def test_post_creates_new_issue_department(self):
         """Submitting valid data should create a new IssueDepartment with selected administrative levels."""
@@ -95,7 +96,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
             {self.level1.id, self.level2.id},
         )
 
-        # Wizard sections updated
+        # Wizard sections should be updated
         self.current_section.refresh_from_db()
         self.next_section.refresh_from_db()
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
@@ -130,7 +131,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
             {self.level2.id},
         )
 
-        # Wizard sections updated
+        # Wizard sections should be updated
         self.current_section.refresh_from_db()
         self.next_section.refresh_from_db()
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
@@ -288,7 +289,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertRedirects(response, reverse("wizard:setup_step_5"))
         self.assertEqual(IssueDepartment.objects.count(), 0)
 
-        # Wizard sections updated
+        # Wizard sections should be updated
         self.current_section.refresh_from_db()
         self.next_section.refresh_from_db()
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
