@@ -150,3 +150,5 @@ DEPARTMENT_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is 
 DEPARTMENT_TOAST_ERROR_MESSAGE = _('This department cannot be deleted because it is in use.')
 CATEGORY_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is linked to issues.")
 CATEGORY_TOAST_ERROR_MESSAGE = _('This category cannot be deleted because it is in use.')
+GROUP_TOAST_ERROR_MESSAGE = _('This group cannot be deleted because it is in use.')
+GROUP_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is in use.")

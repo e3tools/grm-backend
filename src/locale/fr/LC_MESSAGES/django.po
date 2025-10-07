@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 11:24+0000\n"
+"POT-Creation-Date: 2025-10-07 14:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1465,6 +1465,16 @@ msgstr ""
 "Cette catégorie ne peut pas être supprimée car elle est en cours "
 "d'utilisation."
 
+#: grm/constants.py:153
+msgid "This group cannot be deleted because it is in use."
+msgstr ""
+"Ce groupe ne peut pas être supprimé car il est en cours d'utilisation."
+
+#: grm/constants.py:154
+msgid "You cannot delete '%(name)s' because it is in use."
+msgstr ""
+"Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
+
 #: grm/settings.py:138
 msgid "English"
 msgstr "Anglais"
@@ -1554,7 +1564,7 @@ msgstr "Groupe de sous-projets"
 msgid "Subproject Groups"
 msgstr "Groupes de sous-projets"
 
-#: issues/models.py:226 issues/models.py:227 wizard/views.py:395
+#: issues/models.py:226 issues/models.py:227 wizard/views.py:396
 msgid "Issue Status"
 msgstr "Détails du problème"
 
@@ -1594,7 +1604,7 @@ msgstr "Types de problème"
 msgid "Citizen Age Group"
 msgstr "Groupe d'âge des citoyens"
 
-#: issues/models.py:343
+#: issues/models.py:343 wizard/views.py:423
 msgid "Citizen Age Groups"
 msgstr "Groupes d'âge des citoyens"
 
@@ -1722,64 +1732,63 @@ msgstr "Ce champ est obligatoire."
 msgid "Upload Excel File"
 msgstr "Télécharger un fichier Excel"
 
-#: wizard/forms.py:319
-msgid "Status name"
-msgstr "Nom du statut"
-
-#: wizard/forms.py:321
+#: wizard/forms.py:320
 msgid "Enter status name"
 msgstr "Entrez le nom du statut"
 
-#: wizard/forms.py:332
+#: wizard/forms.py:331
 msgid "Created"
 msgstr "Créé"
 
-#: wizard/forms.py:333
+#: wizard/forms.py:332
 msgid "Represents the starting point of the issue."
 msgstr "Représente le point de départ du problème."
 
-#: wizard/forms.py:334
+#: wizard/forms.py:333
 msgid ""
 "This status indicates that the issue has just been created or initiated."
-msgstr ""
-"Ce statut indique que le problème vient d'être créé ou initié."
+msgstr "Ce statut indique que le problème vient d'être créé ou initié."
 
-#: wizard/forms.py:337
+#: wizard/forms.py:336
 msgid "Open"
 msgstr "Ouvrir"
 
-#: wizard/forms.py:338
+#: wizard/forms.py:337
 msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution."
 msgstr ""
 "Indique que le problème est activement traité ou en attente de résolution."
 
-#: wizard/forms.py:342
+#: wizard/forms.py:341
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: wizard/forms.py:343
+#: wizard/forms.py:342
 msgid "Indicates that the issue has been reviewed and rejected."
 msgstr "Indique que le problème a été examiné et rejeté."
 
-#: wizard/forms.py:344
+#: wizard/forms.py:343
 msgid "This status is used when the issue is deemed invalid or unnecessary."
-msgstr "Ce statut est utilisé lorsque le problème est jugé invalide ou inutile."
+msgstr ""
+"Ce statut est utilisé lorsque le problème est jugé invalide ou inutile."
 
-#: wizard/forms.py:347
+#: wizard/forms.py:346
 msgid "Resolved"
 msgstr "Résolu"
 
-#: wizard/forms.py:348
+#: wizard/forms.py:347
 msgid "Marks the resolution or closure of the issue."
 msgstr "Marque la résolution ou la clôture du problème."
 
-#: wizard/forms.py:349
+#: wizard/forms.py:348
 msgid ""
 "This status signifies that the issue has been successfully completed or "
 "resolved."
-msgstr ""
-"Ce statut signifie que le problème a été résolu avec succès."
+msgstr "Ce statut signifie que le problème a été résolu avec succès."
+
+#: wizard/forms.py:402
+msgid "Enter citizen age group name"
+msgstr "Entrez le nom du groupe d'âge du citoyen"
 
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
 #: wizard/templates/wizard/formset.html:89
@@ -1849,21 +1858,21 @@ msgstr "Nombre d'instances"
 msgid "No administrative levels found."
 msgstr "Aucun niveau administratif trouvé."
 
-#: wizard/views.py:142
+#: wizard/views.py:143
 msgid "Administrative Level Names"
 msgstr "Noms des niveaux administratifs"
 
-#: wizard/views.py:284
+#: wizard/views.py:285
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
 
-#: wizard/views.py:332
+#: wizard/views.py:333
 msgid "Departments"
 msgstr "Départements"
 
-#: wizard/views.py:353
+#: wizard/views.py:354
 msgid "Categories"
 msgstr "Catégories"
 

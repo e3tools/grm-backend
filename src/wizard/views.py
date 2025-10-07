@@ -24,6 +24,7 @@ from grm.constants import (
     CATEGORY_TOAST_ERROR_MESSAGE,
     COMPLETED_CHOICE,
     DEPARTMENT_TOAST_ERROR_MESSAGE,
+    GROUP_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
     NOT_PERMITTED_TEXT,
     NOT_STARTED_CHOICE,
@@ -31,6 +32,8 @@ from grm.constants import (
 from issues.models import (
     AdministrativeLevel,
     AdministrativeRegion,
+    Citizen,
+    CitizenAgeGroup,
     Issue,
     IssueCategory,
     IssueDepartment,
@@ -38,11 +41,14 @@ from issues.models import (
     IssueStatus,
 )
 from wizard.forms import (
+    DEFAULT_CITIZEN_AGE_GROUPS,
     ISSUE_STATUS_DEFINITIONS,
     AdministrativeLevelFormSet,
+    ExistingCitizenAgeGroupFormSet,
     ExistingIssueStatusFormSet,
     IssueCategoryFormSet,
     IssueDepartmentFormSet,
+    NewCitizenAgeGroupFormSet,
     NewIssueStatusFormSet,
     ProjectForm,
     UploadAdministrativeRegionForm,
@@ -396,6 +402,35 @@ class ResolutionProcessFormView(WizardFormView):
         return context
 
 
+class CitizenAgeGroupsFormView(WizardFormView):
+    form_class = NewCitizenAgeGroupFormSet
+    template_name = "wizard/formset.html"
+    step = 7
+
+    def get_form(self, form_class=None):
+        queryset = CitizenAgeGroup.objects.annotate(
+            restricted_deletion=Exists(Citizen.objects.filter(age_group=OuterRef("pk")))
+        )
+
+        if queryset.exists():
+            return ExistingCitizenAgeGroupFormSet(queryset=queryset, **self.get_form_kwargs())
+        else:
+            initial_data = [{'name': name} for name in DEFAULT_CITIZEN_AGE_GROUPS]
+            kwargs = self.get_form_kwargs()
+            kwargs['initial'] = initial_data
+            kwargs['queryset'] = IssueStatus.objects.none()
+
+            return self.form_class(**kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']  # Aliases for clarity in the template
+        context['formset_label'] = _('Citizen Age Groups')
+        context['toast_title'] = NOT_PERMITTED_TEXT
+        context['toast_message'] = GROUP_TOAST_ERROR_MESSAGE
+        return context
+
+
 class FeedbackAndAppealFormView(WizardFormView):
     template_name = "wizard/example.html"
-    step = 7
+    step = 8
