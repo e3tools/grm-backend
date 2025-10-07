@@ -12,11 +12,13 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
     CATEGORY_DELETE_ERROR_MESSAGE,
     DEPARTMENT_DELETE_ERROR_MESSAGE,
+    GROUP_DELETE_ERROR_MESSAGE,
     INVALID_EXCEL_FILE_ERROR_MESSAGE,
     ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
 )
 from issues.models import (
     AdministrativeLevel,
+    CitizenAgeGroup,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
@@ -316,7 +318,6 @@ class IssueStatusForm(forms.ModelForm):
     class Meta:
         model = IssueStatus
         fields = ["name"]
-        labels = {"name": _("Status name")}
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter status name")}),
         }
@@ -387,6 +388,61 @@ NewIssueStatusFormSet = forms.modelformset_factory(
     IssueStatus,
     form=IssueStatusForm,
     formset=IssueStatusBaseFormSet,
-    extra=4,
+    extra=len(STATUS_METADATA),
     can_delete=False,
+)
+
+
+class CitizenAgeGroupForm(forms.ModelForm):
+    """Form for an CitizenAgeGroup, only allows editing the name."""
+
+    class Meta:
+        model = CitizenAgeGroup
+        fields = ["name"]
+        labels = {"name": ""}
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": _("Enter citizen age group name")}),
+        }
+
+    def has_changed(self):
+        """Force it to always be considered changed to run validation."""
+        return True
+
+
+DEFAULT_CITIZEN_AGE_GROUPS = (
+    "Under 12 or younger",
+    "12–17 years",
+    "18–24 years",
+    "25–34 years",
+    "35–44 years",
+    "45–54 years",
+    "55–64 years",
+    "65 and over",
+)
+
+
+class CitizenAgeGroupBaseFormSet(CustomBaseModelFormSet):
+    validation_error_message = GROUP_DELETE_ERROR_MESSAGE
+
+
+ExistingCitizenAgeGroupFormSet = forms.modelformset_factory(
+    CitizenAgeGroup,
+    form=CitizenAgeGroupForm,
+    formset=CitizenAgeGroupBaseFormSet,
+    extra=0,
+    min_num=1,
+    max_num=100,
+    can_delete=True,
+    can_order=False,
+)
+
+NewCitizenAgeGroupFormSet = forms.modelformset_factory(
+    CitizenAgeGroup,
+    form=CitizenAgeGroupForm,
+    formset=CitizenAgeGroupBaseFormSet,
+    extra=len(DEFAULT_CITIZEN_AGE_GROUPS),
+    min_num=1,
+    max_num=100,
+    can_delete=True,
+    can_order=False,
 )

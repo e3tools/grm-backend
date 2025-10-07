@@ -3,6 +3,7 @@ from django.urls import path
 from wizard.views import (
     AdministrativeLevelsFormView,
     AdministrativeRegionFormView,
+    CitizenAgeGroupsFormView,
     CustomizationWizardView,
     DownloadRegionsSampleView,
     FeedbackAndAppealFormView,
@@ -26,5 +27,6 @@ urlpatterns = [
     path("setup-step-4", IssueDepartmentsFormView.as_view(), name="setup_step_4"),
     path("setup-step-5", IssueCategoriesFormView.as_view(), name="setup_step_5"),
     path("setup-step-6", ResolutionProcessFormView.as_view(), name="setup_step_6"),
-    path("setup-step-7", FeedbackAndAppealFormView.as_view(), name="setup_step_7"),
+    path("setup-step-7", CitizenAgeGroupsFormView.as_view(), name="setup_step_7"),
+    path("setup-step-8", FeedbackAndAppealFormView.as_view(), name="setup_step_8"),
 ]

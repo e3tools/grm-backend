@@ -14,6 +14,7 @@ def create_wizard_sections(apps, schema_editor):
         'Departments',
         'Issues Categories',
         'Resolution Process',
+        'Citizen Age Groups',
         'Feedback & Appeal',
     )
 
