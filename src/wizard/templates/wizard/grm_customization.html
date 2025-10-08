@@ -107,10 +107,8 @@
 											</div>
 											<div class="direct-chat-text">
 												Welcome to the GRM Configuration Wizard. I'll guide you through setting
-												up
-												your Grievance Redress Mechanism system. Let's start by defining the
-												project
-												description.
+												up your Grievance Redress Mechanism system. Let's start by defining the
+												project description.
 											</div>
 										</div>
 									</div>
@@ -158,16 +156,16 @@
 <script type="text/javascript">
     let wizard_sections_spin = $('#wizard-sections-spin');
     let wizard_sections = $('#wizard-sections');
-    
-    function updateStepParam(step){
-		const url = new URL(window.location.href);
-	
-		// Update or add the 'step' parameter
-		url.searchParams.set('step', step);
-	
-		// Change the URL without reloading the page
-		window.history.pushState({}, '', url.toString());
-	}
+
+    function updateStepParam(step) {
+        const url = new URL(window.location.href);
+
+        // Update or add the 'step' parameter
+        url.searchParams.set('step', step);
+
+        // Change the URL without reloading the page
+        window.history.pushState({}, '', url.toString());
+    }
 
     function loadWizardSections(step) {
         wizard_sections_spin.show();
@@ -229,8 +227,9 @@
                 formIndex = parseInt($('#id_form-TOTAL_FORMS').val());
                 maxForms = parseInt($('#id_form-MAX_NUM_FORMS').val());
                 updateStepParam(section_id);
+                initSkipSubmitToggle();
             }
-        	wizard_form_spin.hide();
+            wizard_form_spin.hide();
         });
     }
 
@@ -248,6 +247,9 @@
             contentType: false,
             success: function (response) {
                 $("#formAjax").html(response);
+                if (response.includes("alert-danger")) {
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                }
                 if ($(response).find('.is-invalid').length === 0 && $(response).find('.errorlist').length === 0) {
                     loadWizardSections(Number(step) + 1);
                 }
@@ -451,6 +453,56 @@
             }
         });
     });
+
+    // Skip Step ---------------------------------------------
+
+    function initSkipSubmitToggle() {
+        const $formset = $("#form");
+        const skipSubmit = $("#skip_submit");
+
+        if ($formset.length && skipSubmit.length) {
+            function hasAnyValue() {
+                let hasValue = false;
+
+                $formset.find("input, select, textarea").each(function () {
+                    const $field = $(this);
+                    const name = $field.attr("name");
+
+                    // Ignore hidden inputs and unmarked DELETE statements
+                    if ($field.attr("type") === "hidden") return;
+                    if (name && name.endsWith("-DELETE")) {
+                        if ($field.is(":checked")) {
+                            hasValue = true;
+                            return false;
+                        }
+                        return;
+                    }
+
+                    const value = $field.val();
+                    if (value && value.trim() !== "") {
+                        hasValue = true;
+                        return false;
+                    }
+                });
+
+                return hasValue;
+            }
+
+            function toggleSkipSubmit() {
+                if (hasAnyValue()) {
+                    $("#normal_submit").removeClass("d-none");
+                    skipSubmit.addClass("d-none");
+                } else {
+                    $("#normal_submit").addClass("d-none");
+                    skipSubmit.removeClass("d-none");
+                }
+            }
+
+            toggleSkipSubmit();
+
+            $formset.on("input change", "input, select, textarea", toggleSkipSubmit);
+        }
+    }
 </script>
 </body>
 </html>

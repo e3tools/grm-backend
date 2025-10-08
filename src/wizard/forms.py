@@ -19,6 +19,7 @@ from grm.constants import (
 from issues.models import (
     AdministrativeLevel,
     CitizenAgeGroup,
+    CitizenGroup,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
@@ -103,9 +104,6 @@ class IssueDepartmentForm(forms.ModelForm):
     class Meta:
         model = IssueDepartment
         fields = ["name"]
-        labels = {
-            "name": _("Name"),
-        }
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter department name")}),
         }
@@ -198,12 +196,9 @@ class IssueCategoryForm(forms.ModelForm):
             "redirection_protocol",
         ]
         labels = {
-            "name": _("Name"),
-            "abbreviation": _("Abbreviation"),
             "assigned_department": _("Department"),
             "assigned_appeal_department": _("Appeal department"),
             "assigned_escalation_department": _("Escalation department"),
-            "redirection_protocol": _("Redirection protocol"),
         }
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter category name")}),
@@ -442,6 +437,52 @@ NewCitizenAgeGroupFormSet = forms.modelformset_factory(
     formset=CitizenAgeGroupBaseFormSet,
     extra=len(DEFAULT_CITIZEN_AGE_GROUPS),
     min_num=1,
+    max_num=100,
+    can_delete=True,
+    can_order=False,
+)
+
+
+class CitizenGroupForm(forms.ModelForm):
+    """Form for an CitizenGroup, only allows editing the name."""
+
+    class Meta:
+        model = CitizenGroup
+        fields = ["name", "type"]
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": _("Enter citizen group name")}),
+            "type": forms.Select(
+                attrs={"placeholder": _("Select the type that groups each of the options that you are creating")}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["type"].help_text = _(
+            "Use this option to classify between two different types for additional internal analysis."
+        )
+        self.fields["type"].required = True
+
+
+class CitizenGroupBaseFormSet(CustomBaseModelFormSet):
+    validation_error_message = GROUP_DELETE_ERROR_MESSAGE
+
+
+ExistingCitizenGroupFormSet = forms.modelformset_factory(
+    CitizenGroup,
+    form=CitizenGroupForm,
+    formset=CitizenGroupBaseFormSet,
+    extra=0,
+    max_num=100,
+    can_delete=True,
+    can_order=False,
+)
+
+NewCitizenGroupFormSet = forms.modelformset_factory(
+    CitizenGroup,
+    form=CitizenGroupForm,
+    formset=CitizenGroupBaseFormSet,
+    extra=1,
     max_num=100,
     can_delete=True,
     can_order=False,

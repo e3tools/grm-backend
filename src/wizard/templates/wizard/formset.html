@@ -81,14 +81,22 @@
 			</div>
 		</div>
 	</div>
+
 	<div class="card-footer mb-2 mt-auto">
-		<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
+		<button id="normal_submit" type="submit" class="btn btn-primary btn-sm rounded-xl 
+		float-right {% if skip %}d-none{% endif %}">
 			{% if step == total_steps %}
 				{% translate "Save" %}
 			{% else %}
 				{% translate "Next" %}
 			{% endif %}
 		</button>
+		{% if skip %}
+			<button id="skip_submit" type="submit" class="btn btn-primary btn-sm rounded-xl 
+		float-right {% if not skip %}d-none{% endif %}">
+				{% translate "Skip" %}
+			</button>
+		{% endif %}
 		{% if step != 1 %}
 			<button id="previous_step" data-step="{{ step }}"
 					class="btn btn-secondary btn-sm rounded-xl float-right mr-4 disabled-on-submit">

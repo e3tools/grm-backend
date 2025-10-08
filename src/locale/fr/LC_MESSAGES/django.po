@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-07 14:12+0000\n"
+"POT-Creation-Date: 2025-10-08 21:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,9 +79,9 @@ msgstr "Travailleurs du Gouvernement"
 #: issues/models.py:33 issues/models.py:55 issues/models.py:165
 #: issues/models.py:184 issues/models.py:201 issues/models.py:222
 #: issues/models.py:241 issues/models.py:256 issues/models.py:271
-#: issues/models.py:302 issues/models.py:320 issues/models.py:338
-#: issues/models.py:356 issues/models.py:384 issues/models.py:605
-#: issues/models.py:639
+#: issues/models.py:303 issues/models.py:321 issues/models.py:339
+#: issues/models.py:357 issues/models.py:385 issues/models.py:606
+#: issues/models.py:640
 msgid "Created at"
 msgstr "Créé à"
 
@@ -89,9 +89,9 @@ msgstr "Créé à"
 #: issues/models.py:34 issues/models.py:56 issues/models.py:166
 #: issues/models.py:185 issues/models.py:202 issues/models.py:223
 #: issues/models.py:242 issues/models.py:257 issues/models.py:272
-#: issues/models.py:303 issues/models.py:321 issues/models.py:339
-#: issues/models.py:357 issues/models.py:385 issues/models.py:448
-#: issues/models.py:606 issues/models.py:640
+#: issues/models.py:304 issues/models.py:322 issues/models.py:340
+#: issues/models.py:358 issues/models.py:386 issues/models.py:449
+#: issues/models.py:607 issues/models.py:641
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -103,11 +103,11 @@ msgstr "L'animateur"
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/models.py:138 issues/models.py:388
+#: authentication/models.py:138 issues/models.py:389
 msgid "Citizen"
 msgstr "Citoyen"
 
-#: authentication/models.py:139 issues/models.py:389
+#: authentication/models.py:139 issues/models.py:390
 msgid "Citizens"
 msgstr "Citoyens"
 
@@ -116,7 +116,7 @@ msgstr "Citoyens"
 msgid "Email"
 msgstr "Email"
 
-#: authentication/serializers.py:24
+#: authentication/serializers.py:24 dashboard/adls/forms.py:19
 msgid "Password"
 msgstr "Mot de passe"
 
@@ -171,9 +171,10 @@ msgstr "Réinitialiser le mot de passe"
 msgid "Password reset complete"
 msgstr "Réinitialisation du mot de passe terminée"
 
-#: dashboard/adls/forms.py:24 dashboard/templates/adls/list.html:25
-#: dashboard/templates/grm/issue_detail.html:75 wizard/forms.py:30
-#: wizard/forms.py:105 wizard/forms.py:199
+#: dashboard/adls/forms.py:24 dashboard/models.py:6
+#: dashboard/templates/adls/list.html:25
+#: dashboard/templates/grm/issue_detail.html:75 issues/models.py:239
+#: issues/models.py:288 issues/models.py:355 wizard/forms.py:32
 msgid "Name"
 msgstr "Nom"
 
@@ -214,7 +215,7 @@ msgstr "Informations de profil"
 #: dashboard/adls/views.py:124 dashboard/grm/views.py:753
 #: dashboard/grm/views.py:787 dashboard/templates/grm/issue_detail.html:191
 #: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
-#: wizard/templates/wizard/formset.html:87
+#: wizard/templates/wizard/formset.html:89
 #: wizard/templates/wizard/static_formset.html:49
 msgid "Save"
 msgstr "Sauvegarder"
@@ -478,6 +479,11 @@ msgstr "La réclamation a été réjetée"
 msgid "Logs"
 msgstr "Journaux"
 
+#: dashboard/models.py:7
+#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:39
+msgid "Description"
+msgstr "La description"
+
 #: dashboard/models.py:10
 msgid "Project"
 msgstr "Projet"
@@ -642,7 +648,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:644
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:645
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -761,7 +767,7 @@ msgstr "Pourcentage"
 #: dashboard/templates/diagnostics/home.html:198
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:55
-#: dashboard/templates/grm/review_issues.html:254
+#: dashboard/templates/grm/review_issues.html:254 issues/models.py:356
 msgid "Type"
 msgstr "Type"
 
@@ -1024,10 +1030,6 @@ msgstr "Le sexe"
 #: dashboard/templates/grm/new_issue_confirmation.html:120
 msgid "Type of grievance"
 msgstr "Type de grief"
-
-#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:37
-msgid "Description"
-msgstr "La description"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:208
 msgid "Location description"
@@ -1467,10 +1469,10 @@ msgstr ""
 
 #: grm/constants.py:153
 msgid "This group cannot be deleted because it is in use."
-msgstr ""
-"Ce groupe ne peut pas être supprimé car il est en cours d'utilisation."
+msgstr "Ce groupe ne peut pas être supprimé car il est en cours d'utilisation."
 
 #: grm/constants.py:154
+#, python-format
 msgid "You cannot delete '%(name)s' because it is in use."
 msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
@@ -1564,7 +1566,7 @@ msgstr "Groupe de sous-projets"
 msgid "Subproject Groups"
 msgstr "Groupes de sous-projets"
 
-#: issues/models.py:226 issues/models.py:227 wizard/views.py:396
+#: issues/models.py:226 issues/models.py:227 wizard/views.py:401
 msgid "Issue Status"
 msgstr "Détails du problème"
 
@@ -1584,221 +1586,237 @@ msgstr "Sous-type de problème"
 msgid "Issue Subtypes"
 msgstr "Sous-types de problèmes"
 
-#: issues/models.py:306
-msgid "Issue Category"
-msgstr "Catégorie de problème"
-
-#: issues/models.py:307
-msgid "Issue Categories"
-msgstr "Catégories de problème"
-
-#: issues/models.py:324
-msgid "Issue Type"
-msgstr "Type de problème"
-
-#: issues/models.py:325
-msgid "Issue Types"
-msgstr "Types de problème"
-
-#: issues/models.py:342
-msgid "Citizen Age Group"
-msgstr "Groupe d'âge des citoyens"
-
-#: issues/models.py:343 wizard/views.py:423
-msgid "Citizen Age Groups"
-msgstr "Groupes d'âge des citoyens"
-
-#: issues/models.py:360
-msgid "Citizen Group"
-msgstr "Groupe de citoyens"
-
-#: issues/models.py:361
-msgid "Citizen Groups"
-msgstr "Groupes de citoyens"
-
-#: issues/models.py:460 issues/models.py:627
-msgid "Issue"
-msgstr "Problème"
-
-#: issues/models.py:461
-msgid "Issues"
-msgstr "Problèmes"
-
-#: issues/models.py:609
-msgid "Comment"
-msgstr "Commentaire"
-
-#: issues/models.py:610
-msgid "Comments"
-msgstr "Commentaires"
-
-#: issues/models.py:629
-msgid "File attached to the issue"
-msgstr "Fichier joint au numéro"
-
-#: issues/models.py:637
-msgid "Uploaded by"
-msgstr "Téléchargé par"
-
-#: issues/models.py:643
-msgid "Issue Attachment"
-msgstr "Pièce jointe au problème"
-
-#: wizard/forms.py:31
-msgid "Enter the project name"
-msgstr "Entrez le nom du projet"
-
-#: wizard/forms.py:36
-msgid "Please describe the project"
-msgstr "Veuillez décrire le projet"
-
-#: wizard/forms.py:53
-msgid "Enter administrative level name"
-msgstr "Entrez le nom du niveau administratif"
-
-#: wizard/forms.py:97
-msgid "Click to select administrative levels"
-msgstr "Cliquez pour sélectionner les niveaux administratifs"
-
-#: wizard/forms.py:98
-msgid "Administrative levels"
-msgstr "Niveaux administratifs"
-
-#: wizard/forms.py:108
-msgid "Enter department name"
-msgstr "Entrez le nom du département"
-
-#: wizard/forms.py:182
-msgid "Enter a new subtype or choose one"
-msgstr "Entrez un nouveau sous-type ou choisissez-en un"
-
-#: wizard/forms.py:183
-msgid "Subtype"
-msgstr "Sous-type"
-
-#: wizard/forms.py:200
+#: issues/models.py:289
 msgid "Abbreviation"
 msgstr "Abréviation"
 
-#: wizard/forms.py:201
-msgid "Department"
-msgstr "Département"
-
-#: wizard/forms.py:202
-msgid "Appeal department"
-msgstr "Service d'appel"
-
-#: wizard/forms.py:203
-msgid "Escalation department"
-msgstr "Service d'escalade"
-
-#: wizard/forms.py:204
+#: issues/models.py:302
 msgid "Redirection protocol"
 msgstr "Protocole de redirection"
 
-#: wizard/forms.py:207
+#: issues/models.py:307
+msgid "Issue Category"
+msgstr "Catégorie de problème"
+
+#: issues/models.py:308
+msgid "Issue Categories"
+msgstr "Catégories de problème"
+
+#: issues/models.py:325
+msgid "Issue Type"
+msgstr "Type de problème"
+
+#: issues/models.py:326
+msgid "Issue Types"
+msgstr "Types de problème"
+
+#: issues/models.py:343
+msgid "Citizen Age Group"
+msgstr "Groupe d'âge des citoyens"
+
+#: issues/models.py:344 wizard/views.py:428
+msgid "Citizen Age Groups"
+msgstr "Groupes d'âge des citoyens"
+
+#: issues/models.py:361
+msgid "Citizen Group"
+msgstr "Groupe de citoyens"
+
+#: issues/models.py:362 wizard/views.py:449
+msgid "Citizen Groups"
+msgstr "Groupes de citoyens"
+
+#: issues/models.py:461 issues/models.py:628
+msgid "Issue"
+msgstr "Problème"
+
+#: issues/models.py:462
+msgid "Issues"
+msgstr "Problèmes"
+
+#: issues/models.py:610
+msgid "Comment"
+msgstr "Commentaire"
+
+#: issues/models.py:611
+msgid "Comments"
+msgstr "Commentaires"
+
+#: issues/models.py:630
+msgid "File attached to the issue"
+msgstr "Fichier joint au numéro"
+
+#: issues/models.py:638
+msgid "Uploaded by"
+msgstr "Téléchargé par"
+
+#: issues/models.py:644
+msgid "Issue Attachment"
+msgstr "Pièce jointe au problème"
+
+#: wizard/forms.py:33
+msgid "Enter the project name"
+msgstr "Entrez le nom du projet"
+
+#: wizard/forms.py:38
+msgid "Please describe the project"
+msgstr "Veuillez décrire le projet"
+
+#: wizard/forms.py:55
+msgid "Enter administrative level name"
+msgstr "Entrez le nom du niveau administratif"
+
+#: wizard/forms.py:99
+msgid "Click to select administrative levels"
+msgstr "Cliquez pour sélectionner les niveaux administratifs"
+
+#: wizard/forms.py:100
+msgid "Administrative levels"
+msgstr "Niveaux administratifs"
+
+#: wizard/forms.py:107
+msgid "Enter department name"
+msgstr "Entrez le nom du département"
+
+#: wizard/forms.py:181
+msgid "Enter a new subtype or choose one"
+msgstr "Entrez un nouveau sous-type ou choisissez-en un"
+
+#: wizard/forms.py:182
+msgid "Subtype"
+msgstr "Sous-type"
+
+#: wizard/forms.py:198
+msgid "Department"
+msgstr "Département"
+
+#: wizard/forms.py:199
+msgid "Appeal department"
+msgstr "Service d'appel"
+
+#: wizard/forms.py:200
+msgid "Escalation department"
+msgstr "Service d'escalade"
+
+#: wizard/forms.py:203
 msgid "Enter category name"
 msgstr "Entrez le nom de la catégorie"
 
-#: wizard/forms.py:208
+#: wizard/forms.py:204
 msgid "Enter category abbreviation"
 msgstr "Entrez l'abréviation de la catégorie"
 
-#: wizard/forms.py:209
+#: wizard/forms.py:205
 msgid "Click to select department"
 msgstr "Cliquez pour sélectionner le département"
 
-#: wizard/forms.py:210
+#: wizard/forms.py:206
 msgid "Click to select appeal department"
 msgstr "Cliquez pour sélectionner le service d'appel"
 
-#: wizard/forms.py:212
+#: wizard/forms.py:208
 msgid "Click to select escalation department"
 msgstr "Cliquez pour sélectionner le service d'escalade"
 
-#: wizard/forms.py:214
+#: wizard/forms.py:210
 msgid "Click to select confidentiality level"
 msgstr "Cliquez pour sélectionner le niveau de confidentialité"
 
-#: wizard/forms.py:215
+#: wizard/forms.py:211
 msgid "Click to select redirection protocol"
 msgstr "Cliquez pour sélectionner le protocole de redirection"
 
-#: wizard/forms.py:222
+#: wizard/forms.py:218
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: wizard/forms.py:284
+#: wizard/forms.py:280
 msgid "Upload Excel File"
 msgstr "Télécharger un fichier Excel"
 
-#: wizard/forms.py:320
+#: wizard/forms.py:316
 msgid "Enter status name"
 msgstr "Entrez le nom du statut"
 
-#: wizard/forms.py:331
+#: wizard/forms.py:327
 msgid "Created"
 msgstr "Créé"
 
-#: wizard/forms.py:332
+#: wizard/forms.py:328
 msgid "Represents the starting point of the issue."
 msgstr "Représente le point de départ du problème."
 
-#: wizard/forms.py:333
+#: wizard/forms.py:329
 msgid ""
 "This status indicates that the issue has just been created or initiated."
 msgstr "Ce statut indique que le problème vient d'être créé ou initié."
 
-#: wizard/forms.py:336
+#: wizard/forms.py:332
 msgid "Open"
 msgstr "Ouvrir"
 
-#: wizard/forms.py:337
+#: wizard/forms.py:333
 msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution."
 msgstr ""
 "Indique que le problème est activement traité ou en attente de résolution."
 
-#: wizard/forms.py:341
+#: wizard/forms.py:337
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: wizard/forms.py:342
+#: wizard/forms.py:338
 msgid "Indicates that the issue has been reviewed and rejected."
 msgstr "Indique que le problème a été examiné et rejeté."
 
-#: wizard/forms.py:343
+#: wizard/forms.py:339
 msgid "This status is used when the issue is deemed invalid or unnecessary."
 msgstr ""
 "Ce statut est utilisé lorsque le problème est jugé invalide ou inutile."
 
-#: wizard/forms.py:346
+#: wizard/forms.py:342
 msgid "Resolved"
 msgstr "Résolu"
 
-#: wizard/forms.py:347
+#: wizard/forms.py:343
 msgid "Marks the resolution or closure of the issue."
 msgstr "Marque la résolution ou la clôture du problème."
 
-#: wizard/forms.py:348
+#: wizard/forms.py:344
 msgid ""
 "This status signifies that the issue has been successfully completed or "
 "resolved."
 msgstr "Ce statut signifie que le problème a été résolu avec succès."
 
-#: wizard/forms.py:402
+#: wizard/forms.py:398
 msgid "Enter citizen age group name"
 msgstr "Entrez le nom du groupe d'âge du citoyen"
 
+#: wizard/forms.py:452
+msgid "Enter citizen group name"
+msgstr "Entrez le nom du groupe de citoyens"
+
+#: wizard/forms.py:454
+msgid "Select the type that groups each of the options that you are creating"
+msgstr "Sélectionnez le type qui regroupe chacune des options que vous créez"
+
+#: wizard/forms.py:461
+msgid ""
+"Use this option to classify between two different types for additional "
+"internal analysis."
+msgstr ""
+"Utilisez cette option pour classer entre deux types différents pour une "
+"analyse interne supplémentaire."
+
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
-#: wizard/templates/wizard/formset.html:89
+#: wizard/templates/wizard/formset.html:91
 #: wizard/templates/wizard/regions.html:45
 #: wizard/templates/wizard/static_formset.html:51
 msgid "Next"
 msgstr "Suivante"
 
 #: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
-#: wizard/templates/wizard/formset.html:96
+#: wizard/templates/wizard/formset.html:104
 #: wizard/templates/wizard/regions.html:50
 #: wizard/templates/wizard/static_formset.html:58
 msgid "Previous"
@@ -1809,7 +1827,7 @@ msgid "Delete"
 msgstr "Supprimer"
 
 #: wizard/templates/wizard/formset.html:60
-#: wizard/templates/wizard/formset.html:131
+#: wizard/templates/wizard/formset.html:139
 msgid "Remove this row"
 msgstr "Supprimer cette ligne"
 
@@ -1820,6 +1838,10 @@ msgstr "Nombre maximum de formulaires atteint."
 #: wizard/templates/wizard/formset.html:76
 msgid "Add row"
 msgstr "Ajouter une ligne"
+
+#: wizard/templates/wizard/formset.html:97
+msgid "Skip"
+msgstr "Sauter"
 
 #: wizard/templates/wizard/grm_customization.html:15
 #: wizard/templates/wizard/grm_customization.html:46
@@ -1834,11 +1856,11 @@ msgstr "Progression de l'installation"
 msgid "Configuration Options"
 msgstr "Options de configuration"
 
-#: wizard/templates/wizard/grm_customization.html:336
+#: wizard/templates/wizard/grm_customization.html:338
 msgid "Delete this administrative level"
 msgstr "Supprimer ce niveau administratif"
 
-#: wizard/templates/wizard/grm_customization.html:342
+#: wizard/templates/wizard/grm_customization.html:344
 msgid "Undo deletion"
 msgstr "Annuler la suppression"
 
@@ -1858,21 +1880,21 @@ msgstr "Nombre d'instances"
 msgid "No administrative levels found."
 msgstr "Aucun niveau administratif trouvé."
 
-#: wizard/views.py:143
+#: wizard/views.py:148
 msgid "Administrative Level Names"
 msgstr "Noms des niveaux administratifs"
 
-#: wizard/views.py:285
+#: wizard/views.py:290
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
 
-#: wizard/views.py:333
+#: wizard/views.py:338
 msgid "Departments"
 msgstr "Départements"
 
-#: wizard/views.py:354
+#: wizard/views.py:359
 msgid "Categories"
 msgstr "Catégories"
 
