@@ -16,7 +16,7 @@ class PasswordConfirmForm(forms.Form):
             }
         ),
         required=True,
-        label="Password",
+        label=_("Password"),
     )
 
 

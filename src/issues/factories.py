@@ -8,7 +8,11 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 
 from authentication.factories import UserFactory
-from grm.constants import CONFIDENTIALITY_LEVEL_CHOICES, REDIRECTION_PROTOCOL_CHOICES
+from grm.constants import (
+    CITIZEN_GROUP_CHOICES,
+    CONFIDENTIALITY_LEVEL_CHOICES,
+    REDIRECTION_PROTOCOL_CHOICES,
+)
 from issues.models import (
     AdministrativeLevel,
     AdministrativeRegion,
@@ -185,7 +189,7 @@ class CitizenGroupFactory(factory.django.DjangoModelFactory):
         model = CitizenGroup
 
     name = factory.Sequence(lambda n: f"{n}")
-    type = factory.Sequence(lambda n: f"{n}")
+    type = fuzzy.FuzzyChoice([item[0] for item in CITIZEN_GROUP_CHOICES])
 
 
 class CitizenFactory(factory.django.DjangoModelFactory):

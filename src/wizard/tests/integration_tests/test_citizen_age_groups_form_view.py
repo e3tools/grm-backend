@@ -199,3 +199,21 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
 
         group2.refresh_from_db()
         self.assertEqual(group2.name, "25–34 years")
+
+    def test_duplicate_name_validation_on_create(self):
+        """Should raise validation error when creating with a duplicate name."""
+
+        data = {
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-name": "Duplicate Name",
+            "form-1-name": "Duplicate Name",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
+
+        self.assertEqual(response.context["form"].errors[1]["__all__"][0], "Please correct the duplicate values below.")

@@ -236,7 +236,7 @@ class IssueStatus(models.Model):
 
 
 class IssueDepartment(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_("Name"))
     head = models.ForeignKey('authentication.User', null=True, blank=True, on_delete=models.SET_NULL)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
@@ -285,8 +285,8 @@ class IssueSubType(models.Model):
 
 
 class IssueCategory(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    abbreviation = models.CharField(max_length=255, unique=False, blank=True, null=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_("Name"))
+    abbreviation = models.CharField(max_length=255, unique=False, blank=True, null=True, verbose_name=_("Abbreviation"))
     assigned_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_categories'
     )
@@ -298,7 +298,9 @@ class IssueCategory(models.Model):
     )
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
     confidentiality_level = models.SlugField(default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES)
-    redirection_protocol = models.SlugField(default=FEWER_ISSUES_CHOICE, choices=REDIRECTION_PROTOCOL_CHOICES)
+    redirection_protocol = models.SlugField(
+        default=FEWER_ISSUES_CHOICE, choices=REDIRECTION_PROTOCOL_CHOICES, verbose_name=_("Redirection protocol")
+    )
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -351,8 +353,8 @@ class CitizenAgeGroup(models.Model):
 
 
 class CitizenGroup(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    type = models.SlugField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_('Name'))
+    type = models.SlugField(max_length=50, blank=True, choices=CITIZEN_GROUP_CHOICES, verbose_name=_('Type'))
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 

@@ -3,7 +3,6 @@ from django.urls import reverse
 from authentication.factories import UserFactory
 from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import ViewTestCase
-from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
 
@@ -12,12 +11,7 @@ class NextStepViewTest(ViewTestCase):
 
     def setUp(self):
         self.user = UserFactory(grm_manager=True)
-
-        # Remove all WizardSections created by the migration
-        WizardSection.objects.all().delete()
-
-        # Create three wizard sections
-        self.sections = WizardSectionFactory.create_batch(3, status=NOT_STARTED_CHOICE)
+        self.sections = WizardSection.objects.all()
         self.url = lambda step: reverse("wizard:next_step", kwargs={"step": step})
 
     def test_redirect_if_not_logged_in(self):
@@ -43,8 +37,9 @@ class NextStepViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"step": current_step})
 
-        # No section should have changed to IN_PROGRESS
-        self.assertFalse(WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).exists())
+        # No section should have changed status
+        self.assertTrue(WizardSection.objects.filter(id=self.sections[0].id, status=IN_PROGRESS_CHOICE).exists())
+        self.assertEqual(WizardSection.objects.filter(status=NOT_STARTED_CHOICE).count(), len(self.sections) - 1)
 
     def test_post_with_completed_section_moves_to_next_step(self):
         """
@@ -52,8 +47,7 @@ class NextStepViewTest(ViewTestCase):
         the next section should be set to IN_PROGRESS and step incremented.
         """
         # Mark section 1 as completed
-        self.sections[0].status = COMPLETED_CHOICE
-        self.sections[0].save()
+        WizardSection.objects.filter(id=self.sections[0].id).update(status=COMPLETED_CHOICE)
 
         current_step = 1
         response = self.post(self.url(current_step), {}, ajax=True)
@@ -70,10 +64,9 @@ class NextStepViewTest(ViewTestCase):
         If the last section is completed, there is no next step to update,
         so the view should safely return the same step.
         """
-        # Mark the last section as completed
+        # Mark all sections as completed
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
         last_step = len(self.sections)
-        self.sections[-1].status = COMPLETED_CHOICE
-        self.sections[-1].save()
 
         response = self.post(self.url(last_step), {}, ajax=True)
 

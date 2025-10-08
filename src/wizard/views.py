@@ -34,6 +34,7 @@ from issues.models import (
     AdministrativeRegion,
     Citizen,
     CitizenAgeGroup,
+    CitizenGroup,
     Issue,
     IssueCategory,
     IssueDepartment,
@@ -45,10 +46,12 @@ from wizard.forms import (
     ISSUE_STATUS_DEFINITIONS,
     AdministrativeLevelFormSet,
     ExistingCitizenAgeGroupFormSet,
+    ExistingCitizenGroupFormSet,
     ExistingIssueStatusFormSet,
     IssueCategoryFormSet,
     IssueDepartmentFormSet,
     NewCitizenAgeGroupFormSet,
+    NewCitizenGroupFormSet,
     NewIssueStatusFormSet,
     ProjectForm,
     UploadAdministrativeRegionForm,
@@ -431,6 +434,32 @@ class CitizenAgeGroupsFormView(WizardFormView):
         return context
 
 
+class CitizenGroupsFormView(WizardFormView):
+    form_class = NewCitizenGroupFormSet
+    template_name = "wizard/formset.html"
+    step = 8
+    queryset = None
+
+    def get_form(self, form_class=None):
+        self.queryset = CitizenGroup.objects.annotate(
+            restricted_deletion=Exists(Citizen.objects.filter(age_group=OuterRef("pk")))
+        )
+
+        if self.queryset.exists():
+            self.form_class = ExistingCitizenGroupFormSet
+
+        return self.form_class(queryset=self.queryset, **self.get_form_kwargs())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']  # Aliases for clarity in the template
+        context['formset_label'] = _('Citizen Groups')
+        context['toast_title'] = NOT_PERMITTED_TEXT
+        context['toast_message'] = GROUP_TOAST_ERROR_MESSAGE
+        context['skip'] = False if self.queryset else True
+        return context
+
+
 class FeedbackAndAppealFormView(WizardFormView):
     template_name = "wizard/example.html"
-    step = 8
+    step = 9
