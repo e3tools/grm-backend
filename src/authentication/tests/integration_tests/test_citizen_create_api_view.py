@@ -12,6 +12,7 @@ from authentication.models import Citizen, User
 from grm.constants import (
     CITIZEN_SUCCESS_MESSAGE,
     EMAIL_ERROR_MESSAGE,
+    PASSWORD_CONFIRMATION_ERROR_MESSAGE,
     USERNAME_ERROR_MESSAGE,
 )
 
@@ -35,6 +36,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
             'first_name': 'John',
             'last_name': 'Doe',
             'email': 'john.doe@example.com',
+            'phone_number': '987 765 543',
             'password': 'SecurePassword123!',
             'confirm_password': 'SecurePassword123!',
         }
@@ -53,21 +55,24 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
         # Check data structure
         data = response.data['data']
-        expected_data_fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        expected_data_fields = ['id', 'username', 'email', 'phone_number', 'first_name', 'last_name']
         for field in expected_data_fields:
             assert field in data
 
         # Verify response data
-        assert data['username'] == 'john.doe'
-        assert data['email'] == 'john.doe@example.com'
-        assert data['first_name'] == 'John'
-        assert data['last_name'] == 'Doe'
+        assert data['username'] == self.valid_registration_data['username']
+        assert data['email'] == self.valid_registration_data['email']
+        assert data['phone_number'] == self.valid_registration_data['phone_number']
+        assert data['first_name'] == self.valid_registration_data['first_name']
+        assert data['last_name'] == self.valid_registration_data['last_name']
         assert response.data['message'] == CITIZEN_SUCCESS_MESSAGE
 
         # Verify user was created in database
-        user = User.objects.get(username='john.doe', email='john.doe@example.com')
-        assert user.first_name == 'John'
-        assert user.last_name == 'Doe'
+        user = User.objects.get(username=self.valid_registration_data['username'])
+        assert user.email == self.valid_registration_data['email']
+        assert user.phone_number == self.valid_registration_data['phone_number']
+        assert user.first_name == self.valid_registration_data['first_name']
+        assert user.last_name == self.valid_registration_data['last_name']
         assert user.check_password('SecurePassword123!')
 
         # Verify citizen was created
@@ -76,7 +81,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
     def test_duplicate_username_validation(self):
         """Test registration with duplicate username."""
-        UserFactory(username='john.doe')
+        UserFactory(username=self.valid_registration_data['username'])
 
         response = self.client.post(self.url, self.valid_registration_data, format='json')
 
@@ -85,7 +90,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
     def test_duplicate_email_validation(self):
         """Test registration with duplicate email address."""
-        UserFactory(email='john.doe@example.com')
+        UserFactory(email=self.valid_registration_data['email'])
 
         response = self.client.post(self.url, self.valid_registration_data, format='json')
 
@@ -102,11 +107,11 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'errors' in response.data
         assert 'confirm_password' in response.data['errors']
-        assert 'Password confirmation does not match.' in response.data['errors']['confirm_password'][0]
+        self.assertEqual(str(response.data['errors']['confirm_password'][0]), PASSWORD_CONFIRMATION_ERROR_MESSAGE)
 
     def test_missing_required_fields(self):
         """Test registration with missing required fields."""
-        required_fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password']
+        required_fields = ['username', 'phone_number', 'password', 'confirm_password']
 
         for field in required_fields:
             incomplete_data = self.valid_registration_data.copy()
@@ -125,6 +130,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
             'first_name': '',
             'last_name': '',
             'email': '',
+            'phone_number': '',
             'password': '',
             'confirm_password': '',
         }
@@ -134,10 +140,8 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'errors' in response.data
 
-        # All fields should have validation errors
-        expected_fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password']
-        for field in expected_fields:
-            assert field in response.data['errors']
+        # Required fields should have validation errors
+        assert {'username', 'phone_number', 'password', 'confirm_password'} == set(response.data['errors'].keys())
 
     def test_invalid_username_format(self):
         """Test registration with invalid username format."""
@@ -173,7 +177,10 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'errors' in response.data
         assert 'password' in response.data['errors']
-        assert any('at least 8 characters' in str(error) for error in response.data['errors']['password'])
+        assert (
+            str(response.data['errors']['password'][0])
+            == "This password is too short. It must contain at least 8 characters."
+        )
 
     def test_numeric_password_validation(self):
         """Test registration with numeric-only password."""
@@ -347,7 +354,7 @@ class CitizenRegistrationCreateAPIViewTest(APITestCase):
 
         assert response.status_code == status.HTTP_201_CREATED
 
-        user = User.objects.get(email='john.doe@example.com')
+        user = User.objects.get(email=self.valid_registration_data['email'])
         citizen = Citizen.objects.get(user=user)
 
         # Test relationship

@@ -9,7 +9,11 @@ from authentication.constants import ADL, MAJOR
 from authentication.models import Citizen, User
 from authentication.utils import get_validation_code
 from client import get_db
-from grm.constants import EMAIL_ERROR_MESSAGE, USERNAME_ERROR_MESSAGE
+from grm.constants import (
+    EMAIL_ERROR_MESSAGE,
+    PASSWORD_CONFIRMATION_ERROR_MESSAGE,
+    USERNAME_ERROR_MESSAGE,
+)
 
 
 class CredentialSerializer(serializers.Serializer):
@@ -167,10 +171,9 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password']
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password']
         extra_kwargs = {
-            "first_name": {"required": True, "allow_blank": False},
-            "last_name": {"required": True, "allow_blank": False},
+            "email": {"required": False, "allow_blank": True},
         }
 
     def validate_username(self, value):
@@ -181,7 +184,7 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         """Validate email is unique."""
-        if User.objects.filter(email=value.lower()).exists():
+        if value and User.objects.filter(email=value.lower()).exists():
             raise serializers.ValidationError(EMAIL_ERROR_MESSAGE)
         return value
 
@@ -191,7 +194,7 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
         confirm_password = attrs.get('confirm_password')
 
         if password != confirm_password:
-            raise serializers.ValidationError({'confirm_password': 'Password confirmation does not match.'})
+            raise serializers.ValidationError({'confirm_password': PASSWORD_CONFIRMATION_ERROR_MESSAGE})
 
         # Validate password strength using Django's built-in validators
         try:
@@ -211,6 +214,7 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             email=validated_data['email'].lower(),
+            phone_number=validated_data['phone_number'],
             password=validated_data['password'],
         )
 

@@ -123,6 +123,7 @@ ATTACHMENT_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving issue 
 CITIZEN_SUCCESS_MESSAGE = _('Citizen registered successfully.')
 USERNAME_ERROR_MESSAGE = _("A user with that username already exists.")
 EMAIL_ERROR_MESSAGE = _("user with this email address already exists.")
+PASSWORD_CONFIRMATION_ERROR_MESSAGE = _("Password confirmation does not match.")
 ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE = _(
     "You cannot delete '%(name)s' because it is linked to issues or departments."
 )
