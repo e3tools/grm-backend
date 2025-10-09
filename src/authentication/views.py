@@ -30,7 +30,13 @@ from authentication.serializers import (
     PasswordResetSerializer,
 )
 from authentication.services import PasswordResetService
-from grm.constants import CITIZEN_SUCCESS_MESSAGE, VALIDATION_FAILED_MESSAGE
+from grm.constants import (
+    CITIZEN_SUCCESS_MESSAGE,
+    EMAIL_ERROR_MESSAGE,
+    PASSWORD_CONFIRMATION_ERROR_MESSAGE,
+    USERNAME_ERROR_MESSAGE,
+    VALIDATION_FAILED_MESSAGE,
+)
 
 
 class BaseLoginAPIView(APIView):
@@ -295,7 +301,7 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
         tags=['Authentication'],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password'],
+            required=['username', 'phone_number', 'password', 'confirm_password'],
             properties={
                 'username': openapi.Schema(
                     type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
@@ -311,6 +317,12 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                     format=openapi.FORMAT_EMAIL,
                     description='Unique email address for the account',
                     example='john.doe@example.com',
+                ),
+                'phone_number': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Phone number of the citizen',
+                    example='987 765 543',
+                    max_length=45,
                 ),
                 'password': openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -349,6 +361,11 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                                     description='User email address',
                                     example='john.doe@example.com',
                                 ),
+                                'phone_number': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    description='User phone number',
+                                    example='987 765 543',
+                                ),
                                 'first_name': openapi.Schema(
                                     type=openapi.TYPE_STRING, description='User first name', example='John'
                                 ),
@@ -366,9 +383,9 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                     "application/json": {
                         "message": VALIDATION_FAILED_MESSAGE,
                         "errors": {
-                            "username": ["A user with that username already exists."],
-                            "email": ["user with this email address already exists."],
-                            "confirm_password": ["Password confirmation does not match."],
+                            "username": [USERNAME_ERROR_MESSAGE],
+                            "email": [EMAIL_ERROR_MESSAGE],
+                            "confirm_password": [PASSWORD_CONFIRMATION_ERROR_MESSAGE],
                             "password": ["This password is too short. It must contain at least 8 characters."],
                         },
                     }
@@ -407,6 +424,7 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                     'id': user.id,
                     'username': user.username,
                     'email': user.email,
+                    'phone_number': user.phone_number,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                 }
