@@ -40,6 +40,7 @@ from issues.models import (
     CitizenAgeGroup,
     CitizenGroup,
     Comment,
+    Component,
     Issue,
     IssueAttachment,
     IssueCategory,
@@ -55,6 +56,7 @@ from issues.serializers import (
     CitizenGroupSerializer,
     CommentCreateSerializer,
     CommentSerializer,
+    ComponentSerializer,
     IssueAttachmentCreateSerializer,
     IssueAttachmentSerializer,
     IssueCategorySerializer,
@@ -2881,6 +2883,116 @@ class SubProjectGroupListAPIView(ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
+class ComponentListAPIView(ListAPIView):
+    """
+    API View for listing Component objects with pagination.
+
+    This view provides a paginated read-only list of all available components.
+    It requires Token authentication and returns paginated results.
+    """
+
+    queryset = Component.objects.all()
+    serializer_class = ComponentSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List Components",
+        operation_description="Retrieve a paginated list of all components.",
+        tags=['Components'],
+        security=[{'Token': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'page',
+                openapi.IN_QUERY,
+                description="Page number for pagination",
+                type=openapi.TYPE_INTEGER,
+                default=1,
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of items per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of components",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'count': openapi.Schema(type=openapi.TYPE_INTEGER, description="Total number of items"),
+                        'next': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to next page (null if no next page)",
+                            nullable=True,
+                        ),
+                        'previous': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_URI,
+                            description="URL to previous page (null if no previous page)",
+                            nullable=True,
+                        ),
+                        'results': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    'id': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description="Unique identifier for the component",
+                                    ),
+                                    'name': openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="Name of the component"
+                                    ),
+                                    'description': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Detailed description of the component',
+                                        example='Community investments to strengthen local resilience and inclusion.',
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                },
+                            ),
+                            description="List of components for current page",
+                        ),
+                    },
+                ),
+            ),
+            400: openapi.Response(description="Bad request - Invalid query parameters"),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                examples={"application/json": {"detail": "Invalid token."}},
+            ),
+            500: openapi.Response(description="Internal server error"),
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        """
+        Retrieve paginated list of Component objects.
+
+        Returns a paginated list of all components available in the system.
+
+        Args:
+            request: HTTP request object
+
+        Returns:
+            Response: JSON response with paginated list of components
+        """
+        return super().get(request, *args, **kwargs)
+
+
 class SubComponentListAPIView(ListAPIView):
     """
     API View for listing SubComponent objects with pagination.
@@ -2895,9 +3007,9 @@ class SubComponentListAPIView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="List Subcomponent Groups",
+        operation_summary="List Subcomponents",
         operation_description="Retrieve a paginated list of all subcomponents.",
-        tags=['Subcomponent Groups'],
+        tags=['Subcomponents'],
         security=[{'Token': []}],
         manual_parameters=[
             openapi.Parameter(
