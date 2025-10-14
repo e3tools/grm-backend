@@ -11,20 +11,26 @@ from dashboard.models import Project
 from grm.constants import (
     ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
     CATEGORY_DELETE_ERROR_MESSAGE,
+    COMPONENT_DELETE_ERROR_MESSAGE,
+    COMPONENT_REQUIRED_ERROR_MESSAGE,
     DEPARTMENT_DELETE_ERROR_MESSAGE,
     GROUP_DELETE_ERROR_MESSAGE,
     INVALID_EXCEL_FILE_ERROR_MESSAGE,
     ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
+    SUBCOMPONENT_DELETE_ERROR_MESSAGE,
+    SUBCOMPONENT_REQUIRED_ERROR_MESSAGE,
 )
 from issues.models import (
     AdministrativeLevel,
     CitizenAgeGroup,
     CitizenGroup,
+    Component,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueSubType,
+    SubComponent,
 )
 
 
@@ -36,7 +42,7 @@ class ProjectForm(forms.ModelForm):
     description = forms.CharField(
         required=False,
         max_length=2000,
-        widget=forms.Textarea(attrs={"rows": "3", "placeholder": _("Please describe the project")}),
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": _("Please describe the project")}),
         label=_("Description"),
     )
 
@@ -486,4 +492,174 @@ NewCitizenGroupFormSet = forms.modelformset_factory(
     max_num=100,
     can_delete=True,
     can_order=False,
+)
+
+
+class SubComponentForm(forms.ModelForm):
+    """Form for SubComponent."""
+
+    class Meta:
+        model = SubComponent
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Enter subcomponent name')}),
+            'description': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 3, 'placeholder': _('Enter subcomponent description')}
+            ),
+        }
+
+
+class SubComponentInlineFormSet(forms.BaseInlineFormSet):
+    """Inline formset for SubComponents with validation."""
+
+    def clean(self):
+        """Ensure each Component has at least one SubComponent and validate restricted deletions."""
+        super().clean()
+
+        if any(self.errors):
+            return
+
+        # Check if the parent Component is marked for deletion
+        # If so, skip the minimum SubComponent validation
+        parent_form = getattr(self, 'parent_form', None)
+
+        # Count non-deleted forms with data
+        valid_forms = 0
+        for form in self.forms:
+            if form.cleaned_data:
+                is_deleted = form.cleaned_data.get('DELETE', False)
+
+                # Check if trying to delete a SubComponent with restricted_deletion
+                if is_deleted and form.instance.pk:
+                    if getattr(form.instance, 'restricted_deletion', False):
+                        raise forms.ValidationError(SUBCOMPONENT_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
+
+                if parent_form and parent_form.cleaned_data.get('DELETE', False):
+                    # Parent is being deleted, so we don't need to validate SubComponents
+                    return
+
+                # Count valid (non-deleted) forms
+                if not is_deleted:
+                    if form.cleaned_data.get('name') or form.cleaned_data.get('description'):
+                        valid_forms += 1
+
+        if valid_forms < 1:
+            raise forms.ValidationError(SUBCOMPONENT_REQUIRED_ERROR_MESSAGE)
+
+
+# Create inline formset for SubComponents
+SubComponentFormSet = forms.inlineformset_factory(
+    Component,
+    SubComponent,
+    form=SubComponentForm,
+    formset=SubComponentInlineFormSet,
+    extra=0,
+    min_num=1,
+    max_num=100,
+    validate_min=False,
+    can_delete=True,
+)
+
+
+class ComponentForm(forms.ModelForm):
+    """Form for Component with nested SubComponents."""
+
+    class Meta:
+        model = Component
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': _('Enter component name')}),
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': _('Enter component description')}),
+        }
+
+    def has_changed(self):
+        """Force it to always be considered changed to run validation."""
+        return True
+
+
+class ComponentFormSet(forms.BaseModelFormSet):
+    """Custom formset for Components."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Initialize subformsets for each component
+        self.subformsets = []
+
+        for form in self.forms:
+            if form.instance.pk:
+                # Existing component - load subcomponents
+                subformset = SubComponentFormSet(instance=form.instance, prefix=f'subcomponent_{form.prefix}')
+            else:
+                # New component - empty subformset
+                subformset = SubComponentFormSet(prefix=f'subcomponent_{form.prefix}')
+            self.subformsets.append(subformset)
+
+    def is_valid(self):
+        """Validate main formset and all subformsets."""
+        result = super().is_valid()
+
+        # Link each subformset to its parent form for validation context
+        for form, subformset in zip(self.forms, self.subformsets):
+            subformset.parent_form = form
+            if not subformset.is_valid():
+                result = False
+
+        return result
+
+    def save(self, commit=True):
+        """Save components and their subcomponents."""
+        components = super().save(commit=commit)
+
+        if commit:
+            for component, subformset in zip(components, self.subformsets):
+                if component.pk:  # Component was saved
+                    subformset.instance = component
+                    subformset.save()
+
+        return components
+
+    def clean(self):
+        """Validate Components and check for restricted deletions."""
+        super().clean()
+
+        if any(self.errors):
+            return
+
+        valid_forms = 0
+        for form in self.forms:
+            if form.cleaned_data:
+                is_deleted = form.cleaned_data.get('DELETE', False)
+
+                # Check if trying to delete a Component with restricted_deletion
+                if is_deleted and form.instance.pk:
+                    if getattr(form.instance, 'restricted_deletion', False):
+                        raise forms.ValidationError(COMPONENT_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
+
+                # Count valid (non-deleted) components
+                if not is_deleted and form.cleaned_data.get('name'):
+                    valid_forms += 1
+
+        if valid_forms < 1:
+            raise forms.ValidationError(COMPONENT_REQUIRED_ERROR_MESSAGE)
+
+
+# Create the main component formset
+NewComponentFormSet = forms.modelformset_factory(
+    Component,
+    form=ComponentForm,
+    formset=ComponentFormSet,
+    extra=0,
+    min_num=1,
+    max_num=100,
+    can_delete=True,
+)
+
+ExistingComponentFormSet = forms.modelformset_factory(
+    Component,
+    form=ComponentForm,
+    formset=ComponentFormSet,
+    extra=0,
+    min_num=1,
+    max_num=100,
+    can_delete=True,
 )

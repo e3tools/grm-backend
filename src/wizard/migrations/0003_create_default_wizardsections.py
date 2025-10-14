@@ -16,6 +16,7 @@ def create_wizard_sections(apps, schema_editor):
         'Resolution Process',
         'Citizen Age Groups',
         'Citizen Groups',
+        'Sub Component',
         'Feedback & Appeal',
     )
 

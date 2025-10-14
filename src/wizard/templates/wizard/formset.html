@@ -52,12 +52,12 @@
 								<button type="button"
 										class="btn text-secondary {% if form.instance.restricted_deletion %}
 										restricted-deletion disabled{% else %}delete-row{% endif %}"
-										title="{% trans 'Delete' %}">
+										title="{% translate 'Delete' %}">
 									<i class="fas fa-times-circle"></i>
 								</button>
 							{% else %}
 								<button type="button" class="btn text-secondary remove-row"
-										title="{% trans 'Remove this row' %}">
+										title="{% translate 'Remove this row' %}">
 									<i class="fas fa-times-circle"></i>
 								</button>
 							{% endif %}
@@ -68,12 +68,12 @@
 
 			<!-- Alert text -->
 			<div id="max-forms-alert" class="d-none text-danger mt-1">
-				{% trans "Maximum number of forms reached." %}
+				{% translate "Maximum number of forms reached." %}
 			</div>
 
 			<!-- Add more button -->
 			<button type="button" id="add-more" class="btn btn-link-primary fs12 pl-0">
-				<i class="fas fa-plus"></i> {% trans "Add row" %}
+				<i class="fas fa-plus"></i> {% translate "Add row" %}
 			</button>
 
 			<div class="overlay submit-spin d-none">
@@ -136,7 +136,7 @@
 		</div>
 
 		<div class="col-md-2 d-flex align-items-start">
-			<button type="button" class="btn text-secondary remove-row" title="{% trans 'Remove this row' %}">
+			<button type="button" class="btn text-secondary remove-row" title="{% translate 'Remove this row' %}">
 				<i class="fas fa-times-circle"></i>
 			</button>
 		</div>
