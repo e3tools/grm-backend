@@ -341,6 +341,16 @@ class IssueCreateAPIView(CreateAPIView):
                                     },
                                     description="Administrative region information",
                                 ),
+                                'created_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                                'updated_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
                             },
                         ),
                     },
@@ -579,6 +589,16 @@ class AssigneeIssueListAPIView(ListAPIView):
                                         },
                                         description="Issue type information",
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                                 description="Issue object with all related information",
                             ),
@@ -802,6 +822,16 @@ class ReporterIssueListAPIView(ListAPIView):
                                         },
                                         description="Issue type information",
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                                 description="Issue object with all related information",
                             ),
@@ -1019,6 +1049,16 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                             },
                             description="Issue type information",
                         ),
+                        'created_date': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME,
+                            example='2024-08-28T10:30:45.123456Z',
+                        ),
+                        'updated_date': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME,
+                            example='2024-08-28T10:30:45.123456Z',
+                        ),
                     },
                 ),
             ),
@@ -1136,6 +1176,16 @@ class IssueStatusListAPIView(ListAPIView):
                                     'open_status': openapi.Schema(
                                         type=openapi.TYPE_BOOLEAN, description='Is open status'
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                             ),
                             description="List of issue statuses for current page",
@@ -1251,6 +1301,16 @@ class IssueTypeListAPIView(ListAPIView):
                                     ),
                                     'name': openapi.Schema(
                                         type=openapi.TYPE_STRING, description="Name of the issue type"
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
                             ),
@@ -1418,6 +1478,16 @@ class IssueCategoryListAPIView(ListAPIView):
                                     ),
                                     'parent_id': openapi.Schema(
                                         type=openapi.TYPE_INTEGER, description="Subtype ID", nullable=True
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
                             ),
@@ -1588,6 +1658,16 @@ class IssueCommentCreateAPIView(CreateAPIView):
                                     type=openapi.TYPE_STRING,
                                     format=openapi.FORMAT_DATETIME,
                                     description='When the comment was created',
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                                'created_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                                'updated_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
                                     example='2024-08-28T10:30:45.123456Z',
                                 ),
                             },
@@ -1832,6 +1912,16 @@ class IssueCommentsListAPIView(ListAPIView):
                                         format=openapi.FORMAT_DATETIME,
                                         example="2025-09-01T10:30:45.123Z",
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                             ),
                             description="List of comment objects",
@@ -1961,7 +2051,11 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
                                 'created_date': openapi.Schema(
                                     type=openapi.TYPE_STRING,
                                     format=openapi.FORMAT_DATETIME,
-                                    description='When the comment was created',
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                                'updated_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
                                     example='2024-08-28T10:30:45.123456Z',
                                 ),
                             },
@@ -2114,7 +2208,11 @@ class IssueAttachmentsListAPIView(ListAPIView):
                                     'created_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
-                                        description='When the comment was created',
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
                                         example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
@@ -2380,6 +2478,16 @@ class IssueUpdateAPIView(UpdateAPIView):
                                     },
                                     description="Administrative region information",
                                 ),
+                                'created_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
+                                'updated_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    format=openapi.FORMAT_DATETIME,
+                                    example='2024-08-28T10:30:45.123456Z',
+                                ),
                             },
                         ),
                     },
@@ -2532,6 +2640,16 @@ class CitizenGroupListAPIView(ListAPIView):
                                     'type': openapi.Schema(
                                         type=openapi.TYPE_STRING, description="Type of the citizen group"
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                             ),
                             description="List of citizen groups for current page",
@@ -2621,6 +2739,16 @@ class CitizenAgeGroupListAPIView(ListAPIView):
                                     ),
                                     'name': openapi.Schema(
                                         type=openapi.TYPE_STRING, description="Name of the citizen group"
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
                             ),
@@ -2712,6 +2840,16 @@ class SubProjectGroupListAPIView(ListAPIView):
                                     ),
                                     'name': openapi.Schema(
                                         type=openapi.TYPE_STRING, description="Name of the subproject group"
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
                             ),
@@ -2823,6 +2961,16 @@ class SubComponentListAPIView(ListAPIView):
                                             ),
                                         },
                                     ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
                                 },
                             ),
                             description="List of subcomponents for current page",
@@ -2922,6 +3070,16 @@ class IssueSubTypeListAPIView(ListAPIView):
                                                 type=openapi.TYPE_STRING, description="Component name"
                                             ),
                                         },
+                                    ),
+                                    'created_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
+                                    ),
+                                    'updated_date': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        format=openapi.FORMAT_DATETIME,
+                                        example='2024-08-28T10:30:45.123456Z',
                                     ),
                                 },
                             ),
