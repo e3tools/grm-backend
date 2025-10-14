@@ -44,8 +44,8 @@ class AdministrativeRegionBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdministrativeRegion
-        fields = ['administrative_id', 'name']
-        read_only_fields = ['administrative_id', 'name']
+        fields = ['administrative_id', 'name', 'created_date', 'updated_date']
+        read_only_fields = ['administrative_id', 'name', 'created_date', 'updated_date']
 
 
 class IssueCategoryBasicSerializer(serializers.ModelSerializer):
@@ -55,13 +55,13 @@ class IssueCategoryBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueCategory
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'created_date', 'updated_date']
 
 
 class ComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Component
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'description', 'created_date', 'updated_date']
 
 
 class SubComponentSerializer(serializers.ModelSerializer):
@@ -69,13 +69,13 @@ class SubComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubComponent
-        fields = ['id', 'name', 'description', 'parent']
+        fields = ['id', 'name', 'description', 'parent', 'created_date', 'updated_date']
 
 
 class IssueSubTypeParentSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueSubType
-        fields = ["id", "name"]
+        fields = ["id", "name", 'created_date', 'updated_date']
 
 
 class IssueSubTypeSerializer(serializers.ModelSerializer):
@@ -83,37 +83,46 @@ class IssueSubTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueSubType
-        fields = ['id', 'name', 'parent']
+        fields = ['id', 'name', 'parent', 'created_date', 'updated_date']
 
 
 class SubProjectGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubProjectGroup
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'created_date', 'updated_date']
 
 
 class IssueTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueType
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'created_date', 'updated_date']
 
 
 class CitizenAgeGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = CitizenAgeGroup
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'created_date', 'updated_date']
 
 
 class CitizenGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = CitizenGroup
-        fields = ['id', 'name', 'type']
+        fields = ['id', 'name', 'type', 'created_date', 'updated_date']
 
 
 class IssueStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueStatus
-        fields = ['id', 'name', 'final_status', 'initial_status', 'rejected_status', 'open_status']
+        fields = [
+            'id',
+            'name',
+            'final_status',
+            'initial_status',
+            'rejected_status',
+            'open_status',
+            'created_date',
+            'updated_date',
+        ]
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -154,8 +163,18 @@ class IssueSerializer(serializers.ModelSerializer):
             'status',
             'category',
             'issue_type',
+            'created_date',
+            'updated_date',
         ]
-        read_only_fields = ['id', 'intake_date', 'reporter', 'assignee', 'administrative_region']
+        read_only_fields = [
+            'id',
+            'intake_date',
+            'reporter',
+            'assignee',
+            'administrative_region',
+            'created_date',
+            'updated_date',
+        ]
 
 
 class DepartmentAdministrativeLevelSerializer(serializers.ModelSerializer):
@@ -172,7 +191,7 @@ class DepartmentAdministrativeLevelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueDepartmentAdministrativeLevel
-        fields = ['name', 'id', 'administrative_level']
+        fields = ['name', 'id', 'administrative_level', 'created_date', 'updated_date']
 
 
 class IssueCategorySerializer(serializers.ModelSerializer):
@@ -208,8 +227,10 @@ class IssueCategorySerializer(serializers.ModelSerializer):
             'redirection_protocol',
             'label',
             'value',
+            'created_date',
+            'updated_date',
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'created_date', 'updated_date']
 
 
 class AdministrativeRegionSerializer(serializers.ModelSerializer):
@@ -219,7 +240,7 @@ class AdministrativeRegionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdministrativeRegion
-        fields = ['id', 'name', 'administrative_level', 'parent']
+        fields = ['id', 'name', 'administrative_level', 'parent', 'created_date', 'updated_date']
 
 
 class CitizenSerializer(serializers.ModelSerializer):
@@ -241,7 +262,16 @@ class IssueDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ['id', 'intake_date', 'status', 'category', 'issue_type', 'administrative_region']
+        fields = [
+            'id',
+            'intake_date',
+            'status',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'created_date',
+            'updated_date',
+        ]
 
 
 class IssueCreateSerializer(serializers.ModelSerializer):
@@ -379,7 +409,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['id', 'comment', 'user', 'issue', 'due_date']
+        fields = [
+            'id',
+            'comment',
+            'user',
+            'issue',
+            'due_date',
+            'created_date',
+            'updated_date',
+        ]
 
 
 class CommentCreateSerializer(serializers.ModelSerializer):
@@ -408,6 +446,7 @@ class IssueAttachmentSerializer(serializers.ModelSerializer):
         - url: The URL of the uploaded file
         - uploaded_by: Nested User object (assuming a UserBasicSerializer is available)
         - created_date: Datetime field, automatically set on creation
+        - updated_date: Datetime field, automatically set on edit
     """
 
     issue = IssueSerializer(read_only=True)
@@ -423,8 +462,9 @@ class IssueAttachmentSerializer(serializers.ModelSerializer):
             'file',
             'uploaded_by',
             'created_date',
+            'updated_date',
         ]
-        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date']
+        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date', 'updated_date']
 
 
 class IssueAttachmentCreateSerializer(serializers.ModelSerializer):
