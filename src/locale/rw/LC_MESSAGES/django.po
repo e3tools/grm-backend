@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-09 16:28+0000\n"
+"POT-Creation-Date: 2025-10-14 13:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,7 +171,7 @@ msgstr ""
 #: dashboard/adls/forms.py:24 dashboard/models.py:6
 #: dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:75 issues/models.py:239
-#: issues/models.py:288 issues/models.py:356 wizard/forms.py:33
+#: issues/models.py:288 issues/models.py:356 wizard/forms.py:36
 msgid "Name"
 msgstr ""
 
@@ -212,6 +212,7 @@ msgstr ""
 #: dashboard/grm/views.py:787 dashboard/templates/grm/issue_detail.html:191
 #: wizard/templates/wizard/example.html:12 wizard/templates/wizard/form.html:16
 #: wizard/templates/wizard/formset.html:89
+#: wizard/templates/wizard/nested_formset.html:144
 #: wizard/templates/wizard/static_formset.html:49
 msgid "Save"
 msgstr ""
@@ -313,6 +314,8 @@ msgstr ""
 
 #: dashboard/grm/forms.py:143
 #: dashboard/templates/grm/new_issue_confirmation.html:145 issues/models.py:169
+#: wizard/templates/wizard/nested_formset.html:27
+#: wizard/templates/wizard/nested_formset.html:163
 msgid "Component"
 msgstr ""
 
@@ -460,7 +463,7 @@ msgid "Logs"
 msgstr ""
 
 #: dashboard/models.py:7
-#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:40
+#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:43
 msgid "Description"
 msgstr ""
 
@@ -1409,6 +1412,28 @@ msgstr ""
 msgid "You cannot delete '%(name)s' because it is in use."
 msgstr ""
 
+#: grm/constants.py:156
+msgid "At least one component must be provided."
+msgstr ""
+
+#: grm/constants.py:157
+#, python-format
+msgid "Cannot delete component '%(name)s' because it is in use."
+msgstr ""
+
+#: grm/constants.py:158
+msgid "Each component must have at least one subcomponent."
+msgstr ""
+
+#: grm/constants.py:159
+#, python-format
+msgid "Cannot delete subcomponent '%(name)s' because it is in use."
+msgstr ""
+
+#: grm/constants.py:160
+msgid "This component cannot be deleted because it is in use."
+msgstr ""
+
 #: grm/settings.py:138
 msgid "English"
 msgstr ""
@@ -1476,7 +1501,8 @@ msgstr ""
 msgid "Subcomponent"
 msgstr ""
 
-#: issues/models.py:189
+#: issues/models.py:189 wizard/templates/wizard/nested_formset.html:68
+#: wizard/templates/wizard/nested_formset.html:192
 msgid "Subcomponents"
 msgstr ""
 
@@ -1488,7 +1514,7 @@ msgstr ""
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:226 issues/models.py:227 wizard/views.py:404
+#: issues/models.py:226 issues/models.py:227 wizard/views.py:409
 msgid "Issue Status"
 msgstr ""
 
@@ -1536,7 +1562,7 @@ msgstr ""
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:345 wizard/views.py:431
+#: issues/models.py:345 wizard/views.py:436
 msgid "Citizen Age Groups"
 msgstr ""
 
@@ -1544,7 +1570,7 @@ msgstr ""
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:363 wizard/views.py:456
+#: issues/models.py:363 wizard/views.py:461
 msgid "Citizen Groups"
 msgstr ""
 
@@ -1576,158 +1602,177 @@ msgstr ""
 msgid "Issue Attachment"
 msgstr ""
 
-#: wizard/forms.py:34
+#: wizard/forms.py:37
 msgid "Enter the project name"
 msgstr ""
 
-#: wizard/forms.py:39
+#: wizard/forms.py:42
 msgid "Please describe the project"
 msgstr ""
 
-#: wizard/forms.py:56
+#: wizard/forms.py:59
 msgid "Enter administrative level name"
 msgstr ""
 
-#: wizard/forms.py:100
+#: wizard/forms.py:103
 msgid "Click to select administrative levels"
 msgstr ""
 
-#: wizard/forms.py:101
+#: wizard/forms.py:104
 msgid "Administrative levels"
 msgstr ""
 
-#: wizard/forms.py:108
+#: wizard/forms.py:111
 msgid "Enter department name"
 msgstr ""
 
-#: wizard/forms.py:182
+#: wizard/forms.py:185
 msgid "Enter a new subtype or choose one"
 msgstr ""
 
-#: wizard/forms.py:183
+#: wizard/forms.py:186
 msgid "Subtype"
 msgstr ""
 
-#: wizard/forms.py:199
+#: wizard/forms.py:202
 msgid "Department"
 msgstr ""
 
-#: wizard/forms.py:200
+#: wizard/forms.py:203
 msgid "Appeal department"
 msgstr ""
 
-#: wizard/forms.py:201
+#: wizard/forms.py:204
 msgid "Escalation department"
 msgstr ""
 
-#: wizard/forms.py:204
+#: wizard/forms.py:207
 msgid "Enter category name"
 msgstr ""
 
-#: wizard/forms.py:205
+#: wizard/forms.py:208
 msgid "Enter category abbreviation"
 msgstr ""
 
-#: wizard/forms.py:206
+#: wizard/forms.py:209
 msgid "Click to select department"
 msgstr ""
 
-#: wizard/forms.py:207
+#: wizard/forms.py:210
 msgid "Click to select appeal department"
 msgstr ""
 
-#: wizard/forms.py:209
+#: wizard/forms.py:212
 msgid "Click to select escalation department"
 msgstr ""
 
-#: wizard/forms.py:211
+#: wizard/forms.py:214
 msgid "Click to select confidentiality level"
 msgstr ""
 
-#: wizard/forms.py:212
+#: wizard/forms.py:215
 msgid "Click to select redirection protocol"
 msgstr ""
 
-#: wizard/forms.py:219
+#: wizard/forms.py:222
 msgid "This field is required."
 msgstr ""
 
-#: wizard/forms.py:281
+#: wizard/forms.py:284
 msgid "Upload Excel File"
 msgstr ""
 
-#: wizard/forms.py:317
+#: wizard/forms.py:320
 msgid "Enter status name"
 msgstr ""
 
-#: wizard/forms.py:328
+#: wizard/forms.py:331
 msgid "Created"
 msgstr ""
 
-#: wizard/forms.py:329
+#: wizard/forms.py:332
 msgid "Represents the starting point of the issue."
 msgstr ""
 
-#: wizard/forms.py:330
+#: wizard/forms.py:333
 msgid ""
 "This status indicates that the issue has just been created or initiated."
 msgstr ""
 
-#: wizard/forms.py:333
+#: wizard/forms.py:336
 msgid "Open"
 msgstr ""
 
-#: wizard/forms.py:334
+#: wizard/forms.py:337
 msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution."
 msgstr ""
 
-#: wizard/forms.py:338
+#: wizard/forms.py:341
 msgid "Rejected"
 msgstr ""
 
-#: wizard/forms.py:339
+#: wizard/forms.py:342
 msgid "Indicates that the issue has been reviewed and rejected."
 msgstr ""
 
-#: wizard/forms.py:340
+#: wizard/forms.py:343
 msgid "This status is used when the issue is deemed invalid or unnecessary."
 msgstr ""
 
-#: wizard/forms.py:343
+#: wizard/forms.py:346
 msgid "Resolved"
 msgstr ""
 
-#: wizard/forms.py:344
+#: wizard/forms.py:347
 msgid "Marks the resolution or closure of the issue."
 msgstr ""
 
-#: wizard/forms.py:345
+#: wizard/forms.py:348
 msgid ""
 "This status signifies that the issue has been successfully completed or "
 "resolved."
 msgstr ""
 
-#: wizard/forms.py:399
+#: wizard/forms.py:402
 msgid "Enter citizen age group name"
 msgstr ""
 
-#: wizard/forms.py:453
+#: wizard/forms.py:456
 msgid "Enter citizen group name"
 msgstr ""
 
-#: wizard/forms.py:455
+#: wizard/forms.py:458
 msgid "Select the type that groups each of the options that you are creating"
 msgstr ""
 
-#: wizard/forms.py:462
+#: wizard/forms.py:465
 msgid ""
 "Use this option to classify between two different types for additional "
 "internal analysis."
 msgstr ""
 
+#: wizard/forms.py:502 wizard/templates/wizard/nested_formset.html:209
+#: wizard/templates/wizard/nested_formset.html:238
+msgid "Enter subcomponent name"
+msgstr ""
+
+#: wizard/forms.py:504 wizard/templates/wizard/nested_formset.html:214
+#: wizard/templates/wizard/nested_formset.html:243
+msgid "Enter subcomponent description"
+msgstr ""
+
+#: wizard/forms.py:570
+msgid "Enter component name"
+msgstr ""
+
+#: wizard/forms.py:571
+msgid "Enter component description"
+msgstr ""
+
 #: wizard/templates/wizard/example.html:14 wizard/templates/wizard/form.html:18
 #: wizard/templates/wizard/formset.html:91
+#: wizard/templates/wizard/nested_formset.html:146
 #: wizard/templates/wizard/regions.html:45
 #: wizard/templates/wizard/static_formset.html:51
 msgid "Next"
@@ -1735,12 +1780,16 @@ msgstr ""
 
 #: wizard/templates/wizard/example.html:21 wizard/templates/wizard/form.html:25
 #: wizard/templates/wizard/formset.html:104
+#: wizard/templates/wizard/nested_formset.html:153
 #: wizard/templates/wizard/regions.html:50
 #: wizard/templates/wizard/static_formset.html:58
 msgid "Previous"
 msgstr ""
 
 #: wizard/templates/wizard/formset.html:55
+#: wizard/templates/wizard/grm_customization.html:228
+#: wizard/templates/wizard/nested_formset.html:31
+#: wizard/templates/wizard/nested_formset.html:101
 msgid "Delete"
 msgstr ""
 
@@ -1750,6 +1799,7 @@ msgid "Remove this row"
 msgstr ""
 
 #: wizard/templates/wizard/formset.html:71
+#: wizard/templates/wizard/nested_formset.html:127
 msgid "Maximum number of forms reached."
 msgstr ""
 
@@ -1774,12 +1824,28 @@ msgstr ""
 msgid "Configuration Options"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:338
-msgid "Delete this administrative level"
+#: wizard/templates/wizard/grm_customization.html:228
+msgid "Undo deletion"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:344
-msgid "Undo deletion"
+#: wizard/templates/wizard/nested_formset.html:36
+#: wizard/templates/wizard/nested_formset.html:165
+msgid "Remove component"
+msgstr ""
+
+#: wizard/templates/wizard/nested_formset.html:107
+#: wizard/templates/wizard/nested_formset.html:219
+#: wizard/templates/wizard/nested_formset.html:248
+msgid "Remove subcomponent"
+msgstr ""
+
+#: wizard/templates/wizard/nested_formset.html:117
+#: wizard/templates/wizard/nested_formset.html:227
+msgid "Add subcomponent"
+msgstr ""
+
+#: wizard/templates/wizard/nested_formset.html:132
+msgid "Add component"
 msgstr ""
 
 #: wizard/templates/wizard/regions.html:3
@@ -1798,19 +1864,23 @@ msgstr ""
 msgid "No administrative levels found."
 msgstr ""
 
-#: wizard/views.py:151
+#: wizard/views.py:156
 msgid "Administrative Level Names"
 msgstr ""
 
-#: wizard/views.py:293
+#: wizard/views.py:298
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 
-#: wizard/views.py:341
+#: wizard/views.py:346
 msgid "Departments"
 msgstr ""
 
-#: wizard/views.py:362
+#: wizard/views.py:367
 msgid "Categories"
+msgstr ""
+
+#: wizard/views.py:525
+msgid "Components and Subcomponents"
 msgstr ""

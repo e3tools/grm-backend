@@ -153,19 +153,11 @@
 <script src="{% static 'js/disableOnSubmit.js' %}"></script>
 <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
 <script src="{% static 'js/customToast.js' %}"></script>
+<script src="{% static 'js/wizard.js' %}"></script>
+
 <script type="text/javascript">
     let wizard_sections_spin = $('#wizard-sections-spin');
     let wizard_sections = $('#wizard-sections');
-
-    function updateStepParam(step) {
-        const url = new URL(window.location.href);
-
-        // Update or add the 'step' parameter
-        url.searchParams.set('step', step);
-
-        // Change the URL without reloading the page
-        window.history.pushState({}, '', url.toString());
-    }
 
     function loadWizardSections(step) {
         wizard_sections_spin.show();
@@ -191,29 +183,6 @@
     let maxForms;
     let wizard_form_spin = $('#wizard-form-spin');
 
-    function initSelect2(element) {
-        if (!element.hasClass("select2-hidden-accessible")) {
-            let options = {
-                placeholder: element.attr("placeholder") || "",
-                allowClear: true
-            };
-
-            // If the element is writable, allow custom tags
-            if (element.hasClass("writable")) {
-                options.tags = true;
-            }
-
-            element.select2(options);
-        }
-    }
-
-    // When new content arrives via AJAX
-    $(document).ajaxSuccess(function () {
-        $(document).find("form select").each(function () {
-            initSelect2($(this));
-        });
-    });
-
     function loadWizardSectionForm($formAjax) {
         wizard_form_spin.show();
         let section_id = $(".timeline-item.active").attr("id");
@@ -235,139 +204,74 @@
 
     $(document).on("submit", "#form", function (e) {
         e.preventDefault();
-        let $this = $(this);
         let step = $(".timeline-item.active").attr("id");
         let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
-        $.ajax({
-            type: "post",
-            url: url,
-            data: new FormData(this),
-            cache: false,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                $("#formAjax").html(response);
-                if (response.includes("alert-danger")) {
-                    window.scrollTo({top: 0, behavior: 'smooth'});
-                }
-                if ($(response).find('.is-invalid').length === 0 && $(response).find('.errorlist').length === 0) {
-                    loadWizardSections(Number(step) + 1);
-                }
-            },
-            error: function () {
-                alert(error_server_message);
-                enableButton($this);
-            }
-        });
-    });
-
-    $(document).on("click", ".timeline-item.pointer", function () {
-        $(".timeline-item.pointer").removeClass("active");
-        $(this).addClass("active");
-        loadWizardSectionForm($('#formAjax'));
-    });
-
-    $(document).on("click", "#previous_step", function () {
-        $('#popup-messages-content').html('');
-        $(".timeline-item.pointer").removeClass("active");
-        let previous_step = $(this).data("step") - 1;
-        $("#" + previous_step).addClass("active");
-        loadWizardSectionForm($('#formAjax'));
+        let data = new FormData(this)
+        submitForm($(this), url, step, data)
     });
 
     loadWizardSections({{ current_step }});
 
     // Formset management ---------------------------------------------------
 
-    // Add new form
-    $(document).on('click', '#add-more', function () {
-        if (formIndex >= maxForms) {
-            $('#max-forms-alert').removeClass('d-none');
-            return;
-        }
-
-        // Clone the empty form template
-        let newForm = $('#empty-form-template').html();
-
-        // Replace __prefix__ with the current form index
-        newForm = newForm.replace(/__prefix__/g, formIndex);
-
-        // Update data-form-index
-        let $newForm = $(newForm);
-        $newForm.attr('data-form-index', formIndex);
-
-        // Add to container
-        $('#formset-container').append($newForm);
-
-        // Update form count
-        formIndex++;
-        $('#id_form-TOTAL_FORMS').val(formIndex);
-
-        // Focus on the new input
-        $newForm.find('input[type="text"]').focus();
-
-        // Initialize select2 only for the selects of the new form
-        $newForm.find('select').each(function () {
-            initSelect2($(this));
-        });
-    });
-
-    // Remove form (for new forms without instance.pk)
-    $(document).on('click', '.remove-row', function () {
-        let $row = $(this).closest('.formset-row');
-        $row.remove();
-
-        // Update form indices and total count
-        updateFormIndices();
-
-        // Hide alert
-        $('#max-forms-alert').addClass('d-none');
-    });
-
     // Mark for deletion (for existing forms with instance.pk)
-    $(document).on('click', '.delete-row', function () {
-        let $row = $(this).closest('.formset-row');
-        let $deleteCheckbox = $row.find('input[name$="-DELETE"]');
+    function toggleDeleteState($container, $button, forceState = null) {
+        const $deleteCheckbox = $container.find('input[name$="-DELETE"]');
+        const isChecked = forceState !== null ? forceState : !$deleteCheckbox.prop('checked');
 
-        if ($deleteCheckbox.prop('checked')) {
-            // Unmark for deletion
-            $deleteCheckbox.prop('checked', false);
-            $row.removeClass('marked-for-deletion');
-            $(this).find('i').removeClass('fa-undo').addClass('fa-times-circle');
-            $(this).attr('title', '{% trans "Delete this administrative level" %}');
-        } else {
-            // Mark for deletion
-            $deleteCheckbox.prop('checked', true);
-            $row.addClass('marked-for-deletion');
-            $(this).find('i').removeClass('fa-times-circle').addClass('fa-undo');
-            $(this).attr('title', '{% trans "Undo deletion" %}');
-        }
+        $deleteCheckbox.prop('checked', isChecked);
+        $container.toggleClass('marked-for-deletion', isChecked);
+        $button.find('i').toggleClass('fa-times-circle', !isChecked)
+            .toggleClass('fa-undo', isChecked);
 
-    });
+        const newTitle = isChecked ? '{% translate "Undo deletion" %}' : '{% translate "Delete" %}';
+        $button.attr('title', newTitle);
+    }
 
     // Update form indices after removal
     function updateFormIndices() {
         let currentIndex = 0;
-        $('#formset-container .formset-row').each(function () {
+
+        let $formsetRow = $('#formset-container .formset-row');
+
+        // 1) Destroy select2 for all selects that we're going to rename
+        $('.formset-row, .subcomponent-row').find('select').each(function () {
+            let $select = $(this);
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+        });
+
+        // 2) Reindex DOM attributes (names, ids, labels)
+        $formsetRow.each(function () {
             let $row = $(this);
 
-            // Update all input names and ids
+            // Update all input/select/textarea names and ids
             $row.find('input, select, textarea').each(function () {
                 let $input = $(this);
                 let name = $input.attr('name');
                 let id = $input.attr('id');
 
                 if (name) {
-                    // Replace form-X- with form-currentIndex-
                     name = name.replace(/form-\d+-/, 'form-' + currentIndex + '-');
                     $input.attr('name', name);
                 }
 
                 if (id) {
-                    // Replace id_form-X- with id_form-currentIndex-
                     id = id.replace(/id_form-\d+-/, 'id_form-' + currentIndex + '-');
                     $input.attr('id', id);
                 }
+
+                $row.find('.subcomponent-row').find('input, select, textarea').each(function () {
+                    $input = $(this);
+                    id = $input.attr('id').replace(
+                        /id_subcomponent_form-\d+-/, 'id_subcomponent_form-' + currentIndex + '-');
+                    $input.attr('id', id);
+                });
+
+                $row.find('.subcomponent-container, .add-subcomponent, .remove-subcomponent').each(function () {
+                    $(this).attr('data-form-index', currentIndex);
+                });
             });
 
             // Update labels' for attributes
@@ -381,128 +285,57 @@
                 }
             });
 
-            // Update data-form-index
+            // Update data-form-index and any display counters
             $row.attr('data-form-index', currentIndex);
 
             currentIndex++;
+
+            $row.find('.component-number').text(currentIndex);
         });
 
-        // Update total forms count
+        // 3) Update total forms count
         $('#id_form-TOTAL_FORMS').val(currentIndex);
         formIndex = currentIndex;
-    }
 
-    $(document).on("click", ".restricted-deletion", function () {
-        showToast();
-    });
-
-    // Upload regions file management ---------------------------------------------
-
-    $(document).on("submit", "#formUploadModal", function (e) {
-        e.preventDefault();
-        let $this = $(this);
-        let url = $this.attr("action");
-        $.ajax({
-            type: "post",
-            url: url,
-            data: new FormData($("#formUploadModal").get(0)),
-            cache: false,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                if ($(response).find('.is-invalid').length > 0 || $(response).find('.errorlist').length > 0) {
-                    $("#uploadModal .modal-content").html($(response).find(".modal-content").html());
-                } else {
-                    $("#uploadModal").modal('hide');
-                    let step = $(".timeline-item.active").attr("id");
-                    loadWizardSections(step);
-                    showPopupMessage(response.msg);
-                }
-            },
-            error: function () {
-                alert(error_server_message);
-                enableButton($this);
-            }
+        // 4) Re-initialize select2 for all selects that need it
+        $formsetRow.find('select').each(function () {
+            initSelect2($(this));
         });
-    });
+    }
 
     // Next Step ---------------------------------------------
 
     $(document).on("click", "#next_step", function (e) {
         e.preventDefault();
-        let $this = $(this);
-        $('#popup-messages-content').html('');
         let step = $(".timeline-item.active").attr("id");
         let url = "{% url 'wizard:next_step' 0 %}".replace("0", step);
-        $.ajax({
-            type: "post",
-            url: url,
-            cache: false,
-            processData: false,
-            contentType: false,
-            success: function (response) {
-                $(".timeline-item.pointer").removeClass("active");
-                let step = response.step;
-                $("#" + step).addClass("active");
-                loadWizardSections(response.step);
-            },
-            error: function () {
-                alert(error_server_message);
-                $this.removeClass('disabled').removeAttr('disabled');
-                enableButton($("form"));
-            }
-        });
+        submitNexStep($(this), url)
     });
 
-    // Skip Step ---------------------------------------------
+    // Component formset ---------------------------------------------------
 
-    function initSkipSubmitToggle() {
-        const $formset = $("#form");
-        const skipSubmit = $("#skip_submit");
-
-        if ($formset.length && skipSubmit.length) {
-            function hasAnyValue() {
-                let hasValue = false;
-
-                $formset.find("input, select, textarea").each(function () {
-                    const $field = $(this);
-                    const name = $field.attr("name");
-
-                    // Ignore hidden inputs and unmarked DELETE statements
-                    if ($field.attr("type") === "hidden") return;
-                    if (name && name.endsWith("-DELETE")) {
-                        if ($field.is(":checked")) {
-                            hasValue = true;
-                            return false;
-                        }
-                        return;
-                    }
-
-                    const value = $field.val();
-                    if (value && value.trim() !== "") {
-                        hasValue = true;
-                        return false;
-                    }
-                });
-
-                return hasValue;
-            }
-
-            function toggleSkipSubmit() {
-                if (hasAnyValue()) {
-                    $("#normal_submit").removeClass("d-none");
-                    skipSubmit.addClass("d-none");
-                } else {
-                    $("#normal_submit").addClass("d-none");
-                    skipSubmit.removeClass("d-none");
-                }
-            }
-
-            toggleSkipSubmit();
-
-            $formset.on("input change", "input, select, textarea", toggleSkipSubmit);
+    // Add new component
+    $(document).on('click', '#add-component', function () {
+        if (formIndex >= maxForms) {
+            $('#max-forms-alert').removeClass('d-none');
+            return;
         }
-    }
+
+        let template = $('#empty-form-template').html();
+        template = template.replace(/__prefix__/g, formIndex);
+
+        formIndex++;
+
+        let $newComponent = $(template);
+        $newComponent.find('.component-number').text(formIndex);
+
+        $('#formset-container').append($newComponent);
+        $('#id_form-TOTAL_FORMS').val(formIndex);
+
+        // Focus on the new input
+        $newComponent.find('input[type="text"]').focus();
+    });
+
 </script>
 </body>
 </html>

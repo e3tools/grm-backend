@@ -123,3 +123,16 @@ def get_status_display(value):
 @register.simple_tag
 def get_initials(string):
     return "".join(w[0] for w in string.split(" ") if w).upper()
+
+
+@register.filter
+def get_item(list_obj, index):
+    """
+    Get item from list by index.
+
+    Usage: {{ formset.subformsets|get_item:forloop.counter0 }}
+    """
+    try:
+        return list_obj[int(index)]
+    except (IndexError, ValueError, TypeError, AttributeError):
+        return None

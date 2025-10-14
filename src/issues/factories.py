@@ -147,6 +147,9 @@ class ComponentFactory(DjangoModelFactory):
     class Meta:
         model = Component
 
+    name = factory.Sequence(lambda n: f"Component {n}")
+    description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
+
 
 class SubComponentFactory(DjangoModelFactory):
     """Factory for creating SubComponent instances for testing."""
@@ -154,6 +157,8 @@ class SubComponentFactory(DjangoModelFactory):
     class Meta:
         model = SubComponent
 
+    name = factory.Sequence(lambda n: f"Subcomponent {n}")
+    description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
     parent = factory.SubFactory(ComponentFactory)
 
 

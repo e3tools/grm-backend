@@ -23,6 +23,7 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
     CATEGORY_TOAST_ERROR_MESSAGE,
     COMPLETED_CHOICE,
+    COMPONENT_TOAST_ERROR_MESSAGE,
     DEPARTMENT_TOAST_ERROR_MESSAGE,
     GROUP_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
@@ -35,11 +36,13 @@ from issues.models import (
     Citizen,
     CitizenAgeGroup,
     CitizenGroup,
+    Component,
     Issue,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
+    SubComponent,
 )
 from wizard.forms import (
     DEFAULT_CITIZEN_AGE_GROUPS,
@@ -47,13 +50,16 @@ from wizard.forms import (
     AdministrativeLevelFormSet,
     ExistingCitizenAgeGroupFormSet,
     ExistingCitizenGroupFormSet,
+    ExistingComponentFormSet,
     ExistingIssueStatusFormSet,
     IssueCategoryFormSet,
     IssueDepartmentFormSet,
     NewCitizenAgeGroupFormSet,
     NewCitizenGroupFormSet,
+    NewComponentFormSet,
     NewIssueStatusFormSet,
     ProjectForm,
+    SubComponentFormSet,
     UploadAdministrativeRegionForm,
 )
 from wizard.models import WizardSection
@@ -460,6 +466,83 @@ class CitizenGroupsFormView(WizardFormView):
         return context
 
 
+class ComponentAndSubComponentFormView(WizardFormView):
+    form_class = NewComponentFormSet
+    template_name = "wizard/nested_formset.html"
+    step = 9
+
+    def get_form(self, form_class=None):
+        """Get the appropriate formset with subformsets and restricted_deletion annotations."""
+
+        # Annotate Components with restricted_deletion
+        queryset = Component.objects.annotate(
+            # Check if Component is directly referenced by Issues
+            restricted_deletion=Exists(Issue.objects.filter(component=OuterRef("pk")))
+        )
+
+        if queryset.exists():
+            self.form_class = ExistingComponentFormSet
+
+        formset = self.form_class(queryset=queryset, **self.get_form_kwargs())
+
+        used_subcomponents = SubComponent.objects.filter(issues__isnull=False).distinct().values_list('id', flat=True)
+
+        # Initialize subformsets with POST data if available
+        if self.request.method == 'POST':
+            # Annotate SubComponents with restricted_deletion
+            subcomponents_queryset = SubComponent.objects.annotate(
+                restricted_deletion=Exists(Issue.objects.filter(sub_component=OuterRef("pk")))
+            )
+            formset.subformsets = []
+            for i, form in enumerate(formset.forms):
+                if form.instance.pk:
+                    qs = subcomponents_queryset.filter(parent=form.instance)
+                else:
+                    qs = subcomponents_queryset.none()
+
+                subformset = SubComponentFormSet(
+                    self.request.POST,
+                    instance=form.instance if form.instance.pk else None,
+                    queryset=qs,
+                    prefix=f'subcomponent_form-{i}',
+                )
+                # Link parent form for validation context
+                for subform in subformset.forms:
+                    subform.parent_form = form
+                    subform.restricted_deletion = subform.instance.id in used_subcomponents
+                formset.subformsets.append(subformset)
+        else:
+            # Link parent forms for GET requests too
+            for form, subformset in zip(formset.forms, formset.subformsets):
+                for subform in subformset.forms:
+                    subform.parent_form = form
+                    subform.restricted_deletion = subform.instance.id in used_subcomponents
+
+        return formset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['formset'] = context['form']
+        context["formset_label"] = _("Components and Subcomponents")
+        context["toast_title"] = NOT_PERMITTED_TEXT
+        context["toast_message"] = COMPONENT_TOAST_ERROR_MESSAGE
+        return context
+
+    def form_valid(self, formset):
+        """Save components and their subcomponents."""
+        instances = formset.save(commit=False)
+
+        # Save each component and its subcomponents
+        for instance in instances:
+            instance.save()
+
+        # Handle deleted components
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+        return super().form_valid(formset)
+
+
 class FeedbackAndAppealFormView(WizardFormView):
     template_name = "wizard/example.html"
-    step = 9
+    step = 10
