@@ -332,22 +332,22 @@ class IssueStatusForm(forms.ModelForm):
 ISSUE_STATUS_DEFINITIONS = {
     'initial_status': {
         'name': _('Created'),
-        'label': _('Represents the starting point of the issue.'),
+        'label': _('Represents the starting point of the issue'),
         "help_text": _("This status indicates that the issue has just been created or initiated."),
     },
     'open_status': {
         'name': _('Open'),
-        "label": _("Denotes that the issue is actively being worked on or is pending resolution."),
+        "label": _("Denotes that the issue is actively being worked on or is pending resolution"),
         "help_text": "",
     },
     'rejected_status': {
         'name': _('Rejected'),
-        "label": _("Indicates that the issue has been reviewed and rejected."),
+        "label": _("Indicates that the issue has been reviewed and rejected"),
         "help_text": _("This status is used when the issue is deemed invalid or unnecessary."),
     },
     'final_status': {
         'name': _('Resolved'),
-        "label": _("Marks the resolution or closure of the issue."),
+        "label": _("Marks the resolution or closure of the issue"),
         "help_text": _("This status signifies that the issue has been successfully completed or resolved."),
     },
 }

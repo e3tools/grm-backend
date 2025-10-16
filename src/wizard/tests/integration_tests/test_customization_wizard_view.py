@@ -44,7 +44,7 @@ class CustomizationWizardViewTest(ViewTestCase):
 
         response = self.get(self.url)
 
-        # No section is in progress or receiving a step parameter → current_step should equal total_steps
+        # No section is in progress or receiving a step parameter → current_step should be equal to the last step
         self.assertEqual(response.context["current_step"], 5)
 
         # Mark one section as IN_PROGRESS and test again

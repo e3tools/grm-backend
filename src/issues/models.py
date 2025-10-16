@@ -41,6 +41,11 @@ class AdministrativeLevel(models.Model):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_regions_summary(cls):
+        """Returns a summary of regions by administrative level."""
+        return cls.objects.annotate(region_count=Count("regions")).order_by("id").values("id", "name", "region_count")
+
 
 class AdministrativeRegion(models.Model):
     name = models.CharField(max_length=255, db_index=True)
@@ -297,7 +302,9 @@ class IssueCategory(models.Model):
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_escalation_categories'
     )
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
-    confidentiality_level = models.SlugField(default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES)
+    confidentiality_level = models.SlugField(
+        default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES, verbose_name=_("Confidentiality level")
+    )
     redirection_protocol = models.SlugField(
         default=FEWER_ISSUES_CHOICE, choices=REDIRECTION_PROTOCOL_CHOICES, verbose_name=_("Redirection protocol")
     )

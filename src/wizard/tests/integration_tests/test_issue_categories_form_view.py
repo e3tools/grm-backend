@@ -59,7 +59,6 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 5)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
         self.assertEqual(response.context["formset_label"], "Categories")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], CATEGORY_TOAST_ERROR_MESSAGE)

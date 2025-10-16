@@ -1,0 +1,74 @@
+{% load i18n %}
+
+<div class="card-header border-0">
+	<div class="card-title">
+		<div class="pt-1 fs20 lh25 text-bold-family">
+			{{ card_title }}
+		</div>
+	</div>
+</div>
+<div class="card-body">
+	{% for section in summary %}
+		<div class="mb-3 border-bottom border-dark">
+			<h6 class="text-bold-family">
+				{{ section.title }}
+			</h6>
+			{% for item in section.data %}
+				<div class="border-bottom ">
+					{% for field in item.fields %}
+						<div class="mt-2">
+							<label>{{ field.label }}:</label> {{ field.value }}
+						</div>
+					{% endfor %}
+					{% if item.subcomponents %}
+						<div class="mt-3 pl-4 border-left">
+							<div class="text-muted">{% translate "Subcomponents" %}</div>
+							{% for subcomponent in item.subcomponents %}
+								<div class="border-bottom">
+									{% for field in subcomponent.fields %}
+										<div class="mt-2">
+											<label>{{ field.label }}:</label> {{ field.value }}
+										</div>
+									{% endfor %}
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			{% endfor %}
+			{% if section.regions_summary %}
+				<table class="table">
+					<thead class="primary">
+					<tr>
+						<th>{% translate "Administrative Level" %}</th>
+						<th>{% translate "Number of Instances" %}</th>
+					</tr>
+					</thead>
+					<tbody>
+					{% for level in section.regions_summary %}
+						<tr>
+							<td>{{ level.name }}</td>
+							<td>{{ level.region_count }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="2">{% translate "No administrative levels found." %}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			{% endif %}
+		</div>
+	{% endfor %}
+</div>
+<div class="card-footer mb-2">
+	<button id="final_step" class="btn btn-primary btn-sm rounded-xl float-right 
+	disabled-on-submit {% if disabled_submit %}disabled{% endif %}">
+		{% translate "Save and Finish" %}
+	</button>
+	<button id="previous_step" data-step="{{ step }}" class="btn btn-secondary 
+	btn-sm rounded-xl float-right mr-4 disabled-on-submit">
+		<i class="fa fa-chevron-left mr-2"></i>
+		{% translate "Previous" %}
+	</button>
+</div>

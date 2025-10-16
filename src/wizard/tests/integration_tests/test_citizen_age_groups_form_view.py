@@ -51,7 +51,6 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 7)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
         self.assertEqual(response.context["formset_label"], "Citizen Age Groups")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], GROUP_TOAST_ERROR_MESSAGE)

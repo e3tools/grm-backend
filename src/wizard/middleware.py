@@ -1,6 +1,7 @@
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
+from django.utils.deprecation import MiddlewareMixin
 
 from wizard.models import WizardSection
 
@@ -32,9 +33,8 @@ class WizardRedirectMiddleware:
 
         # Wizard complete
         if WizardSection.wizard_setup_is_completed():
-            if request.user.is_authenticated and not request.user.grm_manager:
-                if request.path == self.customization_url:
-                    raise Http404()
+            if request.path == self.customization_url:
+                raise Http404()
         else:
             # Wizard incomplete
             if request.user.is_authenticated and request.user.grm_manager:
@@ -45,3 +45,20 @@ class WizardRedirectMiddleware:
                     raise Http404()
 
         return self.get_response(request)
+
+
+class DisableWizardCacheMiddleware(MiddlewareMixin):
+    """
+    Middleware that disables browser caching for all wizard URLs.
+    This ensures that when the user presses the Back button,
+    the browser must re-fetch the page, allowing other middleware
+    (like WizardRedirectMiddleware) to enforce logic.
+    """
+
+    def process_response(self, request, response):
+        resolver = resolve(request.path_info)
+        if "wizard" in resolver.namespace:
+            response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            response["Pragma"] = "no-cache"
+            response["Expires"] = "0"
+        return response

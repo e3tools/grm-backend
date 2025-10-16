@@ -16,6 +16,7 @@ class TestWizardRedirectMiddleware(TestCase):
         self.customization_url = reverse("wizard:customization_wizard")
         self.login_url = reverse("dashboard:authentication:login")
         self.logout_url = reverse("dashboard:authentication:logout")
+        self.dashboard = reverse("dashboard:diagnostics:home")
 
     def test_login_url_is_accessible_for_unauthenticated_user(self):
         """Login page should always be accessible when unauthenticated."""
@@ -42,12 +43,23 @@ class TestWizardRedirectMiddleware(TestCase):
         resp = self.client.get(self.customization_url)
         assert resp.status_code == 404
 
+    def test_wizard_url_raises_404_for_all_users_if_wizard_complete(self):
+        """All types of users get 404 if wizard is complete."""
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
+        self.client.force_login(self.normal_user)
+        resp = self.client.get(self.customization_url)
+        assert resp.status_code == 404
+
+        self.client.force_login(self.grm_manager_user)
+        resp = self.client.get(self.customization_url)
+        assert resp.status_code == 404
+
     def test_other_dashboard_url_redirects_if_wizard_incomplete(self):
         """Other dashboard URLs should redirect to wizard if wizard is missing or incomplete."""
         self.client.force_login(self.grm_manager_user)
 
         # No WizardSession created yet → considered incomplete
-        resp = self.client.get(reverse("dashboard:diagnostics:home"))
+        resp = self.client.get(self.dashboard)
         assert resp.status_code == 302
         assert resp.url == self.customization_url
 
@@ -56,7 +68,7 @@ class TestWizardRedirectMiddleware(TestCase):
         self.client.force_login(self.grm_manager_user)
         WizardSection.objects.update(status=COMPLETED_CHOICE)
 
-        resp = self.client.get(reverse("dashboard:diagnostics:home"))
+        resp = self.client.get(self.dashboard)
         assert resp.status_code == 200
 
     def test_other_dashboard_url_accessible_for_non_grm_manager_if_wizard_complete(self):
@@ -64,13 +76,13 @@ class TestWizardRedirectMiddleware(TestCase):
         self.client.force_login(self.normal_user)
         WizardSection.objects.update(status=COMPLETED_CHOICE)
 
-        resp = self.client.get(reverse("dashboard:diagnostics:home"))
+        resp = self.client.get(self.dashboard)
         assert resp.status_code == 200
 
     def test_other_dashboard_url_raises_404_for_non_grm_manager_if_wizard_incomplete(self):
         """Non-GRM managers get 404 if wizard is incomplete."""
         self.client.force_login(self.normal_user)
-        resp = self.client.get(reverse("dashboard:diagnostics:home"))
+        resp = self.client.get(self.dashboard)
         assert resp.status_code == 404
 
     def test_urls_outside_dashboard_are_not_restricted(self):
