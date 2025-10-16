@@ -85,7 +85,6 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/regions.html")
         self.assertIn("form", response.context)
         self.assertEqual(response.context["step"], 3)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
         self.assertIn("regions_summary", response.context)
         regions_summary = [
             {'id': level.id, 'name': level.name, 'region_count': 0} for level in AdministrativeLevel.objects.all()

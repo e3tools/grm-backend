@@ -13,4 +13,4 @@ class WizardSectionFactory(DjangoModelFactory):
     class Meta:
         model = WizardSection
 
-    name = factory.Sequence(lambda n: f"WizardSection {n}")
+    name = factory.Sequence(lambda n: f"section_{n}")

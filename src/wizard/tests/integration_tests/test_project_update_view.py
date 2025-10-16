@@ -41,11 +41,10 @@ class ProjectUpdateViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/form.html")
 
-    def test_get_context_contains_step_and_total_steps(self):
+    def test_get_context_contains_step(self):
         """Test that context includes step and total steps."""
         response = self.get(self.url, ajax=True)
         self.assertEqual(response.context["step"], 1)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
 
     def test_post_creates_new_project_and_updates_sections(self):
         """Test that POST request creates a new project and updates sections."""

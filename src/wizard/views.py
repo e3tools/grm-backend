@@ -2,7 +2,8 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Exists, OuterRef, Q
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Exists, OuterRef, Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -21,14 +22,27 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
+    ADMINISTRATIVE_LEVELS_DISPLAY,
+    ADMINISTRATIVE_REGIONS_DISPLAY,
+    CATEGORIES_DISPLAY,
     CATEGORY_TOAST_ERROR_MESSAGE,
+    CITIZEN_AGE_GROUPS_DISPLAY,
+    CITIZEN_GROUPS_DISPLAY,
     COMPLETED_CHOICE,
     COMPONENT_TOAST_ERROR_MESSAGE,
+    COMPONENTS_DISPLAY,
     DEPARTMENT_TOAST_ERROR_MESSAGE,
+    DEPARTMENTS_DISPLAY,
     GROUP_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
+    ISSUE_STATUS_DISPLAY,
+    MAP_CITIZEN_GROUP,
+    MAP_CONFIDENTIALITY_LEVEL,
+    MAP_REDIRECTION_PROTOCOL,
     NOT_PERMITTED_TEXT,
     NOT_STARTED_CHOICE,
+    PROJECT_DISPLAY,
+    SUMMARY_DISPLAY,
 )
 from issues.models import (
     AdministrativeLevel,
@@ -108,7 +122,7 @@ class WizardFormView(LoginRequiredAndAJAXRequestMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['step'] = self.step
-        context['total_steps'] = WizardSection.objects.count()
+        context['card_title'] = _("Configuration Options")
         return context
 
     def get_success_url(self):
@@ -238,18 +252,10 @@ class AdministrativeRegionFormView(JSONResponseMixin, WizardFormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["regions_summary"] = self.get_regions_summary()
+        context["regions_summary"] = AdministrativeLevel.get_regions_summary()
         current_section = WizardSection.objects.all()[self.step - 1]
         context["section_status"] = current_section.status
         return context
-
-    def get_regions_summary(self):
-        """Returns a summary of regions by administrative level."""
-        return (
-            AdministrativeLevel.objects.annotate(region_count=Count("regions"))
-            .order_by("id")
-            .values("id", "name", "region_count")
-        )
 
     def form_valid(self, form):
         file = form.cleaned_data["file"]
@@ -318,9 +324,10 @@ class NextStepView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, View):
         sections = WizardSection.objects.all()
         current_section = sections[step - 1]
         if current_section.status == COMPLETED_CHOICE:
-            updated = WizardSection.objects.filter(id=current_section.id + 1).update(status=IN_PROGRESS_CHOICE)
-            if updated:
-                step += 1
+            WizardSection.objects.filter(id=current_section.id + 1, status=NOT_STARTED_CHOICE).update(
+                status=IN_PROGRESS_CHOICE
+            )
+            step += 1
         return self.render_to_json_response({"step": step}, safe=False)
 
 
@@ -543,6 +550,220 @@ class ComponentAndSubComponentFormView(WizardFormView):
         return super().form_valid(formset)
 
 
-class FeedbackAndAppealFormView(WizardFormView):
-    template_name = "wizard/example.html"
+class SummaryView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, TemplateView):
+    template_name = "wizard/summary.html"
     step = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['step'] = self.step
+        context['card_title'] = SUMMARY_DISPLAY
+        context['disabled_submit'] = self._is_submit_disabled()
+        context['summary'] = self._build_summary()
+        return context
+
+    def _is_submit_disabled(self):
+        """Check if all previous steps are completed."""
+        sections = WizardSection.objects.all()
+        current_section = sections[self.step - 1]
+        return WizardSection.objects.exclude(id=current_section.id).exclude(status=COMPLETED_CHOICE).exists()
+
+    def _build_summary(self):
+        """Build complete summary data for all steps."""
+        return [
+            self._get_project_summary(),
+            self._get_administrative_levels_summary(),
+            self._get_administrative_regions_summary(),
+            self._get_departments_summary(),
+            self._get_categories_summary(),
+            self._get_issue_status_summary(),
+            self._get_citizen_age_groups_summary(),
+            self._get_citizen_groups_summary(),
+            self._get_components_summary(),
+        ]
+
+    @staticmethod
+    def _get_project_summary():
+        """Get project information summary (Step 1)."""
+        project = Project.objects.first()
+        return {
+            "title": PROJECT_DISPLAY,
+            "data": [
+                {
+                    "fields": [
+                        {"label": _("Name"), "value": project.name if project else ""},
+                        {"label": _("Description"), "value": project.description if project else ""},
+                    ]
+                }
+            ],
+        }
+
+    @staticmethod
+    def _get_administrative_levels_summary():
+        """Get administrative levels summary (Step 2)."""
+        data = [{"fields": [{"label": _("Name"), "value": level.name}]} for level in AdministrativeLevel.objects.all()]
+        return {"title": ADMINISTRATIVE_LEVELS_DISPLAY, "data": data}
+
+    @staticmethod
+    def _get_administrative_regions_summary():
+        """Get administrative regions summary (Step 3)."""
+        return {
+            "title": ADMINISTRATIVE_REGIONS_DISPLAY,
+            "regions_summary": AdministrativeLevel.get_regions_summary(),
+        }
+
+    @staticmethod
+    def _get_departments_summary():
+        """Get departments summary (Step 4)."""
+        departments = (
+            IssueDepartmentAdministrativeLevel.objects.values('department__name')
+            .annotate(administrative_levels=ArrayAgg('administrative_level__name', distinct=True))
+            .order_by('department__name')
+        )
+
+        data = [
+            {
+                "fields": [
+                    {"label": _("Name"), "value": dept["department__name"]},
+                    {"label": _("Administrative levels"), "value": ', '.join(dept["administrative_levels"])},
+                ]
+            }
+            for dept in departments
+        ]
+
+        return {"title": DEPARTMENTS_DISPLAY, "data": data}
+
+    @staticmethod
+    def _get_categories_summary():
+        """Get issue categories summary (Step 5)."""
+        categories = IssueCategory.objects.select_related(
+            'parent',
+            'assigned_department__department',
+            'assigned_appeal_department__department',
+            'assigned_escalation_department__department',
+        )
+
+        data = [
+            {
+                "fields": [
+                    {"label": _("Name"), "value": cat.name},
+                    {"label": _("Abbreviation"), "value": cat.abbreviation},
+                    {"label": _("Subtype"), "value": cat.parent.name if cat.parent else ""},
+                    {"label": _("Department"), "value": cat.assigned_department.department.name},
+                    {"label": _("Appeal department"), "value": cat.assigned_appeal_department.department.name},
+                    {"label": _("Escalation department"), "value": cat.assigned_escalation_department.department.name},
+                    {
+                        "label": _("Confidentiality level"),
+                        "value": MAP_CONFIDENTIALITY_LEVEL.get(cat.confidentiality_level, ""),
+                    },
+                    {
+                        "label": _("Redirection protocol"),
+                        "value": MAP_REDIRECTION_PROTOCOL.get(cat.redirection_protocol, ""),
+                    },
+                ]
+            }
+            for cat in categories
+        ]
+
+        return {"title": CATEGORIES_DISPLAY, "data": data}
+
+    def _get_issue_status_summary(self):
+        """Get issue status summary (Step 6)."""
+        status_fields = []
+        for status in IssueStatus.objects.all():
+            label = self._get_status_label(status)
+            status_fields.append({"label": label, "value": status.name})
+
+        return {"title": ISSUE_STATUS_DISPLAY, "data": [{"fields": status_fields}]}
+
+    @staticmethod
+    def _get_status_label(status):
+        """Determine the label for a status based on its flags."""
+        for flag in ('initial_status', 'open_status', 'rejected_status', 'final_status'):
+            if getattr(status, flag, False):
+                return ISSUE_STATUS_DEFINITIONS.get(flag, {}).get('label', '')
+        return ''
+
+    @staticmethod
+    def _get_citizen_age_groups_summary():
+        """Get citizen age groups summary (Step 7)."""
+        data = [{"fields": [{"label": _("Name"), "value": group.name}]} for group in CitizenAgeGroup.objects.all()]
+
+        return {"title": CITIZEN_AGE_GROUPS_DISPLAY, "data": data}
+
+    @staticmethod
+    def _get_citizen_groups_summary():
+        """Get citizen groups summary (Step 8)."""
+        data = [
+            {
+                "fields": [
+                    {"label": _("Name"), "value": group.name},
+                    {"label": _("Type"), "value": MAP_CITIZEN_GROUP.get(group.type, "")},
+                ]
+            }
+            for group in CitizenGroup.objects.all()
+        ]
+
+        return {"title": CITIZEN_GROUPS_DISPLAY, "data": data}
+
+    @staticmethod
+    def _get_components_summary():
+        """Get components and subcomponents summary (Step 9)."""
+        components = Component.objects.prefetch_related('subcomponent_set')
+
+        data = [
+            {
+                "fields": [
+                    {"label": _("Name"), "value": component.name},
+                    {"label": _("Description"), "value": component.description},
+                ],
+                "subcomponents": [
+                    {
+                        "fields": [
+                            {"label": _("Name"), "value": sub.name},
+                            {"label": _("Description"), "value": sub.description},
+                        ]
+                    }
+                    for sub in component.subcomponent_set.all()
+                ],
+            }
+            for component in components
+        ]
+
+        return {"title": COMPONENTS_DISPLAY, "data": data}
+
+    def post(self, request, *args, **kwargs):
+        """Handle summary completion and wizard finalization."""
+        if self._can_complete_setup():
+            self._mark_setup_complete()
+            redirect_url = reverse("dashboard:diagnostics:home")
+            message_context = {}
+        else:
+            redirect_url = None
+            messages.error(
+                request,
+                _("The setup cannot be completed until all previous steps are completed."),
+                extra_tags="danger",
+            )
+            message_context = {"msg": render(request, "common/messages.html").content.decode("utf-8")}
+
+        context = {
+            **message_context,
+            "redirect_url": redirect_url,
+        }
+        return self.render_to_json_response(context, safe=False)
+
+    def _can_complete_setup(self):
+        """Check if all required steps are completed."""
+        sections = WizardSection.objects.all()
+        current_section = sections[self.step - 1]
+
+        completed_count = WizardSection.objects.exclude(id=current_section.id).filter(status=COMPLETED_CHOICE).count()
+
+        return completed_count == len(sections) - 1
+
+    def _mark_setup_complete(self):
+        """Mark the current wizard section as completed."""
+        sections = WizardSection.objects.all()
+        current_section = sections[self.step - 1]
+        WizardSection.objects.filter(id=current_section.id).update(status=COMPLETED_CHOICE)

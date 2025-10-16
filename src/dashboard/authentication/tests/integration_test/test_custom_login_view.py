@@ -5,7 +5,7 @@ from django.urls import reverse
 from authentication.factories import UserFactory
 from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import DashboardTestCase
-from wizard.factories import WizardSectionFactory
+from wizard.models import WizardSection
 
 
 @pytest.mark.django_db
@@ -18,9 +18,6 @@ class CustomLoginViewTest(DashboardTestCase):
         self.url = reverse("dashboard:authentication:login")
 
     def test_grm_manager_can_login_even_if_wizard_incomplete(self):
-        # wizard not complete
-        WizardSectionFactory(status=NOT_STARTED_CHOICE)
-
         resp = self.post(
             self.url,
             {"username": self.grm_manager_user.email, "password": "pass123"},
@@ -34,7 +31,7 @@ class CustomLoginViewTest(DashboardTestCase):
 
     def test_normal_user_blocked_if_wizard_incomplete(self):
         # wizard not complete
-        WizardSectionFactory(status=NOT_STARTED_CHOICE)
+        WizardSection.objects.update(status=NOT_STARTED_CHOICE)
 
         resp = self.post(
             self.url,
@@ -50,7 +47,7 @@ class CustomLoginViewTest(DashboardTestCase):
 
     def test_normal_user_can_login_if_wizard_complete(self):
         # wizard complete
-        WizardSectionFactory(status=COMPLETED_CHOICE)
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
 
         resp = self.post(
             self.url,

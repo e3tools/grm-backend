@@ -1,10 +1,15 @@
 from django.db import models
 
-from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE, STATUS_CHOICES
+from grm.constants import (
+    COMPLETED_CHOICE,
+    NOT_STARTED_CHOICE,
+    STATUS_CHOICES,
+    WIZARD_SECTION_CHOICES,
+)
 
 
 class WizardSection(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.SlugField(max_length=255, unique=True, choices=WIZARD_SECTION_CHOICES)
     prompt = models.TextField(null=True, blank=True)
     status = models.SlugField(choices=STATUS_CHOICES, default=NOT_STARTED_CHOICE)
     updated_at = models.DateTimeField(auto_now=True)

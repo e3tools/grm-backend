@@ -1,7 +1,15 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
+from grm.constants import (
+    ADMINISTRATIVE_LEVELS_CHOICE,
+    ADMINISTRATIVE_REGIONS_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    MAP_WIZARD_SECTION,
+    NOT_STARTED_CHOICE,
+    PROJECT_CHOICE,
+)
 from grm.tests.base import ViewTestCase
 from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
@@ -19,9 +27,9 @@ class WizardSectionListViewTest(ViewTestCase):
         WizardSection.objects.all().delete()
 
         # Create test wizard sections
-        self.section1 = WizardSectionFactory(status=COMPLETED_CHOICE)
-        self.section2 = WizardSectionFactory(status=IN_PROGRESS_CHOICE)
-        self.section3 = WizardSectionFactory(status=NOT_STARTED_CHOICE)
+        self.section1 = WizardSectionFactory(status=COMPLETED_CHOICE, name=PROJECT_CHOICE)
+        self.section2 = WizardSectionFactory(status=IN_PROGRESS_CHOICE, name=ADMINISTRATIVE_LEVELS_CHOICE)
+        self.section3 = WizardSectionFactory(status=NOT_STARTED_CHOICE, name=ADMINISTRATIVE_REGIONS_CHOICE)
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -40,9 +48,9 @@ class WizardSectionListViewTest(ViewTestCase):
         response = self.get(self.url, data={"step": 1}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.section1.name)
-        self.assertContains(response, self.section2.name)
-        self.assertContains(response, self.section3.name)
+        self.assertContains(response, MAP_WIZARD_SECTION.get(self.section1.name))
+        self.assertContains(response, MAP_WIZARD_SECTION.get(self.section2.name))
+        self.assertContains(response, MAP_WIZARD_SECTION.get(self.section3.name))
 
     def test_non_ajax_request_returns_404(self):
         """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
@@ -114,25 +122,6 @@ class WizardSectionListViewTest(ViewTestCase):
         self.assertTrue(hasattr(first_section, "name"))
         self.assertTrue(hasattr(first_section, "status"))
         self.assertTrue(hasattr(first_section, "updated_at"))
-
-    def test_section_with_special_characters(self):
-        """Test handling of sections with special characters."""
-        section_name = "Section with Special Characters: @#$%^&*()"
-        WizardSectionFactory(name=section_name, status=IN_PROGRESS_CHOICE)
-
-        response = self.get(self.url, data={"step": 1}, ajax=True)
-
-        self.assertEqual(response.status_code, 200)
-
-        # Check that special characters are properly escaped in HTML
-        # & becomes &amp; in HTML output
-        expected_name = "Section with Special Characters: @#$%^&amp;*()"
-        self.assertIn(expected_name.encode(), response.content)
-
-        # Also verify the section is in the context with original name
-        wizard_sections = response.context["wizard_sections"]
-        section_names = [section.name for section in wizard_sections]
-        self.assertIn(section_name, section_names)
 
     def test_response_content_type(self):
         """Test that response has correct content type."""

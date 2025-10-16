@@ -2,6 +2,13 @@
 
 {% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
 
+<div class="card-header border-0">
+	<div class="card-title">
+		<div class="pt-1 fs20 lh25 text-bold-family">
+			{{ card_title }}
+		</div>
+	</div>
+</div>
 <form id="form" enctype="multipart/form-data" class="d-flex flex-column h-100">
 	{% csrf_token %}
 	<div class="card-body flex-grow-1">
@@ -85,11 +92,7 @@
 	<div class="card-footer mb-2 mt-auto">
 		<button id="normal_submit" type="submit" class="btn btn-primary btn-sm rounded-xl 
 		float-right {% if skip %}d-none{% endif %}">
-			{% if step == total_steps %}
-				{% translate "Save" %}
-			{% else %}
-				{% translate "Next" %}
-			{% endif %}
+			{% translate "Next" %}
 		</button>
 		{% if skip %}
 			<button id="skip_submit" type="submit" class="btn btn-primary btn-sm rounded-xl 

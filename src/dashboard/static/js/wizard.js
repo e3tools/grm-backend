@@ -34,6 +34,7 @@ $(document).ajaxSuccess(function () {
 });
 
 function submitForm($this, url, step, data) {
+    $('#popup-messages-content').html('');
     $.ajax({
         type: "post",
         url: url,
@@ -66,6 +67,7 @@ function submitForm($this, url, step, data) {
 }
 
 $(document).on("click", ".timeline-item.pointer", function () {
+    $('#popup-messages-content').html('');
     $(".timeline-item.pointer").removeClass("active");
     $(this).addClass("active");
     loadWizardSectionForm($('#formAjax'));
@@ -293,3 +295,26 @@ $(document).on('click', '.remove-subcomponent', function () {
 
     $(this).closest('.subcomponent-row').remove();
 });
+
+// Final Step ---------------------------------------------
+
+function submitFinalStep($this, url) {
+    $.ajax({
+        type: "post",
+        url: url,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            if (response.redirect_url) {
+                window.location.href = response.redirect_url;
+            } else {
+                showPopupMessage(response.msg);
+            }
+        },
+        error: function () {
+            alert(error_server_message);
+            $this.removeClass('disabled').removeAttr('disabled');
+        }
+    });
+}

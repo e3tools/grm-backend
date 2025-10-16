@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("wizard", "0003_create_default_wizardsections"),
+        ("wizard", "0002_wizardsection_delete_wizardsession"),
     ]
 
     operations = [

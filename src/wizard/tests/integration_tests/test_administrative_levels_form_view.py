@@ -54,7 +54,6 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 2)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
         self.assertEqual(response.context["formset_label"], "Administrative Level Names")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
         self.assertEqual(response.context["toast_message"], ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE)

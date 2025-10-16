@@ -59,19 +59,18 @@ class NextStepViewTest(ViewTestCase):
         self.sections[1].refresh_from_db()
         self.assertEqual(self.sections[1].status, IN_PROGRESS_CHOICE)
 
-    def test_post_with_last_completed_section_does_not_break(self):
+    def test_post_with_next_step_completed_the_status_does_not_change(self):
         """
-        If the last section is completed, there is no next step to update,
-        so the view should safely return the same step.
+        If the next step is completed, its status should not be changed to in_progress.
         """
         # Mark all sections as completed
         WizardSection.objects.update(status=COMPLETED_CHOICE)
-        last_step = len(self.sections)
 
-        response = self.post(self.url(last_step), {}, ajax=True)
+        current_step = 1
+        response = self.post(self.url(current_step), {}, ajax=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {"step": last_step})
+        self.assertJSONEqual(response.content, {"step": current_step + 1})
 
         # No section should be changed to IN_PROGRESS
         self.assertFalse(WizardSection.objects.filter(status=IN_PROGRESS_CHOICE).exists())

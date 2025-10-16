@@ -40,7 +40,6 @@ class ResolutionProcessFormViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/static_formset.html")
         self.assertIn("formset", response.context)
         self.assertEqual(response.context["step"], 6)
-        self.assertEqual(response.context["total_steps"], WizardSection.objects.count())
         self.assertEqual(response.context["formset_label"], "Issue Status")
 
     def test_post_updates_existing_statuses(self):
