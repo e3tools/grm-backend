@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-16 14:08+0000\n"
+"POT-Creation-Date: 2025-10-17 13:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -79,9 +79,9 @@ msgstr "Travailleurs du Gouvernement"
 #: issues/models.py:33 issues/models.py:60 issues/models.py:170
 #: issues/models.py:189 issues/models.py:206 issues/models.py:227
 #: issues/models.py:246 issues/models.py:261 issues/models.py:276
-#: issues/models.py:310 issues/models.py:328 issues/models.py:346
-#: issues/models.py:364 issues/models.py:392 issues/models.py:613
-#: issues/models.py:647
+#: issues/models.py:311 issues/models.py:329 issues/models.py:347
+#: issues/models.py:365 issues/models.py:393 issues/models.py:614
+#: issues/models.py:648
 msgid "Created at"
 msgstr "Créé à"
 
@@ -89,9 +89,9 @@ msgstr "Créé à"
 #: issues/models.py:34 issues/models.py:61 issues/models.py:171
 #: issues/models.py:190 issues/models.py:207 issues/models.py:228
 #: issues/models.py:247 issues/models.py:262 issues/models.py:277
-#: issues/models.py:311 issues/models.py:329 issues/models.py:347
-#: issues/models.py:365 issues/models.py:393 issues/models.py:456
-#: issues/models.py:614 issues/models.py:648
+#: issues/models.py:312 issues/models.py:330 issues/models.py:348
+#: issues/models.py:366 issues/models.py:394 issues/models.py:457
+#: issues/models.py:615 issues/models.py:649
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -103,11 +103,11 @@ msgstr "L'animateur"
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/models.py:138 issues/models.py:396
+#: authentication/models.py:138 issues/models.py:397
 msgid "Citizen"
 msgstr "Citoyen"
 
-#: authentication/models.py:139 issues/models.py:397
+#: authentication/models.py:139 issues/models.py:398
 msgid "Citizens"
 msgstr "Citoyens"
 
@@ -174,10 +174,10 @@ msgstr "Réinitialisation du mot de passe terminée"
 #: dashboard/adls/forms.py:24 dashboard/models.py:6
 #: dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:75 issues/models.py:244
-#: issues/models.py:293 issues/models.py:362 wizard/forms.py:39
-#: wizard/views.py:590 wizard/views.py:600 wizard/views.py:629
-#: wizard/views.py:654 wizard/views.py:698 wizard/views.py:713
-#: wizard/views.py:733 wizard/views.py:739
+#: issues/models.py:293 issues/models.py:363 wizard/forms.py:39
+#: wizard/views.py:594 wizard/views.py:604 wizard/views.py:627
+#: wizard/views.py:649 wizard/views.py:690 wizard/views.py:700
+#: wizard/views.py:717 wizard/views.py:723
 msgid "Name"
 msgstr "Nom"
 
@@ -483,7 +483,7 @@ msgstr "Journaux"
 
 #: dashboard/models.py:7
 #: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:46
-#: wizard/views.py:591 wizard/views.py:734 wizard/views.py:740
+#: wizard/views.py:595 wizard/views.py:718 wizard/views.py:724
 msgid "Description"
 msgstr "La description"
 
@@ -523,7 +523,7 @@ msgstr "Exporter la liste complète"
 #: dashboard/templates/adls/list.html:23
 #: dashboard/templates/adls/profile.html:40 issues/models.py:37
 #: wizard/templates/wizard/regions.html:31
-#: wizard/templates/wizard/summary.html:43
+#: wizard/templates/wizard/summary.html:48
 msgid "Administrative Level"
 msgstr "Niveau Administratif"
 
@@ -652,7 +652,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:652
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:653
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -771,8 +771,8 @@ msgstr "Pourcentage"
 #: dashboard/templates/diagnostics/home.html:198
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:55
-#: dashboard/templates/grm/review_issues.html:254 issues/models.py:363
-#: wizard/views.py:714
+#: dashboard/templates/grm/review_issues.html:254 issues/models.py:364
+#: wizard/views.py:701
 msgid "Type"
 msgstr "Type"
 
@@ -866,6 +866,7 @@ msgid "Add attachments"
 msgstr "Ajouter des pièces jointes"
 
 #: dashboard/templates/grm/issue_comments.html:15
+#: wizard/templates/wizard/grm_customization.html:351
 msgid "GRM system"
 msgstr "Système eMGP"
 
@@ -1250,7 +1251,7 @@ msgstr "Configuration de la structure du niveau administratif"
 msgid "Load Administrative Levels"
 msgstr "Charger les niveaux administratifs"
 
-#: grm/constants.py:128 wizard/views.py:346
+#: grm/constants.py:128 wizard/views.py:354
 msgid "Departments"
 msgstr "Départements"
 
@@ -1262,11 +1263,11 @@ msgstr "Catégories de problèmes"
 msgid "Resolution Process"
 msgstr "Processus de résolution"
 
-#: grm/constants.py:134 issues/models.py:351 wizard/views.py:436
+#: grm/constants.py:134 issues/models.py:352 wizard/views.py:444
 msgid "Citizen Age Groups"
 msgstr "Groupes d'âge des citoyens"
 
-#: grm/constants.py:136 issues/models.py:369 wizard/views.py:461
+#: grm/constants.py:136 issues/models.py:370 wizard/views.py:469
 msgid "Citizen Groups"
 msgstr "Groupes de citoyens"
 
@@ -1626,9 +1627,10 @@ msgstr "Composants"
 msgid "Subcomponent"
 msgstr "Sous-Composante"
 
-#: issues/models.py:194 wizard/templates/wizard/nested_formset.html:75
+#: issues/models.py:194 wizard/templates/wizard/grm_customization.html:412
+#: wizard/templates/wizard/nested_formset.html:75
 #: wizard/templates/wizard/nested_formset.html:195
-#: wizard/templates/wizard/summary.html:25
+#: wizard/templates/wizard/summary.html:30
 msgid "Subcomponents"
 msgstr "Sous-Composants"
 
@@ -1640,7 +1642,7 @@ msgstr "Groupe de sous-projets"
 msgid "Subproject Groups"
 msgstr "Groupes de sous-projets"
 
-#: issues/models.py:231 issues/models.py:232 wizard/views.py:409
+#: issues/models.py:231 issues/models.py:232 wizard/views.py:417
 msgid "Issue Status"
 msgstr "Détails du problème"
 
@@ -1660,67 +1662,67 @@ msgstr "Sous-type de problème"
 msgid "Issue Subtypes"
 msgstr "Sous-types de problèmes"
 
-#: issues/models.py:294 wizard/views.py:655
+#: issues/models.py:294 wizard/views.py:650
 msgid "Abbreviation"
 msgstr "Abréviation"
 
-#: issues/models.py:306 wizard/views.py:660
+#: issues/models.py:306 wizard/views.py:656
 msgid "Confidentiality level"
 msgstr "Niveau de confidentialité"
 
-#: issues/models.py:308 wizard/views.py:662
+#: issues/models.py:309 wizard/views.py:660
 msgid "Redirection protocol"
 msgstr "Protocole de redirection"
 
-#: issues/models.py:314
+#: issues/models.py:315
 msgid "Issue Category"
 msgstr "Catégorie de problème"
 
-#: issues/models.py:315
+#: issues/models.py:316
 msgid "Issue Categories"
 msgstr "Catégories de problème"
 
-#: issues/models.py:332
+#: issues/models.py:333
 msgid "Issue Type"
 msgstr "Type de problème"
 
-#: issues/models.py:333
+#: issues/models.py:334
 msgid "Issue Types"
 msgstr "Types de problème"
 
-#: issues/models.py:350
+#: issues/models.py:351
 msgid "Citizen Age Group"
 msgstr "Groupe d'âge des citoyens"
 
-#: issues/models.py:368
+#: issues/models.py:369
 msgid "Citizen Group"
 msgstr "Groupe de citoyens"
 
-#: issues/models.py:468 issues/models.py:635
+#: issues/models.py:469 issues/models.py:636
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:469
+#: issues/models.py:470
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:617
+#: issues/models.py:618
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:618
+#: issues/models.py:619
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:637
+#: issues/models.py:638
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:645
+#: issues/models.py:646
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:651
+#: issues/models.py:652
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 
@@ -1740,7 +1742,7 @@ msgstr "Entrez le nom du niveau administratif"
 msgid "Click to select administrative levels"
 msgstr "Cliquez pour sélectionner les niveaux administratifs"
 
-#: wizard/forms.py:107 wizard/views.py:630
+#: wizard/forms.py:107 wizard/views.py:628
 msgid "Administrative levels"
 msgstr "Niveaux administratifs"
 
@@ -1752,19 +1754,19 @@ msgstr "Entrez le nom du département"
 msgid "Enter a new subtype or choose one"
 msgstr "Entrez un nouveau sous-type ou choisissez-en un"
 
-#: wizard/forms.py:189 wizard/views.py:656
+#: wizard/forms.py:189 wizard/views.py:651
 msgid "Subtype"
 msgstr "Sous-type"
 
-#: wizard/forms.py:205 wizard/views.py:657
+#: wizard/forms.py:205 wizard/views.py:652
 msgid "Department"
 msgstr "Département"
 
-#: wizard/forms.py:206 wizard/views.py:658
+#: wizard/forms.py:206 wizard/views.py:653
 msgid "Appeal department"
 msgstr "Service d'appel"
 
-#: wizard/forms.py:207 wizard/views.py:659
+#: wizard/forms.py:207 wizard/views.py:654
 msgid "Escalation department"
 msgstr "Service d'escalade"
 
@@ -1908,12 +1910,12 @@ msgstr "Suivante"
 #: wizard/templates/wizard/nested_formset.html:156
 #: wizard/templates/wizard/regions.html:57
 #: wizard/templates/wizard/static_formset.html:61
-#: wizard/templates/wizard/summary.html:72
+#: wizard/templates/wizard/summary.html:77
 msgid "Previous"
 msgstr "Précédente"
 
 #: wizard/templates/wizard/formset.html:62
-#: wizard/templates/wizard/grm_customization.html:221
+#: wizard/templates/wizard/grm_customization.html:222
 #: wizard/templates/wizard/nested_formset.html:38
 #: wizard/templates/wizard/nested_formset.html:108
 msgid "Delete"
@@ -1938,17 +1940,21 @@ msgid "Skip"
 msgstr "Sauter"
 
 #: wizard/templates/wizard/grm_customization.html:15
-#: wizard/templates/wizard/grm_customization.html:46
+#: wizard/templates/wizard/grm_customization.html:44
 msgid "GRM Customization"
 msgstr "Personnalisation eMGP"
 
-#: wizard/templates/wizard/grm_customization.html:66
+#: wizard/templates/wizard/grm_customization.html:64
 msgid "Setup Progress"
 msgstr "Progression de l'installation"
 
-#: wizard/templates/wizard/grm_customization.html:221
+#: wizard/templates/wizard/grm_customization.html:222
 msgid "Undo deletion"
 msgstr "Annuler la suppression"
+
+#: wizard/templates/wizard/grm_customization.html:345
+msgid "GRM Customization Summary"
+msgstr "Résumé de la personnalisation eMGP"
 
 #: wizard/templates/wizard/nested_formset.html:43
 #: wizard/templates/wizard/nested_formset.html:168
@@ -1979,42 +1985,46 @@ msgid "Download Sample Excel"
 msgstr "Télécharger un exemple Excel"
 
 #: wizard/templates/wizard/regions.html:32
-#: wizard/templates/wizard/summary.html:44
+#: wizard/templates/wizard/summary.html:49
 msgid "Number of Instances"
 msgstr "Nombre d'instances"
 
 #: wizard/templates/wizard/regions.html:43
-#: wizard/templates/wizard/summary.html:55
+#: wizard/templates/wizard/summary.html:60
 msgid "No administrative levels found."
 msgstr "Aucun niveau administratif trouvé."
 
-#: wizard/templates/wizard/summary.html:67
+#: wizard/templates/wizard/summary.html:11
+msgid "Export as PDF"
+msgstr "Exporter au format PDF"
+
+#: wizard/templates/wizard/summary.html:72
 msgid "Save and Finish"
 msgstr "Enregistrer et Terminer"
 
-#: wizard/views.py:117
+#: wizard/views.py:125
 msgid "Configuration Options"
 msgstr "Options de configuration"
 
-#: wizard/views.py:163
+#: wizard/views.py:171
 msgid "Administrative Level Names"
 msgstr "Noms des niveaux administratifs"
 
-#: wizard/views.py:297
+#: wizard/views.py:305
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
 
-#: wizard/views.py:367
+#: wizard/views.py:375
 msgid "Categories"
 msgstr "Catégories"
 
-#: wizard/views.py:525
+#: wizard/views.py:533
 msgid "Components and Subcomponents"
 msgstr "Composants et Sous-composants"
 
-#: wizard/views.py:764
+#: wizard/views.py:745
 msgid "The setup cannot be completed until all previous steps are completed."
 msgstr ""
 "La configuration ne peut pas être terminée tant que toutes les "
