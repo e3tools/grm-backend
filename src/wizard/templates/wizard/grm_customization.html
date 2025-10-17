@@ -57,7 +57,7 @@
 			<div class="container-fluid">
 				<div class="row">
 					<div class="col-md-6">
-						<div class="card position-sticky" style="top: 1rem;"">
+						<div class="card position-sticky" style="top: 1rem;">
 							<div class="card-header border-0">
 								<div class="card-title">
 									<div class="pt-1 fs20 lh25 text-bold-family">
@@ -139,6 +139,9 @@
 <script src="{% static 'AdminLTE/plugins/select2/js/select2.full.min.js' %}"></script>
 <!-- Django Translation -->
 <script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
+<!-- Libraries to export to PDF -->
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
 <!-- Custom javascript -->
 <script src="{% static 'js/grm.js' %}"></script>
 <script src="{% static 'js/disableOnSubmit.js' %}"></script>
@@ -334,6 +337,181 @@
         let step = $(".timeline-item.active").attr("id");
         let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
         submitFinalStep($(this), url)
+    });
+
+    // Export Summary to PDF ---------------------------------------------
+
+    let summary_title = "{% translate 'GRM Customization Summary' %}";
+
+    $(document).on("click", "#export-summary-btn", function () {
+        const docDefinition = {
+            info: {
+                title: summary_title,
+                author: "{% translate 'GRM system' %}",
+            },
+            pageMargins: [40, 60, 40, 60],
+            content: [],
+            styles: {
+                mainTitle: {fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 15]},
+                header: {fontSize: 16, bold: true, margin: [0, 10, 0, 5]},
+                subheader: {fontSize: 12, bold: true, margin: [0, 6, 0, 4]},
+                normal: {fontSize: 10, margin: [0, 2, 0, 2]},
+                label: {fontSize: 10, bold: true, margin: [0, 2, 0, 2]},
+                tableHeader: {bold: true, fillColor: "#eeeeee"},
+            },
+        };
+
+        // Add main centered title
+        docDefinition.content.push({text: summary_title, style: "mainTitle"});
+
+        // Iterate over each summary section
+        $("#summary-area > div").each(function (sectionIndex) {
+            const $section = $(this);
+            const title = $section.find("h6").first().text().trim();
+
+            // Add section title
+            docDefinition.content.push({text: title, style: "header"});
+
+            // Get all section items
+            const $items = $section.find("> .border-bottom");
+
+            $items.each(function (itemIndex) {
+                const $item = $(this);
+                let itemAdded = false;
+
+                // Simple fields (label + value)
+                $item.find("> div.mt-2").each(function () {
+                    const $div = $(this);
+                    const $labelEl = $div.find("label").first();
+
+                    // Remove trailing ":" from label if present
+                    let labelText = $labelEl.text().trim().replace(/:$/, "");
+
+                    // Extract value (excluding label)
+                    const value = $div.clone()
+                        .children("label").remove().end()
+                        .text().trim();
+
+                    // Add row with two aligned columns: label (bold) + value
+                    docDefinition.content.push({
+                        columns: [
+                            {text: labelText + ":", style: "label", width: "auto", alignment: "left"},
+                            {text: value, style: "normal", width: "*", alignment: "left"},
+                        ],
+                        columnGap: 5, // space between label and value
+                    });
+
+                    itemAdded = true;
+                });
+
+                // Subcomponents (if any)
+                const $subcomponents = $item.find(".border-left > .border-bottom");
+                if ($subcomponents.length > 0) {
+                    docDefinition.content.push({
+                        text: "{% translate 'Subcomponents' %}:",
+                        style: "subheader",
+                        margin: [10, 4, 0, 2],
+                    });
+
+                    $subcomponents.each(function (subIndex) {
+                        const $sub = $(this);
+
+                        $sub.find("div.mt-2").each(function () {
+                            const $div = $(this);
+                            const $labelEl = $div.find("label").first();
+                            let labelText = $labelEl.text().trim().replace(/:$/, "");
+                            const value = $div.clone().children("label").remove().end().text().trim();
+
+                            docDefinition.content.push({
+                                columns: [
+                                    {
+                                        text: "• " + labelText + ":",
+                                        style: "label",
+                                        width: "auto",
+                                        margin: [15, 0, 0, 0]
+                                    },
+                                    {text: value, style: "normal", width: "*", alignment: "left"},
+                                ],
+                                columnGap: 5, // spacing between label and value
+                            });
+                        });
+
+                        // Add a gray line between subcomponents (except last one)
+                        if (subIndex < $subcomponents.length - 1) {
+                            docDefinition.content.push({
+                                canvas: [
+                                    {type: "line", x1: 10, y1: 0, x2: 505, y2: 0, lineWidth: 0.5, lineColor: "#cccccc"},
+                                ],
+                                margin: [10, 4, 0, 4],
+                            });
+                        }
+                    });
+
+                    itemAdded = true;
+                }
+
+                // Add a gray separator line between main items (except the last)
+                if (itemAdded && itemIndex < $items.length - 1) {
+                    docDefinition.content.push({
+                        canvas: [
+                            {type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#cccccc"},
+                        ],
+                        margin: [0, 5, 0, 5],
+                    });
+                }
+            });
+
+            // Region tables (if any)
+            const $table = $section.find("table");
+            if ($table.length) {
+                const headers = [];
+                $table.find("thead th").each(function () {
+                    headers.push({text: $(this).text().trim(), style: "tableHeader"});
+                });
+
+                const body = [$table.find("thead th").map(function () {
+                    return {text: $(this).text().trim(), style: "tableHeader"};
+                }).get()];
+
+                $table.find("tbody tr").each(function () {
+                    const row = [];
+                    $(this).find("td").each(function () {
+                        row.push($(this).text().trim());
+                    });
+                    body.push(row);
+                });
+
+                // Add table to PDF
+                docDefinition.content.push({
+                    table: {
+                        headerRows: 1,
+                        widths: Array(headers.length).fill("*"),
+                        body: body,
+                    },
+                    margin: [0, 5, 0, 10],
+                });
+            }
+
+            // Add a thick black line between sections (except the last one)
+            if (sectionIndex < $("#summary-area > div").length - 1) {
+                docDefinition.content.push({
+                    canvas: [
+                        {type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: "#000000"},
+                    ],
+                    margin: [0, 10, 0, 10],
+                });
+            }
+        });
+        
+        // Generate file name
+		const now = new Date();
+		const y = now.getFullYear();
+		const m = String(now.getMonth() + 1).padStart(2, '0');
+		const d = String(now.getDate()).padStart(2, '0');
+		const fileName = `wizard_summary_${y}_${m}_${d}.pdf`;
+
+        // Generate and download the PDF file
+        pdfMake.createPdf(docDefinition).download(fileName);
     });
 
 </script>
