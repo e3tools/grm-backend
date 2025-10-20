@@ -340,3 +340,8 @@ LOGGING = {
         },
     },
 }
+
+# Pinecone Configuration
+PINECONE_API_KEY = env('PINECONE_API_KEY', default='')
+PINECONE_ENVIRONMENT = env('PINECONE_ENVIRONMENT', default='')
+PINECONE_INDEX_NAME = env('PINECONE_INDEX_NAME', default='grm-grievances')
