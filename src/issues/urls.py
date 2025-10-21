@@ -1,6 +1,8 @@
 from django.urls import path
 
 from issues.views import (
+    AdministrativeRegionChildrenAPIView,
+    AdministrativeRegionListAPIView,
     AssigneeIssueListAPIView,
     CitizenAgeGroupListAPIView,
     CitizenGroupListAPIView,
@@ -43,4 +45,6 @@ urlpatterns = [
     path('<int:id>/add-attachment', IssueAttachmentCreateAPIView.as_view(), name='add-issue-attachment'),
     path('<int:id>/attachments/', IssueAttachmentsListAPIView.as_view(), name='list-issue-attachments'),
     path('delete-comment/<int:id>/', IssueCommentDeleteAPIView.as_view(), name='delete-issue-comment'),
+    path('region-children/', AdministrativeRegionChildrenAPIView.as_view(), name='list-region-children'),
+    path('regions/', AdministrativeRegionListAPIView.as_view(), name='list-regions'),
 ]

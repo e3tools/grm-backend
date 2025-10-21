@@ -16,6 +16,7 @@ from rest_framework.generics import (
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from grm.constants import (
     ATTACHMENT_CREATE_ERROR_MESSAGE,
@@ -37,6 +38,7 @@ from grm.constants import (
     VALIDATION_FAILED_MESSAGE,
 )
 from issues.models import (
+    AdministrativeRegion,
     CitizenAgeGroup,
     CitizenGroup,
     Comment,
@@ -52,6 +54,7 @@ from issues.models import (
 )
 from issues.permissions import IsReporterOrAssigneePermission
 from issues.serializers import (
+    AdministrativeRegionSerializer,
     CitizenAgeGroupSerializer,
     CitizenGroupSerializer,
     CommentCreateSerializer,
@@ -3221,4 +3224,81 @@ class IssueSubTypeListAPIView(ListAPIView):
         Returns:
             Response: JSON response with paginated list of issue subtypes
         """
+        return super().get(request, *args, **kwargs)
+
+
+class AdministrativeRegionChildrenAPIView(APIView):
+    """
+    API View for listing AdministrativeRegion child objects (no pagination).
+
+    This view retrieves all administrative regions that are children of a given parent.
+    If 'parent' is not provided or is null, it returns all regions with no parent (top-level regions).
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List child administrative regions (no pagination)",
+        operation_description=(
+            "Retrieve all administrative regions that are children of the specified parent.\n"
+            "If 'parent' is not provided or is null, returns all regions with no parent."
+        ),
+        tags=['Administrative Regions'],
+        manual_parameters=[
+            openapi.Parameter(
+                'parent',
+                openapi.IN_QUERY,
+                description='Parent AdministrativeRegion ID (use null or omit to fetch top-level regions)',
+                type=openapi.TYPE_INTEGER,
+                required=False,
+            ),
+        ],
+        responses={200: AdministrativeRegionSerializer(many=True)},
+    )
+    def get(self, request):
+        parent_id = request.query_params.get('parent')
+        if parent_id in (None, '', 'null'):
+            queryset = AdministrativeRegion.objects.filter(parent__isnull=True)
+        else:
+            queryset = AdministrativeRegion.objects.filter(parent_id=parent_id)
+        serializer = AdministrativeRegionSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdministrativeRegionListAPIView(ListAPIView):
+    """
+    API View for listing all AdministrativeRegion objects (paginated).
+
+    This view provides a paginated list of all administrative regions in the system.
+    """
+
+    queryset = AdministrativeRegion.objects.all().order_by('name')
+    serializer_class = AdministrativeRegionSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="List all administrative regions (paginated)",
+        operation_description="Retrieve a paginated list of all administrative regions ordered by name.",
+        tags=['Administrative Regions'],
+        manual_parameters=[
+            openapi.Parameter(
+                'page',
+                openapi.IN_QUERY,
+                description="Page number for pagination",
+                type=openapi.TYPE_INTEGER,
+                default=1,
+            ),
+            openapi.Parameter(
+                'page_size',
+                openapi.IN_QUERY,
+                description="Number of results per page (max: 100)",
+                type=openapi.TYPE_INTEGER,
+                default=20,
+            ),
+        ],
+        responses={200: AdministrativeRegionSerializer(many=True)},
+    )
+    def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
