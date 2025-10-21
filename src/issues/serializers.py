@@ -22,6 +22,7 @@ from issues.models import (
     Issue,
     IssueAttachment,
     IssueCategory,
+    IssueDepartment,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueSubType,
@@ -192,6 +193,18 @@ class DepartmentAdministrativeLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueDepartmentAdministrativeLevel
         fields = ['name', 'id', 'administrative_level', 'created_date', 'updated_date']
+
+
+class IssueDepartmentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for IssueDepartment objects.
+    Provides complete representation of department information.
+    """
+
+    class Meta:
+        model = IssueDepartment
+        fields = ['id', 'name', 'head', 'created_date', 'updated_date']
+        read_only_fields = ['id', 'name', 'head', 'created_date', 'updated_date']
 
 
 class IssueCategorySerializer(serializers.ModelSerializer):

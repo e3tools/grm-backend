@@ -8,14 +8,17 @@ from django.views import View
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from authentication.constants import (
     CITIZEN_CREATE_ERROR_MESSAGE,
+    FACILITATOR_NOT_FOUND_ERROR_MESSAGE,
     INACTIVE_USER_ERROR_MESSAGE,
     INVALID_INPUT_ERROR_MESSAGE,
     LOGIN_ERROR_MESSAGE,
@@ -26,6 +29,7 @@ from authentication.forms import PasswordResetRequestForm
 from authentication.models import User
 from authentication.serializers import (
     CitizenRegistrationSerializer,
+    FacilitatorProfileSerializer,
     LoginSerializer,
     PasswordResetSerializer,
 )
@@ -613,3 +617,156 @@ class PasswordResetConfirmView(View):
 
         context["form"] = form
         return render(request, self.template_name, context)
+
+
+class FacilitatorProfileAPIView(APIView):
+    """
+    API endpoint to retrieve the authenticated facilitator's profile information.
+
+    Returns all facilitator fields including department and administrative_region details
+    for users with an associated Facilitator profile.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Get Facilitator Profile Information",
+        operation_description="""
+        Retrieve the authenticated user's complete facilitator profile information.
+
+        Returns all facilitator fields including department and administrative_region details.
+        Only accessible to users with an associated Facilitator profile.
+        """,
+        responses={
+            200: openapi.Response(
+                description="Facilitator profile information retrieved successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Facilitator ID', example=1),
+                        'user': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description='Associated user information',
+                            properties={
+                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
+                                'name': openapi.Schema(type=openapi.TYPE_STRING, example='John Doe'),
+                            },
+                        ),
+                        'department': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description='Department details',
+                            properties={
+                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
+                                'name': openapi.Schema(type=openapi.TYPE_STRING, example='Public Works'),
+                                'head': openapi.Schema(type=openapi.TYPE_INTEGER, example=5),
+                                'created_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME
+                                ),
+                                'updated_date': openapi.Schema(
+                                    type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME
+                                ),
+                            },
+                        ),
+                        'administrative_region': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'id': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER,
+                                    example=2,
+                                    description="Administrative region ID",
+                                ),
+                                'name': openapi.Schema(
+                                    type=openapi.TYPE_STRING,
+                                    example="ALIBORI",
+                                    description="Administrative region name",
+                                ),
+                                'administrative_level': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER, example=5, description="Administrative level ID"
+                                ),
+                                'parent': openapi.Schema(
+                                    type=openapi.TYPE_INTEGER,
+                                    example=5,
+                                    description="Administrative region parent ID",
+                                ),
+                            },
+                            description="Administrative region information",
+                        ),
+                        'unique_region': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Indicates if the facilitator has a unique region',
+                            example=True,
+                        ),
+                        'village_secretary': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Indicates if the facilitator is a village secretary',
+                            example=False,
+                        ),
+                        'created_date': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME,
+                            description='Profile creation timestamp',
+                        ),
+                        'updated_date': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME,
+                            description='Profile last update timestamp',
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing token",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Error message', example='Invalid token.'
+                        ),
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Not Found - User does not have a facilitator profile",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Error message',
+                            example=FACILITATOR_NOT_FOUND_ERROR_MESSAGE,
+                        ),
+                    },
+                ),
+            ),
+        },
+        tags=['Facilitator'],
+    )
+    def get(self, request):
+        """
+        Handle GET request to retrieve facilitator profile information.
+
+        Args:
+            request: HTTP request object with authenticated user
+
+        Returns:
+            Response: JSON response with complete facilitator profile data or error message
+        """
+        user = request.user
+
+        # Check if user has an associated Facilitator
+        if not hasattr(user, 'facilitator'):
+            return Response(
+                {'error': FACILITATOR_NOT_FOUND_ERROR_MESSAGE},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        facilitator = user.facilitator
+
+        # Serialize the complete facilitator profile
+        serializer = FacilitatorProfileSerializer(facilitator)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )

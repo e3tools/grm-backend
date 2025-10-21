@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from authentication.constants import ADL, MAJOR
-from authentication.models import Citizen, User
+from authentication.models import Citizen, Facilitator, User
 from authentication.utils import get_validation_code
 from client import get_db
 from grm.constants import (
@@ -226,3 +226,45 @@ class CitizenRegistrationSerializer(serializers.ModelSerializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+
+class FacilitatorProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Facilitator profile information.
+
+    Provides complete facilitator data including nested serialization
+    of user, department, and administrative_region.
+    """
+
+    user = UserBasicSerializer(read_only=True)
+    department = serializers.SerializerMethodField()
+    administrative_region = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Facilitator
+        fields = [
+            'id',
+            'user',
+            'department',
+            'administrative_region',
+            'unique_region',
+            'village_secretary',
+            'created_date',
+            'updated_date',
+        ]
+
+    def get_department(self, obj):
+        """Lazy import to avoid circular import."""
+        if not obj.department:
+            return None
+        from issues.serializers import IssueDepartmentSerializer
+
+        return IssueDepartmentSerializer(obj.department).data
+
+    def get_administrative_region(self, obj):
+        """Lazy import to avoid circular import."""
+        if not obj.administrative_region:
+            return None
+        from issues.serializers import AdministrativeRegionSerializer
+
+        return AdministrativeRegionSerializer(obj.administrative_region).data

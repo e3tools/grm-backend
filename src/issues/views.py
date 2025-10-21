@@ -340,6 +340,16 @@ class IssueCreateAPIView(CreateAPIView):
                                             example=5,
                                             description="Administrative region parent ID",
                                         ),
+                                        'created_date': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            format=openapi.FORMAT_DATETIME,
+                                            example='2024-08-28T10:30:45.123456Z',
+                                        ),
+                                        'updated_date': openapi.Schema(
+                                            type=openapi.TYPE_STRING,
+                                            format=openapi.FORMAT_DATETIME,
+                                            example='2024-08-28T10:30:45.123456Z',
+                                        ),
                                     },
                                     description="Administrative region information",
                                 ),

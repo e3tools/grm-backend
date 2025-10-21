@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 13:15+0000\n"
+"POT-Creation-Date: 2025-10-21 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,33 +19,37 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: authentication/constants.py:7
+#: authentication/constants.py:6
 msgid "An error occurred while registering the citizen."
 msgstr "Une erreur s'est produite lors de l'enregistrement du citoyen."
 
-#: authentication/constants.py:8
+#: authentication/constants.py:7
 msgid "Login successful."
 msgstr "Connexion réussie."
 
-#: authentication/constants.py:9
+#: authentication/constants.py:8
 msgid "Invalid input data."
 msgstr "Données d'entrée non valides."
 
-#: authentication/constants.py:10
+#: authentication/constants.py:9
 msgid "User account is inactive."
 msgstr "Le compte utilisateur est inactif."
 
-#: authentication/constants.py:11
+#: authentication/constants.py:10
 msgid "Invalid username or password."
 msgstr "Nom d'utilisateur ou mot de passe invalide."
 
-#: authentication/constants.py:12
+#: authentication/constants.py:11
 msgid ""
 "If an account exists with this email, password reset instructions have been "
 "sent."
 msgstr ""
 "Si un compte existe avec cet e-mail, les instructions de réinitialisation du "
 "mot de passe ont été envoyées."
+
+#: authentication/constants.py:12
+msgid "User does not have an associated facilitator profile."
+msgstr "L'utilisateur n'a pas de profil de facilitateur associé."
 
 #: authentication/models.py:16
 msgid "email address"
@@ -153,20 +157,20 @@ msgstr "Nom d'utilisateur pour l'authentification"
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
 
-#: authentication/views.py:535 authentication/views.py:549
+#: authentication/views.py:538 authentication/views.py:552
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: authentication/views.py:547
+#: authentication/views.py:550
 msgid "Password Reset Sent"
 msgstr "Réinitialisation du mot de passe envoyée"
 
-#: authentication/views.py:584 authentication/views.py:601
+#: authentication/views.py:587 authentication/views.py:604
 #: dashboard/templates/authentication/password_reset_confirm.html:19
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
 
-#: authentication/views.py:612
+#: authentication/views.py:615
 #: dashboard/templates/authentication/password_reset_complete.html:6
 msgid "Password reset complete"
 msgstr "Réinitialisation du mot de passe terminée"
