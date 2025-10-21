@@ -1,7 +1,7 @@
 import factory
 from factory.django import DjangoModelFactory
 
-from authentication.models import User
+from authentication.models import Facilitator, User
 
 
 class UserFactory(DjangoModelFactory):
@@ -24,3 +24,16 @@ class UserFactory(DjangoModelFactory):
         password = extracted or 'defaultpass123'
         self.set_password(password)
         self.save()
+
+
+class FacilitatorFactory(DjangoModelFactory):
+    """Factory for creating Facilitator instances."""
+
+    class Meta:
+        model = Facilitator
+
+    user = factory.SubFactory(UserFactory)
+    department = factory.SubFactory("issues.factories.IssueDepartmentFactory")
+    administrative_region = factory.SubFactory("issues.factories.AdministrativeRegionFactory")
+    unique_region = True
+    village_secretary = None

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-17 13:15+0000\n"
+"POT-Creation-Date: 2025-10-21 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,30 +18,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: authentication/constants.py:7
+#: authentication/constants.py:6
 msgid "An error occurred while registering the citizen."
 msgstr ""
 
-#: authentication/constants.py:8
+#: authentication/constants.py:7
 msgid "Login successful."
 msgstr ""
 
-#: authentication/constants.py:9
+#: authentication/constants.py:8
 msgid "Invalid input data."
 msgstr ""
 
-#: authentication/constants.py:10
+#: authentication/constants.py:9
 msgid "User account is inactive."
 msgstr ""
 
-#: authentication/constants.py:11
+#: authentication/constants.py:10
 msgid "Invalid username or password."
 msgstr ""
 
-#: authentication/constants.py:12
+#: authentication/constants.py:11
 msgid ""
 "If an account exists with this email, password reset instructions have been "
 "sent."
+msgstr ""
+
+#: authentication/constants.py:12
+msgid "User does not have an associated facilitator profile."
 msgstr ""
 
 #: authentication/models.py:16
@@ -150,20 +154,20 @@ msgstr ""
 msgid "Password for authentication"
 msgstr ""
 
-#: authentication/views.py:535 authentication/views.py:549
+#: authentication/views.py:538 authentication/views.py:552
 msgid "Password Reset"
 msgstr ""
 
-#: authentication/views.py:547
+#: authentication/views.py:550
 msgid "Password Reset Sent"
 msgstr ""
 
-#: authentication/views.py:584 authentication/views.py:601
+#: authentication/views.py:587 authentication/views.py:604
 #: dashboard/templates/authentication/password_reset_confirm.html:19
 msgid "Reset Password"
 msgstr ""
 
-#: authentication/views.py:612
+#: authentication/views.py:615
 #: dashboard/templates/authentication/password_reset_complete.html:6
 msgid "Password reset complete"
 msgstr ""

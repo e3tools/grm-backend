@@ -3,6 +3,7 @@ from django.urls import path
 from authentication.views import (
     CitizenLoginAPIView,
     CitizenRegistrationCreateAPIView,
+    FacilitatorProfileAPIView,
     LoginAPIView,
     PasswordResetAPIView,
     PasswordResetConfirmView,
@@ -22,4 +23,5 @@ urlpatterns = [
         PasswordResetConfirmView.as_view(),
         name="password_reset_confirm",
     ),
+    path('facilitator-profile/', FacilitatorProfileAPIView.as_view(), name='facilitator-profile'),
 ]
