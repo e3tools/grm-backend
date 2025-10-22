@@ -1,8 +1,10 @@
 from django.urls import path
 
 from authentication.views import (
+    CitizenDetailAPIView,
     CitizenLoginAPIView,
     CitizenRegistrationCreateAPIView,
+    CitizenUpdateAPIView,
     FacilitatorProfileAPIView,
     LoginAPIView,
     PasswordResetAPIView,
@@ -16,6 +18,8 @@ urlpatterns = [
     path('login/', LoginAPIView.as_view(), name='login'),
     path('citizen-login/', CitizenLoginAPIView.as_view(), name='citizen-login'),
     path('register/', CitizenRegistrationCreateAPIView.as_view(), name='citizen-register'),
+    path("citizens/<int:user_pk>/", CitizenDetailAPIView.as_view(), name="citizen-detail"),
+    path("citizens/<int:user_pk>/update/", CitizenUpdateAPIView.as_view(), name="citizen-update"),
     path('password-reset/', PasswordResetAPIView.as_view(), name='password-reset'),
     path('password-reset-form/', PasswordResetView.as_view(), name='password_reset'),
     path(

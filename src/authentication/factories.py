@@ -1,7 +1,8 @@
 import factory
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 
-from authentication.models import Facilitator, User
+from authentication.models import Citizen, Facilitator, User
 
 
 class UserFactory(DjangoModelFactory):
@@ -37,3 +38,31 @@ class FacilitatorFactory(DjangoModelFactory):
     administrative_region = factory.SubFactory("issues.factories.AdministrativeRegionFactory")
     unique_region = True
     village_secretary = None
+
+
+class CitizenFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for authentication.Citizen model.
+
+    Automatically creates:
+      - A related authentication.User
+      - A related issues.Citizen (if not provided)
+    """
+
+    class Meta:
+        model = Citizen
+
+    user = factory.SubFactory(UserFactory)
+
+    @factory.lazy_attribute
+    def citizen(self):
+        """
+        Lazy create of related issues.Citizen using dynamic import
+        to avoid circular import between apps.
+        """
+        from issues.factories import CitizenFactory as IssuesCitizenFactory
+
+        return IssuesCitizenFactory(name=self.user.name)
+
+    created_date = factory.LazyFunction(timezone.now)
+    updated_date = factory.LazyFunction(timezone.now)

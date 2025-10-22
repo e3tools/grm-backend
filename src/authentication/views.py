@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
 from django.views import View
@@ -26,7 +26,7 @@ from authentication.constants import (
     PASSWORD_RESET_REQUEST_MESSAGE,
 )
 from authentication.forms import PasswordResetRequestForm
-from authentication.models import User
+from authentication.models import Citizen, User
 from authentication.serializers import (
     CitizenRegistrationSerializer,
     FacilitatorProfileSerializer,
@@ -453,6 +453,183 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                 {'message': CITIZEN_CREATE_ERROR_MESSAGE, 'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class CitizenDetailAPIView(APIView):
+    """
+    Retrieve detailed citizen and user information by user primary key,
+    including serialized age_group, group, and group_2 from issues serializers.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve Citizen information by user ID",
+        operation_description=(
+            "Fetches detailed user and related citizen information, "
+            "including serialized fields for `age_group`, `group`, and `group_2`."
+        ),
+        tags=['Citizens'],
+        manual_parameters=[
+            openapi.Parameter(
+                'user_pk',
+                openapi.IN_PATH,
+                description='Primary key of the related user',
+                type=openapi.TYPE_INTEGER,
+                required=True,
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Detailed Citizen information retrieved successfully.",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "first_name": openapi.Schema(type=openapi.TYPE_STRING, description="User's first name"),
+                        "last_name": openapi.Schema(type=openapi.TYPE_STRING, description="User's last name"),
+                        "phone_number": openapi.Schema(type=openapi.TYPE_STRING, description="User's phone number"),
+                        "email": openapi.Schema(type=openapi.TYPE_STRING, description="User's email address"),
+                        "gender": openapi.Schema(type=openapi.TYPE_STRING, description="Citizen's gender"),
+                        "age_group": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description="Serialized age group details",
+                            properties={
+                                "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Age group ID"),
+                                "name": openapi.Schema(type=openapi.TYPE_STRING, description="Age group name"),
+                                "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                                "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                            },
+                        ),
+                        "group": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description="Serialized citizen group details",
+                            properties={
+                                "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Group ID"),
+                                "name": openapi.Schema(type=openapi.TYPE_STRING, description="Group name"),
+                                "type": openapi.Schema(type=openapi.TYPE_STRING, description="Group type"),
+                                "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                                "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                            },
+                        ),
+                        "group_2": openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description="Serialized secondary citizen group details",
+                            properties={
+                                "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Group ID"),
+                                "name": openapi.Schema(type=openapi.TYPE_STRING, description="Group name"),
+                                "type": openapi.Schema(type=openapi.TYPE_STRING, description="Group type"),
+                                "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                                "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                            },
+                        ),
+                        "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                        "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
+                    },
+                ),
+            ),
+            401: "Unauthorized – authentication credentials not provided or invalid.",
+            404: "User or Citizen not found.",
+        },
+    )
+    def get(self, request, user_pk):
+        user = get_object_or_404(User, pk=user_pk)
+        citizen_auth = get_object_or_404(Citizen, user=user)
+        issues_citizen = citizen_auth.citizen
+
+        # Lazy imports to avoid circular imports
+        from issues.serializers import CitizenAgeGroupSerializer, CitizenGroupSerializer
+
+        # Serialize related nested objects if they exist
+        age_group_data = CitizenAgeGroupSerializer(issues_citizen.age_group).data if issues_citizen.age_group else None
+        group_data = CitizenGroupSerializer(issues_citizen.group).data if issues_citizen.group else None
+        group_2_data = CitizenGroupSerializer(issues_citizen.group_2).data if issues_citizen.group_2 else None
+
+        data = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone_number": user.phone_number,
+            "email": user.email,
+            "age_group": age_group_data,
+            "gender": getattr(issues_citizen, "gender", None),
+            "group": group_data,
+            "group_2": group_2_data,
+            "created_date": issues_citizen.created_date,
+            "updated_date": issues_citizen.updated_date,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class CitizenUpdateAPIView(APIView):
+    """
+    Update citizen and user fields (PATCH) by user primary key.
+    """
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_summary="Update Citizen and User fields by user ID",
+        operation_description=(
+            "Allows partial update (PATCH) of fields in both User and related Citizen models. "
+            "Supports updating name, phone, email, age group, gender, and group fields."
+        ),
+        tags=['Citizens'],
+        manual_parameters=[
+            openapi.Parameter(
+                'user_pk',
+                openapi.IN_PATH,
+                description='Primary key of the related user',
+                type=openapi.TYPE_INTEGER,
+                required=True,
+            ),
+        ],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+                "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+                "phone_number": openapi.Schema(type=openapi.TYPE_STRING),
+                "email": openapi.Schema(type=openapi.TYPE_STRING),
+                "age_group_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+                "gender": openapi.Schema(type=openapi.TYPE_STRING),
+                "group_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+                "group_2_id": openapi.Schema(type=openapi.TYPE_INTEGER),
+            },
+        ),
+        responses={200: "Citizen information updated successfully."},
+    )
+    def patch(self, request, user_pk):
+        user = get_object_or_404(User, pk=user_pk)
+        citizen_auth = get_object_or_404(Citizen, user=user)
+        issues_citizen = citizen_auth.citizen
+        data = request.data
+
+        # Update user fields
+        for field in ["first_name", "last_name", "phone_number", "email"]:
+            if field in data:
+                setattr(user, field, data[field])
+        user.save()
+
+        # Update issues citizen fields
+        for field in ["age_group_id", "gender", "group_id", "group_2_id"]:
+            if field in data:
+                setattr(issues_citizen, field, data[field])
+        issues_citizen.save()
+
+        response_data = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone_number": user.phone_number,
+            "email": user.email,
+            "age_group_id": getattr(issues_citizen, "age_group_id", None),
+            "gender": getattr(issues_citizen, "gender", None),
+            "group_id": getattr(issues_citizen, "group_id", None),
+            "group_2_id": getattr(issues_citizen, "group_2_id", None),
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class PasswordResetAPIView(APIView):
