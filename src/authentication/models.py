@@ -1,6 +1,7 @@
 import os
 
 import shortuuid as uuid
+from django.apps import apps
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -130,7 +131,8 @@ class Facilitator(models.Model):
 
 
 class Citizen(models.Model):
-    user = models.OneToOneField(User, models.PROTECT)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
+    citizen = models.OneToOneField("issues.Citizen", on_delete=models.CASCADE, related_name="user_citizen", unique=True)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -141,3 +143,10 @@ class Citizen(models.Model):
     @property
     def name(self):
         return self.user.name
+
+    def save(self, *args, **kwargs):
+        if self.citizen_id is None:
+            IssuesCitizen = apps.get_model('issues', 'Citizen')
+            self.citizen = IssuesCitizen.objects.create(name=self.user.name)
+
+        super().save(*args, **kwargs)
