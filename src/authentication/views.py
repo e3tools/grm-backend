@@ -457,7 +457,7 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
 
 class CitizenDetailAPIView(APIView):
     """
-    Retrieve detailed citizen and user information by user primary key,
+    Retrieve detailed citizen and user information for the authenticated user,
     including serialized age_group, group, and group_2 from issues serializers.
     """
 
@@ -465,21 +465,12 @@ class CitizenDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="Retrieve Citizen information by user ID",
+        operation_summary="Retrieve Citizen information (authenticated user)",
         operation_description=(
-            "Fetches detailed user and related citizen information, "
-            "including serialized fields for `age_group`, `group`, and `group_2`."
+            "Fetches detailed user and related citizen information for the currently authenticated user. "
+            "Includes serialized fields for `age_group`, `group`, `group_2`, `created_date`, and `updated_date`."
         ),
         tags=['Citizens'],
-        manual_parameters=[
-            openapi.Parameter(
-                'user_pk',
-                openapi.IN_PATH,
-                description='Primary key of the related user',
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-        ],
         responses={
             200: openapi.Response(
                 description="Detailed Citizen information retrieved successfully.",
@@ -500,6 +491,7 @@ class CitizenDetailAPIView(APIView):
                                 "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                                 "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                             },
+                            nullable=True,
                         ),
                         "group": openapi.Schema(
                             type=openapi.TYPE_OBJECT,
@@ -511,6 +503,7 @@ class CitizenDetailAPIView(APIView):
                                 "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                                 "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                             },
+                            nullable=True,
                         ),
                         "group_2": openapi.Schema(
                             type=openapi.TYPE_OBJECT,
@@ -522,6 +515,7 @@ class CitizenDetailAPIView(APIView):
                                 "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                                 "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                             },
+                            nullable=True,
                         ),
                         "created_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
                         "updated_date": openapi.Schema(type=openapi.TYPE_STRING, format="date-time"),
@@ -529,11 +523,11 @@ class CitizenDetailAPIView(APIView):
                 ),
             ),
             401: "Unauthorized – authentication credentials not provided or invalid.",
-            404: "User or Citizen not found.",
+            404: "Citizen not found for this user.",
         },
     )
-    def get(self, request, user_pk):
-        user = get_object_or_404(User, pk=user_pk)
+    def get(self, request):
+        user = request.user
         citizen_auth = get_object_or_404(Citizen, user=user)
         issues_citizen = citizen_auth.citizen
 
@@ -563,28 +557,19 @@ class CitizenDetailAPIView(APIView):
 
 class CitizenUpdateAPIView(APIView):
     """
-    Update citizen and user fields (PATCH) by user primary key.
+    Update citizen and user fields (PATCH) for the authenticated user.
     """
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_summary="Update Citizen and User fields by user ID",
+        operation_summary="Update Citizen and User fields (authenticated user)",
         operation_description=(
-            "Allows partial update (PATCH) of fields in both User and related Citizen models. "
-            "Supports updating name, phone, email, age group, gender, and group fields."
+            "Allows partial update (PATCH) of fields in both User and related Citizen models "
+            "for the currently authenticated user."
         ),
         tags=['Citizens'],
-        manual_parameters=[
-            openapi.Parameter(
-                'user_pk',
-                openapi.IN_PATH,
-                description='Primary key of the related user',
-                type=openapi.TYPE_INTEGER,
-                required=True,
-            ),
-        ],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
@@ -600,8 +585,8 @@ class CitizenUpdateAPIView(APIView):
         ),
         responses={200: "Citizen information updated successfully."},
     )
-    def patch(self, request, user_pk):
-        user = get_object_or_404(User, pk=user_pk)
+    def patch(self, request):
+        user = request.user
         citizen_auth = get_object_or_404(Citizen, user=user)
         issues_citizen = citizen_auth.citizen
         data = request.data

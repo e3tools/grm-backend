@@ -44,7 +44,7 @@ class CitizenUpdateAPIViewTest(APITestCase):
         )
 
         self.citizen = CitizenFactory(user=self.user, citizen=self.issues_citizen)
-        self.url = reverse("authentication:citizen-update", kwargs={"user_pk": self.user.pk})
+        self.url = reverse("authentication:citizen-update")
         self.user_payload = {
             "first_name": "JohnUpdated",
             "last_name": "DoeUpdated",
@@ -131,25 +131,33 @@ class CitizenUpdateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_patch_method_only_allowed(self):
-        """Test that only GET method is allowed."""
+        """Test that only PATCH method is allowed."""
         self.authenticate()
 
         # POST should not be allowed
         response_post = self.client.post(self.url, self.user_payload)
-        assert response_post.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response_post.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # PUT should not be allowed
         response_put = self.client.put(self.url, self.user_payload)
-        assert response_put.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response_put.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # DELETE should not be allowed
         response_delete = self.client.delete(self.url)
-        assert response_delete.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response_delete.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        # PATCH should not be allowed
+        # PATCH should work
         response_patch = self.client.patch(self.url, self.user_payload)
-        assert response_patch.status_code == status.HTTP_200_OK
+        self.assertEqual(response_patch.status_code, status.HTTP_200_OK)
 
-        # GET should work
+        # GET should not be allowed
         response_get = self.client.get(self.url)
-        assert response_get.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response_get.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_authenticated_without_citizen_returns_404(self):
+        """Authenticated user without a Citizen should get 404."""
+        self.authenticate()
+        self.issues_citizen.delete()
+        response = self.client.patch(self.url, self.user_payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("Not found", str(response.data["detail"]))
