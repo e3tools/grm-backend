@@ -1,0 +1,120 @@
+# Django Core
+Django==4.2
+asgiref==3.9.1
+sqlparse==0.4.1
+
+# Django Extensions
+django-bootstrap4==22.2
+django-celery-beat==2.7.0
+django-celery-results==2.2.0
+django-environ==0.4.5
+django-timezone-field==7.0
+djangorestframework==3.14.0
+drf-yasg==1.21.7
+
+# Celery (Task Queue)
+celery==5.4.0
+amqp==5.2.0
+billiard==4.2.1
+kombu==5.4.2
+vine==5.1.0
+async-timeout==5.0.0
+
+# Database
+psycopg2-binary>=2.9.9
+dj-database-url==0.5.0
+
+# Redis (Celery broker/backend)
+redis==5.2.0
+
+# Web Server
+gunicorn==20.0.4
+
+# Cloudant/CouchDB
+cloudant==2.14.0
+
+# Excel Processing
+openpyxl==3.1.2
+
+# Encryption
+cryptocode==0.1
+
+# SMS Service
+twilio==7.8.0
+
+# Vector/Embeddings
+pinecone==7.3.0
+sentence-transformers==5.1.1
+
+# HTTP/Requests
+requests>=2.32.3,<3.0.0
+urllib3==1.26.20
+certifi==2020.12.5
+chardet==4.0.0
+idna==2.10
+
+# UUID Generation
+shortuuid==1.0.1
+
+# Date/Time Utilities
+pytz==2023.3
+python-dateutil==2.8.2
+
+# YAML (for drf-yasg)
+PyYAML==5.3.1
+ruamel.yaml==0.18.6
+ruamel.yaml.clib==0.2.12
+
+# Image Processing
+pillow==11.0.0
+
+# Template Engine
+Jinja2==2.11.2
+MarkupSafe==1.1.1
+
+# Testing (could move to dev requirements)
+pytest==8.4.1
+pytest-django==4.1.0
+factory-boy==3.2.0
+Faker==5.4.0
+parameterized==0.8.1
+
+# Development Tools (should be in requirements.dev.txt)
+# flake8==3.8.4
+# pre-commit==2.9.3
+
+# Transitive Dependencies (required by other packages)
+attrs==20.3.0
+click==8.1.7
+click-didyoumean==0.3.0
+click-plugins==1.1.1
+click-repl==0.2.0
+packaging>=24.2,<25.0
+pluggy==1.6.0
+py==1.11.0
+pyparsing==2.4.7
+six==1.17.0
+text-unidecode==1.3
+typing_extensions==4.15.0
+zipp==3.20.2
+importlib_metadata==8.5.0
+iniconfig==1.1.1
+itypes==1.2.0
+inflection==0.5.1
+wcwidth==0.2.5
+prompt-toolkit==3.0.24
+appdirs==1.4.4
+cffi==1.17.1
+pycparser==2.22
+distlib==0.4.0
+filelock==3.13.1
+nodeenv==1.5.0
+identify==1.5.12
+virtualenv==20.33.1
+cfgv==3.2.0
+zope.event==4.5.0
+zope.interface==5.4.0
+coreapi==2.3.3
+coreschema==0.0.4
+uritemplate==3.0.1
+
