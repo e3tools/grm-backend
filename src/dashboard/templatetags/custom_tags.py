@@ -6,8 +6,10 @@ from grm.constants import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,
-    MAP_STATUS,
+    MAP_ISSUE_STATUS,
+    MAP_ISSUE_STATUS_BADGE,
     MAP_WIZARD_SECTION,
+    MAP_WIZARD_STATUS,
     MEDIUM_CHOICES,
 )
 
@@ -115,8 +117,18 @@ def get_contact_medium_display(value):
 
 
 @register.simple_tag
-def get_status_display(value):
-    return MAP_STATUS[value]
+def get_issue_status_display(value):
+    return MAP_ISSUE_STATUS[value]
+
+
+@register.simple_tag
+def get_issue_status_badge(value):
+    return MAP_ISSUE_STATUS_BADGE[value]
+
+
+@register.simple_tag
+def get_wizard_status_display(value):
+    return MAP_WIZARD_STATUS[value]
 
 
 @register.simple_tag

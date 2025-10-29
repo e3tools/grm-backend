@@ -192,6 +192,12 @@ class IssueCreateAPIView(CreateAPIView):
                         ),
                     },
                 ),
+                'reporter': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='ID of the user who reported the issue', example=7
+                ),
+                'assignee': openapi.Schema(
+                    type=openapi.TYPE_INTEGER, description='ID of the user assigned to handle the issue', example=7
+                ),
             },
         ),
         responses={
