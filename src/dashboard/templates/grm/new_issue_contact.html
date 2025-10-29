@@ -70,9 +70,6 @@
 {% block javascript %}
     {{ block.super }}
     <script type="text/javascript">
-        $('b[role="presentation"]').hide();
-        $('.select2-selection__arrow').append(
-            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
 
         let contact_type = $('#id_contact_type');
         let contact = $('#id_contact');

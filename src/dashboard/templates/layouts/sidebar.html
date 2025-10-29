@@ -38,6 +38,13 @@
 						<p>{% translate "GRM" %}</p>
 					</a>
 				</li>
+				<li class="nav-item">
+					<a href="{% url 'dashboard:search:semantic_search' %}"
+					   class="nav-link {% if active_level1 == 'search_issues' %}active{% endif %}">
+						<i class="nav-icon fa fa-search"></i>
+						<p>{% translate "Search Issues" %}</p>
+					</a>
+				</li>
 			</ul>
 		</nav>
 

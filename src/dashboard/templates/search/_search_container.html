@@ -1,0 +1,66 @@
+{% load i18n %}
+<div id="search-container" class="fade show">
+	{% translate 'Search for grievances using natural language processing' as search_subtitle %}
+
+	{% if not search_active %}
+		<!-- Single column layout -->
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<form id="searchForm" hx-get="{% url 'dashboard:search:semantic_search' %}"
+					  hx-target="#search-container" hx-swap="outerHTML transition:true" hx-push-url="true"
+					  hx-indicator="#loading">
+					<label for="id_search">{{ search_subtitle }}</label>
+					<div class="input-group mb-3">
+						<div class="input-group-prepend">
+							<span class="input-group-text" id="basic-addon1">
+								<i class="nav-icon fa fa-search"></i>
+							</span>
+						</div>
+						<input type="text" class="form-control" name="q" value="{{ query }}" id="id_search"
+							   placeholder="{{ search_subtitle }}" aria-describedby="basic-addon1">
+					</div>
+					<div class="card">
+						<div class="card-body">
+							{% include "search/_filters.html" with col_size='col-md-4' %}
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+
+	{% else %}
+		<!-- Two-column layout -->
+		<div class="row">
+			<div class="col-md-4">
+				<div class="card position-sticky" style="top: 15px;">
+					<div class="card-header border-0">
+						<h5 class="card-title mb-0">{% trans "Search & Filters" %}</h5>
+					</div>
+					<div class="card-body">
+						<form id="searchForm" hx-get="{% url 'dashboard:search:semantic_search' %}" hx-target="#results"
+							  hx-push-url="true" hx-indicator="#loading" hx-include="#searchForm">
+							<div class="input-group mb-3">
+								<div class="input-group-prepend">
+							<span class="input-group-text" id="basic-addon1">
+								<i class="nav-icon fa fa-search"></i>
+							</span>
+								</div>
+								<input type="text" class="form-control" name="q" value="{{ query }}" id="id_search"
+									   placeholder="{{ search_subtitle }}" aria-describedby="basic-addon1">
+							</div>
+							{% include "search/_filters.html" with col_size='col-lg-12' %}
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-8">
+				<div class="card transparent">
+					<div class="card-body" id="results">
+						{% include "search/_results.html" %}
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+</div>

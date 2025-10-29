@@ -21671,7 +21671,7 @@ html.maximized-card {
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected], .select2-container--default .select2-results__option--highlighted[aria-selected]:hover {
-    background-color: #0074f0;
+    background-color: #24c38b;
     color: #ffffff;
 }
 

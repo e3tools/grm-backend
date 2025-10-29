@@ -8,7 +8,16 @@
 			</a>
 		</td>
 		<td>{{ issue.tracking_code }} {{ issue.id }}</td>
-		<td>{{ issue.description }}</td>
+		<td>
+			{% if issue.description|length > 100 %}
+				<span class="truncate" title="{% translate "Click to show more" %}"
+					  data-full-text="{{ issue.description }}">
+                            {{ issue.description|slice:":100" }}...
+                        </span>
+			{% else %}
+				{{ issue.description }}
+			{% endif %}
+		</td>
 		<td>{{ issue.assignee.name }}</td>
 		<td>{% get_days_until_today issue.created_date %}</td>
 		<td>{{ issue.category.name }}</td>

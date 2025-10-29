@@ -17,7 +17,7 @@
 				</h3>
 				{% if obj.status != 'not_started' %}
 					<div class="timeline-body text-muted pt-0">
-						{% get_status_display obj.status %}
+						{% get_wizard_status_display obj.status %}
 					</div>
 				{% endif %}
 			</div>
