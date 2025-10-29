@@ -1,97 +1,97 @@
-"""
-Embedding service for generating vector representations of text using sentence-transformers.
+# """
+# Embedding service for generating vector representations of text using sentence-transformers.
 
-This service uses the all-MiniLM-L6-v2 model which generates 384-dimensional vectors
-optimized for semantic similarity tasks.
-"""
+# This service uses the all-MiniLM-L6-v2 model which generates 384-dimensional vectors
+# optimized for semantic similarity tasks.
+# """
 
-import logging
+# import logging
 
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
-class EmbeddingService:
-    """
-    Singleton service for generating text embeddings.
+# class EmbeddingService:
+#     """
+#     Singleton service for generating text embeddings.
 
-    Uses the all-MiniLM-L6-v2 model which:
-    - Generates 384-dimensional vectors
-    - Is optimized for semantic search
-    - Provides good balance between speed and accuracy
-    - Recommended metric: cosine similarity
+#     Uses the all-MiniLM-L6-v2 model which:
+#     - Generates 384-dimensional vectors
+#     - Is optimized for semantic search
+#     - Provides good balance between speed and accuracy
+#     - Recommended metric: cosine similarity
 
-    The singleton pattern ensures the model is loaded only once across the application.
-    """
+#     The singleton pattern ensures the model is loaded only once across the application.
+#     """
 
-    _instance = None
-    _model = None
+#     _instance = None
+#     _model = None
 
-    # Model constants
-    MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
-    DIMENSION = 384
-    RECOMMENDED_METRIC = 'cosine'
+#     # Model constants
+#     MODEL_NAME = 'sentence-transformers/all-MiniLM-L6-v2'
+#     DIMENSION = 384
+#     RECOMMENDED_METRIC = 'cosine'
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
+#     def __new__(cls):
+#         if cls._instance is None:
+#             cls._instance = super().__new__(cls)
+#         return cls._instance
 
-    def __init__(self):
-        """Initialize the embedding model if not already loaded."""
-        if self._model is None:
-            logger.info(f"Initializing embedding model: {self.MODEL_NAME}...")
-            self._model = SentenceTransformer(self.MODEL_NAME)
-            logger.info(f"Embedding model loaded successfully. Dimension: {self.DIMENSION}")
+#     def __init__(self):
+#         """Initialize the embedding model if not already loaded."""
+#         if self._model is None:
+#             logger.info(f"Initializing embedding model: {self.MODEL_NAME}...")
+#             self._model = SentenceTransformer(self.MODEL_NAME)
+#             logger.info(f"Embedding model loaded successfully. Dimension: {self.DIMENSION}")
 
-    def encode(self, text: str | list[str], normalize: bool = True) -> list[float] | list[list[float]]:
-        """
-        Generate embeddings for one or multiple texts.
+#     def encode(self, text: str | list[str], normalize: bool = True) -> list[float] | list[list[float]]:
+#         """
+#         Generate embeddings for one or multiple texts.
 
-        Args:
-            text: Single text string or list of text strings to encode
-            normalize: Whether to normalize vectors (recommended for cosine similarity)
+#         Args:
+#             text: Single text string or list of text strings to encode
+#             normalize: Whether to normalize vectors (recommended for cosine similarity)
 
-        Returns:
-            Single embedding vector (for string input) or list of vectors (for list input)
+#         Returns:
+#             Single embedding vector (for string input) or list of vectors (for list input)
 
-        Raises:
-            Exception: If encoding fails
+#         Raises:
+#             Exception: If encoding fails
 
-        Example:
-            >>> service = EmbeddingService()
-            >>> embedding = service.encode("Water supply issue in district 5")
-            >>> embeddings = service.encode(["Issue 1", "Issue 2", "Issue 3"])
-        """
-        try:
-            embeddings = self._model.encode(text, normalize_embeddings=normalize, show_progress_bar=False)
+#         Example:
+#             >>> service = EmbeddingService()
+#             >>> embedding = service.encode("Water supply issue in district 5")
+#             >>> embeddings = service.encode(["Issue 1", "Issue 2", "Issue 3"])
+#         """
+#         try:
+#             embeddings = self._model.encode(text, normalize_embeddings=normalize, show_progress_bar=False)
 
-            # Convert numpy arrays to Python lists for JSON serialization
-            if isinstance(text, str):
-                return embeddings.tolist()
-            else:
-                return [emb.tolist() for emb in embeddings]
+#             # Convert numpy arrays to Python lists for JSON serialization
+#             if isinstance(text, str):
+#                 return embeddings.tolist()
+#             else:
+#                 return [emb.tolist() for emb in embeddings]
 
-        except Exception as e:
-            logger.error(f"Error generating embeddings: {str(e)}")
-            raise
+#         except Exception as e:
+#             logger.error(f"Error generating embeddings: {str(e)}")
+#             raise
 
-    def get_dimension(self) -> int:
-        """
-        Get the dimension of the vectors generated by this model.
+#     def get_dimension(self) -> int:
+#         """
+#         Get the dimension of the vectors generated by this model.
 
-        Returns:
-            int: Vector dimension (384 for all-MiniLM-L6-v2)
-        """
-        return self.DIMENSION
+#         Returns:
+#             int: Vector dimension (384 for all-MiniLM-L6-v2)
+#         """
+#         return self.DIMENSION
 
-    @classmethod
-    def get_model_info(cls) -> dict:
-        """
-        Get information about the embedding model being used.
+#     @classmethod
+#     def get_model_info(cls) -> dict:
+#         """
+#         Get information about the embedding model being used.
 
-        Returns:
-            dict: Model name, dimension, and recommended metric
-        """
-        return {'model_name': cls.MODEL_NAME, 'dimension': cls.DIMENSION, 'recommended_metric': cls.RECOMMENDED_METRIC}
+#         Returns:
+#             dict: Model name, dimension, and recommended metric
+#         """
+#         return {'model_name': cls.MODEL_NAME, 'dimension': cls.DIMENSION, 'recommended_metric': cls.RECOMMENDED_METRIC}
