@@ -12,7 +12,6 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
     CATEGORY_DELETE_ERROR_MESSAGE,
     COMPONENT_DELETE_ERROR_MESSAGE,
-    COMPONENT_REQUIRED_ERROR_MESSAGE,
     DEPARTMENT_DELETE_ERROR_MESSAGE,
     GROUP_DELETE_ERROR_MESSAGE,
     INVALID_EXCEL_FILE_ERROR_MESSAGE,
@@ -94,7 +93,9 @@ AdministrativeLevelFormSet = forms.modelformset_factory(
     formset=AdministrativeLevelBaseFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -176,7 +177,9 @@ IssueDepartmentFormSet = forms.modelformset_factory(
     formset=IssueDepartmentBaseFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -276,7 +279,9 @@ IssueCategoryFormSet = forms.modelformset_factory(
     formset=IssueCategoryBaseFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -432,7 +437,9 @@ ExistingCitizenAgeGroupFormSet = forms.modelformset_factory(
     formset=CitizenAgeGroupBaseFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -441,9 +448,11 @@ NewCitizenAgeGroupFormSet = forms.modelformset_factory(
     CitizenAgeGroup,
     form=CitizenAgeGroupForm,
     formset=CitizenAgeGroupBaseFormSet,
-    extra=len(DEFAULT_CITIZEN_AGE_GROUPS),
+    extra=len(DEFAULT_CITIZEN_AGE_GROUPS) - 1,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -480,6 +489,7 @@ ExistingCitizenGroupFormSet = forms.modelformset_factory(
     formset=CitizenGroupBaseFormSet,
     extra=0,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -490,6 +500,7 @@ NewCitizenGroupFormSet = forms.modelformset_factory(
     formset=CitizenGroupBaseFormSet,
     extra=1,
     max_num=100,
+    validate_max=True,
     can_delete=True,
     can_order=False,
 )
@@ -554,8 +565,8 @@ SubComponentFormSet = forms.inlineformset_factory(
     form=SubComponentForm,
     formset=SubComponentInlineFormSet,
     extra=0,
-    min_num=1,
     max_num=100,
+    validate_max=True,
     validate_min=False,
     can_delete=True,
 )
@@ -625,7 +636,6 @@ class ComponentFormSet(forms.BaseModelFormSet):
         if any(self.errors):
             return
 
-        valid_forms = 0
         for form in self.forms:
             if form.cleaned_data:
                 is_deleted = form.cleaned_data.get('DELETE', False)
@@ -635,13 +645,6 @@ class ComponentFormSet(forms.BaseModelFormSet):
                     if getattr(form.instance, 'restricted_deletion', False):
                         raise forms.ValidationError(COMPONENT_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
 
-                # Count valid (non-deleted) components
-                if not is_deleted and form.cleaned_data.get('name'):
-                    valid_forms += 1
-
-        if valid_forms < 1:
-            raise forms.ValidationError(COMPONENT_REQUIRED_ERROR_MESSAGE)
-
 
 # Create the main component formset
 NewComponentFormSet = forms.modelformset_factory(
@@ -650,7 +653,9 @@ NewComponentFormSet = forms.modelformset_factory(
     formset=ComponentFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
 )
 
@@ -660,6 +665,8 @@ ExistingComponentFormSet = forms.modelformset_factory(
     formset=ComponentFormSet,
     extra=0,
     min_num=1,
+    validate_min=True,
     max_num=100,
+    validate_max=True,
     can_delete=True,
 )

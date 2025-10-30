@@ -1600,10 +1600,6 @@ msgid "You cannot delete '%(name)s' because it is in use."
 msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
 
-#: grm/constants.py:233
-msgid "At least one component must be provided."
-msgstr "Au moins un composant doit être fourni."
-
 #: grm/constants.py:234
 #, python-format
 msgid "Cannot delete component '%(name)s' because it is in use."
