@@ -4,7 +4,6 @@ from authentication.factories import UserFactory
 from grm.constants import (
     COMPLETED_CHOICE,
     COMPONENT_DELETE_ERROR_MESSAGE,
-    COMPONENT_REQUIRED_ERROR_MESSAGE,
     COMPONENT_TOAST_ERROR_MESSAGE,
     IN_PROGRESS_CHOICE,
     NOT_PERMITTED_TEXT,
@@ -183,6 +182,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Component.objects.count(), 1)
+        self.assertFalse(Component.objects.filter(id=components[0].id).exists())
 
         data = {
             "form-TOTAL_FORMS": "1",
@@ -203,9 +203,9 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
 
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(Component.objects.count(), 1)
+        self.assertTrue(Component.objects.filter(id=components[1].id).exists())
 
-        self.assertIn(COMPONENT_REQUIRED_ERROR_MESSAGE, response.context['formset'].non_form_errors())
+        self.assertIn('Please submit at least 1 form.', response.context['formset'].non_form_errors())
 
     def test_cannot_delete_component_in_use(self):
         """Should raise validation error when deleting a component referenced by an Issue."""
@@ -308,3 +308,65 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
 
         c2.refresh_from_db()
         self.assertEqual(c2.name, "CompB")
+
+    def test_post_requires_minimum_one_form_when_components_exist(self):
+        """
+        Should require at least one Component form to be valid
+        when Component objects exist in the database.
+        """
+        ComponentFactory()
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(Component.objects.count(), 1)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+
+    def test_post_requires_minimum_one_form_when_no_components_exist(self):
+        """
+        Should require at least one Component form to be valid
+        when no Component objects exist in the database.
+        """
+        self.assertEqual(Component.objects.count(), 0)
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(Component.objects.count(), 0)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
