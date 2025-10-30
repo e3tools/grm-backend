@@ -164,14 +164,15 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         IssueFactory(category=category)  # creates dependency
 
         data = {
-            "form-TOTAL_FORMS": "1",
+            "form-TOTAL_FORMS": "2",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": category.id,
             "form-0-name": category.name,
             "form-0-parent": category.parent.id,
-            "form-0-DELETE": "on",
+            "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
         }
         response = self.post(self.url, data, ajax=True)
 
@@ -188,20 +189,28 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         category = IssueCategoryFactory(name="Free Cat", parent=IssueSubTypeFactory())
 
         data = {
-            "form-TOTAL_FORMS": "1",
+            "form-TOTAL_FORMS": "2",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": category.id,
             "form-0-name": category.name,
             "form-0-parent": category.parent.id,
-            "form-0-DELETE": "on",
+            "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
+            "form-1-abbreviation": category.abbreviation,
+            "form-1-parent": category.parent.id,
+            "form-1-assigned_department": category.assigned_department.id,
+            "form-1-assigned_appeal_department": category.assigned_appeal_department.id,
+            "form-1-assigned_escalation_department": category.assigned_escalation_department.id,
+            "form-1-confidentiality_level": category.confidentiality_level,
+            "form-1-redirection_protocol": category.redirection_protocol,
         }
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_6"))
-        self.assertEqual(IssueCategory.objects.count(), 0)
+        self.assertFalse(IssueCategory.objects.filter(id=category.id).exists())
 
     def test_required_fields_validation(self):
         """Should return validation errors when required fields are missing or empty."""
@@ -291,3 +300,33 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         category_2_name = category_2.name
         category_2.refresh_from_db()
         self.assertEqual(category_2.name, category_2_name)
+
+    def test_post_requires_minimum_one(self):
+        """
+        Should require at least one IssueCategory form to be valid.
+        """
+        IssueCategoryFactory()
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(IssueCategory.objects.count(), 1)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)

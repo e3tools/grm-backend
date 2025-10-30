@@ -206,13 +206,14 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         IssueFactory(administrative_region=region)  # generates restricted_deletion=True
 
         data = {
-            "form-TOTAL_FORMS": "1",
+            "form-TOTAL_FORMS": "2",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": level.id,
             "form-0-name": level.name,
             "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
         }
         response = self.post(self.url, data, ajax=True)
 
@@ -236,22 +237,53 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         level = AdministrativeLevelFactory(name="Free Level")
 
         data = {
-            "form-TOTAL_FORMS": "1",
+            "form-TOTAL_FORMS": "2",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": level.id,
             "form-0-name": level.name,
             "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
         }
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_3"))
-        self.assertEqual(AdministrativeLevel.objects.count(), 0)
+        self.assertFalse(AdministrativeLevel.objects.filter(id=level.id).exists())
 
         # Wizard sections should be updated
         self.current_section.refresh_from_db()
         self.next_section.refresh_from_db()
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
         self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
+
+    def test_post_requires_minimum_one(self):
+        """
+        Should require at least one AdministrativeLevel form to be valid.
+        """
+        AdministrativeLevelFactory()
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(AdministrativeLevel.objects.count(), 1)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
