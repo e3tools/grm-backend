@@ -6,7 +6,6 @@ from grm.constants import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,
-    MAP_ISSUE_STATUS,
     MAP_ISSUE_STATUS_BADGE,
     MAP_WIZARD_SECTION,
     MAP_WIZARD_STATUS,
@@ -114,11 +113,6 @@ def get_contact_medium_display(value):
     for key, label in MEDIUM_CHOICES:
         if key == value:
             return label
-
-
-@register.simple_tag
-def get_issue_status_display(value):
-    return MAP_ISSUE_STATUS[value]
 
 
 @register.simple_tag

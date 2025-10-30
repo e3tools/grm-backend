@@ -80,14 +80,18 @@ class SemanticSearchView(LoginRequiredMixin, View):
         confirmed_issues = Issue.objects.filter(confirmed=True)
         if hasattr(results, 'object_list'):
             filtered_issues = [int(item.get('_id')) for item in results.object_list]
-            issues_status = dict(confirmed_issues.filter(id__in=filtered_issues).values_list('id', 'status__name'))
+            issues_status = confirmed_issues.filter(id__in=filtered_issues).values_list(
+                'id', 'status_id', 'status__name'
+            )
+            issues_status = {
+                issue_id: {"id": status_id, "name": status_name} for issue_id, status_id, status_name in issues_status
+            }
             for item in results.object_list:
                 item['status'] = issues_status.get(int(item.get('_id')))
 
         context = {
-            "title": _("Find Relevant Cases"),
+            "title": _("Search Issues"),
             "query": query,
-            "results": results,
             "total_results": total_results,
             "page_obj": results,
             "search_active": search_active,
