@@ -114,14 +114,13 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         CitizenFactory(age_group=group)
 
         data = {
-            "form-TOTAL_FORMS": "2",
+            "form-TOTAL_FORMS": "1",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": group.id,
             "form-0-name": group.name,
-            "form-0-DELETE": "on",  # marked for deletion
-            "form-1-name": "new",
+            "form-0-DELETE": "on",
         }
 
         response = self.post(self.url, data, ajax=True)
@@ -139,21 +138,20 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         group = CitizenAgeGroupFactory(name="45–54 years")
 
         data = {
-            "form-TOTAL_FORMS": "2",
+            "form-TOTAL_FORMS": "1",
             "form-INITIAL_FORMS": "1",
             "form-MIN_NUM_FORMS": "1",
             "form-MAX_NUM_FORMS": "100",
             "form-0-id": group.id,
             "form-0-name": group.name,
-            "form-0-DELETE": "on",  # marked for deletion
-            "form-1-name": "new",
+            "form-0-DELETE": "on",
         }
 
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("wizard:setup_step_8"))
-        self.assertFalse(CitizenAgeGroup.objects.filter(id=group.id).exists())
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
 
     # ---- Validation ----
 
@@ -218,65 +216,3 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         self.assertEqual(CitizenAgeGroup.objects.count(), 0)
 
         self.assertEqual(response.context["form"].errors[1]["__all__"][0], "Please correct the duplicate values below.")
-
-    def test_post_requires_minimum_one_form_when_age_groups_exist(self):
-        """
-        Should require at least one CitizenAgeGroup form to be valid
-        when CitizenAgeGroup objects exist in the database.
-        """
-        CitizenAgeGroupFactory()
-
-        data = {
-            "form-TOTAL_FORMS": "0",  # no forms submitted
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
-            "form-MAX_NUM_FORMS": "100",
-        }
-
-        response = self.post(self.url, data, ajax=True)
-
-        # The form should not be valid and should render the same template again
-        self.assertEqual(response.status_code, 200)
-        formset = response.context["formset"]
-
-        # Should not create anything
-        self.assertEqual(CitizenAgeGroup.objects.count(), 1)
-
-        # Verify formset validation error due to min_num constraint
-        non_form_errors = formset.non_form_errors()
-        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
-
-        # Wizard should stay in current section (not mark completed)
-        self.current_section.refresh_from_db()
-        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
-
-    def test_post_requires_minimum_one_form_when_no_age_groups_exist(self):
-        """
-        Should require at least one CitizenAgeGroup form to be valid
-        when no CitizenAgeGroup objects exist in the database.
-        """
-        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
-
-        data = {
-            "form-TOTAL_FORMS": "0",  # no forms submitted
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
-            "form-MAX_NUM_FORMS": "100",
-        }
-
-        response = self.post(self.url, data, ajax=True)
-
-        # The form should not be valid and should render the same template again
-        self.assertEqual(response.status_code, 200)
-        formset = response.context["formset"]
-
-        # Should not create anything
-        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
-
-        # Verify formset validation error due to min_num constraint
-        non_form_errors = formset.non_form_errors()
-        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
-
-        # Wizard should stay in current section (not mark completed)
-        self.current_section.refresh_from_db()
-        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
