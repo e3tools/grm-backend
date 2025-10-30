@@ -1,6 +1,9 @@
 {% extends 'layouts/base.html' %}{% load static i18n %}
 
 {% block content %}
+	<h5 class="text-center text-bold-family">
+		{% translate 'Find Relevant Cases' %}
+	</h5>
 	<div class="overlay-wrapper">
 		{% include "search/_search_container.html" with categories=categories statuses=statuses assignees=assignees age_groups=age_groups %}
 		<div id="loading" class="overlay d-none">

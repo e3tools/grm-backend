@@ -1,7 +1,7 @@
 {% load i18n custom_tags %}
 
 {% if total_results %}
-	<p class="mb-4">{% translate 'Found' %} {{ total_results }} {% translate 'results' %}</p>
+	<p class="mb-4">{% translate 'Found results' %}: {{ total_results }}</p>
 	{% for r in page_obj %}
 		<div class="card">
 			<div class="card-body">
@@ -17,8 +17,8 @@
 					{% endif %}
 				</p>
 				<div class="text-sm mt-2">
-					<span class="badge badge-pill {% get_issue_status_badge r.status %}">
-						{% get_issue_status_display r.status %}
+					<span class="badge badge-pill {% get_issue_status_badge r.status.id %}">
+						{{ r.status.name }}
 					</span>
 					<span class="badge badge-pill badge-secondary">
 						{{ r.fields.administrative_region_name }}

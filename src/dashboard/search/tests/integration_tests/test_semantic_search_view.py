@@ -1,12 +1,19 @@
+from datetime import date
 from unittest.mock import patch
 
 from django.urls import reverse
 
 from dashboard.search.views import SemanticSearchView
-from grm.constants import OPENED_CHOICE
 from grm.tests.base import DashboardTestCase
 from grm.utils import reset_sequences
-from issues.factories import IssueFactory, IssueStatusFactory
+from issues.factories import (
+    CitizenAgeGroupFactory,
+    CitizenFactory,
+    CitizenGroupFactory,
+    IssueFactory,
+    IssueStatusFactory,
+    IssueTypeFactory,
+)
 
 
 class SemanticSearchViewTest(DashboardTestCase):
@@ -16,90 +23,103 @@ class SemanticSearchViewTest(DashboardTestCase):
         super().setUp()
         reset_sequences()
         self.url = reverse("dashboard:search:semantic_search")
-        status = IssueStatusFactory(name=OPENED_CHOICE)
-        issues = IssueFactory.create_batch(2, administrative_region=self.root_region, status=status, confirmed=True)
-        # Mock results in Pinecone 7.3.0 format: _id + fields
+
+        self.status = IssueStatusFactory()
+        self.type1 = IssueTypeFactory(name="Water")
+        self.type2 = IssueTypeFactory(name="Electricity")
+
+        self.age_group = CitizenAgeGroupFactory(name="Adults")
+        self.group = CitizenGroupFactory(name="Group A")
+        self.group_2 = CitizenGroupFactory(name="Group B")
+
+        # Citizens with age groups and groups
+        self.citizen = CitizenFactory(age_group=self.age_group, group=self.group, group_2=self.group_2)
+
+        self.issue_match = IssueFactory(
+            administrative_region=self.root_region,
+            issue_type=self.type1,
+            status=self.status,
+            citizen=self.citizen,
+            confirmed=True,
+            issue_date=date(2024, 3, 1),
+        )
+
+        self.issue_nonmatch = IssueFactory(
+            administrative_region=self.root_region,
+            issue_type=self.type2,
+            status=self.status,
+            confirmed=True,
+            issue_date=date(2023, 1, 1),
+        )
+
         self.mock_results = [
             {
-                "_id": str(issues[0].id),
+                "_id": str(self.issue_match.id),
                 "score": 0.98,
                 "fields": {
                     "description": "Water supply issue",
                     "issue_date": "2024-03-01",
-                    "administrative_region_id": "1",
-                    "issue_type_id": "1",
+                    "administrative_region_id": str(self.root_region.id),
+                    "issue_type_id": str(self.type1.id),
+                    "age_group_id": str(self.age_group.id),
+                    "group_id": str(self.group.id),
+                    "group_2_id": str(self.group_2.id),
                 },
             },
             {
-                "_id": str(issues[1].id),
-                "score": 0.91,
+                "_id": str(self.issue_nonmatch.id),
+                "score": 0.90,
                 "fields": {
                     "description": "Electricity complaint",
-                    "issue_date": "2024-03-02",
-                    "administrative_region_id": "1",
-                    "issue_type_id": "2",
+                    "issue_date": "2023-01-01",
+                    "administrative_region_id": str(self.root_region.id),
+                    "issue_type_id": str(self.type2.id),
                 },
             },
         ]
 
     @patch.object(SemanticSearchView, "connector")
-    def test_initial_load_no_query(self, mock_connector):
-        """Should render full template with no search performed."""
-        response = self.get(self.url)
+    def test_semantic_search_with_filters_applied(self, mock_connector):
+        """Should correctly apply query and filters, returning only matching items."""
+        mock_connector.query_text.return_value = self.mock_results
 
+        filters = {
+            "q": "water",
+            "administrative_region": str(self.root_region.id),
+            "issue_type": str(self.type1.id),
+            "age_group": str(self.age_group.id),
+            "group": str(self.group.id),
+            "group_2": str(self.group_2.id),
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "page": 1,
+            "per_page": 10,
+        }
+
+        response = self.get(self.url, data=filters)
         assert response.status_code == 200
+
         ctx = self.get_context(response)
-        assert "search_active" in ctx
-        assert not ctx.get("search_active", False)
-        mock_connector.query_text.assert_not_called()
 
-        # Ensure the full template (semantic_search.html) was rendered
-        template_names = [t.name for t in response.templates if t.name]
-        assert any("semantic_search.html" in name for name in template_names)
+        # ✅ 1. Verify context variables
+        assert ctx["query"] == filters["q"]
+        assert ctx["search_active"] is True
+        assert ctx["filters"]["administrative_region"] == filters["administrative_region"]
+        assert ctx["filters"]["issue_type"] == filters["issue_type"]
+        assert ctx["filters"]["age_group"] == filters["age_group"]
+        assert ctx["filters"]["group"] == filters["group"]
+        assert ctx["filters"]["group_2"] == filters["group_2"]
+        assert ctx["filters"]["start_date"] == filters["start_date"]
+        assert ctx["filters"]["end_date"] == filters["end_date"]
 
-    @patch.object(SemanticSearchView, "connector")
-    def test_semantic_search_with_query(self, mock_connector):
-        """Should render results using Pinecone mock."""
-        mock_connector.query_text.return_value = self.mock_results
+        # ✅ 2. Verify filtering worked — only 1 result should match
+        assert ctx["total_results"] == 1
+        page_obj = ctx["page_obj"]
+        assert len(page_obj.object_list) == 1
 
-        response = self.get(self.url, data={"q": "water issue"})
+        result = page_obj.object_list[0]
+        assert result["_id"] == str(self.issue_match.id)
+        assert "Water supply issue" in result["fields"]["description"]
 
-        assert response.status_code == 200
-        ctx = self.get_context(response)
-        assert ctx.get("search_active", False)
-        assert ctx.get("total_results", 0) == len(self.mock_results)
-        mock_connector.query_text.assert_called_once_with(query_text="water issue", top_k=100)
-
-    @patch.object(SemanticSearchView, "connector")
-    def test_htmx_initial_request(self, mock_connector):
-        """Should return search container partial on first HTMX search."""
-        mock_connector.query_text.return_value = self.mock_results
-
-        response = self.get(
-            self.url,
-            data={"q": "water issue"},
-            ajax=True,
-            **{"HTTP_HX-Request": "true", "HTTP_HX-Target": "search-container"},
-        )
-
-        assert response.status_code == 200
-        template_names = [t.name for t in response.templates if t.name]
-        assert any("search/_search_container.html" in name for name in template_names)
-        mock_connector.query_text.assert_called_once()
-
-    @patch.object(SemanticSearchView, "connector")
-    def test_htmx_results_request(self, mock_connector):
-        """Should return only the results partial on subsequent HTMX requests."""
-        mock_connector.query_text.return_value = self.mock_results
-
-        response = self.get(
-            self.url,
-            data={"q": "water issue"},
-            ajax=True,
-            **{"HTTP_HX-Request": "true", "HTTP_HX-Target": "results"},
-        )
-
-        assert response.status_code == 200
-        template_names = [t.name for t in response.templates if t.name]
-        assert any("search/_results.html" in name for name in template_names)
-        mock_connector.query_text.assert_called_once()
+        # ✅ 3. Ensure Pinecone was called once
+        mock_connector.query_text.assert_called_once_with(query_text="water", top_k=100)

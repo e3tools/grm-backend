@@ -93,35 +93,12 @@ MAP_WIZARD_STATUS = {
     COMPLETED_CHOICE: COMPLETED_DISPLAY,
 }
 
-CREATED_CHOICE = "Créé"
-CREATED_DISPLAY = _("Créé")
-OPENED_CHOICE = "Ouverte"
-OPENED_DISPLAY = _("Ouverte")
-REJECTED_CHOICE = "Rejetée"
-REJECTED_DISPLAY = _("Rejetée")
-# COMPLETED_CHOICE = _("Terminée")
-# REJECTED_DISPLAY = _("Terminée")
-ISSUE_STATUS_CHOICES = [
-    (CREATED_CHOICE, CREATED_DISPLAY),
-    (OPENED_CHOICE, OPENED_DISPLAY),
-    (REJECTED_CHOICE, REJECTED_DISPLAY),
-    # (COMPLETED_CHOICE, COMPLETED_DISPLAY),
-    ("Terminée", "Terminée"),
-]
-MAP_ISSUE_STATUS = {
-    CREATED_CHOICE: CREATED_DISPLAY,
-    OPENED_CHOICE: OPENED_DISPLAY,
-    REJECTED_CHOICE: REJECTED_DISPLAY,
-    # COMPLETED_CHOICE: COMPLETED_DISPLAY,
-    "Terminée": "Terminée",
-}
 MAP_ISSUE_STATUS_BADGE = {
-    OPENED_CHOICE: "badge-info",
-    REJECTED_CHOICE: "badge-danger",
-    # COMPLETED_CHOICE: "badge-primary",
-    "Terminée": "badge-primary",
+    1: "badge-info",
+    2: "badge-yellow",
+    3: "badge-danger",
+    4: "badge-primary",
 }
-
 
 DEPARTMENT_HEAD_CHOICE = "department_head"
 FEWER_ISSUES_CHOICE = "fewer_issues"

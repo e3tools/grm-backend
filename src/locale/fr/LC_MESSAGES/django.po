@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-21 10:56+0000\n"
+"POT-Creation-Date: 2025-10-30 12:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,67 +51,67 @@ msgstr ""
 msgid "User does not have an associated facilitator profile."
 msgstr "L'utilisateur n'a pas de profil de facilitateur associé."
 
-#: authentication/models.py:16
+#: authentication/models.py:17
 msgid "email address"
 msgstr "adresse mail"
 
-#: authentication/models.py:17 grm/constants.py:20
+#: authentication/models.py:18 grm/constants.py:20
 msgid "phone number"
 msgstr "numéro de téléphone"
 
-#: authentication/models.py:18
+#: authentication/models.py:19
 msgid "photo"
 msgstr "photo"
 
-#: authentication/models.py:71
+#: authentication/models.py:72
 msgid "department"
 msgstr "département"
 
-#: authentication/models.py:77
+#: authentication/models.py:78
 msgid "administrative region"
 msgstr "région administrative"
 
-#: authentication/models.py:81
+#: authentication/models.py:82
 msgid "Government Worker"
 msgstr "Employé du Gouvernement"
 
-#: authentication/models.py:82
+#: authentication/models.py:83
 msgid "Government Workers"
 msgstr "Travailleurs du Gouvernement"
 
-#: authentication/models.py:120 authentication/models.py:134
+#: authentication/models.py:121 authentication/models.py:136
 #: issues/models.py:33 issues/models.py:60 issues/models.py:170
 #: issues/models.py:189 issues/models.py:206 issues/models.py:227
 #: issues/models.py:246 issues/models.py:261 issues/models.py:276
 #: issues/models.py:311 issues/models.py:329 issues/models.py:347
-#: issues/models.py:365 issues/models.py:393 issues/models.py:614
-#: issues/models.py:648
+#: issues/models.py:365 issues/models.py:393 issues/models.py:615
+#: issues/models.py:649
 msgid "Created at"
 msgstr "Créé à"
 
-#: authentication/models.py:121 authentication/models.py:135
+#: authentication/models.py:122 authentication/models.py:137
 #: issues/models.py:34 issues/models.py:61 issues/models.py:171
 #: issues/models.py:190 issues/models.py:207 issues/models.py:228
 #: issues/models.py:247 issues/models.py:262 issues/models.py:277
 #: issues/models.py:312 issues/models.py:330 issues/models.py:348
 #: issues/models.py:366 issues/models.py:394 issues/models.py:457
-#: issues/models.py:615 issues/models.py:649
+#: issues/models.py:616 issues/models.py:650
 msgid "Updated at"
 msgstr "Mis à jour à"
 
-#: authentication/models.py:124
+#: authentication/models.py:125
 msgid "Facilitator"
 msgstr "L'animateur"
 
-#: authentication/models.py:125
+#: authentication/models.py:126
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/models.py:138 issues/models.py:397
+#: authentication/models.py:140 issues/models.py:397
 msgid "Citizen"
 msgstr "Citoyen"
 
-#: authentication/models.py:139 issues/models.py:398
+#: authentication/models.py:141 issues/models.py:398
 msgid "Citizens"
 msgstr "Citoyens"
 
@@ -157,20 +157,20 @@ msgstr "Nom d'utilisateur pour l'authentification"
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
 
-#: authentication/views.py:538 authentication/views.py:552
+#: authentication/views.py:701 authentication/views.py:715
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: authentication/views.py:550
+#: authentication/views.py:713
 msgid "Password Reset Sent"
 msgstr "Réinitialisation du mot de passe envoyée"
 
-#: authentication/views.py:587 authentication/views.py:604
+#: authentication/views.py:750 authentication/views.py:767
 #: dashboard/templates/authentication/password_reset_confirm.html:19
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
 
-#: authentication/views.py:615
+#: authentication/views.py:778
 #: dashboard/templates/authentication/password_reset_complete.html:6
 msgid "Password reset complete"
 msgstr "Réinitialisation du mot de passe terminée"
@@ -511,6 +511,10 @@ msgstr "Ce mois-ci"
 msgid "Participatory Budget"
 msgstr "Budget Participatif"
 
+#: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:45
+msgid "Search Issues"
+msgstr "Problèmes de recherche"
+
 #: dashboard/subprojects/views.py:10
 msgid "Subprojects"
 msgstr "Sous-projets"
@@ -525,7 +529,8 @@ msgid "Export complete list"
 msgstr "Exporter la liste complète"
 
 #: dashboard/templates/adls/list.html:23
-#: dashboard/templates/adls/profile.html:40 issues/models.py:37
+#: dashboard/templates/adls/profile.html:40
+#: dashboard/templates/search/_filters.html:4 issues/models.py:37
 #: wizard/templates/wizard/regions.html:31
 #: wizard/templates/wizard/summary.html:48
 msgid "Administrative Level"
@@ -656,7 +661,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:653
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:654
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -775,7 +780,8 @@ msgstr "Pourcentage"
 #: dashboard/templates/diagnostics/home.html:198
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:55
-#: dashboard/templates/grm/review_issues.html:254 issues/models.py:364
+#: dashboard/templates/grm/review_issues.html:254
+#: dashboard/templates/search/_filters.html:14 issues/models.py:364
 #: wizard/views.py:701
 msgid "Type"
 msgstr "Type"
@@ -807,19 +813,20 @@ msgstr "Filtrer par"
 
 #: dashboard/templates/diagnostics/home.html:59
 #: dashboard/templates/grm/review_issues.html:40
+#: dashboard/templates/search/_filters.html:71
 msgid "Clear all filters"
 msgstr "Effacer tous les filtres"
 
-#: dashboard/templates/diagnostics/home.html:448
-#: dashboard/templates/grm/issue_list.html:20
+#: dashboard/templates/diagnostics/home.html:444
+#: dashboard/templates/grm/issue_list.html:29
 msgid "No issues found"
 msgstr "Aucun réclamation ou demande n'a été trouvée"
 
-#: dashboard/templates/diagnostics/home.html:482
+#: dashboard/templates/diagnostics/home.html:478
 #: dashboard/templates/grm/new_issue_confirm.html:222
-#: dashboard/templates/grm/new_issue_confirm.html:401
+#: dashboard/templates/grm/new_issue_confirm.html:397
 #: dashboard/templates/grm/new_issue_location.html:56
-#: dashboard/templates/grm/new_issue_location.html:72
+#: dashboard/templates/grm/new_issue_location.html:69
 msgid "Click to select location"
 msgstr "Cliquez pour sélectionner l'emplacement"
 
@@ -879,7 +886,7 @@ msgid "No comments found"
 msgstr "Aucun commentaire trouvé"
 
 #: dashboard/templates/grm/issue_detail.html:17
-#: dashboard/templates/grm/review_issues.html:51 grm/constants.py:140
+#: dashboard/templates/grm/review_issues.html:51 grm/constants.py:147
 msgid "Summary"
 msgstr "Résumé"
 
@@ -929,6 +936,11 @@ msgstr "Veuillez entrer votre mot de passe pour afficher les données sensibles"
 #: dashboard/templates/grm/issue_detail.html:241
 msgid "Check password"
 msgstr "Vérifier le mot de passe"
+
+#: dashboard/templates/grm/issue_list.html:13
+#: dashboard/templates/search/_results.html:11
+msgid "Click to show more"
+msgstr "Cliquez pour afficher plus"
 
 #: dashboard/templates/grm/issue_status_buttons.html:15
 msgid "Accept Issue"
@@ -1107,7 +1119,7 @@ msgstr "Bienvenue"
 msgid "Logout"
 msgstr "Se déconnecter"
 
-#: dashboard/templates/layouts/sidebar.html:85
+#: dashboard/templates/layouts/sidebar.html:92
 msgid "Toggle Sidebar"
 msgstr "Basculer la barre latérale"
 
@@ -1154,6 +1166,67 @@ msgstr "Phase"
 #: dashboard/templates/participatory_budget/task_list.html:21
 msgid "Commune"
 msgstr "Commune"
+
+#: dashboard/templates/search/_filters.html:24
+msgid "Age Group"
+msgstr "Groupe d'âge"
+
+#: dashboard/templates/search/_filters.html:34
+msgid "Citizen Group 1"
+msgstr "Groupe de citoyens 1"
+
+#: dashboard/templates/search/_filters.html:44
+msgid "Citizen Group 2"
+msgstr "Groupe de citoyens 2"
+
+#: dashboard/templates/search/_filters.html:54
+msgid "Case Date"
+msgstr "Date de l'affaire"
+
+#: dashboard/templates/search/_filters.html:58
+msgid "From"
+msgstr "Du"
+
+#: dashboard/templates/search/_filters.html:62
+msgid "To"
+msgstr "Au"
+
+#: dashboard/templates/search/_results.html:4
+msgid "Found results"
+msgstr "Résultats trouvés"
+
+#: dashboard/templates/search/_results.html:8
+msgid "No description"
+msgstr "Aucune description"
+
+#: dashboard/templates/search/_results.html:47
+msgid "No case date"
+msgstr "Aucune date de cas"
+
+#: dashboard/templates/search/_results.html:63
+msgid "Page"
+msgstr "Page"
+
+#: dashboard/templates/search/_results.html:72
+msgid "No results found."
+msgstr "Aucun résultat trouvé."
+
+#: dashboard/templates/search/_search_container.html:3
+msgid "Search for grievances using natural language processing"
+msgstr "Recherche de griefs à l'aide du traitement automatique du langage naturel"
+
+#: dashboard/templates/search/_search_container.html:37
+msgid "Search & Filters"
+msgstr "Recherche et filtres"
+
+#: dashboard/templates/search/semantic_search.html:5
+msgid "Find Relevant Cases"
+msgstr "Trouver des cas pertinents"
+
+#: dashboard/templates/search/semantic_search.html:26
+#: dashboard/templates/search/semantic_search.html:50
+msgid "All"
+msgstr "Toutes"
 
 #: grm/constants.py:9
 msgid "Remain anonymous"
@@ -1227,64 +1300,64 @@ msgstr "Pas commencé"
 msgid "In Progress"
 msgstr "En cours"
 
-#: grm/constants.py:98
+#: grm/constants.py:105
 msgid "Department head"
 msgstr "Chef de département"
 
-#: grm/constants.py:99
+#: grm/constants.py:106
 msgid "Person with fewer issues"
 msgstr "Personne avec moins de problèmes"
 
-#: grm/constants.py:110
+#: grm/constants.py:117
 msgid "Low"
 msgstr "Faible"
 
-#: grm/constants.py:111
+#: grm/constants.py:118
 msgid "Anonymous"
 msgstr "Anonyme"
 
-#: grm/constants.py:122
+#: grm/constants.py:129
 msgid "Project Description"
 msgstr "Description du projet"
 
-#: grm/constants.py:124
+#: grm/constants.py:131
 msgid "Administrative Level Structure Configuration"
 msgstr "Configuration de la structure du niveau administratif"
 
-#: grm/constants.py:126
+#: grm/constants.py:133
 msgid "Load Administrative Levels"
 msgstr "Charger les niveaux administratifs"
 
-#: grm/constants.py:128 wizard/views.py:354
+#: grm/constants.py:135 wizard/views.py:354
 msgid "Departments"
 msgstr "Départements"
 
-#: grm/constants.py:130
+#: grm/constants.py:137
 msgid "Issues Categories"
 msgstr "Catégories de problèmes"
 
-#: grm/constants.py:132
+#: grm/constants.py:139
 msgid "Resolution Process"
 msgstr "Processus de résolution"
 
-#: grm/constants.py:134 issues/models.py:352 wizard/views.py:444
+#: grm/constants.py:141 issues/models.py:352 wizard/views.py:444
 msgid "Citizen Age Groups"
 msgstr "Groupes d'âge des citoyens"
 
-#: grm/constants.py:136 issues/models.py:370 wizard/views.py:469
+#: grm/constants.py:143 issues/models.py:370 wizard/views.py:469
 msgid "Citizen Groups"
 msgstr "Groupes de citoyens"
 
-#: grm/constants.py:138
+#: grm/constants.py:145
 msgid "Project Components"
 msgstr "Composantes du projet"
 
-#: grm/constants.py:169
+#: grm/constants.py:176
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr "Taille de fichier autorisée inférieure ou égale à %s"
 
-#: grm/constants.py:170
+#: grm/constants.py:177
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
@@ -1293,125 +1366,125 @@ msgstr ""
 "Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
 "taille du fichier sélectionné est de %s."
 
-#: grm/constants.py:171
+#: grm/constants.py:178
 msgid "Validation failed."
 msgstr "La validation a échoué."
 
-#: grm/constants.py:172
+#: grm/constants.py:179
 msgid "Not found."
 msgstr "Non trouvé"
 
-#: grm/constants.py:173
+#: grm/constants.py:180
 msgid "Action not permitted"
 msgstr "Action non autorisée"
 
-#: grm/constants.py:174
+#: grm/constants.py:181
 msgid ""
 "You must define the contact method is your contact medium is channel alert"
 msgstr ""
 "Vous devez définir la méthode de contact si votre moyen de contact est le "
 "canal d'alerte"
 
-#: grm/constants.py:175
+#: grm/constants.py:182
 msgid "If email contact method is selected, provide a valid email"
 msgstr ""
 "Si la méthode de contact par e-mail est sélectionnée, fournissez une adresse "
 "e-mail valide"
 
-#: grm/constants.py:176
+#: grm/constants.py:183
 msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 "Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
 "indiquez un numéro de téléphone valide"
 
-#: grm/constants.py:177
+#: grm/constants.py:184
 msgid "Issue created successfully."
 msgstr "Problème créé avec succès."
 
-#: grm/constants.py:178
+#: grm/constants.py:185
 msgid "An error occurred while creating the issue."
 msgstr "Une erreur s'est produite lors de la création du problème."
 
-#: grm/constants.py:179
+#: grm/constants.py:186
 msgid "Issue updated successfully."
 msgstr "Problème mis à jour avec succès."
 
-#: grm/constants.py:180
+#: grm/constants.py:187
 msgid "An error occurred while updating the issue."
 msgstr "Une erreur s'est produite lors de la mise à jour du problème."
 
-#: grm/constants.py:181
+#: grm/constants.py:188
 msgid "Only assignees can update the status field."
 msgstr "Seuls les cessionnaires peuvent mettre à jour le champ de statut."
 
-#: grm/constants.py:182
+#: grm/constants.py:189
 msgid "Only reporters can update the rating field."
 msgstr "Seuls les journalistes peuvent mettre à jour le champ de notation."
 
-#: grm/constants.py:183
+#: grm/constants.py:190
 msgid "An error occurred while retrieving the issue."
 msgstr "Une erreur s'est produite lors de la récupération du problème."
 
-#: grm/constants.py:184
+#: grm/constants.py:191
 msgid "Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z)."
 msgstr ""
 "Format de date/heure non valide. Utiliser la norme ISO 8601 (par exemple: "
 "2021-03-23T10:30:45Z)."
 
-#: grm/constants.py:185
+#: grm/constants.py:192
 msgid "Comment added successfully."
 msgstr "Commentaire ajouté avec succès."
 
-#: grm/constants.py:186
+#: grm/constants.py:193
 msgid "An error occurred while creating the comment."
 msgstr "Une erreur s'est produite lors de la création du commentaire."
 
-#: grm/constants.py:187
+#: grm/constants.py:194
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des commentaires sur le "
 "problème."
 
-#: grm/constants.py:188
+#: grm/constants.py:195
 msgid "An error occurred while deleting the comment."
 msgstr "Une erreur s'est produite lors de la suppression du commentaire."
 
-#: grm/constants.py:189
+#: grm/constants.py:196
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: grm/constants.py:190
+#: grm/constants.py:197
 msgid "Attachment uploaded successfully."
 msgstr "Pièce jointe téléchargée avec succès."
 
-#: grm/constants.py:191
+#: grm/constants.py:198
 msgid "An error occurred during file upload."
 msgstr "Une erreur s'est produite lors du téléchargement du fichier."
 
-#: grm/constants.py:192
+#: grm/constants.py:199
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des pièces jointes du "
 "problème."
 
-#: grm/constants.py:193
+#: grm/constants.py:200
 msgid "Citizen registered successfully."
 msgstr "Citoyen enregistré avec succès."
 
-#: grm/constants.py:194
+#: grm/constants.py:201
 msgid "A user with that username already exists."
 msgstr "Un utilisateur avec ce nom d'utilisateur existe déjà."
 
-#: grm/constants.py:195
+#: grm/constants.py:202
 msgid "user with this email address already exists."
 msgstr "un utilisateur avec cette adresse email existe déjà."
 
-#: grm/constants.py:196
+#: grm/constants.py:203
 msgid "Password confirmation does not match."
 msgstr "La confirmation du mot de passe ne correspond pas."
 
-#: grm/constants.py:198
+#: grm/constants.py:205
 #, python-format
 msgid ""
 "You cannot delete '%(name)s' because it is linked to issues or departments."
@@ -1419,28 +1492,28 @@ msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est lié à des problèmes ou à "
 "des services."
 
-#: grm/constants.py:200
+#: grm/constants.py:207
 msgid "This administrative level cannot be deleted because it is in use."
 msgstr ""
 "Ce niveau administratif ne peut pas être supprimé car il est en cours "
 "d'utilisation."
 
-#: grm/constants.py:201
+#: grm/constants.py:208
 msgid "Administrative Level Instances"
 msgstr "Instances de niveau administratif"
 
-#: grm/constants.py:202
+#: grm/constants.py:209
 #, python-format
 msgid "Successfully created %(count)d administrative level instances."
 msgstr ""
 "%(count)d instances de niveau administratif ont été créées avec succès."
 
-#: grm/constants.py:203
+#: grm/constants.py:210
 #, python-format
 msgid "Skipped %(count)d duplicates that already existed."
 msgstr "%(count)d doublons qui existaient déjà ont été ignorés."
 
-#: grm/constants.py:205
+#: grm/constants.py:212
 #, python-format
 msgid ""
 "%(count)d administrative level instances could not be modified because they "
@@ -1449,20 +1522,20 @@ msgstr ""
 "%(count)d instances de niveau administratif n'ont pas pu être modifiées car "
 "elles sont déjà utilisées."
 
-#: grm/constants.py:207
+#: grm/constants.py:214
 msgid "All administrative level instances have been deleted."
 msgstr "Toutes les instances de niveau administratif ont été supprimées."
 
-#: grm/constants.py:208
+#: grm/constants.py:215
 #, python-format
 msgid "Administrative level %(level)s not found in database"
 msgstr "Niveau administratif %(level)s non trouvé dans la base de données"
 
-#: grm/constants.py:209
+#: grm/constants.py:216
 msgid "The Excel file must contain a header row."
 msgstr "Le fichier Excel doit contenir une ligne d’en-tête."
 
-#: grm/constants.py:211
+#: grm/constants.py:218
 #, python-format
 msgid ""
 "The first administrative level instance already exists with the name "
@@ -1473,7 +1546,7 @@ msgstr ""
 "L'instance portant la valeur %(new)s ne correspond pas à ce niveau dans le "
 "fichier Excel."
 
-#: grm/constants.py:215
+#: grm/constants.py:222
 #, python-format
 msgid ""
 "The value of the instance of the first administrative level (first column) "
@@ -1484,15 +1557,15 @@ msgstr ""
 "doit être identique pour toutes les cellules de la colonne. %(root)s "
 "attendus, %(new)s trouvés."
 
-#: grm/constants.py:218
+#: grm/constants.py:225
 msgid "Only Excel files (.xls, .xlsx) are allowed."
 msgstr "Seuls les fichiers Excel (.xls, .xlsx) sont autorisés."
 
-#: grm/constants.py:219
+#: grm/constants.py:226
 msgid "The uploaded file is not a valid Excel file."
 msgstr "Le fichier téléchargé n'est pas un fichier Excel valide."
 
-#: grm/constants.py:220
+#: grm/constants.py:227
 #, python-format
 msgid ""
 "You cannot delete '%(name)s' because it is linked to administrative level."
@@ -1500,56 +1573,56 @@ msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est lié au niveau "
 "administratif."
 
-#: grm/constants.py:221
+#: grm/constants.py:228
 msgid "This department cannot be deleted because it is in use."
 msgstr ""
 "Ce département ne peut pas être supprimé car il est en cours d'utilisation."
 
-#: grm/constants.py:222
+#: grm/constants.py:229
 #, python-format
 msgid "You cannot delete '%(name)s' because it is linked to issues."
 msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est lié à des problèmes."
 
-#: grm/constants.py:223
+#: grm/constants.py:230
 msgid "This category cannot be deleted because it is in use."
 msgstr ""
 "Cette catégorie ne peut pas être supprimée car elle est en cours "
 "d'utilisation."
 
-#: grm/constants.py:224
+#: grm/constants.py:231
 msgid "This group cannot be deleted because it is in use."
 msgstr "Ce groupe ne peut pas être supprimé car il est en cours d'utilisation."
 
-#: grm/constants.py:225
+#: grm/constants.py:232
 #, python-format
 msgid "You cannot delete '%(name)s' because it is in use."
 msgstr ""
 "Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
 
-#: grm/constants.py:226
+#: grm/constants.py:233
 msgid "At least one component must be provided."
 msgstr "Au moins un composant doit être fourni."
 
-#: grm/constants.py:227
+#: grm/constants.py:234
 #, python-format
 msgid "Cannot delete component '%(name)s' because it is in use."
 msgstr ""
 "Impossible de supprimer le composant '%(name)s' car il est en cours "
 "d'utilisation."
 
-#: grm/constants.py:228
+#: grm/constants.py:235
 msgid "Each component must have at least one subcomponent."
 msgstr "Chaque composant doit avoir au moins un sous-composant."
 
-#: grm/constants.py:229
+#: grm/constants.py:236
 #, python-format
 msgid "Cannot delete subcomponent '%(name)s' because it is in use."
 msgstr ""
 "Impossible de supprimer le sous-composant '%(name)s' car il est en cours "
 "d'utilisation."
 
-#: grm/constants.py:230
+#: grm/constants.py:237
 msgid "This component cannot be deleted because it is in use."
 msgstr ""
 "Ce composant ne peut pas être supprimé car il est en cours d'utilisation."
@@ -1702,31 +1775,31 @@ msgstr "Groupe d'âge des citoyens"
 msgid "Citizen Group"
 msgstr "Groupe de citoyens"
 
-#: issues/models.py:469 issues/models.py:636
+#: issues/models.py:470 issues/models.py:637
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:470
+#: issues/models.py:471
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:618
+#: issues/models.py:619
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:619
+#: issues/models.py:620
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:638
+#: issues/models.py:639
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:646
+#: issues/models.py:647
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:652
+#: issues/models.py:653
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 
