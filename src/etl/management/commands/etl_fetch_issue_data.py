@@ -10,9 +10,6 @@ from etl.management.commands.etl_fetch_adl_data import Command as ADLCommand
 from etl.management.commands.etl_fetch_administrative_region_data import (
     Command as RegionCommand,
 )
-from etl.management.commands.etl_fetch_issue_sub_type_data import (
-    Command as SubTypeCommand,
-)
 from etl.models import ETLExecutionLog
 from etl.utils import (
     fetch_database,
@@ -20,7 +17,6 @@ from etl.utils import (
     process_citizen_group_data,
     process_issue_data,
     process_issue_department_data,
-    process_sub_component_data,
 )
 from issues.models import (
     CitizenAgeGroup,
@@ -30,6 +26,7 @@ from issues.models import (
     IssueCategory,
     IssueDepartment,
     IssueStatus,
+    IssueSubType,
     IssueType,
     SubComponent,
     SubProjectGroup,
@@ -77,9 +74,6 @@ class Command(BaseCommand):
             # update User objects
             ADLCommand().handle()
 
-            # update IssueSubType objects
-            SubTypeCommand().handle()
-
             grm_db = get_db(COUCHDB_GRM_DATABASE)
 
             # update IssueDepartment objects
@@ -111,9 +105,6 @@ class Command(BaseCommand):
             # update SubComponent objects
             # get issue_sub_component documents from CouchDB
             result = grm_db.get_query_result({"type": "issue_sub_component"})
-
-            # process data for bulk create and bulk update
-            result = process_sub_component_data(result)
             fetch_database(self, result=result, model_class=SubComponent)
 
             # update SubProjectGroup objects
@@ -138,6 +129,11 @@ class Command(BaseCommand):
             # get issue_type documents from CouchDB
             result = grm_db.get_query_result({"type": "issue_type"})
             fetch_database(self, result=result, model_class=IssueType)
+
+            # update SubIssueType objects
+            # get issue_sub_type documents from CouchDB
+            result = grm_db.get_query_result({"type": "issue_sub_type"})
+            fetch_database(self, result=result, model_class=IssueSubType)
 
             # update Issue objects
             # get issue documents from CouchDB
