@@ -3196,9 +3196,19 @@ class IssueSubTypeListAPIView(ListAPIView):
                                     'parent': openapi.Schema(
                                         type=openapi.TYPE_OBJECT,
                                         properties={
-                                            'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="Component ID"),
+                                            'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="IssueType ID"),
                                             'name': openapi.Schema(
-                                                type=openapi.TYPE_STRING, description="Component name"
+                                                type=openapi.TYPE_STRING, description="IssueType name"
+                                            ),
+                                            'created_date': openapi.Schema(
+                                                type=openapi.TYPE_STRING,
+                                                format=openapi.FORMAT_DATETIME,
+                                                example='2024-08-28T10:30:45.123456Z',
+                                            ),
+                                            'updated_date': openapi.Schema(
+                                                type=openapi.TYPE_STRING,
+                                                format=openapi.FORMAT_DATETIME,
+                                                example='2024-08-28T10:30:45.123456Z',
                                             ),
                                         },
                                     ),

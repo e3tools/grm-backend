@@ -268,11 +268,27 @@ class IssueDepartmentAdministrativeLevel(models.Model):
         return f"{self.department.name} - {self.administrative_level.name}"
 
 
+class IssueType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
+
+    class Meta:
+        verbose_name = _("Issue Type")
+        verbose_name_plural = _("Issue Types")
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def get_choices(cls, empty_choice=True):
+        return get_choices(cls.objects.all(), empty_choice)
+
+
 class IssueSubType(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
-    )
+    parent = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='children', db_index=True)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -314,24 +330,6 @@ class IssueCategory(models.Model):
     class Meta:
         verbose_name = _("Issue Category")
         verbose_name_plural = _("Issue Categories")
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def get_choices(cls, empty_choice=True):
-        return get_choices(cls.objects.all(), empty_choice)
-
-
-class IssueType(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
-    updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
-
-    class Meta:
-        verbose_name = _("Issue Type")
-        verbose_name_plural = _("Issue Types")
         ordering = ['name']
 
     def __str__(self):

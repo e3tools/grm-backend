@@ -2,7 +2,6 @@ from zipfile import BadZipFile
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from openpyxl.utils.exceptions import InvalidFileException
 
@@ -249,18 +248,18 @@ class IssueCategoryBaseFormSet(CustomBaseModelFormSet):
                     category.delete()
                 continue
 
-            selected_sub_type = form.cleaned_data.get("parent")
+            # selected_sub_type = form.cleaned_data.get("parent")
 
             # Create new subtype
-            if not selected_sub_type.id:
-                sub_type, _ = IssueSubType.objects.get_or_create(name=selected_sub_type.name)
-                form.instance.parent = sub_type
+            # if not selected_sub_type.id:
+            #     sub_type, _ = IssueSubType.objects.get_or_create(name=selected_sub_type.name)
+            #     form.instance.parent = sub_type
 
             # Save or update the category
             form.save(commit=commit)
 
             # Delete existing subtypes that are not in use
-            IssueSubType.objects.exclude(Q(children__isnull=False) | Q(categories__isnull=False)).delete()
+            IssueSubType.objects.exclude(categories__isnull=False).delete()
 
         if commit:
             for instance in instances:

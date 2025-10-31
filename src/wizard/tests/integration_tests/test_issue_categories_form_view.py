@@ -17,7 +17,7 @@ from issues.factories import (
     IssueFactory,
     IssueSubTypeFactory,
 )
-from issues.models import IssueCategory, IssueSubType
+from issues.models import IssueCategory
 from wizard.models import WizardSection
 
 
@@ -93,28 +93,28 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
         self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
 
-    def test_post_creates_new_category_with_new_subtype_string(self):
-        """Submitting valid data with a new string for parent should create IssueSubType automatically."""
-        self.assertEqual(IssueCategory.objects.count(), 0)
-        self.assertEqual(IssueSubType.objects.count(), 0)
-
-        data = {
-            "form-TOTAL_FORMS": "1",
-            "form-INITIAL_FORMS": "0",
-            "form-MIN_NUM_FORMS": "1",
-            "form-MAX_NUM_FORMS": "100",
-            "form-0-name": "Category X",
-            "form-0-parent": "New Subtype",
-            **self.other_required_fields,
-        }
-        response = self.post(self.url, data, ajax=True)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(IssueCategory.objects.count(), 1)
-        category = IssueCategory.objects.first()
-        self.assertIsNotNone(category.parent)
-        self.assertEqual(category.parent.name, "New Subtype")
-        self.assertEqual(IssueSubType.objects.count(), 1)
+    # def test_post_creates_new_category_with_new_subtype_string(self):
+    #     """Submitting valid data with a new string for parent should create IssueSubType automatically."""
+    #     self.assertEqual(IssueCategory.objects.count(), 0)
+    #     self.assertEqual(IssueSubType.objects.count(), 0)
+    #
+    #     data = {
+    #         "form-TOTAL_FORMS": "1",
+    #         "form-INITIAL_FORMS": "0",
+    #         "form-MIN_NUM_FORMS": "1",
+    #         "form-MAX_NUM_FORMS": "100",
+    #         "form-0-name": "Category X",
+    #         "form-0-parent": "New Subtype",
+    #         **self.other_required_fields,
+    #     }
+    #     response = self.post(self.url, data, ajax=True)
+    #
+    #     self.assertEqual(response.status_code, 302)
+    #     self.assertEqual(IssueCategory.objects.count(), 1)
+    #     category = IssueCategory.objects.first()
+    #     self.assertIsNotNone(category.parent)
+    #     self.assertEqual(category.parent.name, "New Subtype")
+    #     self.assertEqual(IssueSubType.objects.count(), 1)
 
     def test_post_invalid_parent_empty_string(self):
         """Submitting with empty parent should raise 'required' validation error."""

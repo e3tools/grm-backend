@@ -73,20 +73,6 @@ class SubComponentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'parent', 'created_date', 'updated_date']
 
 
-class IssueSubTypeParentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IssueSubType
-        fields = ["id", "name", 'created_date', 'updated_date']
-
-
-class IssueSubTypeSerializer(serializers.ModelSerializer):
-    parent = IssueSubTypeParentSerializer(read_only=True)
-
-    class Meta:
-        model = IssueSubType
-        fields = ['id', 'name', 'parent', 'created_date', 'updated_date']
-
-
 class SubProjectGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubProjectGroup
@@ -97,6 +83,14 @@ class IssueTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IssueType
         fields = ['id', 'name', 'created_date', 'updated_date']
+
+
+class IssueSubTypeSerializer(serializers.ModelSerializer):
+    parent = IssueTypeSerializer(read_only=True)
+
+    class Meta:
+        model = IssueSubType
+        fields = ['id', 'name', 'parent', 'created_date', 'updated_date']
 
 
 class CitizenAgeGroupSerializer(serializers.ModelSerializer):

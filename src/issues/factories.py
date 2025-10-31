@@ -96,6 +96,15 @@ class IssueDepartmentAdministrativeLevelFactory(DjangoModelFactory):
         django_get_or_create = ('department', 'administrative_level')  # Avoid duplicates
 
 
+class IssueTypeFactory(DjangoModelFactory):
+    """Factory for creating IssueType instances for testing."""
+
+    class Meta:
+        model = IssueType
+
+    name = factory.Sequence(lambda n: f"Type {n}")
+
+
 class IssueSubTypeFactory(DjangoModelFactory):
     """Factory for creating IssueSubTypeFactory instances for testing."""
 
@@ -103,7 +112,7 @@ class IssueSubTypeFactory(DjangoModelFactory):
         model = IssueSubType
 
     name = factory.Sequence(lambda n: f"SubType {n}")
-    parent = None
+    parent = factory.SubFactory(IssueTypeFactory)
 
 
 class IssueCategoryFactory(DjangoModelFactory):
@@ -130,15 +139,6 @@ class IssueCategoryFactory(DjangoModelFactory):
     class Meta:
         model = IssueCategory
         django_get_or_create = ('name',)  # Avoid duplicates due to unique constraint
-
-
-class IssueTypeFactory(DjangoModelFactory):
-    """Factory for creating IssueType instances for testing."""
-
-    class Meta:
-        model = IssueType
-
-    name = factory.Sequence(lambda n: f"Type {n}")
 
 
 class ComponentFactory(DjangoModelFactory):

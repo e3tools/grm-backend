@@ -34,7 +34,7 @@ class IssueSubTypeListAPIViewTest(APITestCase):
 
         # Create test issue subtypes
         self.info = IssueSubTypeFactory(name="Info")
-        self.complaint = IssueSubTypeFactory(name="Complaint", parent=self.info)
+        self.complaint = IssueSubTypeFactory(name="Complaint")
         self.other = IssueSubTypeFactory(name="Other")
 
     def authenticate_with_token(self):
@@ -157,7 +157,7 @@ class IssueSubTypeListAPIViewTest(APITestCase):
         assert len(response_data['results']) == 1
         assert response_data['results'][0]['name'] == self.info.name
         assert response_data['results'][0]['id'] == self.info.id
-        assert response_data['results'][0]['parent'] == self.info.parent
+        assert response_data['results'][0]['parent']['id'] == self.info.parent.id
 
     def test_different_users_same_response(self):
         """Test that different authenticated users get the same paginated response."""
