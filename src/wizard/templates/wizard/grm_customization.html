@@ -172,6 +172,11 @@
         });
     }
 
+    <!-- wizard_sections_spin disable button on submit -->
+    $(document).on("submit", "form", function () {
+        wizard_sections_spin.show();
+    });
+
     // For handling formset
     let formIndex;
     let maxForms;
@@ -193,6 +198,7 @@
                 initSkipSubmitToggle();
             }
             wizard_form_spin.hide();
+            wizard_sections_spin.hide();
         });
     }
 
@@ -502,13 +508,13 @@
                 });
             }
         });
-        
+
         // Generate file name
-		const now = new Date();
-		const y = now.getFullYear();
-		const m = String(now.getMonth() + 1).padStart(2, '0');
-		const d = String(now.getDate()).padStart(2, '0');
-		const fileName = `wizard_summary_${y}_${m}_${d}.pdf`;
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const fileName = `wizard_summary_${y}_${m}_${d}.pdf`;
 
         // Generate and download the PDF file
         pdfMake.createPdf(docDefinition).download(fileName);

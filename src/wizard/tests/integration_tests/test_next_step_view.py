@@ -1,8 +1,8 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import ViewTestCase
+from wizard.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from wizard.models import WizardSection
 
 

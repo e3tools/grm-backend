@@ -1,7 +1,8 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
+from grm.tests.base import ViewTestCase
+from wizard.constants import (
     ADMINISTRATIVE_LEVELS_CHOICE,
     ADMINISTRATIVE_REGIONS_CHOICE,
     COMPLETED_CHOICE,
@@ -10,7 +11,6 @@ from grm.constants import (
     NOT_STARTED_CHOICE,
     PROJECT_CHOICE,
 )
-from grm.tests.base import ViewTestCase
 from wizard.factories import WizardSectionFactory
 from wizard.models import WizardSection
 
@@ -27,9 +27,11 @@ class WizardSectionListViewTest(ViewTestCase):
         WizardSection.objects.all().delete()
 
         # Create test wizard sections
-        self.section1 = WizardSectionFactory(status=COMPLETED_CHOICE, name=PROJECT_CHOICE)
-        self.section2 = WizardSectionFactory(status=IN_PROGRESS_CHOICE, name=ADMINISTRATIVE_LEVELS_CHOICE)
-        self.section3 = WizardSectionFactory(status=NOT_STARTED_CHOICE, name=ADMINISTRATIVE_REGIONS_CHOICE)
+        self.section1 = WizardSectionFactory(id=2, step=1, status=COMPLETED_CHOICE, name=PROJECT_CHOICE)
+        self.section2 = WizardSectionFactory(id=1, step=2, status=IN_PROGRESS_CHOICE, name=ADMINISTRATIVE_LEVELS_CHOICE)
+        self.section3 = WizardSectionFactory(
+            id=3, step=3, status=NOT_STARTED_CHOICE, name=ADMINISTRATIVE_REGIONS_CHOICE
+        )
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -79,7 +81,7 @@ class WizardSectionListViewTest(ViewTestCase):
 
         wizard_sections = list(response.context["wizard_sections"])
 
-        # Should be ordered by id (as defined in model Meta)
+        # Should be ordered by step (as defined in model Meta)
         self.assertEqual(wizard_sections[0].id, self.section1.id)
         self.assertEqual(wizard_sections[1].id, self.section2.id)
         self.assertEqual(wizard_sections[2].id, self.section3.id)

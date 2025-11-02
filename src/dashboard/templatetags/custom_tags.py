@@ -7,10 +7,9 @@ from grm.constants import (
     CITIZEN_TYPE_CHOICES_ALT,
     CONTACT_CHOICES,
     MAP_ISSUE_STATUS_BADGE,
-    MAP_WIZARD_SECTION,
-    MAP_WIZARD_STATUS,
     MEDIUM_CHOICES,
 )
+from wizard.constants import MAP_WIZARD_SECTION, MAP_WIZARD_STATUS
 
 register = template.Library()
 

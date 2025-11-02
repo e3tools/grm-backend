@@ -22,7 +22,9 @@ from grm.constants import (
     FEMALE_CHOICE,
     FEWER_ISSUES_CHOICE,
     INDIVIDUAL_CHOICE,
+    LOW_CHOICE,
     MALE_CHOICE,
+    MAP_CONFIDENTIALITY_LEVEL,
     ORGANIZATION_CHOICE,
     PHONE_CHOICE,
 )
@@ -417,6 +419,12 @@ def process_category_data(data: list[dict]) -> list[dict]:
         # --- Handle redirection_protocol ---
         redirection_protocol = new_item.get('redirection_protocol')
         new_item['redirection_protocol'] = FEWER_ISSUES_CHOICE if redirection_protocol else DEPARTMENT_HEAD_CHOICE
+
+        # --- Handle confidentiality_level ---
+        confidentiality_level = new_item.get('confidentiality_level')
+        new_item['confidentiality_level'] = (
+            confidentiality_level if confidentiality_level in MAP_CONFIDENTIALITY_LEVEL.keys() else LOW_CHOICE
+        )
 
         processed.append(new_item)
 

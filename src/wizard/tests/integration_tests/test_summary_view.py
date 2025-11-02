@@ -2,14 +2,16 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
+from grm.tests.base import ViewTestCase
+from wizard.constants import (
     COMPLETED_CHOICE,
     IN_PROGRESS_CHOICE,
     MAP_WIZARD_SECTION,
+    SUMMARY_CHOICE,
     SUMMARY_DISPLAY,
 )
-from grm.tests.base import ViewTestCase
 from wizard.models import WizardSection
+from wizard.registry import get_step_by_name
 
 
 class SummaryViewTest(ViewTestCase):
@@ -18,10 +20,12 @@ class SummaryViewTest(ViewTestCase):
     def setUp(self):
         """Set up the test environment for the summary step."""
         super().setUp()
-        self.url = reverse("wizard:setup_step_10")
+        self.step = get_step_by_name(SUMMARY_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=10)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
 
     def test_redirect_if_not_logged_in(self):
         """Anonymous users should receive 404."""
@@ -46,7 +50,7 @@ class SummaryViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/summary.html")
 
         # Context assertions
-        self.assertEqual(response.context["step"], 10)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["card_title"], SUMMARY_DISPLAY)
         self.assertTrue(response.context["disabled_submit"])
         self.assertIsInstance(response.context["summary"], list)

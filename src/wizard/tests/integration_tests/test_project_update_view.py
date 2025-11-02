@@ -2,21 +2,33 @@ from django.urls import reverse
 
 from authentication.factories import UserFactory
 from dashboard.models import Project
-from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import ViewTestCase
+from wizard.constants import (
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    NOT_STARTED_CHOICE,
+    PROJECT_CHOICE,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class ProjectUpdateViewTest(ViewTestCase):
     """Integration tests for the ProjectUpdateView."""
 
     def setUp(self):
-        self.url = reverse("wizard:setup_step_1")
+        super().setUp()
+        self.step = get_step_by_name(PROJECT_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        # Create ordered wizard sections
-        self.current_section = WizardSection.objects.get(id=1)
-        self.next_section = WizardSection.objects.get(id=2)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(PROJECT_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -44,7 +56,7 @@ class ProjectUpdateViewTest(ViewTestCase):
     def test_get_context_contains_step(self):
         """Test that context includes step and total steps."""
         response = self.get(self.url, ajax=True)
-        self.assertEqual(response.context["step"], 1)
+        self.assertEqual(response.context["step"], self.step)
 
     def test_post_creates_new_project_and_updates_sections(self):
         """Test that POST request creates a new project and updates sections."""
@@ -57,7 +69,7 @@ class ProjectUpdateViewTest(ViewTestCase):
 
         # Should redirect to success_url
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_2"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         # Project should be created
         self.assertEqual(Project.objects.count(), 1)
@@ -82,7 +94,7 @@ class ProjectUpdateViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_2"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         # Still only one project
         self.assertEqual(Project.objects.count(), 1)

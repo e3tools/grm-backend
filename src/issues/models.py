@@ -14,7 +14,6 @@ from grm.constants import (
     ALERT_CHOICE,
     ALERT_CHOICES,
     ANONYMOUS_CHOICE,
-    CITIZEN_GROUP_CHOICES,
     CITIZEN_TYPE_CHOICES,
     CONFIDENTIALITY_LEVEL_CHOICES,
     CONTACT_CHOICES,
@@ -26,6 +25,7 @@ from grm.constants import (
     REDIRECTION_PROTOCOL_CHOICES,
 )
 from grm.utils import filesizeformat_en, get_choices
+from wizard.constants import CITIZEN_GROUP_CHOICES
 
 
 class AdministrativeLevel(models.Model):
@@ -197,8 +197,9 @@ class SubComponent(models.Model):
         return self.name
 
     @classmethod
-    def get_choices(cls, empty_choice=True):
-        return get_choices(cls.objects.all(), empty_choice)
+    def get_choices(cls, empty_choice=True, parent=None):
+        choices = cls.objects.all() if not parent else cls.objects.filter(parent=parent)
+        return get_choices(choices, empty_choice)
 
 
 class SubProjectGroup(models.Model):
@@ -287,7 +288,7 @@ class IssueType(models.Model):
 
 
 class IssueSubType(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     parent = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='children', db_index=True)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
@@ -296,13 +297,15 @@ class IssueSubType(models.Model):
         verbose_name = _("Issue Subtype")
         verbose_name_plural = _("Issue Subtypes")
         ordering = ['name']
+        unique_together = ['name', 'parent']
 
     def __str__(self):
         return self.name
 
     @classmethod
-    def get_choices(cls, empty_choice=True):
-        return get_choices(cls.objects.all(), empty_choice)
+    def get_choices(cls, empty_choice=True, parent=None):
+        choices = cls.objects.all() if not parent else cls.objects.filter(parent=parent)
+        return get_choices(choices, empty_choice)
 
 
 class IssueCategory(models.Model):
@@ -336,8 +339,9 @@ class IssueCategory(models.Model):
         return self.name
 
     @classmethod
-    def get_choices(cls, empty_choice=True):
-        return get_choices(cls.objects.all(), empty_choice)
+    def get_choices(cls, empty_choice=True, parent=None):
+        choices = cls.objects.all() if not parent else cls.objects.filter(parent=parent)
+        return get_choices(choices, empty_choice)
 
 
 class CitizenAgeGroup(models.Model):

@@ -3140,7 +3140,7 @@ class IssueSubTypeListAPIView(ListAPIView):
     It requires Token authentication and returns paginated results.
     """
 
-    queryset = IssueSubType.objects.all()
+    queryset = IssueSubType.objects.select_related('parent')
     serializer_class = IssueSubTypeSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]

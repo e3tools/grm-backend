@@ -1,30 +1,37 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    CITIZEN_GROUP_CHOICE,
-    COMPLETED_CHOICE,
-    GROUP_TOAST_ERROR_MESSAGE,
-    IN_PROGRESS_CHOICE,
-    NOT_PERMITTED_TEXT,
-)
 from grm.tests.base import ViewTestCase
 from issues.factories import CitizenGroupFactory
 from issues.models import CitizenGroup
+from wizard.constants import (
+    CITIZEN_GROUP_CHOICE,
+    CITIZEN_GROUPS_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class CitizenGroupsFormViewTest(ViewTestCase):
-    """Integration tests for the CitizenGroupsFormView (step 8)."""
+    """Integration tests for the CitizenGroupsFormView."""
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_8")
+        self.step = get_step_by_name(CITIZEN_GROUPS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=8)
-        WizardSection.objects.filter(id=8).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=9)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(CITIZEN_GROUPS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     def test_redirect_if_not_logged_in(self):
         """Anonymous users should get a 404."""
@@ -51,10 +58,10 @@ class CitizenGroupsFormViewTest(ViewTestCase):
 
         context = response.context
         self.assertIn("formset", context)
-        self.assertEqual(context["step"], 8)
+        self.assertEqual(context["step"], self.step)
         self.assertEqual(context["formset_label"], "Citizen Groups")
         self.assertEqual(context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(context["toast_message"], GROUP_TOAST_ERROR_MESSAGE)
+        self.assertEqual(context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
         self.assertTrue(context["skip"])
 
     def test_post_creates_new_group(self):
@@ -73,7 +80,7 @@ class CitizenGroupsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_9"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(CitizenGroup.objects.count(), 1)
 
         group = CitizenGroup.objects.first()
@@ -103,7 +110,7 @@ class CitizenGroupsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_9"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         group.refresh_from_db()
         self.assertEqual(group.name, "Updated Name")
@@ -126,7 +133,7 @@ class CitizenGroupsFormViewTest(ViewTestCase):
 
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_9"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(CitizenGroup.objects.count(), 0)
 
     def test_required_name_validation(self):
@@ -240,7 +247,7 @@ class CitizenGroupsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_9"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(CitizenGroup.objects.count(), 0)
 
         # Wizard sections should be updated

@@ -1,16 +1,16 @@
 import logging
 
-from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.timezone import localtime
 
 from common.utils.pinecone_connector import PineconeConnector
+from etl.management.commands.base_translated_command import TranslatedBaseCommand
 from issues.models import Issue
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
+class Command(TranslatedBaseCommand):
     help = "Upload confirmed Issue objects to Pinecone using server-side embeddings (SDK 7.3.0)."
 
     def add_arguments(self, parser):
@@ -20,7 +20,7 @@ class Command(BaseCommand):
         parser.add_argument("--namespace", type=str, default="default", help="Target Pinecone namespace")
 
     @transaction.atomic
-    def handle(self, *args, **options):
+    def handle_translated(self, *args, **options):
         batch_size = options["batch_size"]
         limit = options.get("limit")
         dry_run = options["dry_run"]

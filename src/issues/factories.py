@@ -8,11 +8,7 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    CITIZEN_GROUP_CHOICES,
-    CONFIDENTIALITY_LEVEL_CHOICES,
-    REDIRECTION_PROTOCOL_CHOICES,
-)
+from grm.constants import CONFIDENTIALITY_LEVEL_CHOICES, REDIRECTION_PROTOCOL_CHOICES
 from issues.models import (
     AdministrativeLevel,
     AdministrativeRegion,
@@ -32,6 +28,7 @@ from issues.models import (
     SubComponent,
     SubProjectGroup,
 )
+from wizard.constants import CITIZEN_GROUP_CHOICES
 
 fake = Faker()
 

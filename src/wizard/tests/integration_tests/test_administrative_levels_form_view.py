@@ -1,14 +1,6 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
-    ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE,
-    COMPLETED_CHOICE,
-    IN_PROGRESS_CHOICE,
-    NOT_PERMITTED_TEXT,
-    NOT_STARTED_CHOICE,
-)
 from grm.tests.base import ViewTestCase
 from issues.factories import (
     AdministrativeLevelFactory,
@@ -16,7 +8,17 @@ from issues.factories import (
     IssueFactory,
 )
 from issues.models import AdministrativeLevel
+from wizard.constants import (
+    ADMINISTRATIVE_LEVELS_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+    NOT_STARTED_CHOICE,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class AdministrativeLevelsFormViewTest(ViewTestCase):
@@ -24,12 +26,16 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_2")
+        self.step = get_step_by_name(ADMINISTRATIVE_LEVELS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=2)
-        WizardSection.objects.filter(id=2).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=3)
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(ADMINISTRATIVE_LEVELS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     def test_redirect_if_not_logged_in(self):
         """Test to make the view return 404 to anonymous users."""
@@ -53,10 +59,10 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
-        self.assertEqual(response.context["step"], 2)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["formset_label"], "Administrative Level Names")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(response.context["toast_message"], ADMINISTRATIVE_LEVEL_TOAST_ERROR_MESSAGE)
+        self.assertEqual(response.context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
 
     def test_post_creates_new_administrative_level(self):
         """Submitting valid data should create a new AdministrativeLevel."""
@@ -73,7 +79,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_3"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         self.assertEqual(AdministrativeLevel.objects.count(), 1)
         level = AdministrativeLevel.objects.first()
@@ -221,7 +227,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn(
-            ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE % {"name": level.name},
+            ITEM_DELETE_ERROR_MESSAGE % {"name": level.name},
             response.context["formset"].non_form_errors()[0],
         )
         self.assertTrue(AdministrativeLevel.objects.filter(id=level.id, name=level.name).exists())
@@ -249,7 +255,7 @@ class AdministrativeLevelsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_3"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertFalse(AdministrativeLevel.objects.filter(id=level.id).exists())
 
         # Wizard sections should be updated

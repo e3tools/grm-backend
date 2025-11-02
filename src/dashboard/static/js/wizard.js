@@ -62,6 +62,9 @@ function submitForm($this, url, step, data) {
         error: function () {
             alert(error_server_message);
             enableButton($this);
+        },
+        complete: function () {
+            wizard_sections_spin.hide();
         }
     });
 }
@@ -107,6 +110,9 @@ $(document).on("submit", "#formUploadModal", function (e) {
         error: function () {
             alert(error_server_message);
             enableButton($this);
+        },
+        complete: function () {
+            wizard_sections_spin.hide();
         }
     });
 });
@@ -131,6 +137,9 @@ function submitNexStep($this, url) {
             alert(error_server_message);
             $this.removeClass('disabled').removeAttr('disabled');
             enableButton($("form"));
+        },
+        complete: function () {
+            wizard_sections_spin.hide();
         }
     });
 }

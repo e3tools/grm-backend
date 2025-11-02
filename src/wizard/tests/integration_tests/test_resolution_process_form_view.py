@@ -1,11 +1,12 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE
 from grm.tests.base import ViewTestCase
 from issues.factories import IssueStatusFactory
 from issues.models import IssueStatus
+from wizard.constants import COMPLETED_CHOICE, IN_PROGRESS_CHOICE, ISSUE_STATUS_CHOICE
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class ResolutionProcessFormViewTest(ViewTestCase):
@@ -13,12 +14,17 @@ class ResolutionProcessFormViewTest(ViewTestCase):
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_6")
+        self.step = get_step_by_name(ISSUE_STATUS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=6)
-        WizardSection.objects.filter(id=6).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=7)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(ISSUE_STATUS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     def test_redirect_if_not_logged_in(self):
         response = self.get(self.url, authorized=False, ajax=True)
@@ -39,7 +45,7 @@ class ResolutionProcessFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/static_formset.html")
         self.assertIn("formset", response.context)
-        self.assertEqual(response.context["step"], 6)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["formset_label"], "Issue Status")
 
     def test_post_updates_existing_statuses(self):
@@ -63,7 +69,7 @@ class ResolutionProcessFormViewTest(ViewTestCase):
 
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_7"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         for s, expected_name in zip(IssueStatus.objects.all(), updated_names):
             self.assertEqual(s.name, expected_name)
@@ -122,7 +128,7 @@ class ResolutionProcessFormViewTest(ViewTestCase):
 
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_7"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         statuses = IssueStatus.objects.order_by("id")
         self.assertEqual(statuses.count(), 4)

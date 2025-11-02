@@ -2,10 +2,10 @@ import logging
 import traceback
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from client import get_db
+from etl.management.commands.base_translated_command import TranslatedBaseCommand
 from etl.management.commands.etl_fetch_adl_data import Command as ADLCommand
 from etl.management.commands.etl_fetch_administrative_region_data import (
     Command as RegionCommand,
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
-class Command(BaseCommand):
+class Command(TranslatedBaseCommand):
     help = 'Get data from CouchDB documents to update information related to the Issue model'
 
     def add_arguments(self, parser):
@@ -53,7 +53,7 @@ class Command(BaseCommand):
             help="Filter documents by confirmed field",
         )
 
-    def handle(self, *args, **options):
+    def handle_translated(self, *args, **options):
         triggered_by = options["triggered_by"]
         only_confirmed = options["only_confirmed"]
 
@@ -69,10 +69,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE('Running: etl_fetch_issue_data'))
 
             # update AdministrativeRegion objects
-            RegionCommand().handle()
+            RegionCommand().handle_translated()
 
             # update User objects
-            ADLCommand().handle()
+            ADLCommand().handle_translated()
 
             grm_db = get_db(COUCHDB_GRM_DATABASE)
 
@@ -117,14 +117,6 @@ class Command(BaseCommand):
             result = grm_db.get_query_result({"type": "issue_status"})
             fetch_database(self, result=result, model_class=IssueStatus)
 
-            # update IssueCategory objects
-            # get issue_category documents from CouchDB
-            result = grm_db.get_query_result({"type": "issue_category"})
-
-            # process data for bulk create and bulk update
-            result = process_category_data(result)
-            fetch_database(self, result=result, model_class=IssueCategory)
-
             # update IssueType objects
             # get issue_type documents from CouchDB
             result = grm_db.get_query_result({"type": "issue_type"})
@@ -134,6 +126,14 @@ class Command(BaseCommand):
             # get issue_sub_type documents from CouchDB
             result = grm_db.get_query_result({"type": "issue_sub_type"})
             fetch_database(self, result=result, model_class=IssueSubType)
+
+            # update IssueCategory objects
+            # get issue_category documents from CouchDB
+            result = grm_db.get_query_result({"type": "issue_category"})
+
+            # process data for bulk create and bulk update
+            result = process_category_data(result)
+            fetch_database(self, result=result, model_class=IssueCategory)
 
             # update Issue objects
             # get issue documents from CouchDB

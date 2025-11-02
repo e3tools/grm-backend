@@ -18,3 +18,6 @@ INTERNAL_IPS = [
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["https://*.mgp.coso.gouv.bj", "https://*.127.0.0.1"]
+
+# Language to execute Django commands that use the TranslatedBaseCommand (optional)
+CMD_LANGUAGE_CODE = 'en-us'

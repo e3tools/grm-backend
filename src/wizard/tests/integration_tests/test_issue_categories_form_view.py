@@ -1,15 +1,7 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    CATEGORY_DELETE_ERROR_MESSAGE,
-    CATEGORY_TOAST_ERROR_MESSAGE,
-    COMPLETED_CHOICE,
-    FEWER_ISSUES_CHOICE,
-    IN_PROGRESS_CHOICE,
-    LOW_CHOICE,
-    NOT_PERMITTED_TEXT,
-)
+from grm.constants import FEWER_ISSUES_CHOICE, LOW_CHOICE
 from grm.tests.base import ViewTestCase
 from issues.factories import (
     IssueCategoryFactory,
@@ -18,7 +10,16 @@ from issues.factories import (
     IssueSubTypeFactory,
 )
 from issues.models import IssueCategory
+from wizard.constants import (
+    CATEGORIES_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class IssueCategoriesFormViewTest(ViewTestCase):
@@ -26,12 +27,18 @@ class IssueCategoriesFormViewTest(ViewTestCase):
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_5")
+        self.step = get_step_by_name(CATEGORIES_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=5)
-        WizardSection.objects.filter(id=5).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=6)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(CATEGORIES_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
+
         self.other_required_fields = {
             "form-0-assigned_department": IssueDepartmentAdministrativeLevelFactory().id,
             "form-0-assigned_appeal_department": IssueDepartmentAdministrativeLevelFactory().id,
@@ -58,14 +65,14 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
-        self.assertEqual(response.context["step"], 5)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["formset_label"], "Categories")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(response.context["toast_message"], CATEGORY_TOAST_ERROR_MESSAGE)
+        self.assertEqual(response.context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
         self.assertTrue(response.context["two_fields_by_row"])
 
-    def test_post_creates_new_category_with_existing_subtype(self):
-        """Submitting valid data with an existing IssueSubType should create a category."""
+    def test_post_creates_new_category(self):
+        """Submitting valid data should create a category."""
         subtype = IssueSubTypeFactory(name="Subtype A")
         self.assertEqual(IssueCategory.objects.count(), 0)
 
@@ -81,7 +88,7 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_6"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(IssueCategory.objects.count(), 1)
         category = IssueCategory.objects.first()
         self.assertEqual(category.name, "Category 1")
@@ -92,29 +99,6 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.next_section.refresh_from_db()
         self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
         self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
-
-    # def test_post_creates_new_category_with_new_subtype_string(self):
-    #     """Submitting valid data with a new string for parent should create IssueSubType automatically."""
-    #     self.assertEqual(IssueCategory.objects.count(), 0)
-    #     self.assertEqual(IssueSubType.objects.count(), 0)
-    #
-    #     data = {
-    #         "form-TOTAL_FORMS": "1",
-    #         "form-INITIAL_FORMS": "0",
-    #         "form-MIN_NUM_FORMS": "1",
-    #         "form-MAX_NUM_FORMS": "100",
-    #         "form-0-name": "Category X",
-    #         "form-0-parent": "New Subtype",
-    #         **self.other_required_fields,
-    #     }
-    #     response = self.post(self.url, data, ajax=True)
-    #
-    #     self.assertEqual(response.status_code, 302)
-    #     self.assertEqual(IssueCategory.objects.count(), 1)
-    #     category = IssueCategory.objects.first()
-    #     self.assertIsNotNone(category.parent)
-    #     self.assertEqual(category.parent.name, "New Subtype")
-    #     self.assertEqual(IssueSubType.objects.count(), 1)
 
     def test_post_invalid_parent_empty_string(self):
         """Submitting with empty parent should raise 'required' validation error."""
@@ -179,7 +163,7 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn(
-            CATEGORY_DELETE_ERROR_MESSAGE % {"name": category.name},
+            ITEM_DELETE_ERROR_MESSAGE % {"name": category.name},
             response.context["formset"].non_form_errors()[0],
         )
         self.assertTrue(IssueCategory.objects.filter(id=category.id).exists())
@@ -209,7 +193,7 @@ class IssueCategoriesFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_6"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertFalse(IssueCategory.objects.filter(id=category.id).exists())
 
     def test_required_fields_validation(self):

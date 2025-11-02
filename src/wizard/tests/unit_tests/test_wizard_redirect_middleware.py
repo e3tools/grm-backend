@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE
+from wizard.constants import COMPLETED_CHOICE
 from wizard.models import WizardSection
 
 
