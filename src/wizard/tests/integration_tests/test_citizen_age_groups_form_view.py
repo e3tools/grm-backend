@@ -1,32 +1,37 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    COMPLETED_CHOICE,
-    GROUP_DELETE_ERROR_MESSAGE,
-    GROUP_TOAST_ERROR_MESSAGE,
-    IN_PROGRESS_CHOICE,
-    NOT_PERMITTED_TEXT,
-)
 from grm.tests.base import ViewTestCase
 from issues.factories import CitizenAgeGroupFactory, CitizenFactory
 from issues.models import CitizenAgeGroup
+from wizard.constants import (
+    CITIZEN_AGE_GROUPS_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+)
 from wizard.forms import DEFAULT_CITIZEN_AGE_GROUPS
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class CitizenAgeGroupsFormViewTest(ViewTestCase):
-    """Integration tests for the CitizenAgeGroupsFormView (step 7)."""
+    """Integration tests for the CitizenAgeGroupsFormView."""
 
     def setUp(self):
-        super().setUp()
-        self.url = reverse("wizard:setup_step_7")
+        self.step = get_step_by_name(CITIZEN_AGE_GROUPS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        # Wizard state setup
-        self.current_section = WizardSection.objects.get(id=7)
-        WizardSection.objects.filter(id=7).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=8)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(CITIZEN_AGE_GROUPS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     # ---- Access control ----
 
@@ -50,10 +55,10 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
-        self.assertEqual(response.context["step"], 7)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["formset_label"], "Citizen Age Groups")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(response.context["toast_message"], GROUP_TOAST_ERROR_MESSAGE)
+        self.assertEqual(response.context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
 
     # ---- Creation logic ----
 
@@ -75,7 +80,7 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_8"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(CitizenAgeGroup.objects.count(), len(DEFAULT_CITIZEN_AGE_GROUPS))
 
         # Wizard sections should be updated
@@ -129,7 +134,7 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn(
-            GROUP_DELETE_ERROR_MESSAGE % {"name": group.name},
+            ITEM_DELETE_ERROR_MESSAGE % {"name": group.name},
             response.context["formset"].non_form_errors()[0],
         )
         self.assertTrue(CitizenAgeGroup.objects.filter(id=group.id).exists())
@@ -152,7 +157,7 @@ class CitizenAgeGroupsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_8"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertFalse(CitizenAgeGroup.objects.filter(id=group.id).exists())
 
     # ---- Validation ----

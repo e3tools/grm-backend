@@ -1,14 +1,6 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    COMPLETED_CHOICE,
-    DEPARTMENT_DELETE_ERROR_MESSAGE,
-    DEPARTMENT_TOAST_ERROR_MESSAGE,
-    IN_PROGRESS_CHOICE,
-    NOT_PERMITTED_TEXT,
-    NOT_STARTED_CHOICE,
-)
 from grm.tests.base import ViewTestCase
 from issues.factories import (
     AdministrativeLevelFactory,
@@ -17,21 +9,35 @@ from issues.factories import (
     IssueDepartmentFactory,
 )
 from issues.models import IssueDepartment, IssueDepartmentAdministrativeLevel
+from wizard.constants import (
+    COMPLETED_CHOICE,
+    DEPARTMENTS_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+    NOT_STARTED_CHOICE,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class IssueDepartmentsFormViewTest(ViewTestCase):
-    """Integration tests for the IssueDepartmentsFormView with IssueDepartmentForm + administrative_levels."""
+    """Integration tests for the IssueDepartmentsFormView."""
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_4")
+        self.step = get_step_by_name(DEPARTMENTS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
         # Wizard sections
-        self.current_section = WizardSection.objects.get(id=4)
-        WizardSection.objects.filter(id=4).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=5)
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(DEPARTMENTS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
         # Administrative levels for use in tests
         self.level1 = AdministrativeLevelFactory()
@@ -59,10 +65,10 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn("formset", response.context)
-        self.assertEqual(response.context["step"], 4)
+        self.assertEqual(response.context["step"], self.step)
         self.assertEqual(response.context["formset_label"], "Departments")
         self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(response.context["toast_message"], DEPARTMENT_TOAST_ERROR_MESSAGE)
+        self.assertEqual(response.context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
         self.assertTrue(response.context["two_fields_by_row"])
 
     def test_post_creates_new_issue_department(self):
@@ -82,7 +88,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
 
         # Expect redirect to next wizard step
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_5"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
 
         # Department created with both levels
         department = IssueDepartment.objects.get(name=department_name)
@@ -259,7 +265,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/formset.html")
         self.assertIn(
-            DEPARTMENT_DELETE_ERROR_MESSAGE % {"name": department.name},
+            ITEM_DELETE_ERROR_MESSAGE % {"name": department.name},
             response.context["formset"].non_form_errors()[0],
         )
         self.assertTrue(IssueDepartment.objects.filter(id=department.id, name=department.name).exists())
@@ -288,7 +294,7 @@ class IssueDepartmentsFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_5"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertFalse(IssueDepartment.objects.filter(id=department.id).exists())
 
         # Wizard sections should be updated

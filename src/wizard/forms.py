@@ -2,22 +2,12 @@ from zipfile import BadZipFile
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from openpyxl.utils.exceptions import InvalidFileException
 
-from common.utils.forms import FileForm, WritableModelChoiceField
+from common.utils.forms import FileForm, WritableModelMultipleChoiceField
 from dashboard.models import Project
-from grm.constants import (
-    ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE,
-    CATEGORY_DELETE_ERROR_MESSAGE,
-    COMPONENT_DELETE_ERROR_MESSAGE,
-    DEPARTMENT_DELETE_ERROR_MESSAGE,
-    GROUP_DELETE_ERROR_MESSAGE,
-    INVALID_EXCEL_FILE_ERROR_MESSAGE,
-    ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
-    SUBCOMPONENT_DELETE_ERROR_MESSAGE,
-    SUBCOMPONENT_REQUIRED_ERROR_MESSAGE,
-)
 from issues.models import (
     AdministrativeLevel,
     CitizenAgeGroup,
@@ -28,7 +18,14 @@ from issues.models import (
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
     IssueSubType,
+    IssueType,
     SubComponent,
+)
+from wizard.constants import (
+    INVALID_EXCEL_FILE_ERROR_MESSAGE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
+    SUBCOMPONENT_REQUIRED_ERROR_MESSAGE,
 )
 
 
@@ -62,7 +59,7 @@ class AdministrativeLevelForm(forms.ModelForm):
 
 
 class CustomBaseModelFormSet(forms.BaseModelFormSet):
-    validation_error_message = ADMINISTRATIVE_LEVEL_DELETE_ERROR_MESSAGE
+    validation_error_message = ITEM_DELETE_ERROR_MESSAGE
 
     def clean(self):
         super().clean()
@@ -82,14 +79,10 @@ class CustomBaseModelFormSet(forms.BaseModelFormSet):
                 )
 
 
-class AdministrativeLevelBaseFormSet(CustomBaseModelFormSet):
-    pass
-
-
 AdministrativeLevelFormSet = forms.modelformset_factory(
     AdministrativeLevel,
     form=AdministrativeLevelForm,
-    formset=AdministrativeLevelBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=0,
     min_num=1,
     validate_min=True,
@@ -126,7 +119,6 @@ class IssueDepartmentForm(forms.ModelForm):
 
 
 class IssueDepartmentBaseFormSet(CustomBaseModelFormSet):
-    validation_error_message = DEPARTMENT_DELETE_ERROR_MESSAGE
 
     def save(self, commit=True):
         instances = super().save(commit=False)
@@ -183,14 +175,142 @@ IssueDepartmentFormSet = forms.modelformset_factory(
     can_order=False,
 )
 
+DEFAULT_ISSUE_TYPES = ("Grievance", "Feedback", "Question")
 
-class IssueCategoryForm(forms.ModelForm):
-    parent = WritableModelChoiceField(
-        queryset=IssueSubType.objects.all(),
-        widget=forms.Select(attrs={"class": "writable", "placeholder": _("Enter a new subtype or choose one")}),
-        label=_("Subtype"),
+
+class IssueTypeForm(forms.ModelForm):
+    subtypes = WritableModelMultipleChoiceField(
+        queryset=IssueSubType.objects.none(),
+        widget=forms.SelectMultiple(
+            attrs={"class": "writable", "placeholder": _("Enter a new subtypes or choose one")}
+        ),
+        label=_("Subtypes"),
     )
 
+    class Meta:
+        model = IssueType
+        fields = ["name", "subtypes"]
+        widgets = {
+            "name": forms.TextInput(attrs={"placeholder": _("Enter type name")}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance.pk:
+            # preload already related levels
+            existing_subtypes = IssueSubType.objects.filter(parent=self.instance).select_related('parent')
+            self.fields["subtypes"].queryset = self.fields["subtypes"].initial = existing_subtypes
+
+    def clean_subtypes(self):
+        values = self.cleaned_data.get("subtypes", [])
+
+        if not values:
+            raise ValidationError(_("This field is required."))
+
+        cleaned = []
+        for value in values:
+
+            if isinstance(value, str):
+                subtype = IssueSubType(name=value)
+                cleaned.append(subtype)
+            else:
+                cleaned.append(value)
+
+        return cleaned
+
+    def has_changed(self):
+        """Force it to always be considered changed to run validation."""
+        return True
+
+
+class IssueTypeBaseFormSet(CustomBaseModelFormSet):
+
+    def save(self, commit=True):
+        instances = super().save(commit=False)
+        all_selected_subtypes_ids = []
+
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+
+            issue_type = form.instance
+            if form.cleaned_data.get("DELETE", False):
+                # If there is an associated issue type, delete it
+                if issue_type and issue_type.pk:
+                    issue_type.delete()
+                continue
+
+            # Save or update the issue type
+            form.save(commit=commit)
+
+            selected_subtypes = form.cleaned_data.get("subtypes")
+
+            selected_subtypes_ids = []
+            for selected_subtype in selected_subtypes:
+                if not selected_subtype.id:
+                    # Create new subtypes
+                    new_subtype, _ = IssueSubType.objects.get_or_create(name=selected_subtype.name, parent=issue_type)
+                    selected_subtypes_ids.append(new_subtype.id)
+                else:
+                    selected_subtypes_ids.append(selected_subtype.id)
+
+            all_selected_subtypes_ids.extend(selected_subtypes_ids)
+
+            # Remove subtypes that are no longer selected
+            IssueSubType.objects.filter(parent=issue_type).exclude(
+                Q(id__in=selected_subtypes_ids) | Q(categories__isnull=False)
+            ).delete()
+
+        if commit:
+            for instance in instances:
+                # Avoid saving deleted items
+                if not instance.pk or not IssueType.objects.filter(pk=instance.pk).exists():
+                    continue
+
+                instance.save()
+
+        return instances
+
+
+class NewIssueTypeBaseFormSet(IssueTypeBaseFormSet):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for i, form in enumerate(self.forms):
+            if i < len(DEFAULT_ISSUE_TYPES) and not form.instance.pk:
+                form.initial['name'] = DEFAULT_ISSUE_TYPES[i]
+
+
+ExistingIssueTypeFormSet = forms.modelformset_factory(
+    IssueType,
+    form=IssueTypeForm,
+    formset=IssueTypeBaseFormSet,
+    extra=0,
+    min_num=1,
+    validate_min=True,
+    max_num=100,
+    validate_max=True,
+    can_delete=True,
+    can_order=False,
+)
+
+NewIssueTypeFormSet = forms.modelformset_factory(
+    IssueType,
+    form=IssueTypeForm,
+    formset=NewIssueTypeBaseFormSet,
+    extra=len(DEFAULT_ISSUE_TYPES) - 1,
+    min_num=1,
+    validate_min=True,
+    max_num=100,
+    validate_max=True,
+    can_delete=True,
+    can_order=False,
+)
+
+
+class IssueCategoryForm(forms.ModelForm):
     class Meta:
         model = IssueCategory
         fields = [
@@ -204,6 +324,7 @@ class IssueCategoryForm(forms.ModelForm):
             "redirection_protocol",
         ]
         labels = {
+            "parent": _("Subtype"),
             "assigned_department": _("Department"),
             "assigned_appeal_department": _("Appeal department"),
             "assigned_escalation_department": _("Escalation department"),
@@ -211,6 +332,7 @@ class IssueCategoryForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter category name")}),
             "abbreviation": forms.TextInput(attrs={"placeholder": _("Enter category abbreviation")}),
+            "parent": forms.Select(attrs={"placeholder": _("Click to select subtype")}),
             "assigned_department": forms.Select(attrs={"placeholder": _("Click to select department")}),
             "assigned_appeal_department": forms.Select(attrs={"placeholder": _("Click to select appeal department")}),
             "assigned_escalation_department": forms.Select(
@@ -220,62 +342,19 @@ class IssueCategoryForm(forms.ModelForm):
             "redirection_protocol": forms.Select(attrs={"placeholder": _("Click to select redirection protocol")}),
         }
 
-    def clean_parent(self):
-        value = self.cleaned_data.get("parent")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Force parent to be required even if model allows blank/null
+        self.fields["parent"].required = True
 
-        if value in (None, "", []):
-            raise ValidationError(_("This field is required."))
-
-        if isinstance(value, str):
-            return IssueSubType(name=value)
-        return value
-
-
-class IssueCategoryBaseFormSet(CustomBaseModelFormSet):
-    validation_error_message = CATEGORY_DELETE_ERROR_MESSAGE
-
-    def save(self, commit=True):
-        instances = super().save(commit=False)
-
-        for form in self.forms:
-            if not form.cleaned_data:
-                continue
-
-            if form.cleaned_data.get("DELETE", False):
-                # If there is an associated category, delete it
-                category = form.instance
-                if category and category.pk:
-                    category.delete()
-                continue
-
-            # selected_sub_type = form.cleaned_data.get("parent")
-
-            # Create new subtype
-            # if not selected_sub_type.id:
-            #     sub_type, _ = IssueSubType.objects.get_or_create(name=selected_sub_type.name)
-            #     form.instance.parent = sub_type
-
-            # Save or update the category
-            form.save(commit=commit)
-
-            # Delete existing subtypes that are not in use
-            IssueSubType.objects.exclude(categories__isnull=False).delete()
-
-        if commit:
-            for instance in instances:
-                # Avoid saving deleted items
-                if not instance.pk or not IssueCategory.objects.filter(pk=instance.pk).exists():
-                    continue
-
-                instance.save()
-
-        return instances
+        # Customize how the subtype options are displayed
+        self.fields["parent"].label_from_instance = lambda obj: f"{obj.name} ({obj.parent.name})"
 
 
 IssueCategoryFormSet = forms.modelformset_factory(
     IssueCategory,
     form=IssueCategoryForm,
-    formset=IssueCategoryBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=0,
     min_num=1,
     validate_min=True,
@@ -425,15 +504,10 @@ DEFAULT_CITIZEN_AGE_GROUPS = (
     "65 and over",
 )
 
-
-class CitizenAgeGroupBaseFormSet(CustomBaseModelFormSet):
-    validation_error_message = GROUP_DELETE_ERROR_MESSAGE
-
-
 ExistingCitizenAgeGroupFormSet = forms.modelformset_factory(
     CitizenAgeGroup,
     form=CitizenAgeGroupForm,
-    formset=CitizenAgeGroupBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=0,
     min_num=1,
     validate_min=True,
@@ -446,7 +520,7 @@ ExistingCitizenAgeGroupFormSet = forms.modelformset_factory(
 NewCitizenAgeGroupFormSet = forms.modelformset_factory(
     CitizenAgeGroup,
     form=CitizenAgeGroupForm,
-    formset=CitizenAgeGroupBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=len(DEFAULT_CITIZEN_AGE_GROUPS) - 1,
     min_num=1,
     validate_min=True,
@@ -478,14 +552,10 @@ class CitizenGroupForm(forms.ModelForm):
         self.fields["type"].required = True
 
 
-class CitizenGroupBaseFormSet(CustomBaseModelFormSet):
-    validation_error_message = GROUP_DELETE_ERROR_MESSAGE
-
-
 ExistingCitizenGroupFormSet = forms.modelformset_factory(
     CitizenGroup,
     form=CitizenGroupForm,
-    formset=CitizenGroupBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=0,
     max_num=100,
     validate_max=True,
@@ -496,7 +566,7 @@ ExistingCitizenGroupFormSet = forms.modelformset_factory(
 NewCitizenGroupFormSet = forms.modelformset_factory(
     CitizenGroup,
     form=CitizenGroupForm,
-    formset=CitizenGroupBaseFormSet,
+    formset=CustomBaseModelFormSet,
     extra=1,
     max_num=100,
     validate_max=True,
@@ -542,7 +612,7 @@ class SubComponentInlineFormSet(forms.BaseInlineFormSet):
                 # Check if trying to delete a SubComponent with restricted_deletion
                 if is_deleted and form.instance.pk:
                     if getattr(form.instance, 'restricted_deletion', False):
-                        raise forms.ValidationError(SUBCOMPONENT_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
+                        raise forms.ValidationError(ITEM_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
 
                 if parent_form and parent_form.cleaned_data.get('DELETE', False):
                     # Parent is being deleted, so we don't need to validate SubComponents
@@ -642,7 +712,7 @@ class ComponentFormSet(forms.BaseModelFormSet):
                 # Check if trying to delete a Component with restricted_deletion
                 if is_deleted and form.instance.pk:
                     if getattr(form.instance, 'restricted_deletion', False):
-                        raise forms.ValidationError(COMPONENT_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
+                        raise forms.ValidationError(ITEM_DELETE_ERROR_MESSAGE % {'name': form.instance.name})
 
 
 # Create the main component formset

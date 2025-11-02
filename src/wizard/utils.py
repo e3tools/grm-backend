@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import logging
 from collections import defaultdict
 
@@ -6,13 +7,13 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from openpyxl import load_workbook
 
-from grm.constants import (
+from issues.models import AdministrativeLevel, AdministrativeRegion, Issue
+from wizard.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_NOT_FOUND_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_ALREADY_EXISTS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE,
 )
-from issues.models import AdministrativeLevel, AdministrativeRegion, Issue
 
 logger = logging.getLogger(__name__)
 

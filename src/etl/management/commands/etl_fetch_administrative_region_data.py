@@ -1,16 +1,16 @@
 import copy
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
 
 from client import get_db
+from etl.management.commands.base_translated_command import TranslatedBaseCommand
 from etl.utils import bulk_create_or_update, process_administrative_region_data
 from issues.models import AdministrativeRegion
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
-class Command(BaseCommand):
+class Command(TranslatedBaseCommand):
     help = 'Get data from CouchDB documents to update AdministrativeRegion model'
 
     def fetch_administrative_region(self, administrative_levels_db):
@@ -42,7 +42,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE(f"Updated {result['total_updated']} AdministrativeRegion objects"))
             self.stdout.write(self.style.NOTICE(f"Processed {result['total_processed']} AdministrativeRegion objects"))
 
-    def handle(self, *args, **options):
+    def handle_translated(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Running: etl_fetch_administrative_region_data'))
 
         administrative_levels_db = get_db()

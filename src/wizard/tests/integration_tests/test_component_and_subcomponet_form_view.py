@@ -1,32 +1,38 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import (
-    COMPLETED_CHOICE,
-    COMPONENT_DELETE_ERROR_MESSAGE,
-    COMPONENT_TOAST_ERROR_MESSAGE,
-    IN_PROGRESS_CHOICE,
-    NOT_PERMITTED_TEXT,
-    SUBCOMPONENT_DELETE_ERROR_MESSAGE,
-    SUBCOMPONENT_REQUIRED_ERROR_MESSAGE,
-)
 from grm.tests.base import ViewTestCase
 from issues.factories import ComponentFactory, IssueFactory, SubComponentFactory
 from issues.models import Component, SubComponent
+from wizard.constants import (
+    COMPLETED_CHOICE,
+    COMPONENTS_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+    SUBCOMPONENT_REQUIRED_ERROR_MESSAGE,
+)
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class ComponentAndSubComponentFormViewTest(ViewTestCase):
-    """Integration tests for the ComponentAndSubComponentFormView (step 9)."""
+    """Integration tests for the ComponentAndSubComponentFormView."""
 
     def setUp(self):
         super().setUp()
-        self.url = reverse("wizard:setup_step_9")
+        self.step = get_step_by_name(COMPONENTS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=9)
-        WizardSection.objects.filter(id=9).update(status=IN_PROGRESS_CHOICE)
-        self.next_section = WizardSection.objects.get(id=10)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(COMPONENTS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
     def test_redirect_if_not_logged_in(self):
         """Anonymous users should get a 404."""
@@ -53,10 +59,10 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
 
         context = response.context
         self.assertIn("formset", context)
-        self.assertEqual(context["step"], 9)
+        self.assertEqual(context["step"], self.step)
         self.assertEqual(context["formset_label"], "Components and Subcomponents")
         self.assertEqual(context["toast_title"], NOT_PERMITTED_TEXT)
-        self.assertEqual(context["toast_message"], COMPONENT_TOAST_ERROR_MESSAGE)
+        self.assertEqual(context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
 
     def test_post_creates_component_with_subcomponent(self):
         """Submitting valid data should create a Component and its SubComponent."""
@@ -82,7 +88,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("wizard:setup_step_10"))
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
         self.assertEqual(Component.objects.count(), 1)
         self.assertEqual(SubComponent.objects.count(), 1)
 
@@ -226,7 +232,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            COMPONENT_DELETE_ERROR_MESSAGE % {'name': component.name}, response.context['formset'].non_form_errors()
+            ITEM_DELETE_ERROR_MESSAGE % {'name': component.name}, response.context['formset'].non_form_errors()
         )
 
         self.assertEqual(Component.objects.count(), 1)
@@ -258,7 +264,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         response = self.post(self.url, data, ajax=True)
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            SUBCOMPONENT_DELETE_ERROR_MESSAGE % {'name': sub.name},
+            ITEM_DELETE_ERROR_MESSAGE % {'name': sub.name},
             response.context['formset'].subformsets[0].non_form_errors(),
         )
 

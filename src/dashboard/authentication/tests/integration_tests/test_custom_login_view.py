@@ -3,8 +3,8 @@ from django.test import override_settings
 from django.urls import reverse
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
 from grm.tests.base import DashboardTestCase
+from wizard.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
 from wizard.models import WizardSection
 
 

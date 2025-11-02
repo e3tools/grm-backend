@@ -6,7 +6,14 @@ from django.urls import reverse
 from openpyxl import Workbook
 
 from authentication.factories import UserFactory
-from grm.constants import (
+from grm.tests.base import ViewTestCase
+from issues.factories import (
+    AdministrativeLevelFactory,
+    AdministrativeRegionFactory,
+    IssueFactory,
+)
+from issues.models import AdministrativeLevel, AdministrativeRegion
+from wizard.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE,
@@ -15,29 +22,31 @@ from grm.constants import (
     ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE,
     ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE,
+    ADMINISTRATIVE_REGIONS_CHOICE,
     COMPLETED_CHOICE,
     IN_PROGRESS_CHOICE,
     INVALID_EXCEL_FILE_ERROR_MESSAGE,
     ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE,
 )
-from grm.tests.base import ViewTestCase
-from issues.factories import (
-    AdministrativeLevelFactory,
-    AdministrativeRegionFactory,
-    IssueFactory,
-)
-from issues.models import AdministrativeLevel, AdministrativeRegion
 from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
 
 
 class AdministrativeRegionFormViewTest(ViewTestCase):
     """Integration tests for the AdministrativeRegionFormView."""
 
     def setUp(self):
-        self.url = reverse("wizard:setup_step_3")
+        self.step = get_step_by_name(ADMINISTRATIVE_REGIONS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
         self.user = UserFactory(grm_manager=True)
 
-        self.current_section = WizardSection.objects.get(id=3)
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(ADMINISTRATIVE_REGIONS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
 
         # Common levels used in most tests
         self.country = AdministrativeLevelFactory(name="Country")
@@ -84,7 +93,7 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "wizard/regions.html")
         self.assertIn("form", response.context)
-        self.assertEqual(response.context["step"], 3)
+        self.assertEqual(response.context["step"], self.step)
         self.assertIn("regions_summary", response.context)
         regions_summary = [
             {'id': level.id, 'name': level.name, 'region_count': 0} for level in AdministrativeLevel.objects.all()

@@ -4,9 +4,9 @@ import pytest
 from django.test import TestCase, override_settings
 
 from authentication.factories import UserFactory
-from grm.constants import COMPLETED_CHOICE
 from grm.utils import reset_sequences
 from issues.factories import AdministrativeRegionFactory
+from wizard.constants import COMPLETED_CHOICE
 from wizard.models import WizardSection
 
 JSON_TYPE = "application/json"

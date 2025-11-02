@@ -170,19 +170,19 @@ class NewIssueDetailsForm(forms.Form):
             self.fields["issue_type"].widget.choices = types
             self.fields["issue_type"].choices = types
 
-            categories = IssueCategory.get_choices()
-            self.fields["category"].widget.choices = categories
-            self.fields["category"].choices = categories
-
-            issue_sub_types = IssueSubType.get_choices()
+            issue_sub_types = IssueSubType.get_choices(parent=obj.issue_type)
             self.fields["issue_sub_type"].widget.choices = issue_sub_types
             self.fields["issue_sub_type"].choices = issue_sub_types
+
+            categories = IssueCategory.get_choices(parent=obj.issue_sub_type)
+            self.fields["category"].widget.choices = categories
+            self.fields["category"].choices = categories
 
             components = Component.get_choices()
             self.fields["component"].widget.choices = components
             self.fields["component"].choices = components
 
-            sub_components = SubComponent.get_choices()
+            sub_components = SubComponent.get_choices(parent=obj.component)
             self.fields["sub_component"].widget.choices = sub_components
             self.fields["sub_component"].choices = sub_components
 
@@ -204,10 +204,10 @@ class NewIssueDetailsForm(forms.Form):
                 self.fields["description"].initial = obj.description
             if obj.issue_type:
                 self.fields["issue_type"].initial = obj.issue_type.id
-            if obj.category:
-                self.fields["category"].initial = obj.category.id
             if obj.issue_sub_type:
                 self.fields["issue_sub_type"].initial = obj.issue_sub_type.id
+            if obj.category:
+                self.fields["category"].initial = obj.category.id
             if obj.component:
                 self.fields["component"].initial = obj.component.id
             if obj.sub_component:

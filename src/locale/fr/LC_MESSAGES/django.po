@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-30 12:50+0000\n"
+"POT-Creation-Date: 2025-11-01 22:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,20 +82,20 @@ msgstr "Travailleurs du Gouvernement"
 #: authentication/models.py:121 authentication/models.py:136
 #: issues/models.py:33 issues/models.py:60 issues/models.py:170
 #: issues/models.py:189 issues/models.py:206 issues/models.py:227
-#: issues/models.py:246 issues/models.py:261 issues/models.py:276
-#: issues/models.py:311 issues/models.py:329 issues/models.py:347
-#: issues/models.py:365 issues/models.py:393 issues/models.py:615
-#: issues/models.py:649
+#: issues/models.py:246 issues/models.py:261 issues/models.py:273
+#: issues/models.py:292 issues/models.py:327 issues/models.py:345
+#: issues/models.py:363 issues/models.py:391 issues/models.py:613
+#: issues/models.py:647
 msgid "Created at"
 msgstr "Créé à"
 
 #: authentication/models.py:122 authentication/models.py:137
 #: issues/models.py:34 issues/models.py:61 issues/models.py:171
 #: issues/models.py:190 issues/models.py:207 issues/models.py:228
-#: issues/models.py:247 issues/models.py:262 issues/models.py:277
-#: issues/models.py:312 issues/models.py:330 issues/models.py:348
-#: issues/models.py:366 issues/models.py:394 issues/models.py:457
-#: issues/models.py:616 issues/models.py:650
+#: issues/models.py:247 issues/models.py:262 issues/models.py:274
+#: issues/models.py:293 issues/models.py:328 issues/models.py:346
+#: issues/models.py:364 issues/models.py:392 issues/models.py:455
+#: issues/models.py:614 issues/models.py:648
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -107,11 +107,11 @@ msgstr "L'animateur"
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/models.py:140 issues/models.py:397
+#: authentication/models.py:140 issues/models.py:395
 msgid "Citizen"
 msgstr "Citoyen"
 
-#: authentication/models.py:141 issues/models.py:398
+#: authentication/models.py:141 issues/models.py:396
 msgid "Citizens"
 msgstr "Citoyens"
 
@@ -178,10 +178,10 @@ msgstr "Réinitialisation du mot de passe terminée"
 #: dashboard/adls/forms.py:24 dashboard/models.py:6
 #: dashboard/templates/adls/list.html:25
 #: dashboard/templates/grm/issue_detail.html:75 issues/models.py:244
-#: issues/models.py:293 issues/models.py:363 wizard/forms.py:39
-#: wizard/views.py:594 wizard/views.py:604 wizard/views.py:627
-#: wizard/views.py:649 wizard/views.py:690 wizard/views.py:700
-#: wizard/views.py:717 wizard/views.py:723
+#: issues/models.py:309 issues/models.py:361 wizard/forms.py:34
+#: wizard/views.py:639 wizard/views.py:649 wizard/views.py:672
+#: wizard/views.py:688 wizard/views.py:710 wizard/views.py:751
+#: wizard/views.py:761 wizard/views.py:778 wizard/views.py:784
 msgid "Name"
 msgstr "Nom"
 
@@ -486,8 +486,8 @@ msgid "Logs"
 msgstr "Journaux"
 
 #: dashboard/models.py:7
-#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:46
-#: wizard/views.py:595 wizard/views.py:718 wizard/views.py:724
+#: dashboard/templates/grm/new_issue_confirmation.html:164 wizard/forms.py:41
+#: wizard/views.py:640 wizard/views.py:779 wizard/views.py:785
 msgid "Description"
 msgstr "La description"
 
@@ -558,7 +558,7 @@ msgstr "Voir le profil"
 #: dashboard/templates/participatory_budget/dashboard.html:5
 #: dashboard/templates/participatory_budget/statement.html:3
 #: dashboard/templates/participatory_budget/task_list.html:27
-#: grm/constants.py:84
+#: wizard/constants.py:77
 msgid "Completed"
 msgstr "Complété"
 
@@ -661,7 +661,7 @@ msgstr "Statut"
 #: dashboard/templates/adls/task_detail.html:37
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:654
+#: dashboard/templates/grm/new_issue_confirmation.html:181 issues/models.py:652
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -781,8 +781,8 @@ msgstr "Pourcentage"
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:55
 #: dashboard/templates/grm/review_issues.html:254
-#: dashboard/templates/search/_filters.html:14 issues/models.py:364
-#: wizard/views.py:701
+#: dashboard/templates/search/_filters.html:14 issues/models.py:362
+#: wizard/views.py:762
 msgid "Type"
 msgstr "Type"
 
@@ -877,7 +877,7 @@ msgid "Add attachments"
 msgstr "Ajouter des pièces jointes"
 
 #: dashboard/templates/grm/issue_comments.html:15
-#: wizard/templates/wizard/grm_customization.html:351
+#: wizard/templates/wizard/grm_customization.html:357
 msgid "GRM system"
 msgstr "Système eMGP"
 
@@ -886,7 +886,7 @@ msgid "No comments found"
 msgstr "Aucun commentaire trouvé"
 
 #: dashboard/templates/grm/issue_detail.html:17
-#: dashboard/templates/grm/review_issues.html:51 grm/constants.py:147
+#: dashboard/templates/grm/review_issues.html:51 wizard/constants.py:24
 msgid "Summary"
 msgstr "Résumé"
 
@@ -1213,7 +1213,8 @@ msgstr "Aucun résultat trouvé."
 
 #: dashboard/templates/search/_search_container.html:3
 msgid "Search for grievances using natural language processing"
-msgstr "Recherche de griefs à l'aide du traitement automatique du langage naturel"
+msgstr ""
+"Recherche de griefs à l'aide du traitement automatique du langage naturel"
 
 #: dashboard/templates/search/_search_container.html:37
 msgid "Search & Filters"
@@ -1284,80 +1285,28 @@ msgstr "Masculin"
 msgid "Female"
 msgstr "Féminin"
 
-#: grm/constants.py:68
-msgid "Citizen group"
-msgstr "Groupe de citoyens"
-
-#: grm/constants.py:69
-msgid "Citizen group 2"
-msgstr "Groupe de citoyens 2"
-
-#: grm/constants.py:80
-msgid "Not Started"
-msgstr "Pas commencé"
-
-#: grm/constants.py:82
-msgid "In Progress"
-msgstr "En cours"
-
-#: grm/constants.py:105
+#: grm/constants.py:75
 msgid "Department head"
 msgstr "Chef de département"
 
-#: grm/constants.py:106
+#: grm/constants.py:76
 msgid "Person with fewer issues"
 msgstr "Personne avec moins de problèmes"
 
-#: grm/constants.py:117
+#: grm/constants.py:87
 msgid "Low"
 msgstr "Faible"
 
-#: grm/constants.py:118
+#: grm/constants.py:88
 msgid "Anonymous"
 msgstr "Anonyme"
 
-#: grm/constants.py:129
-msgid "Project Description"
-msgstr "Description du projet"
-
-#: grm/constants.py:131
-msgid "Administrative Level Structure Configuration"
-msgstr "Configuration de la structure du niveau administratif"
-
-#: grm/constants.py:133
-msgid "Load Administrative Levels"
-msgstr "Charger les niveaux administratifs"
-
-#: grm/constants.py:135 wizard/views.py:354
-msgid "Departments"
-msgstr "Départements"
-
-#: grm/constants.py:137
-msgid "Issues Categories"
-msgstr "Catégories de problèmes"
-
-#: grm/constants.py:139
-msgid "Resolution Process"
-msgstr "Processus de résolution"
-
-#: grm/constants.py:141 issues/models.py:352 wizard/views.py:444
-msgid "Citizen Age Groups"
-msgstr "Groupes d'âge des citoyens"
-
-#: grm/constants.py:143 issues/models.py:370 wizard/views.py:469
-msgid "Citizen Groups"
-msgstr "Groupes de citoyens"
-
-#: grm/constants.py:145
-msgid "Project Components"
-msgstr "Composantes du projet"
-
-#: grm/constants.py:176
+#: grm/constants.py:102
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr "Taille de fichier autorisée inférieure ou égale à %s"
 
-#: grm/constants.py:177
+#: grm/constants.py:103
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
@@ -1366,262 +1315,119 @@ msgstr ""
 "Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
 "taille du fichier sélectionné est de %s."
 
-#: grm/constants.py:178
+#: grm/constants.py:104
 msgid "Validation failed."
 msgstr "La validation a échoué."
 
-#: grm/constants.py:179
+#: grm/constants.py:105
 msgid "Not found."
 msgstr "Non trouvé"
 
-#: grm/constants.py:180
-msgid "Action not permitted"
-msgstr "Action non autorisée"
-
-#: grm/constants.py:181
+#: grm/constants.py:106
 msgid ""
 "You must define the contact method is your contact medium is channel alert"
 msgstr ""
 "Vous devez définir la méthode de contact si votre moyen de contact est le "
 "canal d'alerte"
 
-#: grm/constants.py:182
+#: grm/constants.py:107
 msgid "If email contact method is selected, provide a valid email"
 msgstr ""
 "Si la méthode de contact par e-mail est sélectionnée, fournissez une adresse "
 "e-mail valide"
 
-#: grm/constants.py:183
+#: grm/constants.py:108
 msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 "Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
 "indiquez un numéro de téléphone valide"
 
-#: grm/constants.py:184
+#: grm/constants.py:109
 msgid "Issue created successfully."
 msgstr "Problème créé avec succès."
 
-#: grm/constants.py:185
+#: grm/constants.py:110
 msgid "An error occurred while creating the issue."
 msgstr "Une erreur s'est produite lors de la création du problème."
 
-#: grm/constants.py:186
+#: grm/constants.py:111
 msgid "Issue updated successfully."
 msgstr "Problème mis à jour avec succès."
 
-#: grm/constants.py:187
+#: grm/constants.py:112
 msgid "An error occurred while updating the issue."
 msgstr "Une erreur s'est produite lors de la mise à jour du problème."
 
-#: grm/constants.py:188
+#: grm/constants.py:113
 msgid "Only assignees can update the status field."
 msgstr "Seuls les cessionnaires peuvent mettre à jour le champ de statut."
 
-#: grm/constants.py:189
+#: grm/constants.py:114
 msgid "Only reporters can update the rating field."
 msgstr "Seuls les journalistes peuvent mettre à jour le champ de notation."
 
-#: grm/constants.py:190
+#: grm/constants.py:115
 msgid "An error occurred while retrieving the issue."
 msgstr "Une erreur s'est produite lors de la récupération du problème."
 
-#: grm/constants.py:191
+#: grm/constants.py:116
 msgid "Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z)."
 msgstr ""
 "Format de date/heure non valide. Utiliser la norme ISO 8601 (par exemple: "
 "2021-03-23T10:30:45Z)."
 
-#: grm/constants.py:192
+#: grm/constants.py:117
 msgid "Comment added successfully."
 msgstr "Commentaire ajouté avec succès."
 
-#: grm/constants.py:193
+#: grm/constants.py:118
 msgid "An error occurred while creating the comment."
 msgstr "Une erreur s'est produite lors de la création du commentaire."
 
-#: grm/constants.py:194
+#: grm/constants.py:119
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des commentaires sur le "
 "problème."
 
-#: grm/constants.py:195
+#: grm/constants.py:120
 msgid "An error occurred while deleting the comment."
 msgstr "Une erreur s'est produite lors de la suppression du commentaire."
 
-#: grm/constants.py:196
+#: grm/constants.py:121
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: grm/constants.py:197
+#: grm/constants.py:122
 msgid "Attachment uploaded successfully."
 msgstr "Pièce jointe téléchargée avec succès."
 
-#: grm/constants.py:198
+#: grm/constants.py:123
 msgid "An error occurred during file upload."
 msgstr "Une erreur s'est produite lors du téléchargement du fichier."
 
-#: grm/constants.py:199
+#: grm/constants.py:124
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des pièces jointes du "
 "problème."
 
-#: grm/constants.py:200
+#: grm/constants.py:125
 msgid "Citizen registered successfully."
 msgstr "Citoyen enregistré avec succès."
 
-#: grm/constants.py:201
+#: grm/constants.py:126
 msgid "A user with that username already exists."
 msgstr "Un utilisateur avec ce nom d'utilisateur existe déjà."
 
-#: grm/constants.py:202
+#: grm/constants.py:127
 msgid "user with this email address already exists."
 msgstr "un utilisateur avec cette adresse email existe déjà."
 
-#: grm/constants.py:203
+#: grm/constants.py:128
 msgid "Password confirmation does not match."
 msgstr "La confirmation du mot de passe ne correspond pas."
-
-#: grm/constants.py:205
-#, python-format
-msgid ""
-"You cannot delete '%(name)s' because it is linked to issues or departments."
-msgstr ""
-"Vous ne pouvez pas supprimer '%(name)s' car il est lié à des problèmes ou à "
-"des services."
-
-#: grm/constants.py:207
-msgid "This administrative level cannot be deleted because it is in use."
-msgstr ""
-"Ce niveau administratif ne peut pas être supprimé car il est en cours "
-"d'utilisation."
-
-#: grm/constants.py:208
-msgid "Administrative Level Instances"
-msgstr "Instances de niveau administratif"
-
-#: grm/constants.py:209
-#, python-format
-msgid "Successfully created %(count)d administrative level instances."
-msgstr ""
-"%(count)d instances de niveau administratif ont été créées avec succès."
-
-#: grm/constants.py:210
-#, python-format
-msgid "Skipped %(count)d duplicates that already existed."
-msgstr "%(count)d doublons qui existaient déjà ont été ignorés."
-
-#: grm/constants.py:212
-#, python-format
-msgid ""
-"%(count)d administrative level instances could not be modified because they "
-"are already in use."
-msgstr ""
-"%(count)d instances de niveau administratif n'ont pas pu être modifiées car "
-"elles sont déjà utilisées."
-
-#: grm/constants.py:214
-msgid "All administrative level instances have been deleted."
-msgstr "Toutes les instances de niveau administratif ont été supprimées."
-
-#: grm/constants.py:215
-#, python-format
-msgid "Administrative level %(level)s not found in database"
-msgstr "Niveau administratif %(level)s non trouvé dans la base de données"
-
-#: grm/constants.py:216
-msgid "The Excel file must contain a header row."
-msgstr "Le fichier Excel doit contenir une ligne d’en-tête."
-
-#: grm/constants.py:218
-#, python-format
-msgid ""
-"The first administrative level instance already exists with the name "
-"%(root)s. The instance with the value %(new)s does not match this level in "
-"the Excel file."
-msgstr ""
-"L'instance de premier niveau administratif existe déjà sous le nom %(root)s. "
-"L'instance portant la valeur %(new)s ne correspond pas à ce niveau dans le "
-"fichier Excel."
-
-#: grm/constants.py:222
-#, python-format
-msgid ""
-"The value of the instance of the first administrative level (first column) "
-"must be the same value for all cells in the column. Expected %(root)s, found "
-"%(new)s."
-msgstr ""
-"La valeur de l'instance du premier niveau administratif (première colonne) "
-"doit être identique pour toutes les cellules de la colonne. %(root)s "
-"attendus, %(new)s trouvés."
-
-#: grm/constants.py:225
-msgid "Only Excel files (.xls, .xlsx) are allowed."
-msgstr "Seuls les fichiers Excel (.xls, .xlsx) sont autorisés."
-
-#: grm/constants.py:226
-msgid "The uploaded file is not a valid Excel file."
-msgstr "Le fichier téléchargé n'est pas un fichier Excel valide."
-
-#: grm/constants.py:227
-#, python-format
-msgid ""
-"You cannot delete '%(name)s' because it is linked to administrative level."
-msgstr ""
-"Vous ne pouvez pas supprimer '%(name)s' car il est lié au niveau "
-"administratif."
-
-#: grm/constants.py:228
-msgid "This department cannot be deleted because it is in use."
-msgstr ""
-"Ce département ne peut pas être supprimé car il est en cours d'utilisation."
-
-#: grm/constants.py:229
-#, python-format
-msgid "You cannot delete '%(name)s' because it is linked to issues."
-msgstr ""
-"Vous ne pouvez pas supprimer '%(name)s' car il est lié à des problèmes."
-
-#: grm/constants.py:230
-msgid "This category cannot be deleted because it is in use."
-msgstr ""
-"Cette catégorie ne peut pas être supprimée car elle est en cours "
-"d'utilisation."
-
-#: grm/constants.py:231
-msgid "This group cannot be deleted because it is in use."
-msgstr "Ce groupe ne peut pas être supprimé car il est en cours d'utilisation."
-
-#: grm/constants.py:232
-#, python-format
-msgid "You cannot delete '%(name)s' because it is in use."
-msgstr ""
-"Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
-
-#: grm/constants.py:234
-#, python-format
-msgid "Cannot delete component '%(name)s' because it is in use."
-msgstr ""
-"Impossible de supprimer le composant '%(name)s' car il est en cours "
-"d'utilisation."
-
-#: grm/constants.py:235
-msgid "Each component must have at least one subcomponent."
-msgstr "Chaque composant doit avoir au moins un sous-composant."
-
-#: grm/constants.py:236
-#, python-format
-msgid "Cannot delete subcomponent '%(name)s' because it is in use."
-msgstr ""
-"Impossible de supprimer le sous-composant '%(name)s' car il est en cours "
-"d'utilisation."
-
-#: grm/constants.py:237
-msgid "This component cannot be deleted because it is in use."
-msgstr ""
-"Ce composant ne peut pas être supprimé car il est en cours d'utilisation."
 
 #: grm/settings.py:139
 msgid "English"
@@ -1700,7 +1506,7 @@ msgstr "Composants"
 msgid "Subcomponent"
 msgstr "Sous-Composante"
 
-#: issues/models.py:194 wizard/templates/wizard/grm_customization.html:412
+#: issues/models.py:194 wizard/templates/wizard/grm_customization.html:418
 #: wizard/templates/wizard/nested_formset.html:75
 #: wizard/templates/wizard/nested_formset.html:195
 #: wizard/templates/wizard/summary.html:30
@@ -1715,7 +1521,7 @@ msgstr "Groupe de sous-projets"
 msgid "Subproject Groups"
 msgstr "Groupes de sous-projets"
 
-#: issues/models.py:231 issues/models.py:232 wizard/views.py:417
+#: issues/models.py:231 issues/models.py:232 wizard/views.py:450
 msgid "Issue Status"
 msgstr "Détails du problème"
 
@@ -1727,225 +1533,379 @@ msgstr "Département des émissions"
 msgid "Issue Departments"
 msgstr "Départements concernés"
 
-#: issues/models.py:280
-msgid "Issue Subtype"
-msgstr "Sous-type de problème"
-
-#: issues/models.py:281
-msgid "Issue Subtypes"
-msgstr "Sous-types de problèmes"
-
-#: issues/models.py:294 wizard/views.py:650
-msgid "Abbreviation"
-msgstr "Abréviation"
-
-#: issues/models.py:306 wizard/views.py:656
-msgid "Confidentiality level"
-msgstr "Niveau de confidentialité"
-
-#: issues/models.py:309 wizard/views.py:660
-msgid "Redirection protocol"
-msgstr "Protocole de redirection"
-
-#: issues/models.py:315
-msgid "Issue Category"
-msgstr "Catégorie de problème"
-
-#: issues/models.py:316
-msgid "Issue Categories"
-msgstr "Catégories de problème"
-
-#: issues/models.py:333
+#: issues/models.py:277
 msgid "Issue Type"
 msgstr "Type de problème"
 
-#: issues/models.py:334
+#: issues/models.py:278 wizard/views.py:390
 msgid "Issue Types"
 msgstr "Types de problème"
 
-#: issues/models.py:351
+#: issues/models.py:296
+msgid "Issue Subtype"
+msgstr "Sous-type de problème"
+
+#: issues/models.py:297
+msgid "Issue Subtypes"
+msgstr "Sous-types de problèmes"
+
+#: issues/models.py:310 wizard/views.py:711
+msgid "Abbreviation"
+msgstr "Abréviation"
+
+#: issues/models.py:322 wizard/views.py:717
+msgid "Confidentiality level"
+msgstr "Niveau de confidentialité"
+
+#: issues/models.py:325 wizard/views.py:721
+msgid "Redirection protocol"
+msgstr "Protocole de redirection"
+
+#: issues/models.py:331
+msgid "Issue Category"
+msgstr "Catégorie de problème"
+
+#: issues/models.py:332
+msgid "Issue Categories"
+msgstr "Catégories de problème"
+
+#: issues/models.py:349
 msgid "Citizen Age Group"
 msgstr "Groupe d'âge des citoyens"
 
-#: issues/models.py:369
+#: issues/models.py:350 wizard/constants.py:18 wizard/views.py:478
+msgid "Citizen Age Groups"
+msgstr "Groupes d'âge des citoyens"
+
+#: issues/models.py:367
 msgid "Citizen Group"
 msgstr "Groupe de citoyens"
 
-#: issues/models.py:470 issues/models.py:637
+#: issues/models.py:368 wizard/constants.py:20 wizard/views.py:502
+msgid "Citizen Groups"
+msgstr "Groupes de citoyens"
+
+#: issues/models.py:468 issues/models.py:635
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:471
+#: issues/models.py:469
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:619
+#: issues/models.py:617
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:620
+#: issues/models.py:618
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:639
+#: issues/models.py:637
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:647
+#: issues/models.py:645
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:653
+#: issues/models.py:651
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 
-#: wizard/forms.py:40
+#: wizard/constants.py:4
+msgid "Project Description"
+msgstr "Description du projet"
+
+#: wizard/constants.py:6
+msgid "Administrative Level Structure Configuration"
+msgstr "Configuration de la structure du niveau administratif"
+
+#: wizard/constants.py:8
+msgid "Load Administrative Levels"
+msgstr "Charger les niveaux administratifs"
+
+#: wizard/constants.py:10 wizard/views.py:364
+msgid "Departments"
+msgstr "Départements"
+
+#: wizard/constants.py:12
+msgid "Types"
+msgstr "Types"
+
+#: wizard/constants.py:14
+msgid "Issues Categories"
+msgstr "Catégories de problèmes"
+
+#: wizard/constants.py:16
+msgid "Resolution Process"
+msgstr "Processus de résolution"
+
+#: wizard/constants.py:22
+msgid "Project Components"
+msgstr "Composantes du projet"
+
+#: wizard/constants.py:50
+#, python-format
+msgid "You cannot delete '%(name)s' because it is in use."
+msgstr ""
+"Vous ne pouvez pas supprimer '%(name)s' car il est en cours d'utilisation."
+
+#: wizard/constants.py:51
+msgid "This item cannot be deleted because it is in use."
+msgstr ""
+"Cet élément ne peut pas être supprimé car il est en cours d'utilisation."
+
+#: wizard/constants.py:52
+msgid "Administrative Level Instances"
+msgstr "Instances de niveau administratif"
+
+#: wizard/constants.py:53
+#, python-format
+msgid "Successfully created %(count)d administrative level instances."
+msgstr ""
+"%(count)d instances de niveau administratif ont été créées avec succès."
+
+#: wizard/constants.py:54
+#, python-format
+msgid "Skipped %(count)d duplicates that already existed."
+msgstr "%(count)d doublons qui existaient déjà ont été ignorés."
+
+#: wizard/constants.py:56
+#, python-format
+msgid ""
+"%(count)d administrative level instances could not be modified because they "
+"are already in use."
+msgstr ""
+"%(count)d instances de niveau administratif n'ont pas pu être modifiées car "
+"elles sont déjà utilisées."
+
+#: wizard/constants.py:58
+msgid "All administrative level instances have been deleted."
+msgstr "Toutes les instances de niveau administratif ont été supprimées."
+
+#: wizard/constants.py:59
+#, python-format
+msgid "Administrative level %(level)s not found in database"
+msgstr "Niveau administratif %(level)s non trouvé dans la base de données"
+
+#: wizard/constants.py:60
+msgid "The Excel file must contain a header row."
+msgstr "Le fichier Excel doit contenir une ligne d’en-tête."
+
+#: wizard/constants.py:62
+#, python-format
+msgid ""
+"The first administrative level instance already exists with the name "
+"%(root)s. The instance with the value %(new)s does not match this level in "
+"the Excel file."
+msgstr ""
+"L'instance de premier niveau administratif existe déjà sous le nom %(root)s. "
+"L'instance portant la valeur %(new)s ne correspond pas à ce niveau dans le "
+"fichier Excel."
+
+#: wizard/constants.py:66
+#, python-format
+msgid ""
+"The value of the instance of the first administrative level (first column) "
+"must be the same value for all cells in the column. Expected %(root)s, found "
+"%(new)s."
+msgstr ""
+"La valeur de l'instance du premier niveau administratif (première colonne) "
+"doit être identique pour toutes les cellules de la colonne. %(root)s "
+"attendus, %(new)s trouvés."
+
+#: wizard/constants.py:69
+msgid "Only Excel files (.xls, .xlsx) are allowed."
+msgstr "Seuls les fichiers Excel (.xls, .xlsx) sont autorisés."
+
+#: wizard/constants.py:70
+msgid "The uploaded file is not a valid Excel file."
+msgstr "Le fichier téléchargé n'est pas un fichier Excel valide."
+
+#: wizard/constants.py:71
+msgid "Each component must have at least one subcomponent."
+msgstr "Chaque composant doit avoir au moins un sous-composant."
+
+#: wizard/constants.py:73
+msgid "Not Started"
+msgstr "Pas commencé"
+
+#: wizard/constants.py:75
+msgid "In Progress"
+msgstr "En cours"
+
+#: wizard/constants.py:90
+msgid "Citizen group"
+msgstr "Groupe de citoyens"
+
+#: wizard/constants.py:91
+msgid "Citizen group 2"
+msgstr "Groupe de citoyens 2"
+
+#: wizard/constants.py:100
+msgid "Action not permitted"
+msgstr "Action non autorisée"
+
+#: wizard/forms.py:35
 msgid "Enter the project name"
 msgstr "Entrez le nom du projet"
 
-#: wizard/forms.py:45
+#: wizard/forms.py:40
 msgid "Please describe the project"
 msgstr "Veuillez décrire le projet"
 
-#: wizard/forms.py:62
+#: wizard/forms.py:57
 msgid "Enter administrative level name"
 msgstr "Entrez le nom du niveau administratif"
 
-#: wizard/forms.py:106
+#: wizard/forms.py:103
 msgid "Click to select administrative levels"
 msgstr "Cliquez pour sélectionner les niveaux administratifs"
 
-#: wizard/forms.py:107 wizard/views.py:628
+#: wizard/forms.py:104 wizard/views.py:673
 msgid "Administrative levels"
 msgstr "Niveaux administratifs"
 
-#: wizard/forms.py:114
+#: wizard/forms.py:111
 msgid "Enter department name"
 msgstr "Entrez le nom du département"
 
-#: wizard/forms.py:188
-msgid "Enter a new subtype or choose one"
-msgstr "Entrez un nouveau sous-type ou choisissez-en un"
+#: wizard/forms.py:189
+msgid "Enter a new subtypes or choose one"
+msgstr "Saisissez un nouveau sous-type ou choisissez-en un."
 
-#: wizard/forms.py:189 wizard/views.py:651
-msgid "Subtype"
-msgstr "Sous-type"
+#: wizard/forms.py:190 wizard/views.py:689
+msgid "Subtypes"
+msgstr "Sous-types"
 
-#: wizard/forms.py:205 wizard/views.py:652
-msgid "Department"
-msgstr "Département"
-
-#: wizard/forms.py:206 wizard/views.py:653
-msgid "Appeal department"
-msgstr "Service d'appel"
-
-#: wizard/forms.py:207 wizard/views.py:654
-msgid "Escalation department"
-msgstr "Service d'escalade"
-
-#: wizard/forms.py:210
-msgid "Enter category name"
-msgstr "Entrez le nom de la catégorie"
-
-#: wizard/forms.py:211
-msgid "Enter category abbreviation"
-msgstr "Entrez l'abréviation de la catégorie"
+#: wizard/forms.py:197
+msgid "Enter type name"
+msgstr "Saisissez le nom du type"
 
 #: wizard/forms.py:212
-msgid "Click to select department"
-msgstr "Cliquez pour sélectionner le département"
-
-#: wizard/forms.py:213
-msgid "Click to select appeal department"
-msgstr "Cliquez pour sélectionner le service d'appel"
-
-#: wizard/forms.py:215
-msgid "Click to select escalation department"
-msgstr "Cliquez pour sélectionner le service d'escalade"
-
-#: wizard/forms.py:217
-msgid "Click to select confidentiality level"
-msgstr "Cliquez pour sélectionner le niveau de confidentialité"
-
-#: wizard/forms.py:218
-msgid "Click to select redirection protocol"
-msgstr "Cliquez pour sélectionner le protocole de redirection"
-
-#: wizard/forms.py:225
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: wizard/forms.py:287
+#: wizard/forms.py:336 wizard/views.py:712
+msgid "Subtype"
+msgstr "Sous-type"
+
+#: wizard/forms.py:337 wizard/views.py:713
+msgid "Department"
+msgstr "Département"
+
+#: wizard/forms.py:338 wizard/views.py:714
+msgid "Appeal department"
+msgstr "Service d'appel"
+
+#: wizard/forms.py:339 wizard/views.py:715
+msgid "Escalation department"
+msgstr "Service d'escalade"
+
+#: wizard/forms.py:342
+msgid "Enter category name"
+msgstr "Entrez le nom de la catégorie"
+
+#: wizard/forms.py:343
+msgid "Enter category abbreviation"
+msgstr "Entrez l'abréviation de la catégorie"
+
+#: wizard/forms.py:344
+msgid "Click to select subtype"
+msgstr "Cliquez pour sélectionner le sous-type"
+
+#: wizard/forms.py:345
+msgid "Click to select department"
+msgstr "Cliquez pour sélectionner le département"
+
+#: wizard/forms.py:346
+msgid "Click to select appeal department"
+msgstr "Cliquez pour sélectionner le service d'appel"
+
+#: wizard/forms.py:348
+msgid "Click to select escalation department"
+msgstr "Cliquez pour sélectionner le service d'escalade"
+
+#: wizard/forms.py:350
+msgid "Click to select confidentiality level"
+msgstr "Cliquez pour sélectionner le niveau de confidentialité"
+
+#: wizard/forms.py:351
+msgid "Click to select redirection protocol"
+msgstr "Cliquez pour sélectionner le protocole de redirection"
+
+#: wizard/forms.py:376
 msgid "Upload Excel File"
 msgstr "Télécharger un fichier Excel"
 
-#: wizard/forms.py:323
+#: wizard/forms.py:412
 msgid "Enter status name"
 msgstr "Entrez le nom du statut"
 
-#: wizard/forms.py:334
+#: wizard/forms.py:423
 msgid "Created"
 msgstr "Créé"
 
-#: wizard/forms.py:335
+#: wizard/forms.py:424
 msgid "Represents the starting point of the issue"
 msgstr "Représente le point de départ du problème."
 
-#: wizard/forms.py:336
+#: wizard/forms.py:425
 msgid ""
 "This status indicates that the issue has just been created or initiated."
 msgstr "Ce statut indique que le problème vient d'être créé ou initié."
 
-#: wizard/forms.py:339
+#: wizard/forms.py:428
 msgid "Open"
 msgstr "Ouvrir"
 
-#: wizard/forms.py:340
+#: wizard/forms.py:429
 msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution"
 msgstr ""
 "Indique que le problème est activement traité ou en attente de résolution."
 
-#: wizard/forms.py:344
+#: wizard/forms.py:433
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: wizard/forms.py:345
+#: wizard/forms.py:434
 msgid "Indicates that the issue has been reviewed and rejected"
 msgstr "Indique que le problème a été examiné et rejeté."
 
-#: wizard/forms.py:346
+#: wizard/forms.py:435
 msgid "This status is used when the issue is deemed invalid or unnecessary."
 msgstr ""
 "Ce statut est utilisé lorsque le problème est jugé invalide ou inutile."
 
-#: wizard/forms.py:349
+#: wizard/forms.py:438
 msgid "Resolved"
 msgstr "Résolu"
 
-#: wizard/forms.py:350
+#: wizard/forms.py:439
 msgid "Marks the resolution or closure of the issue"
 msgstr "Marque la résolution ou la clôture du problème."
 
-#: wizard/forms.py:351
+#: wizard/forms.py:440
 msgid ""
 "This status signifies that the issue has been successfully completed or "
 "resolved."
 msgstr "Ce statut signifie que le problème a été résolu avec succès."
 
-#: wizard/forms.py:405
+#: wizard/forms.py:494
 msgid "Enter citizen age group name"
 msgstr "Entrez le nom du groupe d'âge du citoyen"
 
-#: wizard/forms.py:459
+#: wizard/forms.py:547
 msgid "Enter citizen group name"
 msgstr "Entrez le nom du groupe de citoyens"
 
-#: wizard/forms.py:461
+#: wizard/forms.py:549
 msgid "Select the type that groups each of the options that you are creating"
 msgstr "Sélectionnez le type qui regroupe chacune des options que vous créez"
 
-#: wizard/forms.py:468
+#: wizard/forms.py:556
 msgid ""
 "Use this option to classify between two different types for additional "
 "internal analysis."
@@ -1953,21 +1913,21 @@ msgstr ""
 "Utilisez cette option pour classer entre deux types différents pour une "
 "analyse interne supplémentaire."
 
-#: wizard/forms.py:505 wizard/templates/wizard/nested_formset.html:212
+#: wizard/forms.py:591 wizard/templates/wizard/nested_formset.html:212
 #: wizard/templates/wizard/nested_formset.html:241
 msgid "Enter subcomponent name"
 msgstr "Entrez le nom du sous-composant"
 
-#: wizard/forms.py:507 wizard/templates/wizard/nested_formset.html:217
+#: wizard/forms.py:593 wizard/templates/wizard/nested_formset.html:217
 #: wizard/templates/wizard/nested_formset.html:246
 msgid "Enter subcomponent description"
 msgstr "Entrez la description du sous-composant"
 
-#: wizard/forms.py:571
+#: wizard/forms.py:657
 msgid "Enter component name"
 msgstr "Entrez le nom du composant"
 
-#: wizard/forms.py:572
+#: wizard/forms.py:658
 msgid "Enter component description"
 msgstr "Entrez la description du composant"
 
@@ -1988,7 +1948,7 @@ msgid "Previous"
 msgstr "Précédente"
 
 #: wizard/templates/wizard/formset.html:62
-#: wizard/templates/wizard/grm_customization.html:222
+#: wizard/templates/wizard/grm_customization.html:228
 #: wizard/templates/wizard/nested_formset.html:38
 #: wizard/templates/wizard/nested_formset.html:108
 msgid "Delete"
@@ -2021,11 +1981,11 @@ msgstr "Personnalisation eMGP"
 msgid "Setup Progress"
 msgstr "Progression de l'installation"
 
-#: wizard/templates/wizard/grm_customization.html:222
+#: wizard/templates/wizard/grm_customization.html:228
 msgid "Undo deletion"
 msgstr "Annuler la suppression"
 
-#: wizard/templates/wizard/grm_customization.html:345
+#: wizard/templates/wizard/grm_customization.html:351
 msgid "GRM Customization Summary"
 msgstr "Résumé de la personnalisation eMGP"
 
@@ -2075,29 +2035,29 @@ msgstr "Exporter au format PDF"
 msgid "Save and Finish"
 msgstr "Enregistrer et Terminer"
 
-#: wizard/views.py:125
+#: wizard/views.py:111
 msgid "Configuration Options"
 msgstr "Options de configuration"
 
-#: wizard/views.py:171
+#: wizard/views.py:181
 msgid "Administrative Level Names"
 msgstr "Noms des niveaux administratifs"
 
-#: wizard/views.py:305
+#: wizard/views.py:314
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 "Une erreur s'est produite lors du traitement du fichier Excel: %(error)s"
 
-#: wizard/views.py:375
+#: wizard/views.py:409
 msgid "Categories"
 msgstr "Catégories"
 
-#: wizard/views.py:533
+#: wizard/views.py:565
 msgid "Components and Subcomponents"
 msgstr "Composants et Sous-composants"
 
-#: wizard/views.py:745
+#: wizard/views.py:806
 msgid "The setup cannot be completed until all previous steps are completed."
 msgstr ""
 "La configuration ne peut pas être terminée tant que toutes les "

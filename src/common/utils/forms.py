@@ -1,4 +1,5 @@
 # forms.py
+
 from django import forms
 from django.template.defaultfilters import filesizeformat
 
@@ -57,3 +58,63 @@ class WritableModelChoiceField(forms.ModelChoiceField):
             # If it's a string, we let it pass.
             return
         return super().validate(value)
+
+
+class WritableModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    """Custom ModelMultipleChoiceField that also accepts arbitrary strings."""
+
+    def clean(self, value):
+        """
+        Override clean to ensure to_python() and validate() run
+        even for non-integer or custom string values.
+        """
+        value = self.to_python(value)
+
+        self.validate(value)
+
+        return value
+
+    def to_python(self, value):
+        """Convert each item: try to resolve to instance or keep as string."""
+        if value in self.empty_values:
+            return []
+        if isinstance(value, str):
+            value = [value]
+
+        model = self.queryset.model
+        key = self.to_field_name or "pk"
+        result = []
+
+        for item in value:
+            if item in self.empty_values:
+                continue
+
+            if isinstance(item, model):
+                result.append(item)
+                continue
+
+            try:
+                obj = self.queryset.get(**{key: item})
+                result.append(obj)
+            except (ValueError, TypeError, model.DoesNotExist):
+                # Save as string literal if not found
+                result.append(str(item))
+
+        return result
+
+    def validate(self, value):
+        """Allow values outside queryset (new strings)."""
+        if value in self.empty_values or not value:
+            if self.required:
+                raise forms.ValidationError(self.error_messages["required"], code="required")
+            return
+
+        model = self.queryset.model
+        for v in value:
+            if isinstance(v, model):
+                super(forms.ModelMultipleChoiceField, self).validate([v])
+            elif isinstance(v, str):
+                # Allow new strings
+                continue
+            else:
+                super(forms.ModelMultipleChoiceField, self).validate([v])

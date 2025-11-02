@@ -4,10 +4,10 @@ from django.urls import reverse
 from openpyxl import load_workbook
 
 from authentication.factories import UserFactory
-from grm.constants import ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE
 from grm.tests.base import ViewTestCase
 from issues.factories import AdministrativeLevelFactory, AdministrativeRegionFactory
 from issues.models import AdministrativeLevel, AdministrativeRegion
+from wizard.constants import ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE
 
 
 class DownloadRegionsSampleViewTest(ViewTestCase):

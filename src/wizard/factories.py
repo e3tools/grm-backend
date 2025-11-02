@@ -14,3 +14,4 @@ class WizardSectionFactory(DjangoModelFactory):
         model = WizardSection
 
     name = factory.Sequence(lambda n: f"section_{n}")
+    step = factory.Sequence(lambda n: n)

@@ -1,16 +1,16 @@
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
 
 from authentication.models import Cdata, Pdata
 from client import get_db
+from etl.management.commands.base_translated_command import TranslatedBaseCommand
 from etl.utils import create_attachments, fetch_database, process_comments_data
 from issues.models import Comment, Issue
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
-class Command(BaseCommand):
+class Command(TranslatedBaseCommand):
     help = 'Get data from CouchDB documents to update all related models'
 
     def update_cripto_models(self, external_issues):
@@ -32,7 +32,8 @@ class Command(BaseCommand):
         update_keys(Cdata)
         update_keys(Pdata)
 
-    def handle(self, *args, **options):
+    def handle_translated(self, *args, **options):
+        Issue.objects.all().delete()
 
         self.stdout.write(self.style.NOTICE('Running: etl_fetch_all_data'))
 
