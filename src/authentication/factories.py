@@ -16,7 +16,7 @@ class UserFactory(DjangoModelFactory):
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     is_active = True
-    grm_manager = False
+    grm_owner = False
 
     @factory.post_generation
     def password(self, create, extracted, **kwargs):

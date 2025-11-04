@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "first_name", "last_name", "photo", 'grm_manager'),
+                "fields": ("email", "first_name", "last_name", "photo", 'grm_owner'),
             },
         ),
     )

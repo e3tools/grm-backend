@@ -301,37 +301,6 @@ class SearchIssueForm(forms.Form):
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
-# For now, it is only used to improve performance in the diagnostics view (HomeFormView).
-class NewSearchIssueForm(forms.Form):
-    start_date = forms.DateTimeField(label=_("Start Date"))
-    end_date = forms.DateTimeField(label=_("End Date"))
-    code = forms.CharField(label=_("ID Number / Access Code"))
-    assigned_to = forms.ChoiceField()
-    category = forms.ChoiceField()
-    type = forms.ChoiceField()
-    status = forms.ChoiceField()
-    administrative_region = forms.ChoiceField()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields["start_date"].widget.attrs["class"] = self.fields["end_date"].widget.attrs["class"] = (
-            "form-control datetimepicker-input"
-        )
-        self.fields["start_date"].widget.attrs["data-target"] = "#start_date"
-        self.fields["end_date"].widget.attrs["data-target"] = "#end_date"
-        self.fields["assigned_to"].widget.choices = GovernmentWorker.get_choices()
-        self.fields["category"].widget.choices = IssueCategory.get_choices()
-        self.fields["type"].widget.choices = IssueType.get_choices()
-        self.fields["status"].widget.choices = IssueStatus.get_choices()
-
-        label = AdministrativeRegion.get_first_child_level_name()
-        self.fields["administrative_region"].label = label
-        self.fields["administrative_region"].widget.choices = AdministrativeRegion.get_first_level_choices()
-
-        self.fields["administrative_region"].widget.attrs["class"] = "region"
-
-
 # to check
 class IssueDetailsForm(forms.Form):
     assignee = forms.ChoiceField(label=_("Assigned to"))

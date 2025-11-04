@@ -16,7 +16,7 @@ class ResolutionProcessFormViewTest(ViewTestCase):
         super().setUp()
         self.step = get_step_by_name(ISSUE_STATUS_CHOICE)['step']
         self.url = reverse(f"wizard:setup_step_{self.step}")
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
 
         # Wizard sections
         self.current_section = WizardSection.objects.get(step=self.step)
@@ -34,7 +34,7 @@ class ResolutionProcessFormViewTest(ViewTestCase):
         response = self.get(self.url)
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         self.user = UserFactory()
         response = self.get(self.url, ajax=True)
         self.assertEqual(response.status_code, 404)

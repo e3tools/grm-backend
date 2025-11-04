@@ -192,6 +192,7 @@ class SubComponent(models.Model):
     class Meta:
         verbose_name = _("Subcomponent")
         verbose_name_plural = _("Subcomponents")
+        unique_together = ['name', 'parent']
 
     def __str__(self):
         return self.name
@@ -671,6 +672,27 @@ class IssueAttachment(models.Model):
             if os.path.isfile(self.file.path):
                 os.remove(self.file.path)
         super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        """
+        Deletes the old file from the filesystem when updating the record
+        with a new file.
+        """
+        # Use self.__class__ to query the database for the old instance
+        if self.pk:
+            try:
+                old = self.__class__.objects.get(pk=self.pk)
+            except self.__class__.DoesNotExist:
+                old = None
+        else:
+            old = None
+
+        super().save(*args, **kwargs)
+
+        # If there was an old file and it is different from the new one, delete it
+        if old and old.file and old.file != self.file:
+            if os.path.isfile(old.file.path):
+                os.remove(old.file.path)
 
     @property
     def filename(self):

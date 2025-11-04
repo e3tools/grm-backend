@@ -32110,8 +32110,7 @@ a.text-muted:hover {
 
 .toogle-sidebar-button {
     position: absolute;
-    display: inline-block;
-    bottom: 50px;
+    bottom: 4px;
     width: 100%;
     background-color: #ffffffb8;
 }

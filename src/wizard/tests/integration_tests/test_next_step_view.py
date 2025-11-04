@@ -10,7 +10,7 @@ class NextStepViewTest(ViewTestCase):
     """Integration tests for the CustomizationWizardView."""
 
     def setUp(self):
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
         self.sections = WizardSection.objects.all()
         self.url = lambda step: reverse("wizard:next_step", kwargs={"step": step})
 
@@ -19,7 +19,7 @@ class NextStepViewTest(ViewTestCase):
         response = self.get(self.url, authorized=False, ajax=True)
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         """Test that logged-in non grm manager users cannot access the view."""
 
         self.user = UserFactory()

@@ -19,6 +19,7 @@ class User(AbstractUser):
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True, verbose_name=_("photo"))
     external_id = models.CharField(max_length=255, verbose_name="couchDB document _id", default=None, null=True)
     grm_manager = models.BooleanField(default=False)
+    grm_owner = models.BooleanField(default=False)
 
     def __str__(self):
         return self.email
@@ -26,7 +27,21 @@ class User(AbstractUser):
     def save(self, *args, **kwargs):
         if not self.username:
             self.username = str(uuid.uuid())
-        return super().save(*args, **kwargs)
+
+        if self.pk:
+            try:
+                old = self.__class__.objects.get(pk=self.pk)
+            except self.__class__.DoesNotExist:
+                old = None
+        else:
+            old = None
+
+        super().save(*args, **kwargs)
+
+        # If there was an old photo and it is different from the new one, delete it
+        if old and old.photo and old.photo != self.photo:
+            if os.path.isfile(old.photo.path):
+                os.remove(old.photo.path)
 
     @property
     def name(self):

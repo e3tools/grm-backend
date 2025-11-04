@@ -24,7 +24,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         super().setUp()
         self.step = get_step_by_name(COMPONENTS_CHOICE)['step']
         self.url = reverse(f"wizard:setup_step_{self.step}")
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
 
         # Wizard sections
         self.current_section = WizardSection.objects.get(step=self.step)
@@ -44,7 +44,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         response = self.get(self.url)
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         """Non-GRM manager users should not access the view."""
         self.user = UserFactory()
         response = self.get(self.url, ajax=True)
@@ -175,13 +175,13 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
             "subcomponent_form-0-INITIAL_FORMS": "0",
             "subcomponent_form-0-MIN_NUM_FORMS": "0",
             "subcomponent_form-0-MAX_NUM_FORMS": "100",
-            "subcomponent_form-0-0-name": "name",
+            "subcomponent_form-0-0-name": "subcomponent 1",
             "subcomponent_form-0-0-description": "description",
             "subcomponent_form-1-TOTAL_FORMS": "1",
             "subcomponent_form-1-INITIAL_FORMS": "0",
             "subcomponent_form-1-MIN_NUM_FORMS": "0",
             "subcomponent_form-1-MAX_NUM_FORMS": "100",
-            "subcomponent_form-1-0-name": "name",
+            "subcomponent_form-1-0-name": "subcomponent 2",
             "subcomponent_form-1-0-description": "description",
         }
 
@@ -189,6 +189,7 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Component.objects.count(), 1)
         self.assertFalse(Component.objects.filter(id=components[0].id).exists())
+        self.assertTrue(Component.objects.filter(id=components[1].id).exists())
 
         data = {
             "form-TOTAL_FORMS": "1",
@@ -212,6 +213,64 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         self.assertTrue(Component.objects.filter(id=components[1].id).exists())
 
         self.assertIn('Please submit at least 1 form.', response.context['formset'].non_form_errors())
+
+    def test_post_can_delete_subcomponents_but_not_all(self):
+        """Deletes the selected subcomponents but does not allow deleting all."""
+        component = ComponentFactory()
+        subcomponents = SubComponentFactory.create_batch(2, parent=component)
+        self.assertEqual(SubComponent.objects.count(), 2)
+
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": component.id,
+            "form-0-name": component.name,
+            "form-0-description": component.description,
+            "subcomponent_form-0-TOTAL_FORMS": "2",
+            "subcomponent_form-0-INITIAL_FORMS": "2",
+            "subcomponent_form-0-MIN_NUM_FORMS": "0",
+            "subcomponent_form-0-MAX_NUM_FORMS": "100",
+            "subcomponent_form-0-0-id": subcomponents[0].id,
+            "subcomponent_form-0-0-name": subcomponents[0].name,
+            "subcomponent_form-0-0-description": subcomponents[0].description,
+            "subcomponent_form-0-0-DELETE": "on",
+            "subcomponent_form-0-1-id": subcomponents[1].id,
+            "subcomponent_form-0-1-name": subcomponents[1].name,
+            "subcomponent_form-0-1-description": subcomponents[1].description,
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(SubComponent.objects.count(), 1)
+        self.assertFalse(SubComponent.objects.filter(id=subcomponents[0].id).exists())
+        self.assertTrue(SubComponent.objects.filter(id=subcomponents[1].id).exists())
+
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": component.id,
+            "form-0-name": component.name,
+            "form-0-description": component.description,
+            "subcomponent_form-0-TOTAL_FORMS": "1",
+            "subcomponent_form-0-INITIAL_FORMS": "1",
+            "subcomponent_form-0-MIN_NUM_FORMS": "0",
+            "subcomponent_form-0-MAX_NUM_FORMS": "100",
+            "subcomponent_form-0-0-id": subcomponents[1].id,
+            "subcomponent_form-0-0-name": subcomponents[1].name,
+            "subcomponent_form-0-0-description": subcomponents[1].description,
+            "subcomponent_form-0-0-DELETE": "on",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(SubComponent.objects.count(), 1)
+        self.assertTrue(SubComponent.objects.filter(id=subcomponents[1].id).exists())
+
+        self.assertIn(SUBCOMPONENT_REQUIRED_ERROR_MESSAGE, response.context['formset'].subformsets[0].non_form_errors())
 
     def test_cannot_delete_component_in_use(self):
         """Should raise validation error when deleting a component referenced by an Issue."""
@@ -345,6 +404,74 @@ class ComponentAndSubComponentFormViewTest(ViewTestCase):
         # Wizard should stay in current section (not mark completed)
         self.current_section.refresh_from_db()
         self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+
+    def test_cannot_create_duplicate_subcomponents_for_same_parent(self):
+        """Should raise validation error when creating SubComponents with duplicate names under same parent."""
+        component = ComponentFactory(name="Main Component")
+
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": component.id,
+            "form-0-name": component.name,
+            "form-0-description": component.description,
+            "subcomponent_form-0-TOTAL_FORMS": "2",
+            "subcomponent_form-0-INITIAL_FORMS": "0",
+            "subcomponent_form-0-MIN_NUM_FORMS": "0",
+            "subcomponent_form-0-MAX_NUM_FORMS": "100",
+            # two subcomponents with same name under same parent
+            "subcomponent_form-0-0-name": "Duplicate",
+            "subcomponent_form-0-0-description": "desc 1",
+            "subcomponent_form-0-1-name": "Duplicate",
+            "subcomponent_form-0-1-description": "desc 2",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(SubComponent.objects.count(), 0)
+        # Validation error should appear in subformset non_form_errors
+        non_form_errors = response.context["formset"].subformsets[0].non_form_errors()
+        self.assertTrue(any("duplicate" in e.lower() or "already exists" in e.lower() for e in non_form_errors))
+
+    def test_cannot_update_duplicate_subcomponents_for_same_parent(self):
+        """Should raise validation error when updating SubComponents to same name under same parent."""
+        component = ComponentFactory(name="Main Component")
+        sub1 = SubComponentFactory(parent=component, name="Sub A")
+        sub2 = SubComponentFactory(parent=component, name="Sub B")
+
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": component.id,
+            "form-0-name": component.name,
+            "form-0-description": component.description,
+            "subcomponent_form-0-TOTAL_FORMS": "2",
+            "subcomponent_form-0-INITIAL_FORMS": "2",
+            "subcomponent_form-0-MIN_NUM_FORMS": "0",
+            "subcomponent_form-0-MAX_NUM_FORMS": "100",
+            "subcomponent_form-0-0-id": sub1.id,
+            "subcomponent_form-0-0-name": "Duplicate",
+            "subcomponent_form-0-0-description": "desc",
+            "subcomponent_form-0-1-id": sub2.id,
+            "subcomponent_form-0-1-name": "Duplicate",  # duplicate name for same parent
+            "subcomponent_form-0-1-description": "desc",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+
+        non_form_errors = response.context["formset"].subformsets[0].non_form_errors()
+        self.assertTrue(any("duplicate" in e.lower() or "already exists" in e.lower() for e in non_form_errors))
+
+        # Ensure DB not modified
+        sub1.refresh_from_db()
+        sub2.refresh_from_db()
+        self.assertEqual(sub1.name, "Sub A")
+        self.assertEqual(sub2.name, "Sub B")
 
     def test_post_requires_minimum_one_form_when_no_components_exist(self):
         """

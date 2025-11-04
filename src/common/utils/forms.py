@@ -11,19 +11,33 @@ from grm.constants import (
 )
 
 
-class FileForm(forms.Form):
+class FileValidationMixin:
+    """Reusable file validator mixin with configurable field name."""
+
+    file_field_name = "file"  # default, can be overridden
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['file'].help_text = FILE_HELP_TEXT % MAX_UPLOAD_SIZE_FILE_FORMAT
+        field = self.fields.get(self.file_field_name)
+        if field:
+            field.help_text = FILE_HELP_TEXT % MAX_UPLOAD_SIZE_FILE_FORMAT
 
+    def clean(self):
+        cleaned_data = super().clean()
+        file_field = self.file_field_name
+        value = cleaned_data.get(file_field)
+        if value and hasattr(value, "size") and value.size > MAX_UPLOAD_SIZE:
+            error_msg = FILE_SIZE_ERROR_MESSAGE % (
+                MAX_UPLOAD_SIZE_FILE_FORMAT,
+                filesizeformat(value.size),
+            )
+            self.add_error(file_field, error_msg)
+        return cleaned_data
+
+
+class FileForm(FileValidationMixin, forms.Form):
+    file_field_name = "file"
     file = forms.FileField(label="")
-
-    def clean_file(self):
-        value = self.cleaned_data.get("file")
-        if value and value.size > MAX_UPLOAD_SIZE:
-            error_msg = FILE_SIZE_ERROR_MESSAGE % (MAX_UPLOAD_SIZE_FILE_FORMAT, filesizeformat(value.size))
-            raise forms.ValidationError(error_msg)
-        return value
 
 
 class WritableModelChoiceField(forms.ModelChoiceField):

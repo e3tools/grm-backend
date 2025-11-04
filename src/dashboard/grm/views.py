@@ -15,7 +15,6 @@ from django.views import generic
 
 from authentication.models import Cdata, GovernmentWorker, Pdata
 from common.utils.forms import FileForm
-from dashboard.adls.forms import PasswordConfirmForm
 from dashboard.grm.forms import (
     IssueCommentForm,
     IssueDetailsForm,
@@ -35,6 +34,7 @@ from dashboard.mixins import (
     ModalFormMixin,
     PageMixin,
 )
+from dashboard.user_management.forms import PasswordConfirmForm
 from grm.constants import (
     ALERT_CHOICE,
     CONFIDENTIAL_CHOICE,

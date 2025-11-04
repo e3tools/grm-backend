@@ -20,7 +20,7 @@ class ProjectUpdateViewTest(ViewTestCase):
         super().setUp()
         self.step = get_step_by_name(PROJECT_CHOICE)['step']
         self.url = reverse(f"wizard:setup_step_{self.step}")
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
 
         # Wizard sections
         self.current_section = WizardSection.objects.get(step=self.step)
@@ -35,7 +35,7 @@ class ProjectUpdateViewTest(ViewTestCase):
         response = self.get(self.url, authorized=False, ajax=True)
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         """Test that logged-in non grm manager users cannot access the view."""
 
         self.user = UserFactory()

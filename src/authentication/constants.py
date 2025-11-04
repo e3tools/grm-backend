@@ -1,8 +1,5 @@
 from django.utils.translation import gettext_lazy as _
 
-ADL = "adl"
-MAJOR = "major"
-
 CITIZEN_CREATE_ERROR_MESSAGE = _('An error occurred while registering the citizen.')
 LOGIN_SUCCESS_MESSAGE = _('Login successful.')
 INVALID_INPUT_ERROR_MESSAGE = _('Invalid input data.')

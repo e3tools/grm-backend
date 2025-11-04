@@ -58,7 +58,7 @@ class CustomLoginView(LoginView):
 
         # Wizard check
         wizard_setup_is_completed = WizardSection.wizard_setup_is_completed()
-        if not user.grm_manager and not wizard_setup_is_completed:
+        if not user.grm_owner and not wizard_setup_is_completed:
             form.add_error(None, _("Login is not allowed until the customization wizard is completed."))
             return self.form_invalid(form)
 

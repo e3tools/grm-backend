@@ -13,14 +13,14 @@ from wizard.models import WizardSection
 class CustomLoginViewTest(DashboardTestCase):
     def setUp(self):
         super().setUp()
-        self.grm_manager_user = UserFactory(password="pass123", grm_manager=True)
+        self.grm_owner_user = UserFactory(password="pass123", grm_manager=True)
         self.normal_user = UserFactory(password="pass123")
         self.url = reverse("dashboard:authentication:login")
 
-    def test_grm_manager_can_login_even_if_wizard_incomplete(self):
+    def test_grm_owner_can_login_even_if_wizard_incomplete(self):
         resp = self.post(
             self.url,
-            {"username": self.grm_manager_user.email, "password": "pass123"},
+            {"username": self.grm_owner_user.email, "password": "pass123"},
             authorized=False,
             follow=True,
         )

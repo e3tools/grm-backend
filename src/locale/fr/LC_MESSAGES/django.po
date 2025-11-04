@@ -499,18 +499,6 @@ msgstr "Projet"
 msgid "Projects"
 msgstr "Projets"
 
-#: dashboard/participatory_budget/forms.py:22
-msgid "Show:"
-msgstr "Afficher:"
-
-#: dashboard/participatory_budget/forms.py:32
-msgid "This month"
-msgstr "Ce mois-ci"
-
-#: dashboard/participatory_budget/views.py:13
-msgid "Participatory Budget"
-msgstr "Budget Participatif"
-
 #: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:45
 msgid "Search Issues"
 msgstr "Problèmes de recherche"
@@ -520,7 +508,6 @@ msgid "Subprojects"
 msgstr "Sous-projets"
 
 #: dashboard/templates/adls/list.html:11
-#: dashboard/templates/participatory_budget/dashboard.html:97
 msgid "Search"
 msgstr "Chercher"
 
@@ -555,22 +542,17 @@ msgstr "Voir le profil"
 #: dashboard/templates/adls/phase_detail.html:37
 #: dashboard/templates/adls/task_detail.html:28
 #: dashboard/templates/common/progress_bar.html:6
-#: dashboard/templates/participatory_budget/dashboard.html:5
-#: dashboard/templates/participatory_budget/statement.html:3
-#: dashboard/templates/participatory_budget/task_list.html:27
 #: wizard/constants.py:77
 msgid "Completed"
 msgstr "Complété"
 
 #: dashboard/templates/adls/phase_detail.html:39
 #: dashboard/templates/adls/task_detail.html:30
-#: dashboard/templates/participatory_budget/task_list.html:29
 msgid "In progress"
 msgstr "En cours"
 
 #: dashboard/templates/adls/phase_detail.html:41
 #: dashboard/templates/adls/task_detail.html:32
-#: dashboard/templates/participatory_budget/task_list.html:31
 msgid "Pending"
 msgstr "A faire"
 
@@ -593,8 +575,8 @@ msgid "Facilitator not assigned"
 msgstr "Animateur non attribué"
 
 #: dashboard/templates/adls/profile.html:45
-msgid "No administrative level assigned"
-msgstr "Aucune niveau administratif attribuée"
+msgid "Unassigned"
+msgstr "Non attribué"
 
 #: dashboard/templates/adls/profile.html:57
 #: dashboard/templates/adls/profile.html:256
@@ -1122,50 +1104,6 @@ msgstr "Se déconnecter"
 #: dashboard/templates/layouts/sidebar.html:92
 msgid "Toggle Sidebar"
 msgstr "Basculer la barre latérale"
-
-#: dashboard/templates/participatory_budget/dashboard.html:15
-msgid "Have started the participatory budgeting process"
-msgstr "Commencement des communes"
-
-#: dashboard/templates/participatory_budget/dashboard.html:37
-msgid "Updated Tasks"
-msgstr "Tâches mises à jour"
-
-#: dashboard/templates/participatory_budget/dashboard.html:41
-msgid "No notifications found"
-msgstr "Aucune notification trouvée"
-
-#: dashboard/templates/participatory_budget/dashboard.html:44
-msgid "Load more notifications"
-msgstr "Charger plus de notifications"
-
-#: dashboard/templates/participatory_budget/dashboard.html:58
-msgid "Average budget allocated to the BP"
-msgstr "Budget moyen alloué au BP"
-
-#: dashboard/templates/participatory_budget/dashboard.html:63
-msgid "See the communes"
-msgstr "Voir les communes"
-
-#: dashboard/templates/participatory_budget/dashboard.html:75
-msgid "Participatory Budget Statement"
-msgstr "État du Budget Participatif"
-
-#: dashboard/templates/participatory_budget/statement.html:22
-msgid "Month without budget statement"
-msgstr "Mois sans déclaration budgétaire"
-
-#: dashboard/templates/participatory_budget/task_list.html:8
-msgid "Task"
-msgstr "Tâche"
-
-#: dashboard/templates/participatory_budget/task_list.html:18
-msgid "Phase"
-msgstr "Phase"
-
-#: dashboard/templates/participatory_budget/task_list.html:21
-msgid "Commune"
-msgstr "Commune"
 
 #: dashboard/templates/search/_filters.html:24
 msgid "Age Group"
