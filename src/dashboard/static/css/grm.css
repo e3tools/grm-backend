@@ -4526,7 +4526,7 @@ input[type="button"].btn-block {
 }
 
 .nav-tabs .nav-link:hover, .nav-tabs .nav-link:focus {
-    border-color: #f7f7f7 #f7f7f7 #efefef;
+    color: #24c38b;
 }
 
 .nav-tabs .nav-link.disabled {
@@ -4535,11 +4535,15 @@ input[type="button"].btn-block {
     border-color: transparent;
 }
 
+.nav-tabs .nav-link {
+    color: #707070;
+}
+
 .nav-tabs .nav-link.active,
 .nav-tabs .nav-item.show .nav-link {
-    color: #495057;
+    color: #24c38b;
     background-color: #ffffff;
-    border-color: #efefef #efefef #ffffff;
+    border-bottom: 4px solid #24c38b;
 }
 
 .nav-tabs .dropdown-menu {
@@ -32130,15 +32134,11 @@ a.text-muted:hover {
 .search-bar input {
     border-top-right-radius: 100px;
     border-bottom-right-radius: 100px;
-    border: 0;
-    box-shadow: 3px 3px 17px 0 rgba(0, 0, 0, 0.05);
 }
 
 .search-bar .input-group-text {
     border-top-left-radius: 100px;
     border-bottom-left-radius: 100px;
-    border: 0;
-    box-shadow: 3px 3px 17px 0 rgba(0, 0, 0, 0.05);
     color: #dedede;
     background-color: #ffffff;
 }

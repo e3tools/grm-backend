@@ -867,3 +867,14 @@ class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMi
             context["msg"] = (render(self.request, "common/messages.html").content.decode("utf-8"),)
 
         return self.render_to_json_response(context, safe=False)
+
+
+class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q')
+        qs = AdministrativeRegion.objects.filter(name__istartswith=query).select_related('administrative_level')[:10]
+
+        results = [{'id': item.id, 'text': str(item)} for item in qs]
+
+        return self.render_to_json_response(results, safe=False)

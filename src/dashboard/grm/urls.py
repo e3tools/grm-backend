@@ -109,4 +109,9 @@ urlpatterns = [
         views.GetChoicesForOptionView.as_view(),
         name="get_options_values",
     ),
+    path(
+        "get-region-choices-for-select2",
+        views.GetRegionChoicesForSelect2View.as_view(),
+        name="get_region_choices_for_select2",
+    ),
 ]
