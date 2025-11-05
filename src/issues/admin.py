@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from issues.models import AdministrativeRegion, IssueDepartment
+from issues.models import AdministrativeRegion, IssueCategory, IssueDepartment
 
 
 class IssueDepartmentAdmin(admin.ModelAdmin):
@@ -61,5 +61,54 @@ class AdministrativeRegionAdmin(admin.ModelAdmin):
     ordering = ("name",)
 
 
+class IssueCategoryAdmin(admin.ModelAdmin):
+    fields = (
+        "name",
+        "abbreviation",
+        "parent",
+        "assigned_department",
+        "assigned_appeal_department",
+        "assigned_escalation_department",
+        "confidentiality_level",
+        "redirection_protocol",
+        "created_date",
+        "updated_date",
+    )
+    raw_id_fields = (
+        "parent",
+        "assigned_department",
+        "assigned_appeal_department",
+        "assigned_escalation_department",
+    )
+    list_display = (
+        "id",
+        "name",
+        "abbreviation",
+        "parent",
+        "assigned_department",
+        "confidentiality_level",
+        "redirection_protocol",
+        "created_date",
+        "updated_date",
+    )
+    list_filter = (
+        "confidentiality_level",
+        "redirection_protocol",
+        "parent",
+        "created_date",
+    )
+    search_fields = (
+        "name",
+        "abbreviation",
+        "parent__name",
+        "assigned_department__department__name",
+        "assigned_appeal_department__department__name",
+        "assigned_escalation_department__department__name",
+    )
+    readonly_fields = ("created_date", "updated_date")
+    ordering = ("name",)
+
+
 admin.site.register(IssueDepartment, IssueDepartmentAdmin)
 admin.site.register(AdministrativeRegion, AdministrativeRegionAdmin)
+admin.site.register(IssueCategory, IssueCategoryAdmin)
