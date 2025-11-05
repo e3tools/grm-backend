@@ -648,7 +648,12 @@ class IssueDetailsFormView(
         context["password_confirm_form"] = PasswordConfirmForm()
         context["comments"] = self.obj.comments.select_related('user')
         citizen_type = self.obj.citizen.type if self.obj.citizen else None
-        context["confidential"] = self.obj.assignee.id != user.id and citizen_type == CONFIDENTIAL_CHOICE
+        # Handle case where assignee might be None
+        context["confidential"] = (
+            self.obj.assignee and 
+            self.obj.assignee.id != user.id and 
+            citizen_type == CONFIDENTIAL_CHOICE
+        )
 
         return context
 
