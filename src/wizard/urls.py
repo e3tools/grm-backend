@@ -1,4 +1,5 @@
 from django.urls import path
+from django.db import OperationalError, ProgrammingError
 
 from wizard import views
 from wizard.registry import get_all_wizard_steps
@@ -13,8 +14,14 @@ urlpatterns = [
 ]
 
 # Generate URLs dynamically from the registry
-wizard_steps = get_all_wizard_steps()
-for step_config in wizard_steps.values():
-    step = step_config['step']
-    view_class = step_config['view_class']
-    urlpatterns.append(path(f"setup-step-{step}", view_class.as_view(), name=f"setup_step_{step}"))
+# Wrap in try/except to allow migrations to run even if table doesn't exist yet
+try:
+    wizard_steps = get_all_wizard_steps()
+    for step_config in wizard_steps.values():
+        step = step_config['step']
+        view_class = step_config['view_class']
+        urlpatterns.append(path(f"setup-step-{step}", view_class.as_view(), name=f"setup_step_{step}"))
+except (OperationalError, ProgrammingError):
+    # Database table doesn't exist yet (e.g., during migrations)
+    # URLs will be generated dynamically after migrations run
+    pass
