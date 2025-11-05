@@ -302,10 +302,6 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         assignee = self.obj.get_assignee()
         self.obj.assignee = assignee
 
-        if not assignee:
-            msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-
     def set_contact_fields(self, data):
         self.obj.contact_medium = data["contact_medium"]
         if data["contact_medium"] == ALERT_CHOICE:
