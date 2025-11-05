@@ -500,7 +500,8 @@ class Issue(models.Model):
             head = self.category.assigned_department.department.head
         except Exception:
             head = None
-        return user.id == self.assignee.id or (head and user.id == head.id)
+        # Check if assignee exists before accessing .id
+        return (self.assignee and user.id == self.assignee.id) or (head and user.id == head.id)
 
     def has_edit_permission(self, user):
         return not hasattr(user, "governmentworker") or not self.assignee or self.assignee.id == user.id
