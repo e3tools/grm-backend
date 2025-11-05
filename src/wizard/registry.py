@@ -7,16 +7,18 @@ module loading.
 """
 
 from django.views import View
+from typing import Optional, Type
+
 
 
 class WizardStepsRegistry:
     """Registry for wizard steps configuration."""
 
     def __init__(self):
-        self._views: dict[str, type[View]] = {}
-        self._steps_cache: dict | None = None
+        self._views: dict[str, Type[View]] = {}
+        self._steps_cache: Optional[dict] = None
 
-    def register(self, step_name: str, view_class: type[View]):
+    def register(self, step_name: str, view_class: Type[View]):
         """
         Register a view class for a wizard step.
 
@@ -28,7 +30,7 @@ class WizardStepsRegistry:
         # Invalidate cache when registering new views
         self._steps_cache = None
 
-    def get_view_class(self, step_name: str) -> type[View] | None:
+    def get_view_class(self, step_name: str) -> Optional[Type[View]]:
         """Get the view class for a given step name."""
         return self._views.get(step_name)
 
@@ -78,7 +80,7 @@ def register_wizard_step(step_name: str):
             ...
     """
 
-    def decorator(view_class: type[View]):
+    def decorator(view_class: Type[View]):
         wizard_registry.register(step_name, view_class)
         return view_class
 
@@ -86,13 +88,13 @@ def register_wizard_step(step_name: str):
 
 
 # Helper functions that use the registry
-def get_step_by_name(step_name: str) -> dict | None:
+def get_step_by_name(step_name: str) -> Optional[dict]:
     """Get step configuration by name."""
     steps = wizard_registry.get_all_steps()
     return steps.get(step_name)
 
 
-def get_step_by_number(step_number: int) -> dict | None:
+def get_step_by_number(step_number: int) -> Optional[dict]:
     """Get step configuration by step number."""
     steps = wizard_registry.get_all_steps()
     for step_config in steps.values():
@@ -101,7 +103,7 @@ def get_step_by_number(step_number: int) -> dict | None:
     return None
 
 
-def get_next_step(current_step_name: str) -> dict | None:
+def get_next_step(current_step_name: str) -> Optional[dict]:
     """Get the next step configuration."""
     current = get_step_by_name(current_step_name)
     if not current:
@@ -111,7 +113,7 @@ def get_next_step(current_step_name: str) -> dict | None:
     return get_step_by_number(next_step_number)
 
 
-def get_previous_step(current_step_name: str) -> dict | None:
+def get_previous_step(current_step_name: str) -> Optional[dict]:
     """Get the previous step configuration."""
     current = get_step_by_name(current_step_name)
     if not current:
