@@ -303,8 +303,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
         self.obj.assignee = assignee
 
         if not assignee:
-            msg = _("There is no staff member to assign the issue to. Please report to IT staff.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+            msg = _("No staff member was found to assign the issue to. The issue will be created without an assignee.")
+            messages.add_message(self.request, messages.WARNING, msg, extra_tags="warning")
 
     def set_contact_fields(self, data):
         self.obj.contact_medium = data["contact_medium"]
@@ -398,13 +398,7 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         self.set_location_fields(data)
         self.set_assignee()
         self.obj.save()
-        if not self.obj.assignee:
-            return HttpResponseRedirect(
-                reverse(
-                    "dashboard:grm:new_issue_step_4",
-                    kwargs={"issue": self.kwargs["issue"]},
-                )
-            )
+        # Remove the if not self.obj.assignee check - allow proceeding without assignee
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_5", kwargs={"issue": self.kwargs["issue"]}))
 
 
@@ -432,14 +426,8 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         self.set_details_fields(data)
         self.set_location_fields(data)
         self.set_assignee()
-
-        if not self.obj.assignee:
-            return HttpResponseRedirect(
-                reverse(
-                    "dashboard:grm:new_issue_step_5",
-                    kwargs={"issue": self.kwargs["issue"]},
-                )
-            )
+        
+        # Remove the if not self.obj.assignee check - allow proceeding without assignee
 
         self.set_contact_fields(data)
         self.obj.internal_code = self.obj.get_internal_code()
@@ -660,7 +648,12 @@ class IssueDetailsFormView(
         context["password_confirm_form"] = PasswordConfirmForm()
         context["comments"] = self.obj.comments.select_related('user')
         citizen_type = self.obj.citizen.type if self.obj.citizen else None
-        context["confidential"] = self.obj.assignee.id != user.id and citizen_type == CONFIDENTIAL_CHOICE
+        # Handle case where assignee might be None
+        context["confidential"] = (
+            self.obj.assignee and 
+            self.obj.assignee.id != user.id and 
+            citizen_type == CONFIDENTIAL_CHOICE
+        )
 
         return context
 

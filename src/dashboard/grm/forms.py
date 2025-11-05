@@ -311,15 +311,21 @@ class IssueDetailsForm(forms.Form):
         government_workers = GovernmentWorker.get_choices(False)
         self.fields["assignee"].widget.choices = government_workers
 
-        is_assignee_to_government_worker = False
-        for worker in government_workers:
-            if worker[1] == obj.assignee.id:
-                is_assignee_to_government_worker = True
+        # Only process assignee logic if assignee exists
+        if obj.assignee:
+            is_assignee_to_government_worker = False
+            for worker in government_workers:
+                if worker[1] == obj.assignee.id:
+                    is_assignee_to_government_worker = True
 
-        if not is_assignee_to_government_worker:
-            self.fields["assignee"].widget.choices = [(obj.assignee.id, obj.assignee.name)]
+            if not is_assignee_to_government_worker:
+                self.fields["assignee"].widget.choices = [(obj.assignee.id, obj.assignee.name)]
 
-        self.fields["assignee"].initial = obj.assignee.id
+            self.fields["assignee"].initial = obj.assignee.id
+        else:
+            # If no assignee, set initial to empty and add an empty choice
+            self.fields["assignee"].widget.choices = [("", _("No assignee"))] + government_workers
+            self.fields["assignee"].initial = ""
 
 
 # to check
