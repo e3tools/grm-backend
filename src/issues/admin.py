@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from issues.models import AdministrativeRegion, IssueCategory, IssueDepartment
+from issues.models import (
+    AdministrativeRegion,
+    IssueCategory,
+    IssueDepartment,
+    IssueDepartmentAdministrativeLevel,
+)
 
 
 class IssueDepartmentAdmin(admin.ModelAdmin):
@@ -109,6 +114,38 @@ class IssueCategoryAdmin(admin.ModelAdmin):
     ordering = ("name",)
 
 
+class IssueDepartmentAdministrativeLevelAdmin(admin.ModelAdmin):
+    fields = (
+        "department",
+        "administrative_level",
+        "created_date",
+        "updated_date",
+    )
+    raw_id_fields = (
+        "department",
+        "administrative_level",
+    )
+    list_display = (
+        "id",
+        "department",
+        "administrative_level",
+        "created_date",
+        "updated_date",
+    )
+    list_filter = (
+        "department",
+        "administrative_level",
+        "created_date",
+    )
+    search_fields = (
+        "department__name",
+        "administrative_level__name",
+    )
+    readonly_fields = ("created_date", "updated_date")
+    ordering = ("department__name", "administrative_level__name")
+
+
 admin.site.register(IssueDepartment, IssueDepartmentAdmin)
 admin.site.register(AdministrativeRegion, AdministrativeRegionAdmin)
 admin.site.register(IssueCategory, IssueCategoryAdmin)
+admin.site.register(IssueDepartmentAdministrativeLevel, IssueDepartmentAdministrativeLevelAdmin)
