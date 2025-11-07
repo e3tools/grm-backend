@@ -7,9 +7,11 @@
 
 			<div class="card mb-4">
 				<div class="card-header border-0">
-					<h5 class="mb-0">
-						{% translate 'Add New User' %}
-					</h5>
+					<div class="card-title">
+						<div class="pt-1 fs20 lh25 text-bold-family">
+							{% translate 'Add New User' %}
+						</div>
+					</div>
 				</div>
 				<div class="card-body">
 					<!-- Tabs Navigation -->
@@ -55,8 +57,8 @@
 										<div class="col-md-4">{% bootstrap_field grm_manager_form.phone_number %}</div>
 									</div>
 									<div class="row">
-										<div class="col-md-5">{% bootstrap_field grm_manager_form.password %}</div>
-										<div class="col-md-5">{% bootstrap_field grm_manager_form.confirm_password %}</div>
+										<div class="col-md-4">{% bootstrap_field grm_manager_form.password %}</div>
+										<div class="col-md-4">{% bootstrap_field grm_manager_form.confirm_password %}</div>
 										<div class="col-auto">
 											<button type="button" class="btn text-secondary toggle-passwords mt-4"
 													data-form-id="#grm-manager-form"
@@ -92,8 +94,8 @@
 										<div class="col-md-4">{% bootstrap_field case_manager_form.phone_number %}</div>
 									</div>
 									<div class="row">
-										<div class="col-md-5">{% bootstrap_field case_manager_form.password %}</div>
-										<div class="col-md-5">{% bootstrap_field case_manager_form.confirm_password %}</div>
+										<div class="col-md-4">{% bootstrap_field case_manager_form.password %}</div>
+										<div class="col-md-4">{% bootstrap_field case_manager_form.confirm_password %}</div>
 										<div class="col-auto">
 											<button type="button" class="btn text-secondary toggle-passwords mt-4"
 													data-form-id="#case-manager-form"
@@ -105,7 +107,8 @@
 									<hr class="my-3">
 									<h6 class="text-muted">{% translate 'Role Assignment' %}</h6>
 									<div class="row">
-										<div class="col-md-8">{% bootstrap_field case_manager_form.department %}</div>
+										<div class="col-md-4">{% bootstrap_field case_manager_form.case_manager_administrative_region %}</div>
+										<div class="col-md-4">{% bootstrap_field case_manager_form.department %}</div>
 										<div class="col-md-4">
 											<div class="form-group">
 												<div class="form-check">
@@ -145,8 +148,8 @@
 										<div class="col-md-4">{% bootstrap_field facilitator_form.phone_number %}</div>
 									</div>
 									<div class="row">
-										<div class="col-md-5">{% bootstrap_field facilitator_form.password %}</div>
-										<div class="col-md-5">{% bootstrap_field facilitator_form.confirm_password %}</div>
+										<div class="col-md-4">{% bootstrap_field facilitator_form.password %}</div>
+										<div class="col-md-4">{% bootstrap_field facilitator_form.confirm_password %}</div>
 										<div class="col-auto">
 											<button type="button" class="btn text-secondary toggle-passwords mt-4"
 													data-form-id="#facilitator-form"
@@ -208,8 +211,8 @@
 
         $(document).ready(function () {
 
-            //
-            $('#id_administrative_region').select2({
+            // Load Select2
+            $('.region').select2({
                 ajax: {
                     url: "{% url 'dashboard:grm:get_region_choices_for_select2' %}",
                     dataType: 'json',

@@ -87,8 +87,6 @@ class GovernmentWorker(models.Model):
     department = models.ForeignKey("issues.IssueDepartment", on_delete=models.CASCADE, verbose_name=_("department"))
     administrative_region = models.ForeignKey(
         "issues.AdministrativeRegion",
-        blank=True,
-        null=True,
         on_delete=models.CASCADE,
         verbose_name=_("administrative region"),
     )
@@ -125,11 +123,8 @@ class GovernmentWorker(models.Model):
 
 class Facilitator(models.Model):
     user = models.OneToOneField(User, models.PROTECT)
-    department = models.ForeignKey(
-        "issues.IssueDepartment", blank=True, null=True, on_delete=models.CASCADE, related_name='departments'
-    )
     administrative_region = models.ForeignKey(
-        "issues.AdministrativeRegion", blank=True, null=True, on_delete=models.CASCADE, related_name='facilitators'
+        "issues.AdministrativeRegion", on_delete=models.CASCADE, related_name='facilitators'
     )
     unique_region = models.BooleanField(null=True)
     village_secretary = models.BooleanField(null=True)

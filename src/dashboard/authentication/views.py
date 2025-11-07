@@ -45,7 +45,11 @@ def handler500(request):
 
 class CustomLoginView(LoginView):
     """
-    Custom login view that blocks non-GRM managers when the wizard is incomplete.
+    Custom login view with access control.
+
+    Blocks:
+    - Facilitators: Not authorized to access the dashboard
+    - Non-GRM owners: When the wizard is incomplete
     """
 
     authentication_form = EmailAuthenticationForm
@@ -55,6 +59,17 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
+
+        # Block Facilitators from accessing the dashboard
+        if hasattr(user, 'facilitator'):
+            form.add_error(
+                None,
+                _(
+                    "Your user account is not authorized to access this system. "
+                    "Please use the mobile application instead."
+                ),
+            )
+            return self.form_invalid(form)
 
         # Wizard check
         wizard_setup_is_completed = WizardSection.wizard_setup_is_completed()

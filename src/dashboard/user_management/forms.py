@@ -10,6 +10,7 @@ from dashboard.user_management.constants import (
     DEPARTMENT_ASSIGNMENT_ERROR_MESSAGE,
     DEPARTMENT_REQUIRED_MESSAGE,
 )
+from grm.constants import EMAIL_ERROR_MESSAGE, USERNAME_ERROR_MESSAGE
 from issues.models import AdministrativeRegion, IssueDepartment
 
 
@@ -99,6 +100,22 @@ class BaseUserCreationForm(forms.Form):
 
         return cleaned_data
 
+    def clean_username(self):
+        """Validate username is unique."""
+        username = self.cleaned_data.get("username")
+        if User.objects.filter(username=username.lower()).exists():
+            raise ValidationError(USERNAME_ERROR_MESSAGE)
+        return username
+
+    def clean_email(
+        self,
+    ):
+        """Validate email is unique."""
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email.lower()).exists():
+            raise ValidationError(EMAIL_ERROR_MESSAGE)
+        return email
+
 
 class GRMManagerCreationForm(BaseUserCreationForm):
     """Form for creating GRM Manager users."""
@@ -131,6 +148,27 @@ class CaseManagerCreationForm(BaseUserCreationForm):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         label=_("Is Department Head"),
     )
+    case_manager_administrative_region = forms.ModelChoiceField(
+        queryset=AdministrativeRegion.objects.none(),
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control region"}),
+        label=_("Administrative Level"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        data = getattr(self, "data", None)
+        if data and data.get("case_manager_administrative_region"):
+            region_id = data.get("case_manager_administrative_region")
+            self.fields["case_manager_administrative_region"].queryset = AdministrativeRegion.objects.filter(
+                id=region_id
+            )
+
+    def clean_case_manager_administrative_region(self):
+        administrative_region = self.cleaned_data.get("case_manager_administrative_region")
+        if not administrative_region:
+            raise ValidationError(ADMINISTRATIVE_REGION_REQUIRED_MESSAGE)
+        return administrative_region
 
     def clean(self):
         cleaned_data = super().clean()
@@ -167,6 +205,7 @@ class CaseManagerCreationForm(BaseUserCreationForm):
         GovernmentWorker.objects.create(
             user=user,
             department=department,
+            administrative_region=self.cleaned_data["case_manager_administrative_region"],
         )
 
         # Assign as department head if checked
@@ -183,7 +222,7 @@ class FacilitatorCreationForm(BaseUserCreationForm):
     administrative_region = forms.ModelChoiceField(
         queryset=AdministrativeRegion.objects.none(),
         required=True,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={"class": "form-control region"}),
         label=_("Administrative Level"),
     )
     village_secretary = forms.BooleanField(
@@ -227,6 +266,14 @@ class FacilitatorCreationForm(BaseUserCreationForm):
 class UserUpdateForm(forms.ModelForm):
     """Form for updating existing users."""
 
+    # Facilitator and Case Manager field
+    administrative_region = forms.ModelChoiceField(
+        queryset=AdministrativeRegion.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label=_("Administrative Level"),
+    )
+
     # Case Manager fields
     department = forms.ModelChoiceField(
         queryset=IssueDepartment.objects.all(),
@@ -240,13 +287,7 @@ class UserUpdateForm(forms.ModelForm):
         label=_("Is Department Head"),
     )
 
-    # Facilitator fields
-    administrative_region = forms.ModelChoiceField(
-        queryset=AdministrativeRegion.objects.none(),
-        required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
-        label=_("Administrative Level"),
-    )
+    # Facilitator field
     village_secretary = forms.BooleanField(
         required=False,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -269,6 +310,7 @@ class UserUpdateForm(forms.ModelForm):
 
         if user:
             if hasattr(user, "governmentworker"):
+                self.fields["administrative_region"].initial = user.governmentworker.administrative_region
                 self.fields["department"].initial = user.governmentworker.department
                 self.fields["is_department_head"].initial = (
                     user.governmentworker.department.head == user if user.governmentworker.department else False
@@ -277,12 +319,22 @@ class UserUpdateForm(forms.ModelForm):
                 self.fields["administrative_region"].initial = user.facilitator.administrative_region
                 self.fields["village_secretary"].initial = user.facilitator.village_secretary
 
+            if hasattr(user, "governmentworker") or hasattr(user, "facilitator"):
+                data = getattr(self, "data", None)
+                if data and data.get("administrative_region"):
+                    region_id = data.get("administrative_region")
+                    self.fields["administrative_region"].queryset = AdministrativeRegion.objects.filter(id=region_id)
+
     def clean(self):
         cleaned_data = super().clean()
         user = self.instance
 
         # Validate Case Manager
         if hasattr(user, "governmentworker"):
+            administrative_region = cleaned_data.get("administrative_region")
+            if not administrative_region:
+                self.add_error("administrative_region", ADMINISTRATIVE_REGION_REQUIRED_MESSAGE)
+
             department = cleaned_data.get("department")
             if not department:
                 self.add_error("department", DEPARTMENT_REQUIRED_MESSAGE)
@@ -309,6 +361,7 @@ class UserUpdateForm(forms.ModelForm):
             # Update Case Manager
             if hasattr(user, "governmentworker"):
                 worker = user.governmentworker
+                worker.administrative_region = self.cleaned_data.get("administrative_region")
                 old_department = worker.department
                 new_department = self.cleaned_data.get("department")
 

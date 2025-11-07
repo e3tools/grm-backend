@@ -2,7 +2,7 @@
 
 {% block content %}
 	<div class="row">
-		<div class="col-md-8 offset-md-2">
+		<div class="col-md-12">
 			<div class="card">
 				<div class="card-header border-0">
 					<div class="card-title">
@@ -56,6 +56,11 @@
 						{% if user_type == 'case_manager' %}
 							<div class="row">
 								<div class="col-md-12">
+									{% bootstrap_field form.administrative_region %}
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-md-12">
 									{% bootstrap_field form.department %}
 								</div>
 							</div>
@@ -101,4 +106,58 @@
 			</div>
 		</div>
 	</div>
+{% endblock %}
+
+{% block javascript %}
+	{{ block.super }}
+
+	<script type="text/javascript">
+        $(document).ready(function () {
+            const $regionSelect = $('#id_administrative_region');
+            const initialId = "{{ form.administrative_region.initial.id|default:'' }}";
+            const url = "{% url 'dashboard:grm:get_region_choices_for_select2' %}";
+
+            function initSelect2() {
+                $regionSelect.select2({
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {q: params.term};
+                        },
+                        processResults: function (data) {
+                            return {results: data};
+                        },
+                    },
+                    width: '100%',
+                    minimumInputLength: 1,
+                    placeholder: "Search and select an administrative level",
+                    allowClear: true,
+                    cache: true
+                });
+            }
+
+            // If there is an initial value, search for it in the backend before starting Select2.
+            if (initialId) {
+                $.ajax({
+                    url: url,
+                    data: {id: initialId},
+                    dataType: 'json',
+                }).then(function (data) {
+                    if (data && data.length > 0) {
+                        const item = data[0];
+                        // Insert the option in the select
+                        const option = new Option(item.text, item.id, true, true);
+                        $regionSelect.append(option).trigger('change');
+                    }
+                    initSelect2();  // initialize after loading the option
+                });
+            } else {
+                // There is no initial value, just initialize normally.
+                initSelect2();
+            }
+        });
+
+	</script>
 {% endblock %}

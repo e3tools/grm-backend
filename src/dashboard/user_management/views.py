@@ -62,10 +62,16 @@ class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.Template
 
 
 class UserListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
-    """AJAX view for user list table filtered by user type."""
+    """AJAX view for user list table filtered by user type. Only accessible by GRM Managers."""
 
     template_name = "user_management/list.html"
     context_object_name = "users"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         user_type = self.request.GET.get("user_type")

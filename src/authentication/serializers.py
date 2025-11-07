@@ -110,11 +110,10 @@ class FacilitatorProfileSerializer(serializers.ModelSerializer):
     Serializer for Facilitator profile information.
 
     Provides complete facilitator data including nested serialization
-    of user, department, and administrative_region.
+    of user, and administrative_region.
     """
 
     user = UserBasicSerializer(read_only=True)
-    department = serializers.SerializerMethodField()
     administrative_region = serializers.SerializerMethodField()
 
     class Meta:
@@ -122,21 +121,12 @@ class FacilitatorProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
-            'department',
             'administrative_region',
             'unique_region',
             'village_secretary',
             'created_date',
             'updated_date',
         ]
-
-    def get_department(self, obj):
-        """Lazy import to avoid circular import."""
-        if not obj.department:
-            return None
-        from issues.serializers import IssueDepartmentSerializer
-
-        return IssueDepartmentSerializer(obj.department).data
 
     def get_administrative_region(self, obj):
         """Lazy import to avoid circular import."""

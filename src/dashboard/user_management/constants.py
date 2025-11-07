@@ -27,4 +27,4 @@ DEPARTMENT_REQUIRED_MESSAGE = _("Department is required for Case Managers.")
 DEPARTMENT_ASSIGNMENT_ERROR_MESSAGE = _(
     "Department '%(dept)s' already has a head: %(head)s. You must unassign the current head first."
 )
-ADMINISTRATIVE_REGION_REQUIRED_MESSAGE = _("Administrative region is required for Facilitators.")
+ADMINISTRATIVE_REGION_REQUIRED_MESSAGE = _("Administrative level is required.")

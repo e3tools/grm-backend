@@ -34,7 +34,6 @@ class FacilitatorFactory(DjangoModelFactory):
         model = Facilitator
 
     user = factory.SubFactory(UserFactory)
-    department = factory.SubFactory("issues.factories.IssueDepartmentFactory")
     administrative_region = factory.SubFactory("issues.factories.AdministrativeRegionFactory")
     unique_region = True
     village_secretary = None

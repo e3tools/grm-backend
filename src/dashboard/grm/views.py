@@ -426,7 +426,7 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         self.set_details_fields(data)
         self.set_location_fields(data)
         self.set_assignee()
-        
+
         # Remove the if not self.obj.assignee check - allow proceeding without assignee
 
         self.set_contact_fields(data)
@@ -642,7 +642,7 @@ class IssueDetailsFormView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        context["enable_add_comment"] = self.obj.is_piu_staff(user)
+        context["enable_add_comment"] = self.obj.is_piu_staff(user) or user.grm_manager
 
         context["comment_form"] = IssueCommentForm()
         context["password_confirm_form"] = PasswordConfirmForm()
@@ -650,9 +650,7 @@ class IssueDetailsFormView(
         citizen_type = self.obj.citizen.type if self.obj.citizen else None
         # Handle case where assignee might be None
         context["confidential"] = (
-            self.obj.assignee and 
-            self.obj.assignee.id != user.id and 
-            citizen_type == CONFIDENTIAL_CHOICE
+            self.obj.assignee and self.obj.assignee.id != user.id and citizen_type == CONFIDENTIAL_CHOICE
         )
 
         return context
@@ -675,8 +673,6 @@ class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMi
 class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     def post(self, request, *args, **kwargs):
         user = request.user
-        if not self.obj.is_piu_staff(user):
-            raise PermissionDenied()
 
         comment = request.POST.get("comment").strip()[:TEXTAREA_MAX_LENGTH]
         if comment:
@@ -863,11 +859,16 @@ class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMi
 
 
 class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
-
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
-        qs = AdministrativeRegion.objects.filter(name__istartswith=query).select_related('administrative_level')[:10]
+        selected_id = request.GET.get('id')
 
-        results = [{'id': item.id, 'text': str(item)} for item in qs]
+        qs = AdministrativeRegion.objects.all().select_related('administrative_level')
 
+        if selected_id:
+            qs = qs.filter(id=selected_id)
+        elif query:
+            qs = qs.filter(name__istartswith=query)
+
+        results = [{'id': item.id, 'text': str(item)} for item in qs[:10]]
         return self.render_to_json_response(results, safe=False)
