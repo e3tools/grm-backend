@@ -497,12 +497,61 @@ class Issue(models.Model):
         return None
 
     def is_piu_staff(self, user):
+        """
+        Check if user is PIU staff for this issue.
+
+        PIU staff criteria:
+        1. User is the assignee of the issue, OR
+        2. User is head of their own department AND (
+               Issue's category is assigned to that department OR
+               Issue's administrative_region is equal to or descendant of worker's region
+           )
+
+        Returns:
+            bool: True if user is PIU staff for this issue
+        """
         try:
-            head = self.category.assigned_department.department.head
+            # Must be a GovernmentWorker (Case Manager)
+            if not hasattr(user, 'governmentworker'):
+                return False
+
+            worker = user.governmentworker
+
+            # Criterion 1: User is the assignee of the issue
+            if self.assignee_id and user.id == self.assignee_id:
+                return True
+
+            # Criterion 2: User is head of their own department
+            # Check if user is head of their department
+            if not worker.department or not worker.department.head:
+                return False
+
+            if worker.department.head.id != user.id:
+                return False
+
+            # Check if issue's category is assigned to user's department
+            if self.category and self.category.assigned_department:
+                issue_department = self.category.assigned_department.department
+                if issue_department.id == worker.department.id:
+                    return True
+
+            # Check if issue's administrative_region is in worker's region hierarchy
+            if self.administrative_region and worker.administrative_region:
+                worker_region = worker.administrative_region
+                issue_region = self.administrative_region
+
+                # Check if issue region is the same as worker region
+                if issue_region.id == worker_region.id:
+                    return True
+
+                # Check if issue region is a descendant of worker region
+                allowed_regions = worker_region.get_descendant_ids()
+                if issue_region.id in allowed_regions:
+                    return True
+
+            return False
         except Exception:
-            head = None
-        # Check if assignee exists before accessing .id
-        return (self.assignee and user.id == self.assignee.id) or (head and user.id == head.id)
+            return False
 
     def has_edit_permission(self, user):
         return not hasattr(user, "governmentworker") or not self.assignee or self.assignee.id == user.id

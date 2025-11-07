@@ -1,6 +1,8 @@
 let ancestors = [];
+let governmentWorkerId = null;
 
-function changeRegionTrigger(url, placeholder) {
+function changeRegionTrigger(url, placeholder, government_worker_id = null) {
+    governmentWorkerId = government_worker_id;
     $(document).on("change", ".region", function () {
         $("#id_administrative_region_value").val($("select.region:last").val());
         loadNextLevelRegions($(this), url, placeholder);
@@ -12,12 +14,17 @@ function loadNextLevelRegions(current_level, url, placeholder) {
     if (current_level_val !== '') {
         let select_region = $(".region");
         select_region.attr('disabled', true);
+        let ajaxData = {
+            parent_id: current_level_val,
+        };
+        // Add government_worker parameter if available
+        if (governmentWorkerId !== null) {
+            ajaxData.government_worker = governmentWorkerId;
+        }
         $.ajax({
             type: 'GET',
             url: url,
-            data: {
-                parent_id: current_level_val,
-            },
+            data: ajaxData,
             success: function (data) {
                 if (data.length > 0) {
                     let id_select = 'id_' + data[0].administrative_level__name;

@@ -35,7 +35,7 @@ from dashboard.user_management.forms import (
 
 
 class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
-    """Main user management view with tabs."""
+    """Main user management view with tabs. Only accessible by GRM Managers."""
 
     template_name = "user_management/user_management.html"
     title = _("User Management")
@@ -43,6 +43,12 @@ class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.Template
     breadcrumb = [
         {"url": "", "title": title},
     ]
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -126,7 +132,13 @@ class UserListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
 
 
 class CreateUserView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
-    """AJAX view for creating users."""
+    """AJAX view for creating users. Only accessible by GRM Managers."""
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         user_type = request.POST.get("user_type")
@@ -173,6 +185,8 @@ class CreateUserView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generi
 
 
 class UserDetailView(PageMixin, LoginRequiredMixin, generic.DetailView):
+    """User profile detail view. Only accessible by GRM Managers."""
+
     template_name = "user_management/profile.html"
     title = _("User Profile")
     context_object_name = "obj"
@@ -185,6 +199,12 @@ class UserDetailView(PageMixin, LoginRequiredMixin, generic.DetailView):
         },
         {"url": "", "title": title},
     ]
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -227,11 +247,19 @@ class UserDetailView(PageMixin, LoginRequiredMixin, generic.DetailView):
 
 
 class UserUpdateView(PageMixin, LoginRequiredMixin, generic.UpdateView):
+    """User update view. Only accessible by GRM Managers."""
+
     template_name = "user_management/update.html"
     form_class = UserUpdateForm
     model = User
     title = _("Update User")
     active_level1 = "user_management"
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         self.breadcrumb = self.get_breadcrumb()
@@ -278,6 +306,14 @@ class UserUpdateView(PageMixin, LoginRequiredMixin, generic.UpdateView):
 
 
 class ToggleUserStatusView(LoginRequiredMixin, generic.View):
+    """Toggle user active status. Only accessible by GRM Managers."""
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         user = get_object_or_404(User, pk=kwargs["pk"])
         try:
@@ -316,12 +352,20 @@ class EditUserProfileFormView(
     JSONResponseMixin,
     generic.UpdateView,
 ):
+    """Edit user profile form. Only accessible by GRM Managers."""
+
     queryset = User.objects.all()
     form_class = UserProfileForm
     title = _("Profile information")
     picture = static("images/default-avatar.jpg")
     picture_class = "edit-profile-user-img"
     submit_button = _("Save")
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check if user is GRM Manager
+        if not request.user.grm_manager:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         picture = self.object.photo
