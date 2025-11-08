@@ -396,7 +396,7 @@ class IssueUpdateSerializer(serializers.ModelSerializer):
             return attrs
 
         # Check status field restriction
-        if 'status' in attrs and user.id != issue.assignee.id:
+        if 'status' in attrs and user.id != getattr(issue, "assignee_id", None):
             raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_STATUS_ERROR_MESSAGE)
 
         # Check rating field restriction

@@ -2,7 +2,7 @@ import pytest
 from django.test import override_settings
 from django.urls import reverse
 
-from authentication.factories import UserFactory
+from authentication.factories import FacilitatorFactory, UserFactory
 from grm.tests.base import DashboardTestCase
 from wizard.constants import COMPLETED_CHOICE, NOT_STARTED_CHOICE
 from wizard.models import WizardSection
@@ -59,3 +59,26 @@ class CustomLoginViewTest(DashboardTestCase):
         # User should log in successfully
         assert resp.status_code == 200
         assert resp.context["user"].is_authenticated
+
+    def test_facilitator_user_is_blocked(self):
+        # wizard complete to isolate facilitator rule
+        WizardSection.objects.update(status=COMPLETED_CHOICE)
+
+        facilitator = FacilitatorFactory(administrative_region=self.root_region)
+        user = facilitator.user
+        user.set_password("pass123")
+        user.save()
+
+        resp = self.post(
+            self.url,
+            {"username": user.email, "password": "pass123"},
+            authorized=False,
+            follow=True,
+        )
+
+        assert resp.status_code == 200
+        assert not resp.context["user"].is_authenticated
+        assert (
+            "Your user account is not authorized to access this system. Please use the mobile application instead."
+            in resp.content.decode()
+        )

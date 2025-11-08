@@ -28,6 +28,7 @@ from dashboard.grm.forms import (
     NewIssuePersonForm,
     SearchIssueForm,
 )
+from dashboard.grm.permissions import reporter_can_access_issue, user_can_access_issue
 from dashboard.mixins import (
     JSONResponseMixin,
     LoginRequiredAndAJAXRequestMixin,
@@ -54,79 +55,6 @@ from issues.models import (
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
-
-
-# ============================================================================
-# Permission Helper Functions
-# ============================================================================
-
-
-def user_can_access_issue(user, issue):
-    """
-    Check if user can access (read) an issue.
-
-    Rules:
-    - GRM Manager: Can access all issues
-    - Case Manager: Can access if PIU staff for the issue
-
-    Args:
-        user: User object
-        issue: Issue object
-
-    Returns:
-        bool: True if user can access the issue
-    """
-    if user.grm_manager:
-        return True
-
-    if hasattr(user, 'governmentworker'):
-        return issue.is_piu_staff(user)
-
-    return False
-
-
-def user_can_modify_issue(user, issue):
-    """
-    Check if user can modify (edit) an issue.
-
-    Rules:
-    - GRM Manager: Can modify all issues
-    - Case Manager: Can modify if PIU staff for the issue
-
-    Args:
-        user: User object
-        issue: Issue object
-
-    Returns:
-        bool: True if user can modify the issue
-    """
-    return user_can_access_issue(user, issue)
-
-
-def user_can_modify_unconfirmed_issue(user, issue):
-    """
-    Check if user can modify an unconfirmed issue or its attachments.
-
-    Rules:
-    - If issue is unconfirmed (confirmed=False): Only the reporter
-    - If issue is confirmed (confirmed=True): Use standard modification rules
-
-    Args:
-        user: User object
-        issue: Issue object
-
-    Returns:
-        bool: True if user can modify
-    """
-    if not issue.confirmed:
-        return issue.reporter_id == user.id
-
-    return user_can_modify_issue(user, issue)
-
-
-# ============================================================================
-# Views
-# ============================================================================
 
 
 class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
@@ -181,7 +109,6 @@ class IssueMixin:
     """
 
     obj = None
-    require_modify_permission = False  # Set to True if view modifies the issue
 
     def get_query_result(self, **kwargs):
         return Issue.objects.select_related('reporter', 'administrative_region', 'assignee')
@@ -191,15 +118,7 @@ class IssueMixin:
         if not self.obj:
             raise Http404
 
-        user = self.request.user
-
-        # Check appropriate permission level
-        if self.require_modify_permission:
-            has_permission = user_can_modify_issue(user, self.obj)
-        else:
-            has_permission = user_can_access_issue(user, self.obj)
-
-        if not has_permission:
+        if not user_can_access_issue(self.request.user, self.obj):
             raise PermissionDenied
 
     def dispatch(self, request, *args, **kwargs):
@@ -212,7 +131,6 @@ class IssueMixin:
         context["obj"] = self.obj
         context["max_attachments"] = MAX_ATTACHMENTS
         context["choice_contact"] = ALERT_CHOICE
-        context["permission_to_edit"] = user_can_modify_issue(self.request.user, self.obj)
         return context
 
 
@@ -234,14 +152,6 @@ class UploadIssueAttachmentFormView(
     form_class = FileForm
     title = _("Add attachment")
     submit_button = _("Upload")
-
-    def check_permissions(self):
-        """Override to check attachment-specific permissions."""
-        if not self.obj:
-            raise Http404
-
-        if not user_can_modify_unconfirmed_issue(self.request.user, self.obj):
-            raise PermissionDenied
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -282,14 +192,6 @@ class IssueAttachmentDeleteView(
     - If issue confirmed: GRM Manager or PIU staff can delete
     """
 
-    def check_permissions(self):
-        """Override to check attachment-specific permissions."""
-        if not self.obj:
-            raise Http404
-
-        if not user_can_modify_unconfirmed_issue(self.request.user, self.obj):
-            raise PermissionDenied
-
     def post(self, request, *args, **kwargs):
         attachment = IssueAttachment.objects.filter(id=kwargs["attachment"]).first()
         if attachment:
@@ -317,14 +219,6 @@ class IssueAttachmentListView(IssueMixin, LoginRequiredAndAJAXRequestMixin, gene
 
     template_name = "grm/issue_attachments.html"
     context_object_name = "attachments"
-
-    def check_permissions(self):
-        """Override to check attachment-specific permissions."""
-        if not self.obj:
-            raise Http404
-
-        if not user_can_modify_unconfirmed_issue(self.request.user, self.obj):
-            raise PermissionDenied
 
     def get_queryset(self):
         return IssueAttachment.objects.filter(issue=self.obj)
@@ -586,6 +480,14 @@ class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
     active_level1 = "grm"
     form_class = NewIssueConfirmationForm
 
+    def check_permissions(self):
+        """Check if user has permission to access this issue."""
+        if not self.obj:
+            raise Http404
+
+        if not reporter_can_access_issue(self.request.user, self.obj):
+            raise PermissionDenied
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.pop('obj')
@@ -660,16 +562,20 @@ class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic
         or_filters = []
 
         user = self.request.user
+        head_q = Q()
         if hasattr(user, "governmentworker"):
-            region = user.governmentworker.administrative_region
-            case_manager_is_head = user.government.department.head.id == user.id
-            allowed_regions = region.get_descendant_ids()
+            worker = user.governmentworker
+            dept = worker.department
+            is_head = getattr(dept, "head_id", None) == user.id
+
+            # Always allow if the user is the assignee
             or_filters.append({"assignee": user})
-            if case_manager_is_head:
-                or_filters += [
-                    {"category__assigned_department__department": user.governmentworker.department},
-                    {"administrative_region__in": allowed_regions},
-                ]
+
+            # If head, apply BOTH conditions (category assigned to dept AND region in hierarchy)
+            if is_head:
+                head_q = Q(category__assigned_department__department=dept) & Q(
+                    administrative_region__in=worker.administrative_region.get_descendant_ids()
+                )
         if code:
             or_filters += [
                 {"internal_code__icontains": code},
@@ -683,6 +589,9 @@ class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic
         or_query = Q()
         for f in or_filters:
             or_query |= Q(**f)
+
+        # Combine with head rule clause (AND inside, OR with other parts)
+        or_query |= head_q
 
         final_query = and_query & or_query
 
@@ -800,11 +709,9 @@ class IssueDetailsFormView(
 class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     """Edit issue (assign/reassign). Permissions: GRM Manager or PIU staff."""
 
-    require_modify_permission = True
-
     def post(self, request, *args, **kwargs):
         assignee = int(request.POST.get("assignee"))
-        worker = GovernmentWorker.objects.get(user=assignee)
+        worker = get_object_or_404(GovernmentWorker, user=assignee)
         self.obj.assignee = worker.user
         self.obj.save()
         msg = _("The issue was successfully edited.")
@@ -815,8 +722,6 @@ class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMi
 
 class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     """Add comment to an issue. Permissions: GRM Manager or PIU staff."""
-
-    require_modify_permission = True
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -863,8 +768,6 @@ class IssueStatusButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixi
 class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
     """Change issue status to open. Permissions: GRM Manager or PIU staff."""
 
-    require_modify_permission = True
-
     def check_permissions(self):
         """Override to add status validation."""
         super().check_permissions()
@@ -900,7 +803,6 @@ class SubmitIssueResearchResultFormView(
     id_form = "research_result_form"
     title = _("Please enter the resolution reached for this issue")
     submit_button = _("Save")
-    require_modify_permission = True
 
     def check_permissions(self):
         """Override to add status validation."""
@@ -935,7 +837,6 @@ class SubmitIssueRejectReasonFormView(
     id_form = "reject_reason_form"
     title = _("Enter the reason for rejecting this issue")
     submit_button = _("Save")
-    require_modify_permission = True
 
     def check_permissions(self):
         """Override to add status validation."""
@@ -987,8 +888,10 @@ class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin,
             try:
                 worker = GovernmentWorker.objects.get(id=government_worker_id)
                 if worker.administrative_region:
-                    # Get allowed region IDs (worker's region and its descendants)
-                    allowed_region_ids = worker.administrative_region.get_descendant_ids()
+                    # Get allowed region IDs (worker's region, its ancestors and descendants)
+                    ancestors = region.get_full_hierarchy_ids(include_self=False)
+                    descendants = worker.administrative_region.get_descendant_ids()
+                    allowed_region_ids = ancestors + descendants
                     # Filter children to only those in the allowed regions
                     children = children.filter(id__in=allowed_region_ids)
             except GovernmentWorker.DoesNotExist:
@@ -1003,6 +906,16 @@ class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin,
 
 
 class GetAncestorAdministrativeLevelsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+    """
+    View that returns the ancestor administrative levels for a given region.
+
+    - Requires the request to be authenticated and AJAX (via LoginRequiredAndAJAXRequestMixin).
+    - Accepts a GET parameter `region_id` identifying the region.
+    - Looks up the region and retrieves its full hierarchy of IDs using
+      `get_full_hierarchy_ids()`.
+    - Excludes the root region from the result (by slicing [1:]).
+    - Responds with a JSON array of ancestor IDs.
+    """
 
     def get(self, request, *args, **kwargs):
         region_id = request.GET.get("region_id")

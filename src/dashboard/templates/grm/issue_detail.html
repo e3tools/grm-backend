@@ -173,7 +173,7 @@
 					</div>
 				</div>
 				<div class="card-header">
-					{% if enable_add_comment and permission_to_edit %}
+					{% if enable_add_comment %}
 						<div class="row mb-3">
 							<div class="col-1">
 								<div class="circle-icon navbar-{{ colors|next_in_circular_list:user.id }}
@@ -257,10 +257,6 @@
         let status_change_modal = $('#statusChangeModalForm');
         let assignee = $('#id_assignee');
 
-        {% if not permission_to_edit %}
-            assignee.prop("disabled", true);
-        {% endif %}
-
         assignee.on('change', function () {
             $.ajax({
                 type: "POST",
@@ -312,10 +308,6 @@
                 let accept_issue = $("#accept_issue");
                 let record_resolution = $("#record_resolution");
                 let reject_issue = $("#reject_issue");
-
-                {% if not permission_to_edit %}
-                    $('.btn-status').prop("disabled", true);
-                {% endif %}
 
                 accept_issue.on('click', function () {
                     $.ajax({

@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -12,9 +11,10 @@ from authentication.models import User
 from authentication.utils import get_validation_code
 from dashboard.mixins import (
     JSONResponseMixin,
-    LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
     PageMixin,
+    UserManagementAndAJAXMixin,
+    UserManagementPermissionMixin,
 )
 from dashboard.user_management.constants import (
     CASE_MANAGER_CHOICE,
@@ -34,7 +34,7 @@ from dashboard.user_management.forms import (
 )
 
 
-class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
+class UserManagementTemplateView(PageMixin, UserManagementPermissionMixin, generic.TemplateView):
     """Main user management view with tabs. Only accessible by GRM Managers."""
 
     template_name = "user_management/user_management.html"
@@ -43,12 +43,6 @@ class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.Template
     breadcrumb = [
         {"url": "", "title": title},
     ]
-
-    def dispatch(self, request, *args, **kwargs):
-        # Check if user is GRM Manager
-        if not request.user.grm_manager:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -67,17 +61,11 @@ class UserManagementTemplateView(PageMixin, LoginRequiredMixin, generic.Template
         return context
 
 
-class UserListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
+class UserListView(UserManagementAndAJAXMixin, generic.ListView):
     """AJAX view for user list table filtered by user type. Only accessible by GRM Managers."""
 
     template_name = "user_management/list.html"
     context_object_name = "users"
-
-    def dispatch(self, request, *args, **kwargs):
-        # Check if user is GRM Manager
-        if not request.user.grm_manager:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         user_type = self.request.GET.get("user_type")
@@ -131,14 +119,8 @@ class UserListView(LoginRequiredAndAJAXRequestMixin, generic.ListView):
         return context
 
 
-class CreateUserView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class CreateUserView(UserManagementAndAJAXMixin, JSONResponseMixin, generic.View):
     """AJAX view for creating users. Only accessible by GRM Managers."""
-
-    def dispatch(self, request, *args, **kwargs):
-        # Check if user is GRM Manager
-        if not request.user.grm_manager:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         user_type = request.POST.get("user_type")
@@ -184,7 +166,7 @@ class CreateUserView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generi
             )
 
 
-class UserDetailView(PageMixin, LoginRequiredMixin, generic.DetailView):
+class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailView):
     """User profile detail view. Only accessible by GRM Managers."""
 
     template_name = "user_management/profile.html"
@@ -246,7 +228,7 @@ class UserDetailView(PageMixin, LoginRequiredMixin, generic.DetailView):
         return context
 
 
-class UserUpdateView(PageMixin, LoginRequiredMixin, generic.UpdateView):
+class UserUpdateView(PageMixin, UserManagementPermissionMixin, generic.UpdateView):
     """User update view. Only accessible by GRM Managers."""
 
     template_name = "user_management/update.html"
@@ -305,7 +287,7 @@ class UserUpdateView(PageMixin, LoginRequiredMixin, generic.UpdateView):
         return response
 
 
-class ToggleUserStatusView(LoginRequiredMixin, generic.View):
+class ToggleUserStatusView(UserManagementPermissionMixin, generic.View):
     """Toggle user active status. Only accessible by GRM Managers."""
 
     def dispatch(self, request, *args, **kwargs):
@@ -347,7 +329,7 @@ class ToggleUserStatusView(LoginRequiredMixin, generic.View):
 
 
 class EditUserProfileFormView(
-    LoginRequiredAndAJAXRequestMixin,
+    UserManagementAndAJAXMixin,
     ModalFormMixin,
     JSONResponseMixin,
     generic.UpdateView,

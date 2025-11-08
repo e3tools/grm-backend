@@ -45,13 +45,15 @@
 						<p>{% translate "Search Issues" %}</p>
 					</a>
 				</li>
-				<li class="nav-item">
-					<a href="{% url 'dashboard:user_management:home' %}"
-					   class="nav-link {% if active_level1 == 'user_management' %}active{% endif %}">
-						<i class="nav-icon fa fa-user-friends"></i>
-						<p>{% translate "User Management" %}</p>
-					</a>
-				</li>
+				{% if user.grm_manager %}
+					<li class="nav-item">
+						<a href="{% url 'dashboard:user_management:home' %}"
+						   class="nav-link {% if active_level1 == 'user_management' %}active{% endif %}">
+							<i class="nav-icon fa fa-user-friends"></i>
+							<p>{% translate "User Management" %}</p>
+						</a>
+					</li>
+				{% endif %}
 
 				{% comment %}
 					<li class="nav-item">

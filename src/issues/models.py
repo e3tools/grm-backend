@@ -142,7 +142,7 @@ class AdministrativeRegion(models.Model):
     def get_base_region_id(self):
         base_region_id = self.id
         parent = self.parent
-        while parent.parent:
+        while parent and parent.parent:
             base_region_id = parent.id
             parent = parent.parent
         return base_region_id
@@ -498,58 +498,50 @@ class Issue(models.Model):
 
     def is_piu_staff(self, user):
         """
-        Check if user is PIU staff for this issue.
+        Determine if a Case Manager (GovernmentWorker) is PIU staff for this issue.
 
-        PIU staff criteria:
-        1. User is the assignee of the issue, OR
-        2. User is head of their own department AND (
-               Issue's category is assigned to that department OR
-               Issue's administrative_region is equal to or descendant of worker's region
-           )
-
-        Returns:
-            bool: True if user is PIU staff for this issue
+        New PIU staff criteria:
+        1) User is the assignee of the issue; OR
+        2) User is HEAD of their own department AND
+           - Issue's category is assigned to that department AND
+           - Issue's administrative_region is equal to OR a descendant of the worker's region.
         """
         try:
             # Must be a GovernmentWorker (Case Manager)
-            if not hasattr(user, 'governmentworker'):
+            if not hasattr(user, "governmentworker"):
                 return False
 
             worker = user.governmentworker
 
-            # Criterion 1: User is the assignee of the issue
+            # 1) Direct assignee
             if self.assignee_id and user.id == self.assignee_id:
                 return True
 
-            # Criterion 2: User is head of their own department
-            # Check if user is head of their department
-            if not worker.department or not worker.department.head:
+            # 2) Head of department AND (category assigned to dept) AND (region within hierarchy)
+            dept = getattr(worker, "department", None)
+            if not dept or not getattr(dept, "head", None):
+                return False
+            if dept.head_id != user.id:
                 return False
 
-            if worker.department.head.id != user.id:
+            # Category must be assigned to user's department
+            if not self.category or not getattr(self.category, "assigned_department", None):
+                return False
+            issue_dept = self.category.assigned_department.department if self.category.assigned_department else None
+            if not issue_dept or issue_dept.id != dept.id:
                 return False
 
-            # Check if issue's category is assigned to user's department
-            if self.category and self.category.assigned_department:
-                issue_department = self.category.assigned_department.department
-                if issue_department.id == worker.department.id:
-                    return True
+            # Administrative region must be same or descendant of worker's region
+            if not self.administrative_region or not getattr(worker, "administrative_region", None):
+                return False
+            worker_region = worker.administrative_region
+            issue_region = self.administrative_region
 
-            # Check if issue's administrative_region is in worker's region hierarchy
-            if self.administrative_region and worker.administrative_region:
-                worker_region = worker.administrative_region
-                issue_region = self.administrative_region
+            if issue_region.id == worker_region.id:
+                return True
 
-                # Check if issue region is the same as worker region
-                if issue_region.id == worker_region.id:
-                    return True
-
-                # Check if issue region is a descendant of worker region
-                allowed_regions = worker_region.get_descendant_ids()
-                if issue_region.id in allowed_regions:
-                    return True
-
-            return False
+            allowed_regions = worker_region.get_descendant_ids()
+            return issue_region.id in allowed_regions
         except Exception:
             return False
 

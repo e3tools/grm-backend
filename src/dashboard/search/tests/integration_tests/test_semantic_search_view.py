@@ -14,6 +14,7 @@ from issues.factories import (
     IssueStatusFactory,
     IssueTypeFactory,
 )
+from issues.models import IssueStatus
 
 
 class SemanticSearchViewTest(DashboardTestCase):
@@ -24,7 +25,8 @@ class SemanticSearchViewTest(DashboardTestCase):
         reset_sequences()
         self.url = reverse("dashboard:search:semantic_search")
 
-        self.status = IssueStatusFactory()
+        IssueStatus.objects.all().delete()
+        self.status = IssueStatusFactory(id=1)
         self.type1 = IssueTypeFactory(name="Water")
         self.type2 = IssueTypeFactory(name="Electricity")
 

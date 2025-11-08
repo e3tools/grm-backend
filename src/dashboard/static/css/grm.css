@@ -33031,3 +33031,7 @@ a.text-muted:hover {
     transform: translateX(-50%);
     z-index: 1060;
 }
+
+.bg-white-transparent {
+    background-color: #ffffffb8;
+}
