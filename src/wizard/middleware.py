@@ -37,7 +37,7 @@ class WizardRedirectMiddleware:
                 raise Http404()
         else:
             # Wizard incomplete
-            if request.user.is_authenticated and request.user.grm_manager:
+            if request.user.is_authenticated and request.user.grm_owner:
                 if request.path != self.logout_url and "wizard" not in resolver.namespaces:
                     return redirect(self.customization_url)
             else:

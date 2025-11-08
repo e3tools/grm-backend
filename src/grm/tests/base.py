@@ -89,7 +89,6 @@ class DashboardTestCase(ViewTestCase):
     def setUp(self):
         WizardSection.objects.update(status=COMPLETED_CHOICE)
         self.root_region = AdministrativeRegionFactory()
-        AdministrativeRegionFactory(parent=self.root_region)
         super().setUp()
 
     @staticmethod
@@ -97,8 +96,8 @@ class DashboardTestCase(ViewTestCase):
         from django.template import Context
 
         """
-        Extrae y aplana el contexto de un HttpResponse renderizado.
-        Compatible con Django 4.2 (sin ContextList).
+        Extracts and flattens the context of a rendered HttpResponse.
+        Compatible with Django 4.2 (without ContextList)
         """
         ctx = {}
 
@@ -106,7 +105,7 @@ class DashboardTestCase(ViewTestCase):
             return ctx
 
         def flatten(obj):
-            """Recorre listas anidadas y Contexts para aplanar el contexto."""
+            """Traverse nested lists and Contexts to flatten the context"""
             if isinstance(obj, dict):
                 yield obj
             elif isinstance(obj, (list, tuple)):
@@ -127,7 +126,7 @@ class DashboardTestCase(ViewTestCase):
             if isinstance(mapping, dict):
                 ctx.update(mapping)
 
-        # Algunos templates usan context_data (Class-Based Views)
+        # Some templates use context_data (Class-Based Views)
         if hasattr(response, "context_data") and response.context_data:
             ctx.update(response.context_data)
 

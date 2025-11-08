@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 
 from authentication.constants import FACILITATOR_NOT_FOUND_ERROR_MESSAGE
 from authentication.factories import FacilitatorFactory, UserFactory
-from issues.factories import AdministrativeRegionFactory, IssueDepartmentFactory
+from issues.factories import AdministrativeRegionFactory
 
 
 @pytest.mark.django_db
@@ -36,16 +36,12 @@ class FacilitatorProfileAPIViewTest(APITestCase):
         self.facilitator_token = Token.objects.create(user=self.facilitator_user)
         self.non_facilitator_token = Token.objects.create(user=self.non_facilitator_user)
 
-        # Create department
-        self.department = IssueDepartmentFactory(name="Public Works")
-
         # Create administrative region
         self.admin_region = AdministrativeRegionFactory(parent=AdministrativeRegionFactory())
 
         # Create facilitator with complete data
         self.facilitator = FacilitatorFactory(
             user=self.facilitator_user,
-            department=self.department,
             administrative_region=self.admin_region,
             unique_region=True,
             village_secretary=False,
@@ -92,7 +88,6 @@ class FacilitatorProfileAPIViewTest(APITestCase):
         expected_fields = [
             'id',
             'user',
-            'department',
             'administrative_region',
             'unique_region',
             'village_secretary',
@@ -115,15 +110,6 @@ class FacilitatorProfileAPIViewTest(APITestCase):
         assert 'name' in user
         assert isinstance(user['id'], int)
         assert isinstance(user['name'], str)
-
-        # Check department structure
-        if response_data['department'] is not None:
-            department = response_data['department']
-            assert isinstance(department, dict)
-            assert 'id' in department
-            assert 'name' in department
-            assert 'created_date' in department
-            assert 'updated_date' in department
 
         # Check administrative_region structure
         if response_data['administrative_region'] is not None:
@@ -155,14 +141,6 @@ class FacilitatorProfileAPIViewTest(APITestCase):
         assert user['id'] == self.facilitator_user.id
         assert user['name'] == self.facilitator_user.name
 
-        # Verify department data
-        department = response_data['department']
-        assert department is not None
-        assert department['id'] == self.department.id
-        assert department['name'] == "Public Works"
-        assert 'created_date' in department
-        assert 'updated_date' in department
-
         # Verify administrative_region data
         admin_region = response_data['administrative_region']
         administrative_region = self.facilitator.administrative_region
@@ -173,69 +151,6 @@ class FacilitatorProfileAPIViewTest(APITestCase):
         assert admin_region['parent'] == administrative_region.parent.id
         assert 'created_date' in admin_region
         assert 'updated_date' in admin_region
-
-    def test_facilitator_without_department(self):
-        """Test facilitator without department returns null for department field."""
-        # Create facilitator without department
-        user_without_dept = UserFactory()
-        token_without_dept = Token.objects.create(user=user_without_dept)
-        FacilitatorFactory(
-            user=user_without_dept,
-            department=None,
-            administrative_region=self.admin_region,
-            unique_region=True,
-        )
-
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token_without_dept.key}')
-        response = self.client.get(self.url)
-        response_data = response.data
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response_data['department'] is None
-        assert response_data['administrative_region'] is not None
-
-    def test_facilitator_without_administrative_region(self):
-        """Test facilitator without administrative region returns null."""
-        # Create facilitator without administrative region
-        user_without_region = UserFactory()
-        token_without_region = Token.objects.create(user=user_without_region)
-        FacilitatorFactory(
-            user=user_without_region,
-            department=self.department,
-            administrative_region=None,
-            unique_region=False,
-        )
-
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token_without_region.key}')
-        response = self.client.get(self.url)
-        response_data = response.data
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response_data['unique_region'] is False
-        assert response_data['administrative_region'] is None
-        assert response_data['department'] is not None
-
-    def test_facilitator_minimal_data(self):
-        """Test facilitator with minimal data (no department, no region)."""
-        user_minimal = UserFactory()
-        token_minimal = Token.objects.create(user=user_minimal)
-        FacilitatorFactory(
-            user=user_minimal,
-            department=None,
-            administrative_region=None,
-            unique_region=None,
-            village_secretary=None,
-        )
-
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token_minimal.key}')
-        response = self.client.get(self.url)
-        response_data = response.data
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response_data['department'] is None
-        assert response_data['administrative_region'] is None
-        assert response_data['unique_region'] is None
-        assert response_data['village_secretary'] is None
 
     def test_non_facilitator_user_returns_404(self):
         """Test that non-facilitator user receives 404 error."""
@@ -339,27 +254,6 @@ class FacilitatorProfileAPIViewTest(APITestCase):
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['village_secretary'] is False
-
-    def test_department_serialization_fields(self):
-        """Test that department contains all required serialized fields."""
-        self.authenticate_with_facilitator_token()
-
-        response = self.client.get(self.url)
-        department = response.data['department']
-
-        assert response.status_code == status.HTTP_200_OK
-        assert department is not None
-
-        # Check all fields from IssueDepartmentSerializer
-        required_fields = ['id', 'name', 'created_date', 'updated_date']
-        for field in required_fields:
-            assert field in department, f"Field '{field}' missing in department"
-
-        # Verify field types
-        assert isinstance(department['id'], int)
-        assert isinstance(department['name'], str)
-        assert isinstance(department['created_date'], str)
-        assert isinstance(department['updated_date'], str)
 
     def test_administrative_region_serialization_fields(self):
         """Test that administrative_region contains all required serialized fields."""

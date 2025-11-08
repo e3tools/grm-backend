@@ -1,0 +1,239 @@
+{% extends 'layouts/base.html' %}{% load bootstrap4 custom_tags static i18n %}
+
+{% block content %}
+	<div class="row">
+		<div class="col-md-7">
+			<div class="card">
+				<div class="card-body">
+					<div class="row">
+						<div class="col-4">
+							<div class="text-center">
+								{% if obj.photo %}
+									<img id="photo" src="{{ obj.photo.url }}" class="profile-user-img"
+										 alt="User profile picture">
+								{% else %}
+									<img id="photo" src="{% static 'images/default-avatar.jpg' %}"
+										 class="profile-user-img" alt="User profile picture">
+								{% endif %}
+							</div>
+						</div>
+						<div class="col-8">
+							<div class="profile-header">
+								<span id="name">{{ obj.name }}</span>
+								<div class="float-right">
+									<button id="edit_profile" class="btn p-0 text-primary"
+											title="{% translate 'Edit Profile' %}">
+										<i class="fas fa-edit fs17"></i>
+									</button>
+								</div>
+							</div>
+
+							<!-- User Type Badge -->
+							<div class="row my-2">
+								<div class="col-12">
+									<span class="badge badge-secondary badge-lg">{{ role_info.type_display }}</span>
+									<p class="text-muted small mt-1">{{ role_info.description }}</p>
+								</div>
+							</div>
+
+							<!-- Role-specific Information -->
+							{% if user_type == 'case_manager' %}
+								<div class="row mb-2">
+									<div class="col-12">
+										<div class="label d-inline-block">{% translate 'Department' %}:</div>
+										<div class="text-regular-family d-inline-block">
+											{{ role_info.department }}
+											{% if role_info.is_department_head %}
+												<span class="badge badge-warning ml-2">{% translate 'Department Head' %}</span>
+											{% endif %}
+										</div>
+									</div>
+								</div>
+							{% elif user_type == 'facilitator' %}
+								<div class="row mb-2">
+									<div class="col-12">
+										<div class="label d-inline-block">{% translate 'Administrative Region' %}:</div>
+										<div class="text-regular-family d-inline-block">
+											{{ role_info.administrative_region }}
+											{% if role_info.village_secretary %}
+												<span class="badge badge-info ml-2">{% translate 'Village Secretary' %}</span>
+											{% endif %}
+										</div>
+									</div>
+								</div>
+							{% elif user_type == 'grm_manager' %}
+								<div class="row mb-2">
+									<div class="col-12">
+										<div class="alert alert-info mb-0 py-2">
+											<small>
+												<i class="fas fa-info-circle"></i>
+												{% translate 'This user has full administrative access.' %}
+											</small>
+										</div>
+									</div>
+								</div>
+							{% endif %}
+
+							<!-- Contact Information -->
+							<div class="row mb-2">
+								<div class="col-12">
+									<div class="label d-inline-block">{% translate 'Phone' %}:</div>
+									<div class="text-regular-family d-inline-block" id="phone_number">
+										{% translate 'No phone number' as no_phone %}
+										{{ obj.phone_number|default:no_phone }}
+									</div>
+								</div>
+							</div>
+							<div class="row mb-2">
+								<div class="col-12">
+									<div class="label d-inline-block">{% translate 'Email' %}:</div>
+									<div class="text-regular-family d-inline-block" id="email">
+										{% translate 'No email' as no_email %}
+										{{ obj.email|default:no_email }}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-footer">
+						<a href="{% url 'dashboard:user_management:update' obj.id %}" 
+						   class="btn btn-xs btn-outline-primary rounded-xl float-right">
+							{% translate 'Edit User' %}
+						</a>
+						<!-- Account Actions -->
+						{% if obj.is_active %}
+							<button class="btn btn-xs btn-danger rounded-xl float-right mr-4" data-toggle="modal"
+									data-target="#confirmToggleStatusModal">
+								<i class="fas fa-ban"></i> {% translate 'Deactivate Account' %}
+							</button>
+						{% else %}
+							<form action="{% url 'dashboard:user_management:toggle_status' obj.id %}" method="post"
+								  style="display: inline;">
+								{% csrf_token %}
+								<button class="btn btn-xs btn-success rounded-xl float-right mr-4">
+									<i class="fas fa-check"></i> {% translate 'Activate Account' %}
+								</button>
+							</form>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-5 display-flex flex-flow-column">
+			<div class="card">
+				<div class="card-body">
+					<span class="text-bold-family fs17">{% translate 'Last Activity' %}:</span>
+					<span class="text-muted fs17">
+						{% translate 'Never' as never %}
+						{{ obj.last_login|date|default:never }}
+					</span>
+				</div>
+			</div>
+
+			{% if user_type == 'facilitator' %}
+				<div class="card h-100">
+					<div class="card-body">
+						<div class="text-bold-family fs17">{% translate 'Facilitator Code' %}</div>
+						<div class="adl-code mt-3" id="user_code">{% get_code obj.email %}</div>
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+{% endblock content %}
+
+{% block modals %}
+	<div class="modal fade modal-confirmation" id="confirmToggleStatusModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<form class="form-horizontal" action="{% url 'dashboard:user_management:toggle_status' obj.id %}"
+					  method="POST">
+					{% csrf_token %}
+					<div class="modal-header border-0">
+						<h5 class="modal-title mx-auto">
+							<img src="{% static 'images/password-required.png' %}" height="254">
+						</h5>
+						<button type="button" class="border-0 bg-transparent" data-dismiss="modal" aria-label="Close">
+							<div class="circle-icon bg-primary">
+								<div class="center-27">
+									<i class="fas fa-times"></i>
+								</div>
+							</div>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="text-primary text-center fs17 lh19 text-bold mb-4" style="padding: 0 45px 0 45px;">
+							{% translate "Please enter your password to deactivate this account!" %}
+						</div>
+						{% bootstrap_form password_confirm_form %}
+					</div>
+					<div class="modal-footer border-0">
+						<button id="deactivate-btn" type="submit" class="btn btn-lg btn-primary text-right" disabled>
+							{% translate "Deactivate Account" %}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div id="editProfileFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+{% endblock modals %}
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+	<script type="text/javascript">
+        $('#id_password').on('keyup', function () {
+            let submit = $('#deactivate-btn');
+            let password_length = $(this).val().trim().length;
+            if (password_length > 7) {
+                submit.prop('disabled', false);
+            } else {
+                submit.prop('disabled', true);
+            }
+        });
+
+        class ProfileFormAjaxSubmit extends FormAjaxSubmit {
+            submitted_form(xhr) {
+                $('#photo').attr('src', xhr.photo);
+                $('#user_code').html(xhr.user_code);
+                $('#name').html(`${$("#id_first_name").val()} ${$("#id_last_name").val()}`);
+                $('#phone_number').html($("#id_phone_number").val());
+                $('#email').html($("#id_email").val().toLowerCase());
+            };
+
+            loaded_form() {
+                let modal_form_picture = $("#modal_form_picture");
+                let id_photo = $("#id_photo");
+                let edit_picture_button = '<br><a class="btn fs12 text-bold-family text-primary mt-2" ' +
+                    'id="edit_picture"> {% translate "Edit Profile Picture" %} </a>';
+                modal_form_picture.after(edit_picture_button);
+                id_photo.parent().wrapInner('<div class="text-center"></div>');
+                $("#edit_picture").click(function () {
+                    id_photo.click();
+                });
+
+                id_photo.change(function () {
+                    if (this.files && this.files[0]) {
+                        let reader = new FileReader();
+                        reader.onload = function (e) {
+                            modal_form_picture.attr('src', e.target.result);
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+        }
+
+        let profile_form_ajax = new ProfileFormAjaxSubmit();
+        let modal = $('#editProfileFormModal');
+
+        $('#edit_profile').click(function () {
+            let url = "{% url 'dashboard:user_management:edit_profile' obj.id %}";
+            profile_form_ajax.load_form('#form', modal, url, false, true);
+        });
+	</script>
+{% endblock javascript %}

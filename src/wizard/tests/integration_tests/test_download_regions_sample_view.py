@@ -15,7 +15,7 @@ class DownloadRegionsSampleViewTest(ViewTestCase):
 
     def setUp(self):
         self.url = reverse("wizard:download_regions_sample")
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
 
         # Create administrative levels
         self.level1 = AdministrativeLevelFactory(name="Country")
@@ -37,7 +37,7 @@ class DownloadRegionsSampleViewTest(ViewTestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         """Test that logged-in non grm manager users cannot access the view."""
 
         self.user = UserFactory()

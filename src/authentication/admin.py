@@ -37,7 +37,7 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "first_name", "last_name", "photo", 'grm_manager'),
+                "fields": ("email", "first_name", "last_name", "photo", 'grm_owner'),
             },
         ),
     )
@@ -96,20 +96,17 @@ class GovernmentWorkerAdmin(admin.ModelAdmin):
 class FacilitatorAdmin(admin.ModelAdmin):
     fields = (
         "user",
-        "department",
         "administrative_region",
         "unique_region",
         "village_secretary",
     )
     raw_id_fields = (
         "user",
-        "department",
         "administrative_region",
     )
     list_display = (
         "id",
         "user",
-        "department",
         "administrative_region",
         "unique_region",
         "village_secretary",
@@ -121,12 +118,11 @@ class FacilitatorAdmin(admin.ModelAdmin):
     search_fields = (
         "id",
         "user__email",
-        "department__name",
         "administrative_region__name",
     )
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("user", "department", "administrative_region")
+        return super().get_queryset(request).select_related("user", "administrative_region")
 
 
 class LogEntryAdmin(admin.ModelAdmin):

@@ -2,7 +2,7 @@ import factory
 from django.utils import timezone
 from factory.django import DjangoModelFactory
 
-from authentication.models import Citizen, Facilitator, User
+from authentication.models import Citizen, Facilitator, GovernmentWorker, User
 
 
 class UserFactory(DjangoModelFactory):
@@ -13,10 +13,11 @@ class UserFactory(DjangoModelFactory):
 
     username = factory.Sequence(lambda n: f"user{n}")
     email = factory.LazyAttribute(lambda obj: f"{obj.username}@example.com")
+    phone_number = factory.Faker('phone_number')
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     is_active = True
-    grm_manager = False
+    grm_owner = False
 
     @factory.post_generation
     def password(self, create, extracted, **kwargs):
@@ -34,10 +35,20 @@ class FacilitatorFactory(DjangoModelFactory):
         model = Facilitator
 
     user = factory.SubFactory(UserFactory)
-    department = factory.SubFactory("issues.factories.IssueDepartmentFactory")
     administrative_region = factory.SubFactory("issues.factories.AdministrativeRegionFactory")
     unique_region = True
     village_secretary = None
+
+
+class GovernmentWorkerFactory(DjangoModelFactory):
+    """Factory for creating GovernmentWorker instances."""
+
+    class Meta:
+        model = GovernmentWorker
+
+    user = factory.SubFactory(UserFactory)
+    department = factory.SubFactory("issues.factories.IssueDepartmentFactory")
+    administrative_region = factory.SubFactory("issues.factories.AdministrativeRegionFactory")
 
 
 class CitizenFactory(factory.django.DjangoModelFactory):

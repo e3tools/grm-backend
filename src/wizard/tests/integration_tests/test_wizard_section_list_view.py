@@ -21,7 +21,7 @@ class WizardSectionListViewTest(ViewTestCase):
     def setUp(self):
         """Set up test data and URL for each test."""
         self.url = reverse("wizard:wizard_section_list")
-        self.user = UserFactory(grm_manager=True)
+        self.user = UserFactory(grm_owner=True)
 
         # remove all WizardSections created by the migration
         WizardSection.objects.all().delete()
@@ -38,7 +38,7 @@ class WizardSectionListViewTest(ViewTestCase):
         response = self.get(self.url, authorized=False, ajax=True)
         self.assertEqual(response.status_code, 404)
 
-    def test_logged_in_non_grm_manager_user_cannot_access(self):
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
         """Test that logged-in non grm manager users cannot access the view."""
 
         self.user = UserFactory()

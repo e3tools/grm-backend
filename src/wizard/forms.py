@@ -376,24 +376,24 @@ class UploadAdministrativeRegionForm(FileForm):
         ),
     )
 
-    def clean_file(self):
-        value = super().clean_file()
-        if not value:
-            return value
+    def clean(self):
+        cleaned_data = super().clean()
+        file_field = self.file_field_name
+        value = cleaned_data.get(file_field)
+        if value:
+            # Check extension
+            if not value.name.lower().endswith((".xls", ".xlsx")):
+                raise forms.ValidationError(ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE)
 
-        # Check extension
-        if not value.name.lower().endswith((".xls", ".xlsx")):
-            raise forms.ValidationError(ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE)
+            # Check that it is really an Excel
+            from openpyxl import load_workbook
 
-        # Check that it is really an Excel
-        from openpyxl import load_workbook
+            try:
+                load_workbook(value)
+            except (InvalidFileException, BadZipFile):
+                raise forms.ValidationError(INVALID_EXCEL_FILE_ERROR_MESSAGE)
 
-        try:
-            load_workbook(value)
-        except (InvalidFileException, BadZipFile):
-            raise forms.ValidationError(INVALID_EXCEL_FILE_ERROR_MESSAGE)
-
-        return value
+        return cleaned_data
 
 
 class IssueStatusForm(forms.ModelForm):

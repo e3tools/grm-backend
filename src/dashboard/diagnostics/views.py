@@ -11,7 +11,7 @@ from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from dashboard.grm.forms import NewSearchIssueForm
+from dashboard.grm.forms import SearchIssueForm
 from dashboard.mixins import (
     JSONResponseMixin,
     LoginRequiredAndAJAXRequestMixin,
@@ -30,7 +30,7 @@ COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
 class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
-    form_class = NewSearchIssueForm
+    form_class = SearchIssueForm
     template_name = "diagnostics/home.html"
     title = _("Diagnostics")
     active_level1 = "diagnostics"

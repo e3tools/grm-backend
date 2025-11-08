@@ -45,43 +45,38 @@
 						<p>{% translate "Search Issues" %}</p>
 					</a>
 				</li>
-			</ul>
-		</nav>
-
-		{% comment %}
-			<li class="nav-item">
-				<a href="{% url 'dashboard:adls:list' %}"
-				   class="nav-link {% if active_level1 == 'adls' %}active{% endif %}">
-					<i class="nav-icon fa fa-user-friends"></i>
-					<p>{% translate "Administrative Levels" %}</p>
-				</a>
-			</li>
-			<li class="nav-item">
-				<a href="{% url 'dashboard:participatory_budget:dashboard' %}"
-				   class="nav-link {% if active_level1 == 'participatory_budget' %}active{% endif %}">
-					<i class="nav-icon far fa-money-bill-alt"></i>
-					<p>{% translate "Participatory Budget" %}</p>
-				</a>
-			</li>
-			<li class="nav-item">
-				<a href="{% url 'dashboard:subprojects:dashboard' %}"
-				   class="nav-link {% if active_level1 == 'subprojects' %}active{% endif %}">
-					<i class="nav-icon fas fa-folder"></i>
-					<p>{% translate "Subprojects" %}</p>
-				</a>
-			</li>
-			<nav class="logs border-top">
-				<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+				{% if user.grm_manager %}
 					<li class="nav-item">
-						<a href="{% url 'dashboard:logs:dashboard' %}"
-						   class="nav-link {% if active_level1 == 'logs' %}active{% endif %}">
-							<i class="nav-icon icon icon-color ic-logs-color"></i>
-							<p>{% translate "Logs" %}</p>
+						<a href="{% url 'dashboard:user_management:home' %}"
+						   class="nav-link {% if active_level1 == 'user_management' %}active{% endif %}">
+							<i class="nav-icon fa fa-user-friends"></i>
+							<p>{% translate "User Management" %}</p>
 						</a>
 					</li>
-				</ul>
-			</nav>
-		{% endcomment %}
+				{% endif %}
+
+				{% comment %}
+					<li class="nav-item">
+						<a href="{% url 'dashboard:subprojects:dashboard' %}"
+						   class="nav-link {% if active_level1 == 'subprojects' %}active{% endif %}">
+							<i class="nav-icon fas fa-folder"></i>
+							<p>{% translate "Subprojects" %}</p>
+						</a>
+					</li>
+					<nav class="logs border-top">
+						<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+							<li class="nav-item">
+								<a href="{% url 'dashboard:logs:dashboard' %}"
+								   class="nav-link {% if active_level1 == 'logs' %}active{% endif %}">
+									<i class="nav-icon icon icon-color ic-logs-color"></i>
+									<p>{% translate "Logs" %}</p>
+								</a>
+							</li>
+						</ul>
+					</nav>
+				{% endcomment %}
+			</ul>
+		</nav>
 
 		<nav class="toogle-sidebar-button">
 			<ul class="nav nav-pills nav-sidebar flex-column">

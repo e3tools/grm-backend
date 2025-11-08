@@ -142,7 +142,7 @@ class AdministrativeRegion(models.Model):
     def get_base_region_id(self):
         base_region_id = self.id
         parent = self.parent
-        while parent.parent:
+        while parent and parent.parent:
             base_region_id = parent.id
             parent = parent.parent
         return base_region_id
@@ -192,6 +192,7 @@ class SubComponent(models.Model):
     class Meta:
         verbose_name = _("Subcomponent")
         verbose_name_plural = _("Subcomponents")
+        unique_together = ['name', 'parent']
 
     def __str__(self):
         return self.name
@@ -496,12 +497,53 @@ class Issue(models.Model):
         return None
 
     def is_piu_staff(self, user):
+        """
+        Determine if a Case Manager (GovernmentWorker) is PIU staff for this issue.
+
+        New PIU staff criteria:
+        1) User is the assignee of the issue; OR
+        2) User is HEAD of their own department AND
+           - Issue's category is assigned to that department AND
+           - Issue's administrative_region is equal to OR a descendant of the worker's region.
+        """
         try:
-            head = self.category.assigned_department.department.head
+            # Must be a GovernmentWorker (Case Manager)
+            if not hasattr(user, "governmentworker"):
+                return False
+
+            worker = user.governmentworker
+
+            # 1) Direct assignee
+            if self.assignee_id and user.id == self.assignee_id:
+                return True
+
+            # 2) Head of department AND (category assigned to dept) AND (region within hierarchy)
+            dept = getattr(worker, "department", None)
+            if not dept or not getattr(dept, "head", None):
+                return False
+            if dept.head_id != user.id:
+                return False
+
+            # Category must be assigned to user's department
+            if not self.category or not getattr(self.category, "assigned_department", None):
+                return False
+            issue_dept = self.category.assigned_department.department if self.category.assigned_department else None
+            if not issue_dept or issue_dept.id != dept.id:
+                return False
+
+            # Administrative region must be same or descendant of worker's region
+            if not self.administrative_region or not getattr(worker, "administrative_region", None):
+                return False
+            worker_region = worker.administrative_region
+            issue_region = self.administrative_region
+
+            if issue_region.id == worker_region.id:
+                return True
+
+            allowed_regions = worker_region.get_descendant_ids()
+            return issue_region.id in allowed_regions
         except Exception:
-            head = None
-        # Check if assignee exists before accessing .id
-        return (self.assignee and user.id == self.assignee.id) or (head and user.id == head.id)
+            return False
 
     def has_edit_permission(self, user):
         return not hasattr(user, "governmentworker") or not self.assignee or self.assignee.id == user.id
@@ -672,6 +714,27 @@ class IssueAttachment(models.Model):
             if os.path.isfile(self.file.path):
                 os.remove(self.file.path)
         super().delete(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        """
+        Deletes the old file from the filesystem when updating the record
+        with a new file.
+        """
+        # Use self.__class__ to query the database for the old instance
+        if self.pk:
+            try:
+                old = self.__class__.objects.get(pk=self.pk)
+            except self.__class__.DoesNotExist:
+                old = None
+        else:
+            old = None
+
+        super().save(*args, **kwargs)
+
+        # If there was an old file and it is different from the new one, delete it
+        if old and old.file and old.file != self.file:
+            if os.path.isfile(old.file.path):
+                os.remove(old.file.path)
 
     @property
     def filename(self):

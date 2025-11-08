@@ -785,7 +785,7 @@ class FacilitatorProfileAPIView(APIView):
     """
     API endpoint to retrieve the authenticated facilitator's profile information.
 
-    Returns all facilitator fields including department and administrative_region details
+    Returns all facilitator fields including administrative_region details
     for users with an associated Facilitator profile.
     """
 
@@ -797,7 +797,7 @@ class FacilitatorProfileAPIView(APIView):
         operation_description="""
         Retrieve the authenticated user's complete facilitator profile information.
 
-        Returns all facilitator fields including department and administrative_region details.
+        Returns all facilitator fields including administrative_region details.
         Only accessible to users with an associated Facilitator profile.
         """,
         responses={
@@ -813,21 +813,6 @@ class FacilitatorProfileAPIView(APIView):
                             properties={
                                 'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
                                 'name': openapi.Schema(type=openapi.TYPE_STRING, example='John Doe'),
-                            },
-                        ),
-                        'department': openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            description='Department details',
-                            properties={
-                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
-                                'name': openapi.Schema(type=openapi.TYPE_STRING, example='Public Works'),
-                                'head': openapi.Schema(type=openapi.TYPE_INTEGER, example=5),
-                                'created_date': openapi.Schema(
-                                    type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME
-                                ),
-                                'updated_date': openapi.Schema(
-                                    type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME
-                                ),
                             },
                         ),
                         'administrative_region': openapi.Schema(

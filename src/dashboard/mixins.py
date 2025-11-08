@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import AccessMixin
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, JsonResponse
 
 
@@ -50,3 +51,42 @@ class JSONResponseMixin:
 
     def get_data(self, context):
         return context
+
+
+class UserManagementPermissionMixin(AccessMixin):
+    """
+    Mixin that requires the user to have user management permissions.
+
+    Only GRM Managers can access user management views.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        # Only GRM Managers can manage users
+        if not request.user.grm_manager:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class UserManagementAndAJAXMixin(AccessMixin):
+    """
+    Mixin that combines AJAX request validation with user management permissions.
+
+    Only GRM Managers can access these AJAX views.
+    Raises Http404 if not AJAX or not authenticated.
+    Raises PermissionDenied if not GRM Manager.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        # Check AJAX and authentication
+        if not request.user.is_authenticated or request.headers.get("x-requested-with") != "XMLHttpRequest":
+            raise Http404
+
+        # Only GRM Managers can manage users
+        if not request.user.grm_manager:
+            raise PermissionDenied
+
+        return super().dispatch(request, *args, **kwargs)

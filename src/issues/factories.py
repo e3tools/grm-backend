@@ -43,7 +43,7 @@ class IssueStatusFactory(DjangoModelFactory):
     final_status = False
     initial_status = False
     rejected_status = False
-    open_status = True
+    open_status = False
 
 
 class AdministrativeLevelFactory(DjangoModelFactory):
@@ -212,9 +212,11 @@ class IssueFactory(DjangoModelFactory):
     tracking_code = factory.Sequence(lambda n: f"TRK-{n + 1:05d}")
     description = factory.LazyFunction(lambda: fake.paragraph(nb_sentences=3))
     intake_date = factory.LazyFunction(timezone.now)
+    issue_date = factory.LazyFunction(timezone.now)
     status = factory.SubFactory(IssueStatusFactory)
     category = factory.SubFactory(IssueCategoryFactory)
     issue_type = factory.SubFactory(IssueTypeFactory)
+    issue_sub_type = factory.SubFactory(IssueSubTypeFactory)
     administrative_region = factory.SubFactory(AdministrativeRegionFactory)
     reporter = factory.SubFactory(UserFactory)
     assignee = factory.SubFactory(UserFactory)
