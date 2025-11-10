@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from authentication.factories import UserFactory
+from authentication.models import Facilitator
 from grm.tests.base import DashboardTestCase
 
 
@@ -98,3 +99,22 @@ class EditUserProfileFormViewTest(DashboardTestCase):
         json_data = resp.json()
         # msg should contain info about facilitator code change
         assert "facilitator code" in json_data["msg"].lower()
+
+    def test_update_facilitator_email(self):
+        """Username changes to the value of the email"""
+        url = reverse("dashboard:user_management:edit_profile", kwargs={"pk": self.target_user.id})
+        data = {
+            "first_name": self.target_user.first_name,
+            "last_name": self.target_user.last_name,
+            "email": "newemail@example.com",  # different email
+            "phone_number": self.target_user.phone_number,
+        }
+        Facilitator.objects.create(
+            user=self.target_user,
+            administrative_region=self.root_region,
+        )
+
+        resp = self.post(url, data, user=self.manager, ajax=True)
+        assert resp.status_code == 200
+        self.target_user.refresh_from_db()
+        assert self.target_user.username == data["email"]
