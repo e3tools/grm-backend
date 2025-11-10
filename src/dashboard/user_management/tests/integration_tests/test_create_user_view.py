@@ -88,7 +88,6 @@ class CreateUserViewTest(DashboardTestCase):
             "user_type": FACILITATOR_CHOICE,
             "first_name": "Bob",
             "last_name": "Brown",
-            "username": "bobbrown",
             "email": "bob@example.com",
             "phone_number": "5555555555",
             "password": "SecurePass123!",
@@ -107,6 +106,7 @@ class CreateUserViewTest(DashboardTestCase):
         user = User.objects.get(id=json_data["user_id"])
         assert hasattr(user, "facilitator")
         assert user.facilitator.village_secretary is True
+        assert user.username == user.email
 
     def test_create_user_with_mismatched_passwords(self):
         """Should fail when passwords don't match"""

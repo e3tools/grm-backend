@@ -144,6 +144,26 @@ class UserUpdateViewTest(DashboardTestCase):
         assert facilitator.administrative_region == child_region
         assert facilitator.village_secretary is True
 
+    def test_update_facilitator_email(self):
+        """Username changes to the value of the email"""
+        facilitator_user = UserFactory()
+        Facilitator.objects.create(user=facilitator_user, administrative_region=self.root_region)
+
+        url = reverse("dashboard:user_management:update", kwargs={"pk": facilitator_user.id})
+        data = {
+            "first_name": facilitator_user.first_name,
+            "last_name": facilitator_user.last_name,
+            "email": "newemail@example.com",  # different email
+            "phone_number": facilitator_user.phone_number,
+            "administrative_region": self.root_region.id,
+            "village_secretary": True,
+        }
+
+        resp = self.post(url, data, user=self.manager)
+        assert resp.status_code == 302
+        facilitator_user.refresh_from_db()
+        assert facilitator_user.username == data["email"]
+
     def test_success_url_redirects_to_detail(self):
         """Should redirect to user detail page after successful update"""
         url = reverse("dashboard:user_management:update", kwargs={"pk": self.case_manager_user.id})

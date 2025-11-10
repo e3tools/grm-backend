@@ -41,6 +41,16 @@ class UserProfileForm(FileValidationMixin, forms.ModelForm):
         self.fields["photo"].label = ""
         self.fields["photo"].widget.attrs["class"] = "hidden"
 
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+
+        if commit:
+            if hasattr(user, "facilitator"):
+                user.username = self.cleaned_data.get("email")
+                user.save()
+
+        return user
+
 
 class BaseUserCreationForm(forms.Form):
     """Base form for user creation with common fields."""
@@ -233,6 +243,11 @@ class FacilitatorCreationForm(BaseUserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Delete username field from form
+        if "username" in self.fields:
+            self.fields.pop("username")
+
         data = getattr(self, "data", None)
         if data and data.get("administrative_region"):
             region_id = data.get("administrative_region")
@@ -245,9 +260,10 @@ class FacilitatorCreationForm(BaseUserCreationForm):
         return administrative_region
 
     def save(self):
+        email = self.cleaned_data["email"]
         user = User.objects.create_user(
-            username=self.cleaned_data["username"],
-            email=self.cleaned_data["email"],
+            username=email,  # Specific case for facilitator (username=email)
+            email=email,
             password=self.cleaned_data["password"],
             first_name=self.cleaned_data["first_name"],
             last_name=self.cleaned_data["last_name"],
@@ -388,6 +404,9 @@ class UserUpdateForm(forms.ModelForm):
 
             # Update Facilitator
             elif hasattr(user, "facilitator"):
+                user.username = self.cleaned_data.get("email")
+                user.save()
+
                 facilitator = user.facilitator
                 facilitator.administrative_region = self.cleaned_data.get("administrative_region")
                 facilitator.village_secretary = self.cleaned_data.get("village_secretary", False)
