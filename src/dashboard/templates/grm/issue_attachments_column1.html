@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <div class="form-group row">
-	<div class="col-12">
+	<div class="col-md-12">
 		<label class="label-align">
 			{% translate 'Attachments' %}
 		</label>
@@ -13,10 +13,10 @@
 	</div>
 </div>
 <div class="row">
-	<div class="col-12">
+	<div class="col-md-12">
 		{% for attachment in attachments %}
 			<div class="row">
-				<div class="col-12 border-bottom">
+				<div class="col-md-12 border-bottom">
 					<div class="d-inline-block padding-6-0">
 						<a href="{{ attachment.file.url }}" target="_blank">
 							<i class="fas fa-paperclip mr-2"></i>
@@ -33,8 +33,8 @@
 	</div>
 </div>
 <div {% if attachments|length == max_attachments %}style="cursor: not-allowed;"{% endif %} class="row mt-4">
-	<div class="col-12">
-		<a class="btn btn-primary btn-sm fs12 rounded-xl {% if attachments|length == max_attachments %}
+	<div class="col-md-12">
+		<a class="btn btn-primary {% if attachments|length == max_attachments %}
         disabled{% endif %}" id="add_attachment">
 			{% translate "Add attachments" %}
 		</a>

@@ -91,6 +91,7 @@ class SemanticSearchView(LoginRequiredMixin, View):
 
         context = {
             "title": _("Search Issues"),
+            "active_level1": "search_issues",
             "query": query,
             "total_results": total_results,
             "page_obj": results,

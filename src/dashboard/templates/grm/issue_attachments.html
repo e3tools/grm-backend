@@ -5,7 +5,7 @@
 		<label class="label-align">
 			{% translate 'Attachments' %}
 		</label>
-		<small class="form-text text-muted text-right mt-0">
+		<small class="form-text text-muted mt-0">
 			{% blocktranslate %}
 				Allowed to upload up to {{ max_attachments }} attachments
 			{% endblocktranslate %}
@@ -14,7 +14,7 @@
 	<div class="col-md-9">
 		{% for attachment in attachments %}
 			<div class="row border-bottom">
-				<div class="col-9">
+				<div class="col-md-9">
 					<div class="align-self-center mt-2">
 						<a href="{{ attachment.file.url }}" target="_blank">
 							<i class="fas fa-paperclip mr-2"></i>
@@ -22,7 +22,7 @@
 						</a>
 					</div>
 				</div>
-				<div class="col-3">
+				<div class="col-md-3">
 					<a class="btn pull-right delete-attachment"
 					   data-url="{% url 'dashboard:grm:delete_issue_attachment' obj.id attachment.id %}">
 						<i class="far fa-trash-alt text-danger"></i>
@@ -35,7 +35,7 @@
 <div {% if attachments|length == max_attachments %}style="cursor: not-allowed;"{% endif %} class="row mb-4">
 	<div class="col-md-3"></div>
 	<div class="col-md-9">
-		<a class="btn btn-primary btn-sm fs12 rounded-xl {% if attachments|length == max_attachments %}
+		<a class="btn btn-primary {% if attachments|length == max_attachments %}
         disabled{% endif %}" id="add_attachment">
 			{% translate "Add attachments" %}
 		</a>

@@ -21,10 +21,10 @@
 	{% translate "No record of last update" as undefined %}
 
 	<div class="row mb-3">
-		<div class="col-12">
+		<div class="col-md-12">
 			<label>{% translate 'Last data update' %}</label>
 			<span id="last_update">{{ last_update.finished_at|default:undefined }}</span>
-			<button class="btn btn-primary btn-sm rounded-xl float-right disabled-on-submit" id="update_issue_data">
+			<button class="btn btn-primary float-right disabled-on-submit" id="update_issue_data">
 				{% translate "Update data" %}
 				<span class="spinner-border spinner-border-sm submit-spin d-none"></span>
 			</button>
@@ -32,30 +32,28 @@
 	</div>
 
 	<div class="row">
-		<div class="col-12">
+		<div class="col-md-12">
 			<div class="card">
-				<div class="card-header border-0">
-					<div class="card-title">
-						<div class="pt-1 fs20 lh25 text-primary text-bold-family">
-							{% translate 'Filter by' %}
-						</div>
-					</div>
+				<div class="card-header">
+					<h3 class="card-title">
+						{% translate 'Filter by' %}
+					</h3>
 				</div>
 				<div class="card-body">
 					<div class="row">
-						<div class="col-4 issues-filter">
+						<div class="col-md-4 issues-filter">
 							{% bootstrap_field form.start_date layout='horizontal' show_label=False %}
 							{% bootstrap_field form.end_date layout='horizontal' show_label=False %}
 						</div>
-						<div class="col-4 issues-filter border-left">
+						<div class="col-md-4 issues-filter border-left">
 							{% bootstrap_field form.type layout='horizontal' show_label=False %}
 							{% bootstrap_field form.category layout='horizontal' show_label=False %}
 						</div>
-						<div class="col-4 regions-filter border-left">
+						<div class="col-md-4 regions-filter border-left">
 							{% bootstrap_field form.administrative_region layout='horizontal' %}
 						</div>
 					</div>
-					<a class="btn fs12 text-bold-family text-primary pull-right p-0" id="clear_all_filters">
+					<a class="btn text-bold text-primary pull-right" id="clear_all_filters">
 						{% translate "Clear all filters" %}
 					</a>
 				</div>
@@ -95,12 +93,10 @@
 				<div class="row">
 					<div class="col-lg-4">
 						<div class="card">
-							<div class="card-header border-0">
-								<div class="card-title">
-									<div class="pt-1 fs20 lh25 text-primary text-bold-family">
-										{{ status }}
-									</div>
-								</div>
+							<div class="card-header">
+								<h3 class="card-title">
+									{{ status }}
+								</h3>
 							</div>
 							<div class="card-body">
 								<canvas id="status_pie_chart" class="pie-chart"></canvas>
@@ -123,12 +119,10 @@
 					</div>
 					<div class="col-lg-4">
 						<div class="card">
-							<div class="card-header border-0">
-								<div class="card-title">
-									<div class="pt-1 fs20 lh25 text-primary text-bold-family">
-										{{ type }}
-									</div>
-								</div>
+							<div class="card-header">
+								<h3 class="card-title">
+									{{ type }}
+								</h3>
 							</div>
 							<div class="card-body">
 								<canvas id="type_pie_chart" class="pie-chart"></canvas>
@@ -151,12 +145,10 @@
 					</div>
 					<div class="col-lg-4">
 						<div class="card">
-							<div class="card-header border-0">
-								<div class="card-title">
-									<div class="pt-1 fs20 lh25 text-primary text-bold-family">
-										{{ category }}
-									</div>
-								</div>
+							<div class="card-header">
+								<h3 class="card-title">
+									{{ category }}
+								</h3>
 							</div>
 							<div class="card-body">
 								<canvas id="category_pie_chart" class="pie-chart"></canvas>
@@ -192,15 +184,18 @@
 	<script type="text/javascript">
         $("#id_category").select2({
             placeholder: "{% translate 'Category' %}",
-            allowClear: true
+            allowClear: true,
+			width: '100%'
         });
         $("#id_type").select2({
             placeholder: "{% translate 'Type' %}",
             allowClear: true,
+			width: '100%'
         });
         $("#id_administrative_region").select2({
             placeholder: "{% translate 'Location' %}",
-            allowClear: true
+            allowClear: true,
+			width: '100%'
         });
 
 	</script>

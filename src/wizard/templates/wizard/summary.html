@@ -1,13 +1,11 @@
 {% load i18n %}
 
-<div class="card-header border-0">
-	<div class="card-title">
-		<div class="pt-1 fs20 lh25 text-bold-family">
-			{{ card_title }}
-		</div>
-	</div>
+<div class="card-header">
+	<h3 class="card-title">
+		{{ card_title }}
+	</h3>
 	<div class="pull-right">
-		<button id="export-summary-btn" class="btn btn-info btn-sm fs12 rounded-xl mb-2">
+		<button id="export-summary-btn" class="btn btn-info">
 			{% translate "Export as PDF" %}
 		</button>
 	</div>
@@ -15,7 +13,7 @@
 <div class="card-body" id="summary-area">
 	{% for section in summary %}
 		<div class="mb-3 border-bottom border-dark">
-			<h6 class="text-bold-family">
+			<h6 class="text-bold">
 				{{ section.title }}
 			</h6>
 			{% for item in section.data %}
@@ -66,14 +64,12 @@
 		</div>
 	{% endfor %}
 </div>
-<div class="card-footer mb-2">
-	<button id="final_step" class="btn btn-primary btn-sm rounded-xl float-right 
-	disabled-on-submit {% if disabled_submit %}disabled{% endif %}">
-		{% translate "Save and Finish" %}
-	</button>
-	<button id="previous_step" data-step="{{ step }}" class="btn btn-secondary 
-	btn-sm rounded-xl float-right mr-4 disabled-on-submit">
+<div class="card-footer">
+	<button id="previous_step" data-step="{{ step }}" class="btn btn-secondary disabled-on-submit">
 		<i class="fa fa-chevron-left mr-2"></i>
 		{% translate "Previous" %}
+	</button>
+	<button id="final_step" class="btn btn-primary float-right disabled-on-submit {% if disabled_submit %}disabled{% endif %}">
+		{% translate "Save and Finish" %}
 	</button>
 </div>

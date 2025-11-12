@@ -20,6 +20,7 @@
 	<!-- Select2 -->
 	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/select2/css/select2.min.css' %}"/>
 	<!-- Theme style -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/dist/css/adminlte.css' %}"/>
 	<link rel="stylesheet" href="{% static 'css/grm.css' %}"/>
 	<link href="{% static 'css/fonts.css' %}" rel="stylesheet">
 </head>
@@ -58,12 +59,10 @@
 				<div class="row">
 					<div class="col-md-6">
 						<div class="card position-sticky" style="top: 1rem;">
-							<div class="card-header border-0">
-								<div class="card-title">
-									<div class="pt-1 fs20 lh25 text-bold-family">
-										{% translate "Setup Progress" %}
-									</div>
-								</div>
+							<div class="card-header">
+								<h3 class="card-title">
+									{% translate "Setup Progress" %}
+								</h3>
 							</div>
 							<div class="card-body">
 								<div class="overlay-wrapper">
@@ -109,10 +108,10 @@
 										<input type="text" name="message" placeholder="Type your message..."
 											   class="form-control">
 										<span class="input-group-append">
-									  <button type="submit" class="btn btn-primary">
-										  {% translate "Send" %}
-									  </button>
-									</span>
+											<button type="submit" class="btn btn-primary">
+												{% translate "Send" %}
+											</button>
+										</span>
 									</div>
 								</div>
 								<!-- /.card-footer-->
