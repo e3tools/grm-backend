@@ -1,40 +1,40 @@
 {% load static i18n custom_tags %}
 {% for comment in comments %}
     <div class="row">
-        <div class="col-6">
+        <div class="col-md-6">
 			{% if comment.user %}
 				<div class="circle-icon float-left mr-2 navbar-{{ colors|next_in_circular_list:comment.user.id }}">
-					<div class="center-32 pt-1 text-white text-bold-family">
+					<div class="center-32 pt-1 text-white text-bold">
 						{% get_initials comment.user.name %}
 					</div>
 				</div>
-				<div class="text-bold-family mt-2">
+				<div class="text-bold mt-2">
 					{{ comment.user.name }}
 				</div>
 			{% else %}
 				{% translate 'GRM system' as grm_system %}
 				<div class="circle-icon float-left mr-2 navbar-dark">
-					<div class="center-32 pt-1 text-white text-bold-family">
+					<div class="center-32 pt-1 text-white text-bold">
 						{% get_initials grm_system %}
 					</div>
 				</div>
-				<div class="text-bold-family mt-2">
+				<div class="text-bold mt-2">
 					{{ grm_system }}
 				</div>
 			{% endif %}
         </div>
-        <div class="col-6 text-right lh15 mt-3 text-regular-family">
+        <small class="col-md-6 text-right">
             {{ comment.due_date|date:'j F Y' }} {{ comment.due_date|time:"H:i" }}
-        </div>
+        </small>
     </div>
     <div class="row border-bottom mt-2 mb-3">
-        <div class="col-10 mb-2 text-regular-family mb-3">
+        <div class="col-md-10 mb-2 mb-3">
             {{ comment.comment }}
         </div>
     </div>
 {% empty %}
     <div class="row">
-        <div class="col-12 text-center">
+        <div class="col-md-12 text-center">
             {% translate 'No comments found' %}
         </div>
     </div>

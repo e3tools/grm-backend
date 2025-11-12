@@ -4,9 +4,19 @@
 	<div class="row">
 		<div class="col-md-7">
 			<div class="card">
+				<div class="card-header">
+					<h3 id="name" class="card-title">
+						{{ obj.name }}
+					</h3>
+					<div class="float-right">
+						<button id="edit_profile" class="btn p-0 text-primary" title="{% translate 'Edit Profile' %}">
+							<i class="fas fa-edit fs17"></i>
+						</button>
+					</div>
+				</div>
 				<div class="card-body">
 					<div class="row">
-						<div class="col-4">
+						<div class="col-md-4">
 							<div class="text-center">
 								{% if obj.photo %}
 									<img id="photo" src="{{ obj.photo.url }}" class="profile-user-img"
@@ -17,20 +27,11 @@
 								{% endif %}
 							</div>
 						</div>
-						<div class="col-8">
-							<div class="profile-header">
-								<span id="name">{{ obj.name }}</span>
-								<div class="float-right">
-									<button id="edit_profile" class="btn p-0 text-primary"
-											title="{% translate 'Edit Profile' %}">
-										<i class="fas fa-edit fs17"></i>
-									</button>
-								</div>
-							</div>
+						<div class="col-md-8">
 
 							<!-- User Type Badge -->
 							<div class="row my-2">
-								<div class="col-12">
+								<div class="col-md-12">
 									<span class="badge badge-secondary badge-lg">{{ role_info.type_display }}</span>
 									<p class="text-muted small mt-1">{{ role_info.description }}</p>
 								</div>
@@ -39,9 +40,9 @@
 							<!-- Role-specific Information -->
 							{% if user_type == 'case_manager' %}
 								<div class="row mb-2">
-									<div class="col-12">
-										<div class="label d-inline-block">{% translate 'Department' %}:</div>
-										<div class="text-regular-family d-inline-block">
+									<div class="col-md-12">
+										<label class="d-inline-block">{% translate 'Department' %}:</label>
+										<div class="d-inline-block">
 											{{ role_info.department }}
 											{% if role_info.is_department_head %}
 												<span class="badge badge-warning ml-2">{% translate 'Department Head' %}</span>
@@ -51,9 +52,9 @@
 								</div>
 							{% elif user_type == 'facilitator' %}
 								<div class="row mb-2">
-									<div class="col-12">
-										<div class="label d-inline-block">{% translate 'Administrative Region' %}:</div>
-										<div class="text-regular-family d-inline-block">
+									<div class="col-md-12">
+										<label class="d-inline-block">{% translate 'Administrative Region' %}:</label>
+										<div class="d-inline-block">
 											{{ role_info.administrative_region }}
 											{% if role_info.village_secretary %}
 												<span class="badge badge-info ml-2">{% translate 'Village Secretary' %}</span>
@@ -63,7 +64,7 @@
 								</div>
 							{% elif user_type == 'grm_manager' %}
 								<div class="row mb-2">
-									<div class="col-12">
+									<div class="col-md-12">
 										<div class="alert alert-info mb-0 py-2">
 											<small>
 												<i class="fas fa-info-circle"></i>
@@ -76,18 +77,18 @@
 
 							<!-- Contact Information -->
 							<div class="row mb-2">
-								<div class="col-12">
-									<div class="label d-inline-block">{% translate 'Phone' %}:</div>
-									<div class="text-regular-family d-inline-block" id="phone_number">
+								<div class="col-md-12">
+									<label class="d-inline-block">{% translate 'Phone' %}:</label>
+									<div class="d-inline-block" id="phone_number">
 										{% translate 'No phone number' as no_phone %}
 										{{ obj.phone_number|default:no_phone }}
 									</div>
 								</div>
 							</div>
 							<div class="row mb-2">
-								<div class="col-12">
-									<div class="label d-inline-block">{% translate 'Email' %}:</div>
-									<div class="text-regular-family d-inline-block" id="email">
+								<div class="col-md-12">
+									<label class="d-inline-block">{% translate 'Email' %}:</label>
+									<div class="d-inline-block" id="email">
 										{% translate 'No email' as no_email %}
 										{{ obj.email|default:no_email }}
 									</div>
@@ -95,27 +96,25 @@
 							</div>
 						</div>
 					</div>
-					<div class="card-footer">
-						<a href="{% url 'dashboard:user_management:update' obj.id %}" 
-						   class="btn btn-xs btn-outline-primary rounded-xl float-right">
-							{% translate 'Edit User' %}
-						</a>
-						<!-- Account Actions -->
-						{% if obj.is_active %}
-							<button class="btn btn-xs btn-danger rounded-xl float-right mr-4" data-toggle="modal"
-									data-target="#confirmToggleStatusModal">
-								<i class="fas fa-ban"></i> {% translate 'Deactivate Account' %}
+				</div>
+				<div class="card-footer">
+					<!-- Account Actions -->
+					{% if obj.is_active %}
+						<button class="btn btn-danger" data-toggle="modal" data-target="#confirmToggleStatusModal">
+							<i class="fas fa-ban"></i> {% translate 'Deactivate Account' %}
+						</button>
+					{% else %}
+						<form action="{% url 'dashboard:user_management:toggle_status' obj.id %}" method="post"
+							  style="display: inline;">
+							{% csrf_token %}
+							<button class="btn btn-success">
+								<i class="fas fa-check"></i> {% translate 'Activate Account' %}
 							</button>
-						{% else %}
-							<form action="{% url 'dashboard:user_management:toggle_status' obj.id %}" method="post"
-								  style="display: inline;">
-								{% csrf_token %}
-								<button class="btn btn-xs btn-success rounded-xl float-right mr-4">
-									<i class="fas fa-check"></i> {% translate 'Activate Account' %}
-								</button>
-							</form>
-						{% endif %}
-					</div>
+						</form>
+					{% endif %}
+					<a href="{% url 'dashboard:user_management:update' obj.id %}" class="btn btn-outline-primary float-right">
+						{% translate 'Edit User' %}
+					</a>
 				</div>
 			</div>
 		</div>
@@ -123,18 +122,18 @@
 		<div class="col-md-5 display-flex flex-flow-column">
 			<div class="card">
 				<div class="card-body">
-					<span class="text-bold-family fs17">{% translate 'Last Activity' %}:</span>
-					<span class="text-muted fs17">
+					<div class="text-bold fs17">{% translate 'Last Activity' %}</div>
+					<div class="text-muted fs17">
 						{% translate 'Never' as never %}
 						{{ obj.last_login|date|default:never }}
-					</span>
+					</div>
 				</div>
 			</div>
 
 			{% if user_type == 'facilitator' %}
 				<div class="card h-100">
 					<div class="card-body">
-						<div class="text-bold-family fs17">{% translate 'Facilitator Code' %}</div>
+						<div class="text-bold fs17">{% translate 'Facilitator Code' %}</div>
 						<div class="adl-code mt-3" id="user_code">{% get_code obj.email %}</div>
 					</div>
 				</div>
@@ -144,33 +143,31 @@
 {% endblock content %}
 
 {% block modals %}
+	{% translate "Deactivate Account" as deactivate %}
 	<div class="modal fade modal-confirmation" id="confirmToggleStatusModal">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<form class="form-horizontal" action="{% url 'dashboard:user_management:toggle_status' obj.id %}"
 					  method="POST">
 					{% csrf_token %}
-					<div class="modal-header border-0">
-						<h5 class="modal-title mx-auto">
-							<img src="{% static 'images/password-required.png' %}" height="254">
-						</h5>
-						<button type="button" class="border-0 bg-transparent" data-dismiss="modal" aria-label="Close">
-							<div class="circle-icon bg-primary">
-								<div class="center-27">
-									<i class="fas fa-times"></i>
-								</div>
-							</div>
+					<div class="modal-header">
+						<h4 class="modal-title">
+							{{ deactivate }}
+						</h4>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">×</span>
 						</button>
 					</div>
 					<div class="modal-body">
-						<div class="text-primary text-center fs17 lh19 text-bold mb-4" style="padding: 0 45px 0 45px;">
+						<div class="text-primary text-center text-bold mb-4">
 							{% translate "Please enter your password to deactivate this account!" %}
 						</div>
 						{% bootstrap_form password_confirm_form %}
 					</div>
-					<div class="modal-footer border-0">
-						<button id="deactivate-btn" type="submit" class="btn btn-lg btn-primary text-right" disabled>
-							{% translate "Deactivate Account" %}
+					<div class="modal-footer justify-content-between">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+						<button id="deactivate-btn" type="submit" class="btn btn-primary" disabled>
+							{{ deactivate }}
 						</button>
 					</div>
 				</form>
@@ -208,7 +205,7 @@
             loaded_form() {
                 let modal_form_picture = $("#modal_form_picture");
                 let id_photo = $("#id_photo");
-                let edit_picture_button = '<br><a class="btn fs12 text-bold-family text-primary mt-2" ' +
+                let edit_picture_button = '<br><a class="btn fs12 text-bold text-primary mt-2" ' +
                     'id="edit_picture"> {% translate "Edit Profile Picture" %} </a>';
                 modal_form_picture.after(edit_picture_button);
                 id_photo.parent().wrapInner('<div class="text-center"></div>');

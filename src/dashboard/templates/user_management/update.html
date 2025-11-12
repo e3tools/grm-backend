@@ -4,12 +4,8 @@
 	<div class="row">
 		<div class="col-md-12">
 			<div class="card">
-				<div class="card-header border-0">
-					<div class="card-title">
-						<div class="pt-1 fs20 lh25 text-bold-family">
-							{% translate 'User' %}: {{ object.name }}
-						</div>
-					</div>
+				<div class="card-header">
+					<h3 class="card-title">{% translate 'User' %}: {{ object.name }}</h3>
 				</div>
 				<form method="post">
 					{% csrf_token %}
@@ -94,13 +90,13 @@
 						{% endif %}
 					</div>
 					<div class="card-footer">
-						<button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
-							{% translate "Save" %}
-						</button>
 						<a href="{% url 'dashboard:user_management:detail' object.id %}"
-						   class="btn btn-secondary btn-sm rounded-xl float-right mr-4">
+						   class="btn btn-default float-right">
 							{% translate "Cancel" %}
 						</a>
+						<button type="submit" class="btn btn-primary">
+							{% translate "Save" %}
+						</button>
 					</div>
 				</form>
 			</div>

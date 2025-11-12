@@ -1,21 +1,21 @@
 {% load i18n %}
 <div class="row mr-2 mb-2">
-    <div class="col-3">
+    <div class="col-md-3">
         <label class="label-align">
             {% translate 'Status' %}
         </label>
     </div>
-    <div class="col-9 text-regular-family" id="#status_name">
+    <div class="col-md-9" id="#status_name">
         {{ status.name }}
     </div>
 </div>
 <div class="row mb-2">
-    <div class="col-8">
+    <div class="col-md-8">
         <label class="label-align">
             {% translate 'Accept Issue' %}
         </label>
     </div>
-    <div class="col-4">
+    <div class="col-md-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="accept_issue"
                 {% if status.open_status or not status.initial_status or status.rejected_status %}
                 disabled{% endif %}>
@@ -24,12 +24,12 @@
     </div>
 </div>
 <div class="row mb-2">
-    <div class="col-8">
+    <div class="col-md-8">
         <label class="label-align">
             {% translate 'Record Resolution' %}
         </label>
     </div>
-    <div class="col-4">
+    <div class="col-md-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="record_resolution"
                 {% if status.final_status or not status.open_status %}disabled{% endif %}>
             <span aria-hidden="true"><i class="fa fa-chevron-right"></i></span>
@@ -37,12 +37,12 @@
     </div>
 </div>
 <div class="row mb-2">
-    <div class="col-8">
+    <div class="col-md-8">
         <label class="label-align">
             {% translate 'Reject Issue' %}
         </label>
     </div>
-    <div class="col-4">
+    <div class="col-md-4">
         <button type="button" class="btn-status btn btn-primary pull-right" id="reject_issue"
                 {% if status.rejected_status or not status.initial_status %}disabled{% endif %}>
             <span aria-hidden="true"><i class="fa fa-chevron-right"></i></span>

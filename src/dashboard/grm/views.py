@@ -237,7 +237,7 @@ class IssueFormMixin(IssueMixin, generic.FormView):
         return kwargs
 
 
-class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
+class NewIssueMixin(PageMixin, LoginRequiredMixin, IssueFormMixin):
     """
     Mixin for views that handle issue creation process.
 
@@ -245,6 +245,12 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
     The filter in get_query_result ensures only the reporter can access their own issue.
     """
 
+    title = _("GRM")
+    active_level1 = "grm"
+    breadcrumb = [
+        {"url": reverse_lazy("dashboard:grm:dashboard"), "title": _("GRM")},
+        {"url": "", "title": _("Enter New Issue")},
+    ]
     fields_to_check = None
 
     def dispatch(self, request, *args, **kwargs):
@@ -342,10 +348,8 @@ class NewIssueMixin(LoginRequiredMixin, IssueFormMixin):
             self.obj.contact_method = None
 
 
-class NewIssueContactFormView(PageMixin, NewIssueMixin):
+class NewIssueContactFormView(NewIssueMixin):
     template_name = "grm/new_issue_contact.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssueContactForm
 
     def form_valid(self, form):
@@ -365,10 +369,8 @@ class NewIssueContactFormView(PageMixin, NewIssueMixin):
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_2", kwargs={"issue": self.kwargs["issue"]}))
 
 
-class NewIssuePersonFormView(PageMixin, NewIssueMixin):
+class NewIssuePersonFormView(NewIssueMixin):
     template_name = "grm/new_issue_person.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssuePersonForm
     fields_to_check = ("contact_medium",)
 
@@ -384,10 +386,8 @@ class NewIssuePersonFormView(PageMixin, NewIssueMixin):
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_3", kwargs={"issue": self.kwargs["issue"]}))
 
 
-class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
+class NewIssueDetailsFormView(NewIssueMixin):
     template_name = "grm/new_issue_details.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssueDetailsForm
     fields_to_check = ("contact_medium",)
 
@@ -403,10 +403,8 @@ class NewIssueDetailsFormView(PageMixin, NewIssueMixin):
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_4", kwargs={"issue": self.kwargs["issue"]}))
 
 
-class NewIssueLocationFormView(PageMixin, NewIssueMixin):
+class NewIssueLocationFormView(NewIssueMixin):
     template_name = "grm/new_issue_location.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssueLocationForm
     fields_to_check = (
         "contact_medium",
@@ -437,10 +435,8 @@ class NewIssueLocationFormView(PageMixin, NewIssueMixin):
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_5", kwargs={"issue": self.kwargs["issue"]}))
 
 
-class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
+class NewIssueConfirmFormView(NewIssueMixin):
     template_name = "grm/new_issue_confirm.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssueConfirmForm
     fields_to_check = (
         "contact_medium",
@@ -474,10 +470,8 @@ class NewIssueConfirmFormView(PageMixin, NewIssueMixin):
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}))
 
 
-class NewIssueConfirmationFormView(PageMixin, NewIssueMixin):
+class NewIssueConfirmationFormView(NewIssueMixin):
     template_name = "grm/new_issue_confirmation.html"
-    title = _("GRM")
-    active_level1 = "grm"
     form_class = NewIssueConfirmationForm
 
     def check_permissions(self):
@@ -889,7 +883,7 @@ class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin,
                 worker = GovernmentWorker.objects.get(id=government_worker_id)
                 if worker.administrative_region:
                     # Get allowed region IDs (worker's region, its ancestors and descendants)
-                    ancestors = region.get_full_hierarchy_ids(include_self=False)
+                    ancestors = region.get_full_hierarchy_ids()
                     descendants = worker.administrative_region.get_descendant_ids()
                     allowed_region_ids = ancestors + descendants
                     # Filter children to only those in the allowed regions
@@ -966,7 +960,7 @@ class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMi
         else:
             msg = _("The password was not correct, we could not proceed with action.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
-            context["msg"] = (render(self.request, "common/messages.html").content.decode("utf-8"),)
+            context["msg"] = render(self.request, "common/messages.html").content.decode("utf-8")
 
         return self.render_to_json_response(context, safe=False)
 

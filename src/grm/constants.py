@@ -65,7 +65,7 @@ ALERT_CHOICES = [
 
 MAP_ISSUE_STATUS_BADGE = {
     1: "badge-info",
-    2: "badge-yellow",
+    2: "badge-warning",
     3: "badge-danger",
     4: "badge-primary",
 }

@@ -2,46 +2,39 @@
 <script src="{% static 'js/disableOnSubmit.js' %}"></script>
 
 <div class="modal-dialog modal-confirmation">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title mx-auto">
-                <div class="fs20 text-bold-family text-primary">
-                    {{ title }}
-                </div>
-                {% if subtitle %}
-                    <p>
-                        <small class="subtitle">{{ subtitle }}</small>
-                    </p>
-                {% endif %}
-            </div>
-            <button type="button" class="border-0 bg-transparent close-modal" data-dismiss="modal" aria-label="Close">
-                <div class="circle-icon bg-primary">
-                    <div class="center-27">
-                        <i class="fas fa-times"></i>
-                    </div>
-                </div>
-            </button>
-        </div>
-        <form id="{{ id_form }}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="modal-body">
-                <div class="overlay-wrapper">
-                    {% if picture %}
-                        <div class="text-center">
-                            <img id="modal_form_picture" src="{{ picture }}" class="{{ picture_class }}">
-                        </div>
-                    {% endif %}
-                    {% bootstrap_form form %}
-                    <div class="overlay submit-spin d-none">
-                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="submit" class="btn btn btn-primary text-right">
-                    {{ submit_button }}
-                </button>
-            </div>
-        </form>
-    </div>
+	<div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">{{ title }}</h4>
+			{% if subtitle %}
+				<p>
+					<small class="subtitle">{{ subtitle }}</small>
+				</p>
+			{% endif %}
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">×</span>
+			</button>
+		</div>
+		<form id="{{ id_form }}" enctype="multipart/form-data">
+			{% csrf_token %}
+			<div class="modal-body">
+				<div class="overlay-wrapper">
+					{% if picture %}
+						<div class="text-center">
+							<img id="modal_form_picture" src="{{ picture }}" class="{{ picture_class }}">
+						</div>
+					{% endif %}
+					{% bootstrap_form form %}
+					<div class="overlay submit-spin d-none">
+						<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary">
+					{{ submit_button }}
+				</button>
+			</div>
+		</form>
+	</div>
 </div>

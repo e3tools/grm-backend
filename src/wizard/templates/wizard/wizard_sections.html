@@ -12,7 +12,7 @@
 			{% endif %}
 			<div id="{{ forloop.counter }}" class="timeline-item {% if obj.status == 'not_started' %}
 			disabled{% else %}pointer{% endif %} {% if forloop.counter == step %}active{% endif %}">
-				<h3 class="timeline-header {% if obj.status == 'in_progress' %}text-primary{% endif %} pb-0">
+				<h3 class="timeline-header text-bold {% if obj.status == 'in_progress' %}text-primary{% endif %} pb-0">
 					{% get_wizard_section_display obj.name %}
 				</h3>
 				{% if obj.status != 'not_started' %}
