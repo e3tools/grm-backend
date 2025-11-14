@@ -69,7 +69,11 @@ class UserListView(UserManagementAndAJAXMixin, generic.ListView):
 
     def get_queryset(self):
         user_type = self.request.GET.get("user_type")
-        queryset = User.objects.select_related('facilitator', 'governmentworker').all()
+        queryset = User.objects.select_related(
+            'facilitator__administrative_region',
+            'governmentworker__administrative_region',
+            'governmentworker__department',
+        ).all()
 
         if user_type == GRM_MANAGER_CHOICE:
             queryset = queryset.filter(grm_manager=True)
@@ -89,21 +93,13 @@ class UserListView(UserManagementAndAJAXMixin, generic.ListView):
         for user in context['users']:
             role_info = None
 
-            if user_type == GRM_MANAGER_CHOICE:
-                role_info = _("All Departments")
-            elif user_type == CASE_MANAGER_CHOICE and hasattr(user, 'governmentworker'):
+            if user_type == CASE_MANAGER_CHOICE and hasattr(user, 'governmentworker'):
                 dept = user.governmentworker.department
                 role_info = dept.name
                 if dept.head == user:
                     role_info += f" ({_('Head')})"
             elif user_type == FACILITATOR_CHOICE and hasattr(user, 'facilitator'):
-                role_info = (
-                    user.facilitator.administrative_region.name
-                    if user.facilitator.administrative_region
-                    else _("Unassigned")
-                )
-                if user.facilitator.village_secretary:
-                    role_info += f" ({_('Village Secretary')})"
+                role_info = f"{_('Village Secretary')}: {_('Yes') if user.facilitator.village_secretary else _('No')}"
 
             users_with_type.append(
                 {
@@ -115,7 +111,7 @@ class UserListView(UserManagementAndAJAXMixin, generic.ListView):
 
         context['users_with_type'] = users_with_type
         context['user_type'] = user_type
-        context['facilitator_choice'] = FACILITATOR_CHOICE
+        context['grm_manager'] = GRM_MANAGER_CHOICE
         return context
 
 
@@ -207,6 +203,7 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
             worker = user.governmentworker
             role_info = {
                 'type_display': _("Case Manager"),
+                'administrative_region': worker.administrative_region.hierarchical_name,
                 'description': _("Can create issues and view assigned issues."),
                 'department': worker.department.name,
                 'is_department_head': worker.department.head == user,
@@ -217,9 +214,7 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
             role_info = {
                 'type_display': _("Facilitator"),
                 'description': _("Community representative for a specific region."),
-                'administrative_region': (
-                    facilitator.administrative_region.name if facilitator.administrative_region else _("Unassigned")
-                ),
+                'administrative_region': facilitator.administrative_region.hierarchical_name,
                 'village_secretary': facilitator.village_secretary,
             }
 

@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from common.utils.pinecone_connector import PineconeConnector
-from issues.models import AdministrativeRegion, CitizenAgeGroup, Issue, IssueType
+from issues.models import CitizenAgeGroup, Issue, IssueType
 
 logger = logging.getLogger(__name__)
 
@@ -105,12 +105,6 @@ class SemanticSearchView(LoginRequiredMixin, View):
                 "start_date": start_date,
                 "end_date": end_date,
             },
-            "administrative_regions": AdministrativeRegion.objects.filter(
-                id__in=confirmed_issues.values_list("administrative_region_id", flat=True)
-            )
-            .select_related("parent", "administrative_level")
-            .order_by("name")
-            .distinct(),
             "types": IssueType.objects.filter(id__in=confirmed_issues.values_list("issue_type_id", flat=True))
             .order_by("name")
             .distinct(),

@@ -70,7 +70,7 @@ class Command(TranslatedBaseCommand):
                 "description": issue.description or "",
             }
 
-            # Texto que Pinecone embederá automáticamente (integrated inference)
+            # Text that Pinecone will automatically embed (integrated inference)
             text = " | ".join(
                 filter(
                     None,
@@ -86,9 +86,9 @@ class Command(TranslatedBaseCommand):
                 )
             )
 
-            # ✅ Formato correcto para upsert_records en SDK 7.3.0
+            # Correct format for upsert_records in SDK 7.3.0
             record = {"id": str(issue.id), "text": text}
-            record.update(metadata)  # añade cada campo de metadata al nivel superior
+            record.update(metadata)
             batch.append(record)
 
             if len(batch) >= batch_size:

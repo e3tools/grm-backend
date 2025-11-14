@@ -326,24 +326,23 @@
             // DataTable
 
             function initDataTable(userType) {
-                // Default configuration (no facilitator)
-                let columns = [1, 2];
-                let order = [[2, 'desc']];
-                let columnDefs = [
-                    {targets: 2, orderData: 3},
-                    {targets: 3, visible: false},
-                    {targets: [0, 4], orderable: false, searchable: false}
-                ];
+                // Default configuration (facilitator or case_manager)
+				let columns = [1, 2, 3, 4];
+				let order = [[1, 'desc']];
+				let columnDefs = [
+					{targets: 4, orderData: 5},
+					{targets: 5, visible: false},
+					{targets: [0, 6], orderable: false, searchable: false}
+				];
 
-                // If it's a facilitator, change the settings.
-                if (userType === 'facilitator') {
-                    columns = [0, 2, 3];
-                    order = [[3, 'desc']];
-                    columnDefs = [
-                        {targets: 3, orderData: 4},
-                        {targets: 4, visible: false},
-                        {targets: [1, 5], orderable: false, searchable: false}
-                    ];
+                // If it's a grm_manager, change the settings.
+                if (userType === 'grm_manager') {
+					columns = [1, 2];
+					columnDefs = [
+						{targets: 2, orderData: 3},
+						{targets: 3, visible: false},
+						{targets: [0, 3], orderable: false, searchable: false}
+					];
                 }
 
                 {% get_current_language as lang %}

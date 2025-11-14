@@ -1,23 +1,22 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=50 %}
+	{% include 'common/progress_bar.html' with percentage=50 %}
 {% endblock progress-bar %}
 
 {% block content %}
 	<h5>{% translate 'Step' %} 3</h5>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
 				<div class="card-header">
 					<h3 class="card-title">{% translate 'Details of issue of Feedback' %}</h3>
 				</div>
-                <form method="post">{% csrf_token %}
+				<form method="post">{% csrf_token %}
 					<div class="card-body bg-left-horizontal-waves">
-                        <div class="row">
-                            <div class="col-md-12">
-                                {% bootstrap_form form layout='horizontal' %}
+						<div class="row">
+							<div class="col-md-12">
+								{% bootstrap_form form layout='horizontal' %}
 								<div class="overlay-wrapper">
 									<div id="attachments"></div>
 									<div class="overlay" id="load-attachments-spin">
@@ -25,64 +24,69 @@
 									</div>
 								</div>
 							</div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <a href="{% url 'dashboard:grm:new_issue_step_2' obj.id %}"
-                           class="btn btn-secondary disabled-on-submit">
-                            <i class="fa fa-chevron-left mr-2"></i>
-                            {% translate "BACK" %}
-                        </a>
-                        <button type="submit" class="btn btn-primary float-right">
-                            {% translate "SAVE & NEXT" %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+						</div>
+					</div>
+					<div class="card-footer">
+						<a href="{% url 'dashboard:grm:new_issue_step_2' obj.id %}"
+						   class="btn btn-secondary disabled-on-submit">
+							<i class="fa fa-chevron-left mr-2"></i>
+							{% translate "BACK" %}
+						</a>
+						<button type="submit" class="btn btn-primary float-right">
+							{% translate "SAVE & NEXT" %}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block modals %}
-    <div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+	<div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 {% endblock modals %}
 
 {% block select2 %}
-    <script type="text/javascript">
+	<script type="text/javascript">
         $("#id_issue_type").select2({
             placeholder: "{% translate 'Click to select the report' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_category").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_issue_sub_type").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_component").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_sub_component").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_subproject_group").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
-    </script>
+	</script>
 {% endblock select2 %}
 
 {% block javascript %}
-    {{ block.super }}
-    <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
-    <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
-    <script src="{% static 'js/dynamicOptionSelector.js' %}"></script>
-    <script type="text/javascript">
-        let load_attachments_spin = $('#load-attachments-spin');
+	{{ block.super }}
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+	<script src="{% static 'js/dynamicOptionSelector.js' %}"></script>
+	<script type="text/javascript">
 
         let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
         $("#id_issue_type").change(function () {
@@ -105,7 +109,9 @@
                 loadData(get_choices_url, data, 'id_sub_component');
             }
         });
-        
+
+        let load_attachments_spin = $('#load-attachments-spin');
+
         class FileFormAjaxSubmit extends FormAjaxSubmit {
             submitted_form() {
                 loadAttachments();
@@ -125,16 +131,16 @@
                 load_attachments_spin.hide();
             });
         }
-        
-		$(document).on('click', '#add_attachment', function () {
-			let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
-			file_form_ajax.load_form('#form', file_form_modal, url, false, true);
-		});
+
+        $(document).on('click', '#add_attachment', function () {
+            let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
+            file_form_ajax.load_form('#form', file_form_modal, url, false, true);
+        });
 
         $(document).ready(function () {
             loadAttachments();
         });
-        
+
         let dp1 = '<div class="input-group-prepend" data-target="#{id}" data-toggle="datetimepicker">' +
             '<div class="input-group-text"><i class="fa fa-calendar text-primary"></i></div></div>';
         let dp2 = '<div class="input-group date" id="{id}" data-target-input="nearest"></div>';
@@ -192,5 +198,5 @@
                     showPopupMessage(data.msg);
                 })
         });
-    </script>
+	</script>
 {% endblock javascript %}

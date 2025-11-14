@@ -41,6 +41,14 @@
 							{% if user_type == 'case_manager' %}
 								<div class="row mb-2">
 									<div class="col-md-12">
+										<label class="d-inline-block">{% translate 'Administrative Region' %}:</label>
+										<div class="d-inline-block">
+											{{ role_info.administrative_region }}
+										</div>
+									</div>
+								</div>
+								<div class="row mb-2">
+									<div class="col-md-12">
 										<label class="d-inline-block">{% translate 'Department' %}:</label>
 										<div class="d-inline-block">
 											{{ role_info.department }}

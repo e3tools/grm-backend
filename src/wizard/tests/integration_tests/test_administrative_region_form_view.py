@@ -119,6 +119,10 @@ class AdministrativeRegionFormViewTest(ViewTestCase):
         # 3 regions must have been created (1 root + 2 children)
         self.assertEqual(AdministrativeRegion.objects.count(), 3)
 
+        first_base_region = AdministrativeRegion.objects.filter(children__isnull=True).first()
+        self.assertEqual(first_base_region.name, "Buenos Aires")
+        self.assertEqual(first_base_region.hierarchical_name, "Buenos Aires, Argentina")
+
         messages = list(get_messages(response.wsgi_request))
         success_msgs = [m.message for m in messages if m.level_tag == "success"]
         self.assertEqual(success_msgs[0], ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE % {"count": 3})

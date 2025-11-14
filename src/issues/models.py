@@ -57,6 +57,7 @@ class AdministrativeRegion(models.Model):
     parent = models.ForeignKey(
         'self', on_delete=models.CASCADE, null=True, blank=True, related_name='children', db_index=True
     )
+    hierarchical_name = models.TextField(default='', db_index=True, verbose_name=_('Hierarchical Name'))
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
 
@@ -76,23 +77,66 @@ class AdministrativeRegion(models.Model):
                 qs = qs.exclude(pk=self.pk)
             if qs.exists():
                 raise ValidationError("Only one AdministrativeRegion can have no parent.")
+
+        # Update hierarchical_name before saving
+        update_hierarchy = kwargs.pop('update_hierarchy', True)
+        if update_hierarchy:
+            self.hierarchical_name = self._build_hierarchical_name()
+
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        if self.parent:
-            return f"{self.name} ({self.administrative_level.name}) - {self.parent.name}"
-        return f"{self.name} ({self.administrative_level.name})"
+        # Update children's hierarchy if this region's name changed
+        if update_hierarchy and self.pk:
+            self._update_children_hierarchy()
 
-    def get_full_hierarchy(self):
+    def __str__(self):
+        return self.hierarchical_name
+
+    def _build_hierarchical_name(self):
         """
-        Returns the full hierarchical path of the administrative region.
+        Builds the hierarchical name of the administrative region.
+        Order: current region -> parent -> grandparent -> root
         """
         hierarchy = [self.name]
         parent = self.parent
         while parent:
             hierarchy.append(parent.name)
             parent = parent.parent
-        return " > ".join(reversed(hierarchy))
+        return ", ".join(hierarchy)
+
+    def _update_children_hierarchy(self):
+        """
+        Updates hierarchical_name for all descendants using a single query.
+        """
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                WITH RECURSIVE hierarchy_update AS (
+                    -- Base case: direct children of the current region
+                    SELECT ar.id,
+                           ar.name,
+                           ar.parent_id,
+                           ar.name || ', ' || %s AS new_hierarchy
+                    FROM issues_administrativeregion ar
+                    WHERE ar.parent_id = %s
+
+                    UNION ALL
+
+                    -- Recursive case: children of children
+                    SELECT ar.id,
+                           ar.name,
+                           ar.parent_id,
+                           ar.name || ', ' || hu.new_hierarchy AS new_hierarchy
+                    FROM issues_administrativeregion ar
+                             INNER JOIN hierarchy_update hu ON ar.parent_id = hu.id)
+                UPDATE issues_administrativeregion
+                SET hierarchical_name = hierarchy_update.new_hierarchy FROM hierarchy_update
+                WHERE issues_administrativeregion.id = hierarchy_update.id
+                """,
+                [self.hierarchical_name, self.id],
+            )
 
     def get_full_hierarchy_ids(self):
         hierarchy_ids = [self.id]

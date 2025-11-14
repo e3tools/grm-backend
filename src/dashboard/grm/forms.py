@@ -138,10 +138,11 @@ class NewIssueDetailsForm(forms.Form):
         help_text=_("Date when the issue occurred"),
     )
     issue_type = forms.ChoiceField(label=_("What are you reporting"))
-    issue_sub_type = forms.ChoiceField(label=_("The sub type of grievance"))
-    category = forms.ChoiceField(label=_("The category of grievance"))
+    issue_sub_type = forms.ModelChoiceField(queryset=IssueSubType.objects.all(), label=_("The sub type of grievance"))
+    category = forms.ModelChoiceField(queryset=IssueCategory.objects.all(), label=_("The category of grievance"))
     component = forms.ChoiceField(label=_("Component"), required=False, help_text=_("This is an optional field"))
-    sub_component = forms.ChoiceField(
+    sub_component = forms.ModelChoiceField(
+        queryset=SubComponent.objects.all(),
         label=_("Sub Component"),
         required=False,
         help_text=_("This is an optional field"),
@@ -170,25 +171,20 @@ class NewIssueDetailsForm(forms.Form):
             self.fields["issue_type"].widget.choices = types
             self.fields["issue_type"].choices = types
 
-            issue_sub_types = IssueSubType.get_choices(parent=obj.issue_type)
-            self.fields["issue_sub_type"].widget.choices = issue_sub_types
-            self.fields["issue_sub_type"].choices = issue_sub_types
+            issue_sub_types = IssueSubType.get_choices(parent=obj.issue_type) if obj.issue_type else []
+            self.fields["issue_sub_type"].widget.choices = self.fields["issue_sub_type"].choices = issue_sub_types
 
-            categories = IssueCategory.get_choices(parent=obj.issue_sub_type)
-            self.fields["category"].widget.choices = categories
-            self.fields["category"].choices = categories
+            categories = IssueCategory.get_choices(parent=obj.issue_sub_type) if obj.issue_sub_type else []
+            self.fields["category"].widget.choices = self.fields["category"].choices = categories
 
             components = Component.get_choices()
-            self.fields["component"].widget.choices = components
-            self.fields["component"].choices = components
+            self.fields["component"].widget.choices = self.fields["component"].choices = components
 
-            sub_components = SubComponent.get_choices(parent=obj.component)
-            self.fields["sub_component"].widget.choices = sub_components
-            self.fields["sub_component"].choices = sub_components
+            sub_components = SubComponent.get_choices(parent=obj.component) if obj.component else []
+            self.fields["sub_component"].widget.choices = self.fields["sub_component"].choices = sub_components
 
             subproject_groups = SubProjectGroup.get_choices()
-            self.fields["subproject_group"].widget.choices = subproject_groups
-            self.fields["subproject_group"].choices = subproject_groups
+            self.fields["subproject_group"].widget.choices = self.fields["subproject_group"].choices = subproject_groups
 
             self.fields["intake_date"].widget.attrs["class"] = self.fields["issue_date"].widget.attrs["class"] = (
                 "form-control datetimepicker-input"
@@ -217,10 +213,28 @@ class NewIssueDetailsForm(forms.Form):
             if obj.ongoing_issue:
                 self.fields["ongoing_issue"].initial = obj.ongoing_issue
 
+        data = getattr(self, "data", None)
+        if data:
+            if data.get("issue_type"):
+                issue_type_id = data.get("issue_type")
+                issue_sub_types = IssueSubType.get_choices(parent=issue_type_id)
+                self.fields["issue_sub_type"].widget.choices = self.fields["issue_sub_type"].choices = issue_sub_types
+            if data.get("issue_sub_type"):
+                issue_sub_type_id = data.get("issue_sub_type")
+                categories = IssueCategory.get_choices(parent=issue_sub_type_id)
+                self.fields["category"].widget.choices = self.fields["category"].choices = categories
+            if data.get("component"):
+                component_id = data.get("component")
+                sub_components = SubComponent.get_choices(parent=component_id)
+                self.fields["sub_component"].widget.choices = self.fields["sub_component"].choices = sub_components
+
 
 class NewIssueLocationForm(forms.Form):
-    administrative_region = forms.ChoiceField()
-    administrative_region_value = forms.CharField(label="", required=False)
+    administrative_region = forms.ModelChoiceField(
+        queryset=AdministrativeRegion.objects.none(),
+        required=True,
+        label=_("Administrative Level"),
+    )
     location_description = forms.CharField(
         label=_("Briefly describe the issue location"),
         max_length=2000,
@@ -233,22 +247,17 @@ class NewIssueLocationForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if obj:
-            label = AdministrativeRegion.get_first_child_level_name()
-            self.fields["administrative_region"].label = label
-
-            administrative_region_choices = AdministrativeRegion.get_first_level_choices()
-            self.fields["administrative_region"].widget.choices = administrative_region_choices
-            self.fields["administrative_region"].choices = administrative_region_choices
-            self.fields["administrative_region"].widget.attrs["class"] = "region"
-            self.fields["administrative_region_value"].widget.attrs["class"] = "hidden"
-
             administrative_region = obj.administrative_region
             if administrative_region:
-                self.fields["administrative_region_value"].initial = administrative_region.id
-                self.fields["administrative_region"].initial = administrative_region.get_base_region_id()
+                self.fields["administrative_region"].initial = administrative_region
 
             if obj.location_description:
                 self.fields["location_description"].initial = obj.location_description
+
+        data = getattr(self, "data", None)
+        if data and data.get("administrative_region"):
+            region_id = data.get("administrative_region")
+            self.fields["administrative_region"].queryset = AdministrativeRegion.objects.filter(id=region_id)
 
 
 class NewIssueConfirmForm(forms.Form):
@@ -256,8 +265,9 @@ class NewIssueConfirmForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         for FormClass in (NewIssueLocationForm, NewIssueDetailsForm, NewIssuePersonForm, NewIssueContactForm):
-            subform = FormClass(obj=obj)
-            self.fields.update(subform.fields)
+            subform = FormClass(data=self.data, obj=obj)
+            for name, field in subform.fields.items():
+                self.fields[name] = field
 
 
 class NewIssueConfirmationForm(forms.Form):
@@ -301,7 +311,6 @@ class SearchIssueForm(forms.Form):
         self.fields["administrative_region"].widget.attrs["class"] = "region"
 
 
-# to check
 class IssueDetailsForm(forms.Form):
     assignee = forms.ChoiceField(label=_("Assigned to"))
 
@@ -328,7 +337,6 @@ class IssueDetailsForm(forms.Form):
             self.fields["assignee"].initial = ""
 
 
-# to check
 class IssueCommentForm(forms.Form):
     comment = forms.CharField(
         label="",
@@ -337,7 +345,6 @@ class IssueCommentForm(forms.Form):
     )
 
 
-# to check
 class IssueResearchResultForm(forms.Form):
     research_result = forms.CharField(
         label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})
@@ -349,7 +356,6 @@ class IssueResearchResultForm(forms.Form):
         self.fields["research_result"].initial = obj.research_result
 
 
-# to check
 class IssueRejectReasonForm(forms.Form):
     reject_reason = forms.CharField(
         label="", max_length=TEXTAREA_MAX_LENGTH, widget=forms.Textarea(attrs={"rows": "3"})

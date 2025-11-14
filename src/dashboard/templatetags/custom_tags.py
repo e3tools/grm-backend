@@ -28,41 +28,6 @@ def get_code(email):
 
 
 @register.simple_tag
-def get_status_phase(tasks):
-    len_tasks = len(tasks)
-    status = "in-progress"
-    completed = len([task for task in tasks if task["status"] == "completed"])
-    not_started = len([task for task in tasks if task["status"] == "not-started"])
-    if completed == len_tasks:
-        status = "completed"
-    elif not_started == len_tasks:
-        status = "not-started"
-    return status
-
-
-@register.simple_tag
-def get_completed_tasks(tasks):
-    len_tasks = len(tasks)
-    completed = len([task for task in tasks if task["status"] == "completed"])
-    return f"{completed}/{len_tasks}"
-
-
-@register.simple_tag
-def date_order_format(date):
-    data = date.split("-") if date else []
-    return f"{data[2]}{data[1]}{data[0]}" if len(data) > 2 else ""
-
-
-@register.simple_tag
-def get_date(date_time):
-    data = date_time.split("T") if date_time else ""
-    if data:
-        data = data[0].split("-")
-        data = f"{data[2]}-{data[1]}-{data[0]}" if len(data) > 2 else ""
-    return data
-
-
-@register.simple_tag
 def get_days_until_today(date_time):
     delta = timezone.now() - date_time
     return delta.days

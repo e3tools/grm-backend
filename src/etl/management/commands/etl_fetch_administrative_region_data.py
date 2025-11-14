@@ -1,10 +1,15 @@
 import copy
 
 from django.conf import settings
+from django.core.management import call_command
 
 from client import get_db
 from etl.management.commands.base_translated_command import TranslatedBaseCommand
-from etl.utils import bulk_create_or_update, process_administrative_region_data
+from etl.utils import (
+    bulk_create_or_update,
+    process_administrative_region_data,
+    reorder_level_names_by_depth,
+)
 from issues.models import AdministrativeRegion
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
@@ -47,5 +52,11 @@ class Command(TranslatedBaseCommand):
 
         administrative_levels_db = get_db()
         self.fetch_administrative_region(administrative_levels_db)
+
+        # reorder administrative levels
+        reorder_level_names_by_depth()
+
+        # update hierarchical_name field
+        call_command("update_region_hierarchical_names")
 
         self.stdout.write(self.style.SUCCESS('Successfully ran etl_fetch_administrative_region_data'))

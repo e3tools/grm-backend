@@ -1,222 +1,296 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=83 %}
+	{% include 'common/progress_bar.html' with percentage=83 %}
 {% endblock progress-bar %}
 
 {% block content %}
 	<h5>{% translate 'Step' %} 5</h5>
-    {% translate 'Edit' as edit %}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
+	{% translate 'Edit' as edit %}
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
 				<div class="card-header">
 					<h3 class="card-title">{% translate 'Confirm & Submit' %}</h3>
 				</div>
-                <form id="issue-form" method="post">{% csrf_token %}
+				<form id="issue-form" method="post">{% csrf_token %}
 					<div class="card-body bg-left-horizontal-waves">
-                        <div class="row">
-                            <div class="col-md-12">
-                                {% bootstrap_field form.contact_medium layout='horizontal' %}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="ml-4">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    {% bootstrap_field form.contact_type %}
-                                                </div>
-                                                <div class="col-md-6">
-                                                    {% bootstrap_field form.contact %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_citizen" class="label-align">
-                                            {{ form.citizen.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        {% bootstrap_field form.citizen show_label=False %}
-                                        {% bootstrap_field form.citizen_type %}
-                                    </div>
-                                </div>
-                                {% bootstrap_field form.citizen_age_group layout='horizontal' %}
-                                {% bootstrap_field form.gender layout='horizontal' %}
-                                {% bootstrap_field form.citizen_group layout='horizontal' %}
-                                {% comment %} {% bootstrap_field form.religious_affiliation layout='horizontal' %} {% endcomment %}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_intake_date" class="label-align">
-                                            {{ form.intake_date.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        {% bootstrap_field form.intake_date show_label=False %}
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_issue_date" class="label-align">
-                                            {{ form.issue_date.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        {% bootstrap_field form.issue_date show_label=False %}
-                                    </div>
-                                </div>
-                                {% bootstrap_field form.issue_type layout='horizontal' %}
-                                {% bootstrap_field form.issue_sub_type layout='horizontal' %}
-                                {% bootstrap_field form.category layout='horizontal' %}
-                                {% bootstrap_field form.component layout='horizontal' %}
-                                {% bootstrap_field form.sub_component layout='horizontal' %}
-                                {% bootstrap_field form.subproject_group layout='horizontal' %}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_description" class="label-align">
-                                            {{ form.description.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <a class="btn absolute-left-110 p-0 text-primary" id="edit-description"
-                                           title="{{ edit }}">
-                                            <i class="fas fa-edit fs17"></i>
-                                        </a>
-                                        <div id="description_value" class="mb-3"></div>
-                                        <div id="input_description" class="hidden input">
-                                            {% bootstrap_field form.description layout='horizontal' show_label=False %}
-                                        </div>
-                                    </div>
-                                </div>
-                                {% bootstrap_field form.ongoing_issue layout='horizontal' %}
+						<div class="row">
+							<div class="col-md-12">
+								{% bootstrap_field form.contact_medium layout='horizontal' %}
+								<div class="row">
+									<div class="col-md-3"></div>
+									<div class="col-md-9">
+										<div class="ml-4">
+											<div class="row">
+												<div class="col-md-6">
+													{% bootstrap_field form.contact_type %}
+												</div>
+												<div class="col-md-6">
+													{% bootstrap_field form.contact %}
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-3">
+										<label for="id_citizen" class="label-align">
+											{{ form.citizen.label }}
+										</label>
+									</div>
+									<div class="col-md-9">
+										{% bootstrap_field form.citizen show_label=False %}
+										{% bootstrap_field form.citizen_type %}
+									</div>
+								</div>
+								{% bootstrap_field form.citizen_age_group layout='horizontal' %}
+								{% bootstrap_field form.gender layout='horizontal' %}
+								{% bootstrap_field form.citizen_group layout='horizontal' %}
+								{% comment %}
+									{% bootstrap_field form.religious_affiliation layout='horizontal' %} {% endcomment %}
+								<div class="row">
+									<div class="col-md-3">
+										<label for="id_intake_date" class="label-align">
+											{{ form.intake_date.label }}
+										</label>
+									</div>
+									<div class="col-md-9">
+										{% bootstrap_field form.intake_date show_label=False %}
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-md-3">
+										<label for="id_issue_date" class="label-align">
+											{{ form.issue_date.label }}
+										</label>
+									</div>
+									<div class="col-md-9">
+										{% bootstrap_field form.issue_date show_label=False %}
+									</div>
+								</div>
+								{% bootstrap_field form.issue_type layout='horizontal' %}
+								{% bootstrap_field form.issue_sub_type layout='horizontal' %}
+								{% bootstrap_field form.category layout='horizontal' %}
+								{% bootstrap_field form.component layout='horizontal' %}
+								{% bootstrap_field form.sub_component layout='horizontal' %}
+								{% bootstrap_field form.subproject_group layout='horizontal' %}
+								<div class="row">
+									<div class="col-md-3">
+										<label for="id_description" class="label-align">
+											{{ form.description.label }}
+										</label>
+									</div>
+									<div class="col-md-9">
+										<a class="btn absolute-left-110 p-0 text-primary" id="edit-description"
+										   title="{{ edit }}">
+											<i class="fas fa-edit fs17"></i>
+										</a>
+										<div id="description_value" class="mb-3"></div>
+										<div id="input_description" class="hidden input">
+											{% bootstrap_field form.description layout='horizontal' show_label=False %}
+										</div>
+									</div>
+								</div>
+								{% bootstrap_field form.ongoing_issue layout='horizontal' %}
 								<div class="overlay-wrapper">
-                                    <div id="attachments"></div>
-                                    <div class="overlay" id="load-attachments-spin">
-                                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                                    </div>
-                                </div>
-                                {% bootstrap_field form.administrative_region layout='horizontal' %}
-                                {{ form.administrative_region_value }}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="id_description" class="label-align">
-                                            {{ form.location_description.label }}
-                                        </label>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <a class="btn absolute-left-110 p-0 text-primary" id="edit-location_description"
-                                           title="{{ edit }}">
-                                            <i class="fas fa-edit fs17"></i>
-                                        </a>
-                                        <div id="location_description_value" class="mb-3"></div>
-                                        <div id="input_location_description" class="hidden input">
-                                            {% bootstrap_field form.location_description layout='horizontal' show_label=False %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3"></div>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <a href="{% url 'dashboard:grm:new_issue_step_4' obj.id %}"
-                           class="btn btn-secondary disabled-on-submit">
-                            <i class="fa fa-chevron-left mr-2"></i>
-                            {% translate "BACK" %}
-                        </a>
-                        <button id="next" type="submit" class="btn btn-primary float-right">
-                            {% translate "SAVE & NEXT" %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+									<div id="attachments"></div>
+									<div class="overlay" id="load-attachments-spin">
+										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+									</div>
+								</div>
+								{% bootstrap_field form.administrative_region layout='horizontal' %}
+								{{ form.administrative_region_value }}
+								<div class="row">
+									<div class="col-md-3">
+										<label for="id_description" class="label-align">
+											{{ form.location_description.label }}
+										</label>
+									</div>
+									<div class="col-md-9">
+										<a class="btn absolute-left-110 p-0 text-primary" id="edit-location_description"
+										   title="{{ edit }}">
+											<i class="fas fa-edit fs17"></i>
+										</a>
+										<div id="location_description_value" class="mb-3"></div>
+										<div id="input_location_description" class="hidden input">
+											{% bootstrap_field form.location_description layout='horizontal' show_label=False %}
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-3"></div>
+						</div>
+					</div>
+					<div class="card-footer">
+						<a href="{% url 'dashboard:grm:new_issue_step_4' obj.id %}"
+						   class="btn btn-secondary disabled-on-submit">
+							<i class="fa fa-chevron-left mr-2"></i>
+							{% translate "BACK" %}
+						</a>
+						<button id="next" type="submit" class="btn btn-primary float-right">
+							{% translate "SAVE & NEXT" %}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 {% endblock content %}
 
 {% block modals %}
-    <div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+	<div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 {% endblock modals %}
 
 {% block select2 %}
-    <script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
-    <script type="text/javascript">
+	<script type="text/javascript">
         $("#id_contact_type").select2({
             placeholder: "{% translate 'Click to select contact method' %}",
             allowClear: true,
-            disabled: {% if obj.contact_information %}false{% else %}true{% endif %}
+            disabled: {% if obj.contact_information %}false{% else %}true{% endif %},
+            width: '100%'
         });
         $("#id_citizen_age_group").select2({
             placeholder: "{% translate 'Click to select age group' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_gender").select2({
             placeholder: "{% translate 'Click to select gender' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
+        });
+
+        $("#id_citizen_group").select2({
+            placeholder: "{% translate 'Click to select socio-professional group' %}",
+            allowClear: true,
+            width: '100%'
         });
         {% comment %} {% translate 'Click to select religion, nationality' as empty_group_msg %}
-        $("#id_citizen_group_1").select2({
-            placeholder: "{{ empty_group_msg }}",
-            allowClear: true
-        });
-        $("#id_citizen_group_2").select2({
-            placeholder: "{{ empty_group_msg }}",
-            allowClear: true
-        }); {% endcomment %}
-        {% translate 'Click to select socio-professional group' as empty_group_msg %}
-        $("#id_citizen_group").select2({
-            placeholder: "{{ empty_group_msg }}",
-            allowClear: true
-        });
-        {% comment %}
-		{% translate 'Click to select religious affiliation' as empty_religious_affiliation_msg %}
-        $("#id_religious_affiliation").select2({
-            placeholder: "{{ empty_religious_affiliation_msg }}",
-            allowClear: true
-        }); {% endcomment %}
+            $("#id_citizen_group_1").select2({
+                placeholder: "{{ empty_group_msg }}",
+                allowClear: true,
+                width: '100%'
+            });
+            $("#id_citizen_group_2").select2({
+                placeholder: "{{ empty_group_msg }}",
+                allowClear: true,
+                width: '100%'
+            });
+            $("#id_religious_affiliation").select2({
+                placeholder: "{% translate 'Click to select religious affiliation' %}",
+                allowClear: true,
+                width: '100%'
+            }); {% endcomment %}
+
         $("#id_issue_type").select2({
             placeholder: "{% translate 'Click to select the report' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_issue_sub_type").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_category").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_component").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_sub_component").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_subproject_group").select2({
             placeholder: "{% translate 'Click to select an item' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
-        $("#id_administrative_region").select2({
-            placeholder: "{% translate 'Click to select location' %}",
-            allowClear: true
-        });
-    </script>
+
+        const $regionSelect = $('#id_administrative_region');
+        const initialId = "{{ form.administrative_region.initial.id|default:'' }}";
+        const url = "{% url 'dashboard:grm:get_region_choices_for_select2' %}";
+
+        function initSelect2() {
+            $regionSelect.select2({
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, base_regions: true};
+                    },
+                    processResults: function (data) {
+                        return {results: data};
+                    },
+                },
+                width: '100%',
+                minimumInputLength: 1,
+                placeholder: "{% translate 'Click to select location' %}",
+                allowClear: true,
+                cache: true
+            });
+        }
+
+        // If there is an initial value, search for it in the backend before starting Select2.
+        if (initialId) {
+            $.ajax({
+                url: url,
+                data: {id: initialId},
+                dataType: 'json',
+            }).then(function (data) {
+                if (data && data.length > 0) {
+                    const item = data[0];
+                    // Insert the option in the select
+                    const option = new Option(item.text, item.id, true, true);
+                    $regionSelect.append(option).trigger('change');
+                }
+                initSelect2();  // initialize after loading the option
+            });
+        } else {
+            // There is no initial value, just initialize normally.
+            initSelect2();
+        }
+	</script>
 {% endblock select2 %}
 
 {% block javascript %}
-    {{ block.super }}
-    <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
-    <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
-    <script src="{% static 'js/deselectableRadios.js' %}"></script>
-    <script type="text/javascript">
+	{{ block.super }}
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+	<script src="{% static 'js/deselectableRadios.js' %}"></script>
+	<script src="{% static 'js/dynamicOptionSelector.js' %}"></script>
+	<script type="text/javascript">
         deselectableRadios("id_citizen_type");
+
+        let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
+        $("#id_issue_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'IssueSubType', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_issue_sub_type');
+            }
+        });
+
+        $("#id_issue_sub_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'IssueCategory', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_category');
+            }
+        });
+
+        $("#id_component").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'SubComponent', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_sub_component');
+            }
+        });
 
         let load_attachments_spin = $('#load-attachments-spin');
 
@@ -229,7 +303,7 @@
         let file_form_ajax = new FileFormAjaxSubmit();
         let file_form_modal = $('#formModal');
 
-		function loadAttachments() {
+        function loadAttachments() {
             load_attachments_spin.show();
             $('#attachments').load("{% url 'dashboard:grm:issue_attachments' obj.id %}", function (
                 response, status, xhr) {
@@ -377,10 +451,5 @@
             $("#id_location_description").focus();
         });
 
-        let get_ancestors_url = '{% url 'dashboard:grm:get_ancestor_administrative_levels' %}';
-        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
-        let choice_placeholder = "{% translate 'Click to select location' %}";
-        changeRegionTrigger(get_choices_url, choice_placeholder);
-        loadRegionSelectors(get_ancestors_url);
-    </script>
+	</script>
 {% endblock javascript %}
