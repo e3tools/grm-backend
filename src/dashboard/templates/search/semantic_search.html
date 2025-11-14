@@ -16,16 +16,13 @@
 	{{ block.super }}
 	<script src="{% static 'plugins/htmx/htmx.min.js' %}"></script>
 	<script>
+
         // Re-enable submit buttons after any HTMX swap
         document.body.addEventListener('htmx:afterSwap', () => {
             document.querySelectorAll('button[type="submit"]').forEach(btn => btn.disabled = false);
 
             // Reapply Select2 every time the DOM changes (due to HTML)
-            $('#searchForm select').select2({
-                width: '100%',
-                placeholder: "{% translate 'All' %}",
-                allowClear: true
-            });
+            checkSelect2Initialized();
         });
 
         document.body.addEventListener('htmx:beforeRequest', function () {
@@ -45,10 +42,58 @@
 
 {% block select2 %}
 	<script type="text/javascript">
-        $('#searchForm select').select2({
-            width: '100%',
-            placeholder: "{% translate 'All' %}",
-            allowClear: true
-        });
+        const url = "{% url 'dashboard:grm:get_region_choices_for_select2' %}";
+
+        function initSelect2() {
+            $('#searchForm select:not(#administrative_region)').select2({
+                width: '100%',
+                placeholder: "{% translate 'All' %}",
+                allowClear: true
+            });
+            $('#administrative_region').select2({
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term, with_issues: true};
+                    },
+                    processResults: function (data) {
+                        return {results: data};
+                    },
+                },
+                width: '100%',
+                minimumInputLength: 1,
+                placeholder: "{% translate 'All' %}",
+                allowClear: true,
+                cache: true,
+            });
+        }
+
+        function checkSelect2Initialized() {
+            // If there is an initial value, search for it in the backend before starting Select2.
+            let initialId = $('#administrative_region').data('value');
+			if (initialId) {
+                $.ajax({
+                    url: url,
+                    data: {id: initialId},
+                    dataType: 'json',
+                }).then(function (data) {
+                    if (data && data.length > 0) {
+                        const item = data[0];
+                        // Insert the option in the select
+                        const option = new Option(item.text, item.id, true, true);
+                        $('#administrative_region').append(option).trigger('change');
+                    }
+                    initSelect2();  // initialize after loading the option
+                });
+            } else {
+                // There is no initial value, just initialize normally.
+                initSelect2();
+            }
+        }
+
+        checkSelect2Initialized();
+
 	</script>
 {% endblock select2 %}

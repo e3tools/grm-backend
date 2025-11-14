@@ -41,15 +41,13 @@
 				</div>
 				<div class="card-body">
 					<div class="row">
-						<div class="col-md-4 issues-filter">
+						<div class="col-md-6 issues-filter">
 							{% bootstrap_field form.start_date layout='horizontal' show_label=False %}
 							{% bootstrap_field form.end_date layout='horizontal' show_label=False %}
-						</div>
-						<div class="col-md-4 issues-filter border-left">
 							{% bootstrap_field form.type layout='horizontal' show_label=False %}
 							{% bootstrap_field form.category layout='horizontal' show_label=False %}
 						</div>
-						<div class="col-md-4 regions-filter border-left">
+						<div class="col-md-6 regions-filter">
 							{% bootstrap_field form.administrative_region layout='horizontal' %}
 						</div>
 					</div>
@@ -76,8 +74,8 @@
 					<div class="col-md-6 display-flex flex-flow-column">
 						<div class="card h-100">
 							<div class="card-body table-responsive overflow-y-auto" style="max-height: 650px;">
-								<table id="table" class="table">
-									<thead class="primary">
+								<table class="table table-sm">
+									<thead>
 									<tr>
 										<th id="administrative_level_label"></th>
 										<th>{{ number }}</th>
@@ -104,8 +102,8 @@
 						</div>
 						<div class="card">
 							<div class="card-body table-responsive">
-								<table id="table" class="table">
-									<thead class="primary">
+								<table class="table table-sm">
+									<thead>
 									<tr>
 										<th>{{ status }}</th>
 										<th>{{ number }}</th>
@@ -130,8 +128,8 @@
 						</div>
 						<div class="card">
 							<div class="card-body table-responsive">
-								<table id="table" class="table">
-									<thead class="primary">
+								<table class="table table-sm">
+									<thead>
 									<tr>
 										<th>{{ type }}</th>
 										<th>{{ number }}</th>
@@ -156,8 +154,8 @@
 						</div>
 						<div class="card">
 							<div class="card-body table-responsive">
-								<table id="table" class="table">
-									<thead class="primary">
+								<table class="table table-sm">
+									<thead>
 									<tr>
 										<th>{{ category }}</th>
 										<th>{{ number }}</th>
@@ -411,7 +409,7 @@
                     });
 
                     if (Object.keys(region_stats).length > 0) {
-                        let level = region_stats[Object.keys(region_stats)[0]].level;
+                        let level = region_stats[Object.keys(region_stats).at(-1)].level;
                         administrative_level_label.html(level);
 
                         $.each(region_stats, function (administrative_id, region) {

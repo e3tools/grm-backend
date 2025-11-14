@@ -39,7 +39,7 @@
 		<div class="card">
 			<div class="card-body table-responsive">
 				<table id="table" class="table">
-					<thead class="primary">
+					<thead>
 					<tr>
 						<th>{% translate 'ID Number' %}</th>
 						<th>{% translate 'Access Code' %}</th>
@@ -239,19 +239,23 @@
 	<script type="text/javascript">
         $("#id_assigned_to").select2({
             placeholder: "{% translate 'Assigned to' %}",
-            allowClear: true
+            allowClear: true,
+			width: '100%'
         });
         $("#id_category").select2({
             placeholder: "{% translate 'Category' %}",
-            allowClear: true
+            allowClear: true,
+			width: '100%'
         });
         $("#id_type").select2({
             placeholder: "{% translate 'Type' %}",
             allowClear: true,
+			width: '100%'
         });
         $("#id_status").select2({
             placeholder: "{% translate 'Status' %}",
             allowClear: true,
+			width: '100%'
         });
 
 	</script>

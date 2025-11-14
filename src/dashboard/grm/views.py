@@ -290,10 +290,10 @@ class NewIssueMixin(PageMixin, LoginRequiredMixin, IssueFormMixin):
         self.obj.intake_date = data["intake_date"]
         self.obj.issue_date = data["issue_date"]
         self.obj.issue_type_id = int(data["issue_type"])
-        self.obj.issue_sub_type_id = int(data["issue_sub_type"])
-        self.obj.category_id = int(data["category"])
+        self.obj.issue_sub_type = data["issue_sub_type"]
+        self.obj.category = data["category"]
         self.obj.component_id = int(data["component"]) if data["component"] else None
-        self.obj.sub_component_id = int(data["sub_component"]) if data["sub_component"] else None
+        self.obj.sub_component = data["sub_component"] if data["sub_component"] else None
         self.obj.subproject_group_id = int(data["subproject_group"]) if data["subproject_group"] else None
         self.obj.description = data["description"]
         self.obj.ongoing_issue = data["ongoing_issue"]
@@ -327,7 +327,7 @@ class NewIssueMixin(PageMixin, LoginRequiredMixin, IssueFormMixin):
                 return citizen
 
     def set_location_fields(self, data):
-        self.obj.administrative_region_id = int(data["administrative_region_value"])
+        self.obj.administrative_region = data["administrative_region"]
         self.obj.location_description = data["location_description"]
 
     def set_assignee(self):
@@ -969,13 +969,21 @@ class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, JSONRespo
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         selected_id = request.GET.get('id')
+        base_regions = request.GET.get('base_regions')
+        with_issues = request.GET.get('with_issues')
 
         qs = AdministrativeRegion.objects.all().select_related('administrative_level')
 
         if selected_id:
             qs = qs.filter(id=selected_id)
         elif query:
-            qs = qs.filter(name__istartswith=query)
+            qs = qs.filter(hierarchical_name__istartswith=query)
+
+        if base_regions:
+            qs = qs.exclude(children__isnull=False)
+
+        if with_issues:
+            qs = qs.exclude(issues__isnull=True)
 
         results = [{'id': item.id, 'text': str(item)} for item in qs[:10]]
         return self.render_to_json_response(results, safe=False)

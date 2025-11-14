@@ -33,7 +33,6 @@ class Command(TranslatedBaseCommand):
         update_keys(Pdata)
 
     def handle_translated(self, *args, **options):
-        Issue.objects.all().delete()
 
         self.stdout.write(self.style.NOTICE('Running: etl_fetch_all_data'))
 

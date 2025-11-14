@@ -17,27 +17,24 @@
 			</button>
 		</div>
 		<div class="table-responsive">
-			<table id="table" class="table table-hover user-table">
+			<table id="table" class="table table-hover">
 				<thead>
 				<tr>
-					{% if user_type == facilitator_choice %}
-						<th>{% translate 'Administrative Level' %}</th>
-					{% endif %}
 					<th>{% translate 'Photo' %}</th>
 					<th>{% translate 'Name' %}</th>
+					{% if user_type != grm_manager %}
+						<th>{% translate 'Role info' %}</th>
+						<th>{% translate 'Administrative Level' %}</th>
+					{% endif %}
 					<th>{% translate 'Last activity' %}</th>
 					<th>Last active</th>
 					<th class="text-center">{% translate 'Action' %}</th>
 				</tr>
 				</thead>
 				<tbody>
-				{% translate 'Unassigned' as unassigned %}
 				{% translate 'Never' as never %}
 				{% for item in users_with_type %}
 					<tr>
-						{% if user_type == facilitator_choice %}
-							<td>{{ item.user.facilitator.administrative_region.name|default:unassigned }}</td>
-						{% endif %}
 						<td>
 							{% if item.user.photo %}
 								<img src="{{ item.user.photo.url }}" class="profile-user-img-list"/>
@@ -46,11 +43,18 @@
 							{% endif %}
 						</td>
 						<td>{{ item.user.name }}</td>
+						{% if user_type != grm_manager %}
+							<td>{{ item.role_info }}</td>
+							{% if item.user.facilitator %}
+								<td>{{ item.user.facilitator.administrative_region.hierarchical_name }}</td>
+							{% elif item.user.governmentworker %}
+								<td>{{ item.user.governmentworker.administrative_region.hierarchical_name }}</td>
+							{% endif %}
+						{% endif %}
 						<td>{{ item.user.last_login|date|default:never }}</td>
 						<td>{{ item.user.last_login|date:"Ymd" }}</td>
 						<td class="text-center">
-							<a href="{% url 'dashboard:user_management:detail' item.user.id %}"
-							   class="btn btn-primary">
+							<a href="{% url 'dashboard:user_management:detail' item.user.id %}" class="btn btn-primary">
 								{% translate 'View Profile' %}
 							</a>
 						</td>

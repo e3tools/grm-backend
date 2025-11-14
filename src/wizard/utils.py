@@ -258,7 +258,7 @@ class AdministrativeRegionProcessor:
         Main method to process Excel file and create AdministrativeRegions.
 
         Returns:
-            Tuple of (created_count, duplicate_count)
+            Tuple of (created_count, duplicate_count, not_deleted_count)
         """
         logger.info("Starting Excel processing...")
 
@@ -270,7 +270,7 @@ class AdministrativeRegionProcessor:
             wb = load_workbook(file_obj)
             ws = wb.active
 
-            # Check header row exists
+            # Validate header row
             headers = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1), [])]
             if not headers or all(h is None for h in headers):
                 raise ValidationError(ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE)
@@ -304,8 +304,18 @@ class AdministrativeRegionProcessor:
                         if len(row_values) < len(admin_levels):
                             row_values.extend([None] * (len(admin_levels) - len(row_values)))
 
-                        # Process this row
-                        self.process_excel_row(row_values[: len(admin_levels)], admin_levels)
+                        # Process hierarchy
+                        regions = self.process_excel_row(row_values[: len(admin_levels)], admin_levels)
+
+                        # Build hierarchical_name inline
+                        for region in regions:
+                            parts = [region.name]
+                            parent = region.parent
+                            while parent:
+                                parts.append(parent.name)
+                                parent = parent.parent
+                            region.hierarchical_name = ", ".join(parts)
+
                         self.stats['rows_processed'] += 1
 
                         # Log progress every 1000 rows

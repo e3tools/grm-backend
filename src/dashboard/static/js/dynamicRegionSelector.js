@@ -99,27 +99,3 @@ function loadNextLevelRegions(current_level, url, placeholder) {
         });
     }
 }
-
-function loadRegionSelectors(url) {
-    let administrative_region_value = $("#id_administrative_region_value").val();
-    $.ajax({
-        type: 'GET',
-        url: url,
-        data: {
-            region_id: administrative_region_value,
-        },
-        success: function (data) {
-            if (data.length > 0) {
-                data = data.slice(1);
-                data.push(administrative_region_value);
-                ancestors = data;
-                loadNextLevelRegions($("select.region:last"), get_choices_url, choice_placeholder);
-            } else {
-                $('#next').prop('disabled', false);
-            }
-        },
-        error: function (data) {
-            alert(error_server_message + "Error " + data.status);
-        }
-    });
-}

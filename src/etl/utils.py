@@ -30,6 +30,7 @@ from grm.constants import (
 )
 from issues.models import (
     AdministrativeLevel,
+    AdministrativeRegion,
     Citizen,
     Comment,
     Issue,
@@ -785,3 +786,95 @@ def fetch_database(cmd, result, model_class):
     cmd.stdout.write(cmd.style.NOTICE(f"Updated {result['total_updated']} {model_name}  objects"))
     cmd.stdout.write(cmd.style.NOTICE(f"Processed {result['total_processed']} {model_name}  objects"))
     return result
+
+
+def reorder_level_names_by_depth():
+    """
+    Reassign AdministrativeLevel names so that their order by `id`
+    matches the order by `depth` of their related AdministrativeRegions.
+
+    This preserves all FK relationships by creating a mapping of old->new levels
+    and updating all related objects accordingly.
+    """
+
+    # Load all levels once
+    levels = list(AdministrativeLevel.objects.all().order_by("id"))
+
+    if not levels:
+        print("No administrative levels found.")
+        return
+
+    # ---- STEP 1: Determine depth for each level ----
+    level_depths = []
+
+    for level in levels:
+        region = AdministrativeRegion.objects.filter(administrative_level=level).order_by("id").first()
+
+        if not region:
+            depth = 10**9
+        else:
+            depth = len(region.get_full_hierarchy_ids())
+
+        level_depths.append((level, depth))
+
+    # ---- STEP 2: Sort levels by depth ----
+    levels_sorted_by_depth = sorted(level_depths, key=lambda x: x[1])
+    new_name_order = [lvl.name for lvl, _ in levels_sorted_by_depth]
+
+    # ---- STEP 3: Sort levels by id ----
+    levels_sorted_by_id = sorted(levels, key=lambda lvl: lvl.id)
+
+    # ---- STEP 4: Create ID mapping ----
+    # Map: old_level_id -> new_level_id (where name should go)
+    old_to_new_level_id = {}
+
+    for (old_level, _), target_level in zip(levels_sorted_by_depth, levels_sorted_by_id):
+        old_to_new_level_id[old_level.id] = target_level.id
+
+    # ---- STEP 5: Execute swap with FK preservation ----
+    with transaction.atomic():
+
+        # Store all FK relationships before any changes
+        region_mappings = []
+        dept_level_mappings = []
+
+        for old_level_id, new_level_id in old_to_new_level_id.items():
+            # Get regions for this old level
+            regions = list(
+                AdministrativeRegion.objects.filter(administrative_level_id=old_level_id).values_list('id', flat=True)
+            )
+            if regions:
+                region_mappings.append((regions, new_level_id))
+
+            # Get department-level associations
+            dept_levels = list(
+                IssueDepartmentAdministrativeLevel.objects.filter(administrative_level_id=old_level_id).values_list(
+                    'id', flat=True
+                )
+            )
+            if dept_levels:
+                dept_level_mappings.append((dept_levels, new_level_id))
+
+        # Set temp names
+        for lvl in levels_sorted_by_id:
+            lvl.name = f"__TEMP__{lvl.id}__"
+            lvl.save(update_fields=["name"])
+
+        # Assign new names
+        for lvl, new_name in zip(levels_sorted_by_id, new_name_order):
+            lvl.name = new_name
+            lvl.save(update_fields=["name"])
+
+        # Update all FK relationships
+        for region_ids, new_level_id in region_mappings:
+            AdministrativeRegion.objects.filter(id__in=region_ids).update(administrative_level_id=new_level_id)
+
+        for dept_level_ids, new_level_id in dept_level_mappings:
+            IssueDepartmentAdministrativeLevel.objects.filter(id__in=dept_level_ids).update(
+                administrative_level_id=new_level_id
+            )
+
+    print("\nNew order:")
+    for i, lvl in enumerate(AdministrativeLevel.objects.all().order_by("id"), 1):
+        region_count = AdministrativeRegion.objects.filter(administrative_level=lvl).count()
+        print(f"  {i}. {lvl.name} (ID: {lvl.id}, {region_count} regions)")

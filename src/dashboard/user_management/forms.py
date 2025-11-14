@@ -160,7 +160,6 @@ class CaseManagerCreationForm(BaseUserCreationForm):
     )
     case_manager_administrative_region = forms.ModelChoiceField(
         queryset=AdministrativeRegion.objects.none(),
-        required=True,
         widget=forms.Select(attrs={"class": "form-control region"}),
         label=_("Administrative Level"),
     )
@@ -231,7 +230,6 @@ class FacilitatorCreationForm(BaseUserCreationForm):
 
     administrative_region = forms.ModelChoiceField(
         queryset=AdministrativeRegion.objects.none(),
-        required=True,
         widget=forms.Select(attrs={"class": "form-control region"}),
         label=_("Administrative Level"),
     )
