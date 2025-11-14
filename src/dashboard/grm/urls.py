@@ -4,7 +4,6 @@ from dashboard.grm import views
 
 app_name = "grm"
 urlpatterns = [
-    path("", views.DashboardTemplateView.as_view(), name="dashboard"),
     path(
         "upload-issue-attachment/<int:issue>/",
         views.UploadIssueAttachmentFormView.as_view(),

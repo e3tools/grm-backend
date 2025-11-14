@@ -939,17 +939,6 @@ a.text-muted:hover {
     background-color: #24c38b !important;
 }
 
-.text-box {
-    max-width: 262px;
-    min-width: 209px;
-    width: 100%;
-    font-size: 17px;
-    font-weight: bolder;
-    vertical-align: middle;
-    text-align: left;
-    background-color: #ffffff;
-}
-
 .bg-left-horizontal-waves {
     background-image: url("../images/bg-left-horizontal-waves.png");
     background-repeat: no-repeat;
