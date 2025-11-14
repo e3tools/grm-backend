@@ -32,10 +32,10 @@
 					</a>
 				</li>
 				<li class="nav-item">
-					<a href="{% url 'dashboard:grm:dashboard' %}"
-					   class="nav-link {% if active_level1 == 'grm' %}active{% endif %}">
-						<i class="nav-icon fas fa-comment-alt"></i>
-						<p>{% translate "GRM" %}</p>
+					<a href="{% url 'dashboard:grm:review_issues' %}"
+					   class="nav-link {% if active_level1 == 'review_issues' %}active{% endif %}">
+						<i class="nav-icon fas fa-list-alt"></i>
+						<p>{% translate "Review Issues" %}</p>
 					</a>
 				</li>
 				<li class="nav-item">
@@ -43,6 +43,13 @@
 					   class="nav-link {% if active_level1 == 'search_issues' %}active{% endif %}">
 						<i class="nav-icon fa fa-search"></i>
 						<p>{% translate "Search Issues" %}</p>
+					</a>
+				</li>
+				<li class="nav-item">
+					<a href='#' id='enter-issue'
+					   class="nav-link {% if active_level1 == 'new_issue' %}active{% endif %}">
+						<i class="nav-icon fas fa-plus-square"></i>
+						<p>{% translate 'New Issue' %}</p>
 					</a>
 				</li>
 				{% if user.grm_manager %}
@@ -63,21 +70,9 @@
 							<p>{% translate "Subprojects" %}</p>
 						</a>
 					</li>
-					<nav class="logs border-top">
-						<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
-							<li class="nav-item">
-								<a href="{% url 'dashboard:logs:dashboard' %}"
-								   class="nav-link {% if active_level1 == 'logs' %}active{% endif %}">
-									<i class="nav-icon icon icon-color ic-logs-color"></i>
-									<p>{% translate "Logs" %}</p>
-								</a>
-							</li>
-						</ul>
-					</nav>
 				{% endcomment %}
 			</ul>
 		</nav>
-
 		<nav class="toogle-sidebar-button">
 			<ul class="nav nav-pills nav-sidebar flex-column">
 				<li class="nav-item">
@@ -92,3 +87,7 @@
 	</div>
 	<!-- /.sidebar -->
 </aside>
+
+<form class="d-none" id='enter-issue-form' action="{% url 'dashboard:grm:start_new_issue' %}" method="post">
+	{% csrf_token %}
+</form>

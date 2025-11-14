@@ -57,23 +57,6 @@ COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
 
 
-class DashboardTemplateView(PageMixin, LoginRequiredMixin, generic.TemplateView):
-    """Dashboard main view. Accessible by GRM Manager and Case Manager."""
-
-    template_name = "grm/dashboard.html"
-    title = _("GRM")
-    active_level1 = "grm"
-    breadcrumb = [
-        {"url": "", "title": title},
-    ]
-
-    def dispatch(self, request, *args, **kwargs):
-        # Only GRM Manager and Case Manager can access dashboard
-        if not request.user.grm_manager and not hasattr(request.user, 'governmentworker'):
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-
-
 class StartNewIssueView(LoginRequiredMixin, generic.View):
     """Start creating a new issue. Accessible by GRM Manager and Case Manager."""
 
@@ -245,12 +228,8 @@ class NewIssueMixin(PageMixin, LoginRequiredMixin, IssueFormMixin):
     The filter in get_query_result ensures only the reporter can access their own issue.
     """
 
-    title = _("GRM")
-    active_level1 = "grm"
-    breadcrumb = [
-        {"url": reverse_lazy("dashboard:grm:dashboard"), "title": _("GRM")},
-        {"url": "", "title": _("Enter New Issue")},
-    ]
+    title = _("Enter New Issue")
+    active_level1 = "new_issue"
     fields_to_check = None
 
     def dispatch(self, request, *args, **kwargs):
@@ -511,11 +490,7 @@ class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     form_class = SearchIssueForm
     template_name = "grm/review_issues.html"
     title = _("Review Issues")
-    active_level1 = "grm"
-    breadcrumb = [
-        {"url": reverse_lazy("dashboard:grm:dashboard"), "title": _("GRM")},
-        {"url": "", "title": title},
-    ]
+    active_level1 = "review_issues"
 
 
 class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
@@ -665,9 +640,8 @@ class IssueDetailsFormView(
     form_class = IssueDetailsForm
     template_name = "grm/issue_detail.html"
     title = _("Issue Detail")
-    active_level1 = "grm"
+    active_level1 = "review_issues"
     breadcrumb = [
-        {"url": reverse_lazy("dashboard:grm:dashboard"), "title": _("GRM")},
         {
             "url": reverse_lazy("dashboard:grm:review_issues"),
             "title": _("Review Issues"),

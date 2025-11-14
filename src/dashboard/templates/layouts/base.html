@@ -78,6 +78,13 @@
 
 {% block javascript %}
     {% include 'layouts/foot.html' %}
+
+	<script type="text/javascript">
+        $('#enter-issue').on("click", function () {
+            $("#enter-issue-form").submit();
+        });
+	</script>
+
     {% block select2 %}
         <script type="text/javascript">
             $(document).ready(function () {
