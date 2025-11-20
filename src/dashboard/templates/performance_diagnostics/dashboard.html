@@ -1,0 +1,164 @@
+{% extends "layouts/base.html" %}{% load bootstrap4 static i18n %}
+
+{% block content %}
+
+	<!-- Filter Card -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<div class="card filter-card">
+				<div class="card-header">
+					<h3 class="card-title">
+						{% translate 'Filter by' %}
+					</h3>
+				</div>
+				<div class="card-body">
+					<div class="issues-filter">
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group row">
+									<label for="period" class="col-md-3 form-label">
+										{% translate "Date Range" %}
+									</label>
+									<div class="col-md-9">
+										<select name="period" id="period" class="form-control">
+											{% for value, label in period_choices %}
+												<option value="{{ value }}" {% if forloop.first %}selected{% endif %}>
+													{{ label }}
+												</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<label for="category" class="col-md-3 form-label">
+										{% translate "Category" %}
+									</label>
+									<div class="col-md-9">
+										<select name="category" id="category" class="form-control">
+											<option value="">{% translate "All Categories" %}</option>
+											{% for cat in available_categories %}
+												<option value="{{ cat.id }}">{{ cat.name }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								{% bootstrap_field form.administrative_region layout='horizontal' %}
+							</div>
+						</div>
+						<a class="btn text-bold text-primary pull-right" id="clear_all_filters">
+							{% translate "Clear all filters" %}
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- KPI Cards Container -->
+	<div id="kpi-container"></div>
+	<div class="justify-content-center" id="kpi-spin">
+		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+	</div>
+{% endblock %}
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
+	<script>
+        let kpi_spin = $('#kpi-spin');
+        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
+        let choice_placeholder = "{% translate 'Click to select location' %}";
+
+        function loadKPIs() {
+            kpi_spin.show();
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'dashboard:performance_diagnostics:api_metrics' %}',
+                data: {
+                    period: $('#period').val(),
+                    category: $('#category').val(),
+                    administrative_region: current_region_id,
+                },
+                success: function (data) {
+                    $('#kpi-container').html(data);
+                    kpi_spin.hide();
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                    kpi_spin.hide();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            loadKPIs();
+		});
+
+        document.addEventListener("region:changed", function (event) {
+            loadKPIs();
+        });
+
+        changeRegionTrigger(get_choices_url, choice_placeholder);
+
+        $("#clear_all_filters").on("click", function () {
+            $('.issues-filter select:not(#period)').val(null).trigger('change.select2');
+            $('#period').val('7d').trigger('change.select2');
+            current_region_id = null;
+            loadKPIs();
+            loadNextLevelRegions($("#id_administrative_region"), '', '');
+        });
+
+        $('.issues-filter select').on('change', function () {
+            loadKPIs();
+        });
+
+        // Update last updated time every minute
+        function updateLastUpdatedTime() {
+            const lastUpdatedElement = document.getElementById('last-updated-time');
+            if (lastUpdatedElement) {
+                const timestamp = lastUpdatedElement.getAttribute('data-timestamp');
+                if (timestamp) {
+                    const lastUpdated = new Date(timestamp);
+                    const now = new Date();
+                    const diffMinutes = Math.floor((now - lastUpdated) / 60000);
+
+                    let timeText;
+                    if (diffMinutes < 1) {
+                        timeText = "{% translate "Just now" %}";
+                    } else if (diffMinutes === 1) {
+                        timeText = "{% translate "1 minute ago" %}";
+                    } else if (diffMinutes < 60) {
+                        timeText = `${diffMinutes} {% translate "minutes ago" %}`;
+                    } else if (diffMinutes < 120) {
+                        timeText = "{% translate "1 hour ago" %}";
+                    } else {
+                        const hours = Math.floor(diffMinutes / 60);
+                        timeText = `${hours} {% translate "hours ago" %}`;
+                    }
+
+                    lastUpdatedElement.textContent = timeText;
+                }
+            }
+        }
+
+        // Update every minute
+        setInterval(updateLastUpdatedTime, 60000);
+
+        // Initial update
+        setTimeout(updateLastUpdatedTime, 1000);
+	</script>
+{% endblock %}
+
+{% block select2 %}
+	<script type="text/javascript">
+        $('.issues-filter select:not(#period)').select2({
+            width: '100%',
+            placeholder: "{% translate 'All' %}",
+            allowClear: true
+        });
+        $('#period').select2({width: '100%'});
+	</script>
+{% endblock %}
+

@@ -1,5 +1,6 @@
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -40,7 +41,7 @@ class CitizenLoginAPIViewTest(APITestCase):
     def test_successful_login_with_citizen(self):
         """Test successful login when user has a Citizen profile."""
         login_data = {"username": self.username, "password": self.password}
-
+        before = timezone.now()
         response = self.client.post(self.url, login_data, format="json")
 
         assert response.status_code == status.HTTP_200_OK
@@ -61,6 +62,10 @@ class CitizenLoginAPIViewTest(APITestCase):
         # Verify token was created in database
         token = Token.objects.get(user=self.user)
         assert token.key == response.data["token"]
+
+        # Check last_login was updated
+        self.user.refresh_from_db()
+        assert self.user.last_login >= before
 
     def test_login_without_citizen_profile(self):
         """Test login fails when user does not have a Citizen profile."""

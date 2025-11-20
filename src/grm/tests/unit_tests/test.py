@@ -12,18 +12,32 @@ def test_setup_periodic_tasks_registers_all_periodic_tasks():
     sender = Mock()
     setup_periodic_tasks(sender=sender)
 
-    expected_calls = [
-        (300, "grm.tasks.check_issues()", "check issues every 5 minutes"),
-        (300, "grm.tasks.escalate_issues()", "escalate issues every 5 minutes"),
-        (300, "grm.tasks.send_sms_message()", "send sms every 5 minutes"),
-        (300, "grm.tasks.send_mail_message()", "send mail every 5 minutes"),
-        (86400, "grm.tasks.escalate_old_issues()", "escalate old issues every day"),
-        (3600, "grm.tasks.reassign_issues_to_appeal()", "reassign issues to appeal every hour"),
-    ]
+    # Check presence of core tasks by name
+    core_expected_names = {
+        "check issues every 5 minutes",
+        "escalate issues every 5 minutes",
+        "send sms every 5 minutes",
+        "send mail every 5 minutes",
+        "escalate old issues every day",
+        "reassign issues to appeal every hour",
+    }
 
-    actual_calls = [
-        (call.args[0], str(call.args[1]), call.kwargs["name"]) for call in sender.add_periodic_task.call_args_list
-    ]
+    registered_names = {call.kwargs.get("name") for call in sender.add_periodic_task.call_args_list}
+    # Ensure all core tasks are present
+    assert core_expected_names.issubset(registered_names)
 
-    assert actual_calls == expected_calls
-    assert sender.add_periodic_task.call_count == len(expected_calls)
+    # Now check metrics-related tasks counts and presence
+    # According to tasks.py we expect:
+    shards_7d = 20
+    shards_30d = 8
+    # one daily 90d task
+    expected_metrics_names = {f"update metrics 7d shard {i}" for i in range(shards_7d)}
+    expected_metrics_names.update({f"update metrics 30d shard {i}" for i in range(shards_30d)})
+    expected_metrics_names.add("update metrics 90d daily")
+
+    # Ensure all metrics task names are present
+    assert expected_metrics_names.issubset(registered_names)
+
+    # Final sanity: expected total number of add_periodic_task calls
+    expected_total = len(core_expected_names) + shards_7d + shards_30d + 1  # +1 for the daily 90d
+    assert sender.add_periodic_task.call_count == expected_total

@@ -694,35 +694,44 @@ a.text-muted:hover {
     font-size: 14px !important;
 }
 
-
-
 .fs17 {
     font-size: 17px !important;
 }
-
 
 .fs20 {
     font-size: 20px !important;
 }
 
+.fs30 {
+    font-size: 30px !important;
+}
 
 .height6 {
     height: 6px !important;
 }
 
-
 .center-32 {
-    display: table-cell;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: 32px;
     width: 32px;
 }
 
 .center-42 {
-    display: table-cell;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: 42px;
     width: 42px;
+}
+
+.center-70 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70px;
+    width: 70px;
 }
 
 .circle-icon {
@@ -1060,4 +1069,30 @@ a.text-muted:hover {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1060;
+}
+
+.kpi-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.kpi-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.kpi-change {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.kpi-change.positive {
+    color: #24c38b;
+}
+
+.kpi-change.negative {
+    color: #dc3545;
 }

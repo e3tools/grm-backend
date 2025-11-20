@@ -59,7 +59,6 @@
 		</div>
 	</div>
 
-
 	<div class="card transparent">
 		<div class="card-body">
 			<div class="overlay-wrapper">
@@ -178,22 +177,21 @@
 {% endblock content %}
 
 {% block select2 %}
-	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
 	<script type="text/javascript">
         $("#id_category").select2({
             placeholder: "{% translate 'Category' %}",
             allowClear: true,
-			width: '100%'
+            width: '100%'
         });
         $("#id_type").select2({
             placeholder: "{% translate 'Type' %}",
             allowClear: true,
-			width: '100%'
+            width: '100%'
         });
         $("#id_administrative_region").select2({
             placeholder: "{% translate 'Location' %}",
             allowClear: true,
-			width: '100%'
+            width: '100%'
         });
 
 	</script>
@@ -204,14 +202,13 @@
 	<script src="{% static 'plugins/mapbox-gl-js/v2.6.1/mapbox-gl.js' %}"></script>
 	<script src="{% static 'AdminLTE/plugins/chart.js/Chart.js' %}"></script>
 	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
 	<script>
-        let administrative_level_label = $("#administrative_level_label");
         let statistics_spin = $('#statistics-spin');
         let start_date = $('#id_start_date');
         let end_date = $('#id_end_date');
         let category = $('#id_category');
         let type = $('#id_type');
-        let current_region_id;
         let markers = [];
         let statusPieChartCanvas = $('#status_pie_chart').get(0).getContext('2d');
         let typePieChartCanvas = $('#type_pie_chart').get(0).getContext('2d');
@@ -247,8 +244,6 @@
             '#707070'
         ];
         let colors_length = colors.length;
-
-        administrative_level_label.html($("label[for='id_administrative_region']").html());
 
         mapboxgl.accessToken = '{{ access_token }}';
         if (!mapboxgl.supported()) {
@@ -410,7 +405,7 @@
 
                     if (Object.keys(region_stats).length > 0) {
                         let level = region_stats[Object.keys(region_stats).at(-1)].level;
-                        administrative_level_label.html(level);
+                        $("#administrative_level_label").html(level);
 
                         $.each(region_stats, function (administrative_id, region) {
                             // create DOM element for the marker
@@ -450,20 +445,7 @@
             });
         }
 
-        function changeRegionTrigger(url, placeholder) {
-            $(document).on("change", ".region", function () {
-                loadNextLevelRegions($(this), url, placeholder);
-                let current_input_value = $(this).val();
-                if (current_input_value) {
-                    current_region_id = current_input_value;
-                    loadStatistics();
-                }
-            });
-        }
-
-        $(document).on('select2:clear', ".region", function (e) {
-            current_region_id = $(this).closest('.form-group')
-				.prev('.form-group').find('select.region').val();
+        document.addEventListener("region:changed", function (event) {
             loadStatistics();
         });
 
@@ -535,9 +517,9 @@
                     }
                     loadStatistics();
                 })
-				.always(function() {
+                .always(function () {
                     enableButton($btn);
-				});
+                });
 
         });
 
