@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 23:24+0000\n"
+"POT-Creation-Date: 2025-11-20 18:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -127,20 +127,20 @@ msgstr "Nom d'utilisateur pour l'authentification"
 msgid "Password for authentication"
 msgstr "Mot de passe pour l'authentification"
 
-#: authentication/views.py:701 authentication/views.py:715
+#: authentication/views.py:706 authentication/views.py:720
 msgid "Password Reset"
 msgstr "Réinitialisation du mot de passe"
 
-#: authentication/views.py:713
+#: authentication/views.py:718
 msgid "Password Reset Sent"
 msgstr "Réinitialisation du mot de passe envoyée"
 
-#: authentication/views.py:750 authentication/views.py:767
+#: authentication/views.py:755 authentication/views.py:772
 #: dashboard/templates/authentication/password_reset_confirm.html:17
 msgid "Reset Password"
 msgstr "Réinitialiser le mot de passe"
 
-#: authentication/views.py:778
+#: authentication/views.py:783
 #: dashboard/templates/authentication/password_reset_complete.html:6
 msgid "Password reset complete"
 msgstr "Réinitialisation du mot de passe terminée"
@@ -169,6 +169,58 @@ msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 "La connexion n'est pas autorisée tant que l'assistant de personnalisation "
 "n'est pas terminé."
+
+#: dashboard/constants.py:7
+msgid "Good Performance"
+msgstr "Bonnes performances"
+
+#: dashboard/constants.py:14
+msgid "At Risk"
+msgstr "À risque"
+
+#: dashboard/constants.py:21
+msgid "Critical"
+msgstr "Critique"
+
+#: dashboard/constants.py:28
+msgid "No Data"
+msgstr "Aucune donnée"
+
+#: dashboard/constants.py:36
+msgid "WAU"
+msgstr "UAH"
+
+#: dashboard/constants.py:37
+msgid "MAU"
+msgstr "UAM"
+
+#: dashboard/constants.py:38
+msgid "QAU"
+msgstr "UAT"
+
+#: dashboard/constants.py:42
+msgid "Weekly Active User"
+msgstr "Utilisateurs Actifs Hebdomadaires"
+
+#: dashboard/constants.py:43
+msgid "Monthly Active User"
+msgstr "Utilisateurs Actifs Mensuels"
+
+#: dashboard/constants.py:44
+msgid "Quarterly Active User"
+msgstr "Utilisateurs Actifs Trimestriels"
+
+#: dashboard/constants.py:52
+msgid "Last 7 Days"
+msgstr "7 derniers jours"
+
+#: dashboard/constants.py:53
+msgid "Last 30 Days"
+msgstr "30 derniers jours"
+
+#: dashboard/constants.py:54
+msgid "Last 90 Days"
+msgstr "90 derniers jours"
 
 #: dashboard/diagnostics/views.py:35
 #: dashboard/templates/layouts/sidebar.html:31
@@ -300,8 +352,8 @@ msgstr "Date de fin"
 msgid "ID Number / Access Code"
 msgstr "Nombre ID / Code d'accès"
 
-#: dashboard/grm/forms.py:315 dashboard/templates/grm/review_issues.html:47
-#: dashboard/templates/grm/review_issues.html:241
+#: dashboard/grm/forms.py:315 dashboard/templates/grm/review_issues.html:44
+#: dashboard/templates/grm/review_issues.html:238
 msgid "Assigned to"
 msgstr "Assigné à"
 
@@ -370,7 +422,7 @@ msgstr ""
 "problème sera créé sans responsable."
 
 #: dashboard/grm/views.py:492 dashboard/grm/views.py:647
-#: dashboard/templates/layouts/sidebar.html:38
+#: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
@@ -419,7 +471,7 @@ msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
 
-#: dashboard/models.py:6 dashboard/templates/grm/issue_detail.html:74
+#: dashboard/models.py:19 dashboard/templates/grm/issue_detail.html:74
 #: dashboard/templates/user_management/list.html:24 issues/models.py:290
 #: issues/models.py:357 issues/models.py:410 wizard/forms.py:34
 #: wizard/views.py:647 wizard/views.py:657 wizard/views.py:680
@@ -428,21 +480,33 @@ msgstr ""
 msgid "Name"
 msgstr "Nom"
 
-#: dashboard/models.py:7
+#: dashboard/models.py:20
 #: dashboard/templates/grm/new_issue_confirmation.html:150 wizard/forms.py:41
 #: wizard/views.py:648 wizard/views.py:787 wizard/views.py:793
 msgid "Description"
 msgstr "La description"
 
-#: dashboard/models.py:10
+#: dashboard/models.py:23
 msgid "Project"
 msgstr "Projet"
 
-#: dashboard/models.py:11
+#: dashboard/models.py:24
 msgid "Projects"
 msgstr "Projets"
 
-#: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:45
+#: dashboard/models.py:90 dashboard/models.py:91
+msgid "Performance Metrics"
+msgstr "Indicateurs de performance"
+
+#: dashboard/performance_diagnostics/views.py:19
+msgid "Performance Diagnostics"
+msgstr "Diagnostic de performance"
+
+#: dashboard/performance_diagnostics/views.py:66
+msgid "No metrics available for the selected filters."
+msgstr "Aucune donnée disponible pour les filtres sélectionnés."
+
+#: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
 msgid "Search Issues"
 msgstr "Problèmes de recherche"
 
@@ -535,26 +599,27 @@ msgstr "Pourcentage"
 
 #: dashboard/templates/diagnostics/home.html:18
 #: dashboard/templates/grm/issue_status_buttons.html:5
-#: dashboard/templates/grm/review_issues.html:51
-#: dashboard/templates/grm/review_issues.html:256
+#: dashboard/templates/grm/review_issues.html:48
+#: dashboard/templates/grm/review_issues.html:253
 msgid "Status"
 msgstr "Statut"
 
 #: dashboard/templates/diagnostics/home.html:19
-#: dashboard/templates/diagnostics/home.html:189
+#: dashboard/templates/diagnostics/home.html:187
 #: dashboard/templates/grm/issue_detail.html:134
-#: dashboard/templates/grm/review_issues.html:50
-#: dashboard/templates/grm/review_issues.html:251
+#: dashboard/templates/grm/review_issues.html:47
+#: dashboard/templates/grm/review_issues.html:248
 #: dashboard/templates/search/_filters.html:11 issues/models.py:411
 #: wizard/views.py:770
 msgid "Type"
 msgstr "Type"
 
 #: dashboard/templates/diagnostics/home.html:20
-#: dashboard/templates/diagnostics/home.html:184
+#: dashboard/templates/diagnostics/home.html:182
 #: dashboard/templates/grm/issue_detail.html:124
-#: dashboard/templates/grm/review_issues.html:49
-#: dashboard/templates/grm/review_issues.html:246
+#: dashboard/templates/grm/review_issues.html:46
+#: dashboard/templates/grm/review_issues.html:243
+#: dashboard/templates/performance_diagnostics/dashboard.html:34
 msgid "Category"
 msgstr "Catégorie"
 
@@ -572,29 +637,32 @@ msgstr "Mettre à jour les données"
 
 #: dashboard/templates/diagnostics/home.html:39
 #: dashboard/templates/grm/review_issues.html:13
+#: dashboard/templates/performance_diagnostics/dashboard.html:11
 msgid "Filter by"
 msgstr "Filtrer par"
 
 #: dashboard/templates/diagnostics/home.html:55
 #: dashboard/templates/grm/review_issues.html:34
+#: dashboard/templates/performance_diagnostics/dashboard.html:51
 #: dashboard/templates/search/_filters.html:68
 msgid "Clear all filters"
 msgstr "Effacer tous les filtres"
 
-#: dashboard/templates/diagnostics/home.html:194
+#: dashboard/templates/diagnostics/home.html:192
 #: dashboard/templates/grm/issue_detail.html:110
 #: dashboard/templates/grm/new_issue_confirmation.html:185
 msgid "Location"
 msgstr "Emplacement"
 
-#: dashboard/templates/diagnostics/home.html:437
+#: dashboard/templates/diagnostics/home.html:432
 #: dashboard/templates/grm/issue_list.html:29
 msgid "No issues found"
 msgstr "Aucun réclamation ou demande n'a été trouvée"
 
-#: dashboard/templates/diagnostics/home.html:471
+#: dashboard/templates/diagnostics/home.html:453
 #: dashboard/templates/grm/new_issue_confirm.html:238
 #: dashboard/templates/grm/new_issue_location.html:61
+#: dashboard/templates/performance_diagnostics/dashboard.html:72
 msgid "Click to select location"
 msgstr "Cliquez pour sélectionner l'emplacement"
 
@@ -632,7 +700,7 @@ msgid "No comments found"
 msgstr "Aucun commentaire trouvé"
 
 #: dashboard/templates/grm/issue_detail.html:15
-#: dashboard/templates/grm/review_issues.html:46 wizard/constants.py:24
+#: dashboard/templates/grm/review_issues.html:43 wizard/constants.py:24
 msgid "Summary"
 msgstr "Résumé"
 
@@ -775,7 +843,7 @@ msgid "Confirmation"
 msgstr "Confirmation"
 
 #: dashboard/templates/grm/new_issue_confirmation.html:20
-#: dashboard/templates/grm/review_issues.html:44
+#: dashboard/templates/grm/review_issues.html:41
 msgid "ID Number"
 msgstr "Nombre ID"
 
@@ -819,11 +887,11 @@ msgstr "Nom de la personne ou du groupe"
 msgid "Search Results"
 msgstr "Résultats de la recherche"
 
-#: dashboard/templates/grm/review_issues.html:45
+#: dashboard/templates/grm/review_issues.html:42
 msgid "Access Code"
 msgstr "Code d'accès"
 
-#: dashboard/templates/grm/review_issues.html:48
+#: dashboard/templates/grm/review_issues.html:45
 msgid "Days Open"
 msgstr "Jours d'ouverture"
 
@@ -853,19 +921,94 @@ msgstr "Bienvenue"
 msgid "Logout"
 msgstr "Se déconnecter"
 
-#: dashboard/templates/layouts/sidebar.html:52
+#: dashboard/templates/layouts/sidebar.html:39
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: dashboard/templates/layouts/sidebar.html:61
 msgid "New Issue"
 msgstr "Entrez un nouveau problème"
 
-#: dashboard/templates/layouts/sidebar.html:60
+#: dashboard/templates/layouts/sidebar.html:69
 #: dashboard/user_management/views.py:41 dashboard/user_management/views.py:176
 #: dashboard/user_management/views.py:263
 msgid "User Management"
 msgstr "Gestion des utilisateurs"
 
-#: dashboard/templates/layouts/sidebar.html:82
+#: dashboard/templates/layouts/sidebar.html:91
 msgid "Toggle Sidebar"
 msgstr "Basculer la barre latérale"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:20
+msgid "Date Range"
+msgstr "Période couverte"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:38
+msgid "All Categories"
+msgstr "Catégories"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:129
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:11
+msgid "Just now"
+msgstr "Tout à l' heure"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:131
+msgid "1 minute ago"
+msgstr "il y a 1 minute"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:133
+msgid "minutes ago"
+msgstr "il y a quelques minutes"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:135
+msgid "1 hour ago"
+msgstr "il y a 1 heure"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:138
+msgid "hours ago"
+msgstr "il y a quelques heures"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:158
+#: dashboard/templates/search/semantic_search.html:50
+#: dashboard/templates/search/semantic_search.html:67
+msgid "All"
+msgstr "Toutes"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:9
+msgid "Last Updated"
+msgstr "Dernière mise à jour"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:24
+msgid "User Adoption"
+msgstr "Adoption par l'utilisateur"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:51
+msgid "New Issues"
+msgstr "Nouveaux numéros"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:74
+msgid "Issue Resolution"
+msgstr "Résolution des problèmes"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:80
+msgid "days avg"
+msgstr "jours moyenne"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:99
+msgid "Resolution Rate"
+msgstr "Taux de résolution"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:124
+msgid "Citizen Satisfaction"
+msgstr "Satisfaction des citoyens"
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:154
+msgid "Appeal Rate"
+msgstr "Taux d'appel"
+
+#: dashboard/templates/performance_diagnostics/kpi_error.html:6
+msgid "No Data Available"
+msgstr "Aucune donnée disponible"
 
 #: dashboard/templates/search/_filters.html:21
 msgid "Age Group"
@@ -923,11 +1066,6 @@ msgstr "Recherche et filtres"
 #: dashboard/templates/search/semantic_search.html:5
 msgid "Find Relevant Cases"
 msgstr "Trouver des cas pertinents"
-
-#: dashboard/templates/search/semantic_search.html:50
-#: dashboard/templates/search/semantic_search.html:67
-msgid "All"
-msgstr "Toutes"
 
 #: dashboard/templates/user_management/list.html:5
 msgid "Users"
@@ -1483,12 +1621,12 @@ msgstr "Kinyarwanda"
 msgid "Ethiopia"
 msgstr "Ethiopie"
 
-#: grm/tasks.py:86
+#: grm/tasks.py:89
 #, python-format
 msgid "The issue has been assigned to %s."
 msgstr "La réclamation a été assignée à %s."
 
-#: grm/tasks.py:170
+#: grm/tasks.py:173
 msgid ""
 "The complaint has been escalated automatically because the processing time "
 "has passed."
@@ -1496,7 +1634,7 @@ msgstr ""
 "La plainte a été escaladée/remontée automatiquement car le délai de "
 "traitement est dépassé."
 
-#: grm/tasks.py:212 grm/tasks.py:278
+#: grm/tasks.py:215 grm/tasks.py:281
 #, python-format
 msgid ""
 "Your issue submitted has been accepted into the system with the tracking "
@@ -1505,7 +1643,7 @@ msgstr ""
 "Votre problème soumis a été accepté dans le système avec le code "
 "%s(tracking_code)s"
 
-#: grm/tasks.py:213
+#: grm/tasks.py:216
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been rejected with the following response: "
@@ -1514,14 +1652,14 @@ msgstr ""
 "Votre problème %s(tracking_code)s a été rejeté avec la réponse suivante: "
 "%s(reason)s"
 
-#: grm/tasks.py:214 grm/tasks.py:280
+#: grm/tasks.py:217 grm/tasks.py:283
 #, python-format
 msgid "Your issue %s has been resolved with the following response: %s"
 msgstr ""
 "Votre problème %s(tracking_code)s a été résolu avec la réponse suivante: "
 "%s(resolution)s"
 
-#: grm/tasks.py:279
+#: grm/tasks.py:282
 #, python-format
 msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""

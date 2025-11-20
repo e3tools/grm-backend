@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
+from dashboard.constants import PERIOD_CHOICES, WEEKLY_CHOICE
 from dashboard.grm.forms import SearchIssueForm
 from dashboard.mixins import PageMixin, UserManagementPermissionMixin
 from dashboard.models import PerformanceMetrics
-from issues.models import IssueCategory
+from issues.models import AdministrativeRegion, IssueCategory
 
 
 class PerformanceDiagnosticsView(PageMixin, UserManagementPermissionMixin, generic.TemplateView):
@@ -29,7 +30,7 @@ class PerformanceDiagnosticsView(PageMixin, UserManagementPermissionMixin, gener
 
         context['form'] = SearchIssueForm()
         context['available_categories'] = available_categories
-        context['period_choices'] = PerformanceMetrics.PERIOD_CHOICES
+        context['period_choices'] = PERIOD_CHOICES
 
         return context
 
@@ -37,61 +38,59 @@ class PerformanceDiagnosticsView(PageMixin, UserManagementPermissionMixin, gener
 class PerformanceMetricsAPIView(UserManagementPermissionMixin, generic.View):
     """
     AJAX endpoint to fetch KPI metrics based on filters.
-    Returns JSON data for HTMX to render.
+    Returns HTML fragment for HTMX to render.
+
+    This view ONLY retrieves pre-calculated metrics.
+    It does not calculate or modify data.
     """
 
     def get(self, request, *args, **kwargs):
-        # Get filters from request
-        period = request.GET.get('period', '7d')
-        region_id = request.GET.get('administrative_region')
-        category_id = request.GET.get('category')
+        # Get and validate filters
+        period = request.GET.get('period', WEEKLY_CHOICE)
+        if period not in dict(PERIOD_CHOICES):
+            period = WEEKLY_CHOICE
 
-        # Parse filters
-        region = None
-        category = None
+        region = self._get_region(request.GET.get('administrative_region'))
+        category = self._get_category(request.GET.get('category'))
 
-        if region_id:
-            try:
-                from issues.models import AdministrativeRegion
-
-                region = AdministrativeRegion.objects.get(id=region_id)
-            except (AdministrativeRegion.DoesNotExist, ValueError):
-                pass
-
-        if category_id:
-            try:
-                category = IssueCategory.objects.get(id=category_id)
-            except (IssueCategory.DoesNotExist, ValueError):
-                pass
-
-        # Get latest metrics from database
+        # Try to get exact metrics (we assume populate has created rows for ancestors)
         metrics_obj = PerformanceMetrics.get_latest(period, region, category)
-        if metrics_obj:
-            metrics = metrics_obj.to_dict()
-        elif region:
-            agg = PerformanceMetrics.aggregate_metrics_from_children(period, region, category)
-            if agg:
-                metrics = agg
-            else:
-                metrics = None
 
-        # If no metrics exist, return error message
-        if not metrics:
-            context = {'error': True, 'message': _('No metrics available for the selected filters.')}
-            return render(request, 'performance_diagnostics/kpi_error.html', context)
+        # If still no metrics, show error
+        if not metrics_obj:
+            return render(
+                request,
+                'performance_diagnostics/kpi_error.html',
+                {'error': True, 'message': _('No metrics available for the selected filters.')},
+            )
 
-        # Get metrics data and status
-        user_adoption_status = metrics_obj.get_user_adoption_status()
-        resolution_status = metrics_obj.get_resolution_status(target=10.0)
-        satisfaction_status = metrics_obj.get_satisfaction_status(target=4.0)
-
+        # Render success with metrics object
         context = {
-            'metrics': metrics,
-            'user_adoption_status': user_adoption_status,
-            'resolution_status': resolution_status,
-            'satisfaction_status': satisfaction_status,
+            'metrics': metrics_obj.to_dict(),
+            'user_adoption_status': metrics_obj.get_user_adoption_status(),
+            'resolution_status': metrics_obj.get_resolution_status(target=10.0),
+            'satisfaction_status': metrics_obj.get_satisfaction_status(target=4.0),
             'last_updated': metrics_obj.calculated_at,
         }
 
-        # Return HTML fragment for HTMX
         return render(request, 'performance_diagnostics/kpi_cards.html', context)
+
+    def _get_region(self, region_id):
+        """Parse and validate region ID from request"""
+        if not region_id:
+            return None
+
+        try:
+            return AdministrativeRegion.objects.get(id=region_id)
+        except (AdministrativeRegion.DoesNotExist, ValueError):
+            return None
+
+    def _get_category(self, category_id):
+        """Parse and validate category ID from request"""
+        if not category_id:
+            return None
+
+        try:
+            return IssueCategory.objects.get(id=category_id)
+        except (IssueCategory.DoesNotExist, ValueError):
+            return None

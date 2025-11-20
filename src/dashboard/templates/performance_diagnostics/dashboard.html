@@ -17,7 +17,7 @@
 							<div class="col-md-6">
 								<div class="form-group row">
 									<label for="period" class="col-md-3 form-label">
-										{% trans "Date Range" %}
+										{% translate "Date Range" %}
 									</label>
 									<div class="col-md-9">
 										<select name="period" id="period" class="form-control">
@@ -31,11 +31,11 @@
 								</div>
 								<div class="form-group row">
 									<label for="category" class="col-md-3 form-label">
-										{% trans "Category" %}
+										{% translate "Category" %}
 									</label>
 									<div class="col-md-9">
 										<select name="category" id="category" class="form-control">
-											<option value="">{% trans "All Categories" %}</option>
+											<option value="">{% translate "All Categories" %}</option>
 											{% for cat in available_categories %}
 												<option value="{{ cat.id }}">{{ cat.name }}</option>
 											{% endfor %}
@@ -57,8 +57,7 @@
 	</div>
 
 	<!-- KPI Cards Container -->
-	<div id="kpi-container" hx-get="{% url 'dashboard:performance_diagnostics:api_metrics' %}?period=7d"
-		 hx-trigger="load" hx-indicator="#kpi-spin"></div>
+	<div id="kpi-container"></div>
 	<div class="justify-content-center" id="kpi-spin">
 		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 	</div>
@@ -66,7 +65,6 @@
 
 {% block javascript %}
 	{{ block.super }}
-	<script src="{% static 'plugins/htmx/htmx.min.js' %}"></script>
 	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
 	<script>
         let kpi_spin = $('#kpi-spin');
@@ -93,6 +91,10 @@
                 }
             });
         }
+
+        $(document).ready(function () {
+            loadKPIs();
+		});
 
         document.addEventListener("region:changed", function (event) {
             loadKPIs();
@@ -124,16 +126,16 @@
 
                     let timeText;
                     if (diffMinutes < 1) {
-                        timeText = '{% trans "Just now" %}';
+                        timeText = "{% translate "Just now" %}";
                     } else if (diffMinutes === 1) {
-                        timeText = '{% trans "1 minute ago" %}';
+                        timeText = "{% translate "1 minute ago" %}";
                     } else if (diffMinutes < 60) {
-                        timeText = `${diffMinutes} {% trans "minutes ago" %}`;
+                        timeText = `${diffMinutes} {% translate "minutes ago" %}`;
                     } else if (diffMinutes < 120) {
-                        timeText = '{% trans "1 hour ago" %}';
+                        timeText = "{% translate "1 hour ago" %}";
                     } else {
                         const hours = Math.floor(diffMinutes / 60);
-                        timeText = `${hours} {% trans "hours ago" %}`;
+                        timeText = `${hours} {% translate "hours ago" %}`;
                     }
 
                     lastUpdatedElement.textContent = timeText;
@@ -160,16 +162,3 @@
 	</script>
 {% endblock %}
 
-
-{% block extracss %}
-	<style>
-        #kpi-spin {
-            display: none !important;
-        }
-
-        #kpi-spin.htmx-request {
-            display: -ms-flexbox !important;
-            display: flex !important;
-        }
-	</style>
-{% endblock %}

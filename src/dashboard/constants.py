@@ -27,3 +27,25 @@ STATUS_UNKNOWN = {
     'badge_class': 'badge-secondary',
     'badge_text': _('No Data'),
 }
+
+WAU_ABBREV = 'WAU'
+MAU_ABBREV = 'MAU'
+QAU_ABBREV = 'QAU'
+
+MAP_ACTIVE_USER_ABBREV = {WAU_ABBREV: _('WAU'), MAU_ABBREV: _('MAU'), QAU_ABBREV: _('QAU')}
+
+MAP_ACTIVE_USER_TITLE = {
+    WAU_ABBREV: _('Weekly Active User'),
+    MAU_ABBREV: _('Monthly Active User'),
+    QAU_ABBREV: _('Quarterly Active User'),
+}
+
+WEEKLY_CHOICE = '7d'
+MONTHLY_CHOICE = '30d'
+QUARTERLY_CHOICE = '90d'
+
+PERIOD_CHOICES = [
+    (WEEKLY_CHOICE, _('Last 7 Days')),
+    (MONTHLY_CHOICE, _('Last 30 Days')),
+    (QUARTERLY_CHOICE, _('Last 90 Days')),
+]

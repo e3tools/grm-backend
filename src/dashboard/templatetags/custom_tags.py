@@ -2,6 +2,7 @@ from django import template
 from django.utils import timezone
 
 from authentication.utils import get_validation_code
+from dashboard.constants import MAP_ACTIVE_USER_ABBREV, MAP_ACTIVE_USER_TITLE
 from grm.constants import (
     CITIZEN_TYPE_CHOICES,
     CITIZEN_TYPE_CHOICES_ALT,
@@ -92,6 +93,16 @@ def get_wizard_status_display(value):
 @register.simple_tag
 def get_wizard_section_display(value):
     return MAP_WIZARD_SECTION.get(value)
+
+
+@register.simple_tag
+def get_active_user_abbrev_display(value):
+    return MAP_ACTIVE_USER_ABBREV.get(value)
+
+
+@register.simple_tag
+def get_active_user_title_display(value):
+    return MAP_ACTIVE_USER_TITLE.get(value)
 
 
 @register.simple_tag

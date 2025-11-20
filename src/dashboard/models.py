@@ -8,10 +8,14 @@ from django.utils.translation import gettext_lazy as _
 
 from authentication.models import User
 from dashboard.constants import (
+    MAU_ABBREV,
+    PERIOD_CHOICES,
+    QAU_ABBREV,
     STATUS_AT_RISK,
     STATUS_CRITICAL,
     STATUS_GOOD,
     STATUS_UNKNOWN,
+    WAU_ABBREV,
 )
 
 
@@ -29,12 +33,6 @@ class PerformanceMetrics(models.Model):
     Stores calculated performance metrics for the GRM system.
     This model is updated periodically to provide efficient dashboard statistics.
     """
-
-    PERIOD_CHOICES = [
-        ('7d', _('Last 7 Days')),
-        ('30d', _('Last 30 Days')),
-        ('90d', _('Last 90 Days')),
-    ]
 
     # Period identification
     period = models.CharField(max_length=3, choices=PERIOD_CHOICES, db_index=True)
@@ -55,7 +53,7 @@ class PerformanceMetrics(models.Model):
 
     # User Adoption Metrics (neutral fields: usable for DAU/WAU/MAU/QAU)
     active_users_count = models.IntegerField(default=0, help_text="Number of active users in chosen window")
-    active_users_metric = models.CharField(max_length=10, default='WAU', help_text="Metric name: DAU/WAU/MAU/QAU")
+    active_users_metric = models.CharField(max_length=10, default=WAU_ABBREV, help_text="Metric name: DAU/WAU/MAU/QAU")
     active_users_change_percentage = models.FloatField(default=0.0, help_text="Percentage change from previous period")
 
     new_issues_count = models.IntegerField(default=0, help_text="Total new issues created in period")
@@ -116,11 +114,11 @@ class PerformanceMetrics(models.Model):
         Map period value ('7d','30d','90d') to metric name and lookback days.
         Returns (metric_name, lookback_days)
         """
-        metric = ('WAU', 7)
+        metric = (WAU_ABBREV, 7)
         if period == '30d':
-            metric = ('MAU', 30)
+            metric = (MAU_ABBREV, 30)
         elif period == '90d':
-            metric = ('QAU', 90)
+            metric = (QAU_ABBREV, 90)
         return metric
 
     @classmethod
@@ -312,102 +310,6 @@ class PerformanceMetrics(models.Model):
 
         return cls.objects.filter(**filters).order_by('-calculated_at').first()
 
-    @classmethod
-    def get_latest_with_fallback(cls, period, region=None, category=None, fallback_to_children=False):
-        """
-        Try exact match first. If not present and fallback_to_children=True and region given,
-        return the most recent metric recorded for any descendant region.
-        """
-        exact = cls.get_latest(period=period, region=region, category=category)
-        if exact or not fallback_to_children:
-            return exact
-
-        # fallback search among descendants
-        if region is None:
-            return None
-
-        descendant_ids = region.get_descendant_ids()
-        if not descendant_ids:
-            return None
-
-        filters = {'period': period, 'administrative_region_id__in': descendant_ids}
-        if category is None:
-            filters['category__isnull'] = True
-        else:
-            filters['category'] = category
-
-        return cls.objects.filter(**filters).order_by('-calculated_at').first()
-
-    @classmethod
-    def aggregate_metrics_from_children(cls, period, region, category=None):
-        """
-        Aggregate numeric fields from PerformanceMetrics rows computed for descendants of region.
-        Returns a dict with aggregated values (same shape as to_dict()) or None if no children rows.
-        Rules:
-          - Sum counters: active_users_count, new_issues_count, total_resolved_issues, total_issues, total_appeals, total_rated_issues
-          - For averages: compute weighted averages where appropriate:
-              * average_resolution_days: weight by total_resolved_issues
-              * average_satisfaction_score: weight by total_rated_issues
-          - For rates: recompute as (sum_resolved / sum_total_issues)*100 and (sum_appeals / sum_total_issues)*100
-          - For change percentages: not meaningful to aggregate reliably; set to None (or compute if desired separately)
-        """
-        descendant_ids = region.get_descendant_ids()
-        qs = cls.objects.filter(period=period, administrative_region_id__in=descendant_ids)
-        if category is None:
-            qs = qs.filter(category__isnull=True)
-        else:
-            qs = qs.filter(category=category)
-
-        if not qs.exists():
-            return None
-
-        # aggregate counters
-        sum_active_users = qs.aggregate(total_active=models.Sum('active_users_count'))['total_active'] or 0
-        sum_new_issues = qs.aggregate(total_new=models.Sum('new_issues_count'))['total_new'] or 0
-        sum_total_resolved = qs.aggregate(total_resolved=models.Sum('total_resolved_issues'))['total_resolved'] or 0
-        sum_total_issues = qs.aggregate(total_issues=models.Sum('total_issues'))['total_issues'] or 0
-        sum_total_appeals = qs.aggregate(total_appeals=models.Sum('total_appeals'))['total_appeals'] or 0
-        sum_total_rated = qs.aggregate(total_rated=models.Sum('total_rated_issues'))['total_rated'] or 0
-
-        # weighted averages
-        # avg resolution days weighted by resolved issues
-        total_weighted_resolution = 0.0
-        for row in qs:
-            if row.total_resolved_issues and row.average_resolution_days:
-                total_weighted_resolution += row.average_resolution_days * row.total_resolved_issues
-        avg_resolution_days = (total_weighted_resolution / sum_total_resolved) if sum_total_resolved else 0.0
-
-        # avg satisfaction weighted by rated issues
-        total_weighted_satisfaction = 0.0
-        for row in qs:
-            if row.total_rated_issues and row.average_satisfaction_score:
-                total_weighted_satisfaction += row.average_satisfaction_score * row.total_rated_issues
-        avg_satisfaction = (total_weighted_satisfaction / sum_total_rated) if sum_total_rated else 0.0
-
-        # recompute rates
-        resolution_rate = (sum_total_resolved / sum_total_issues * 100) if sum_total_issues else 0.0
-        appeal_rate = (sum_total_appeals / sum_total_issues * 100) if sum_total_issues else 0.0
-
-        return {
-            'active_users_count': int(sum_active_users),
-            'active_users_metric': None,
-            'active_users_change_percentage': None,
-            'new_issues_count': int(sum_new_issues),
-            'new_issues_change_percentage': None,
-            'average_resolution_days': float(round(avg_resolution_days, 1)),
-            'resolution_rate': float(round(resolution_rate, 1)),
-            'total_resolved_issues': int(sum_total_resolved),
-            'total_issues': int(sum_total_issues),
-            'resolution_change_percentage': None,
-            'resolution_rate_change_percentage': None,
-            'average_satisfaction_score': float(round(avg_satisfaction, 2)),
-            'appeal_rate': float(round(appeal_rate, 1)),
-            'total_appeals': int(sum_total_appeals),
-            'total_rated_issues': int(sum_total_rated),
-            'satisfaction_change_percentage': None,
-            'appeal_rate_change_percentage': None,
-        }
-
     def to_dict(self):
         return {
             'active_users_count': self.active_users_count,
@@ -430,39 +332,63 @@ class PerformanceMetrics(models.Model):
             'calculated_at': self.calculated_at,
         }
 
-    def get_user_adoption_status(self):
-        current_value = self.active_users_change_percentage
+    @staticmethod
+    def _get_status(current_value, metric_type='adoption', target=None):
+        """
+        Factory method for determining status.
+        Centralizes the logic and avoids repetition.
 
-        # For adoption, positive change is good
-        if current_value >= 0:
-            return STATUS_GOOD
-        elif current_value >= -10:
-            return STATUS_AT_RISK
-        else:
-            return STATUS_CRITICAL
+        Args:
+            current_value: Current value to evaluate
+            metric_type: 'adoption', 'resolution', 'satisfaction'
+            target: Target value (for resolution and satisfaction)
+
+        Returns:
+            dict: Status dict con badge, icon, text, etc
+        """
+
+        if metric_type == 'adoption':
+            # Positive change is good
+            if current_value >= 0:
+                return STATUS_GOOD
+            elif current_value >= -10:
+                return STATUS_AT_RISK
+            else:
+                return STATUS_CRITICAL
+
+        elif metric_type == 'resolution' and target is not None:
+            # Lower is better
+            deviation = ((current_value - target) / target) * 100
+            if deviation <= 10:
+                return STATUS_GOOD
+            elif deviation <= 20:
+                return STATUS_AT_RISK
+            else:
+                return STATUS_CRITICAL
+
+        elif metric_type == 'satisfaction' and target is not None:
+            # Higher is better
+            if current_value == 0:
+                return STATUS_UNKNOWN
+
+            deviation = ((target - current_value) / target) * 100
+            if deviation <= 10:
+                return STATUS_GOOD
+            elif deviation <= 20:
+                return STATUS_AT_RISK
+            else:
+                return STATUS_CRITICAL
+
+        return STATUS_UNKNOWN
+
+    def get_user_adoption_status(self):
+        """Determines User Adoption status"""
+        return self._get_status(self.active_users_change_percentage, metric_type='adoption')
 
     def get_resolution_status(self, target=10.0):
-        current_value = self.average_resolution_days
-        deviation = ((current_value - target) / target) * 100
-
-        if deviation <= 10:
-            return STATUS_GOOD
-        elif deviation <= 20:
-            return STATUS_AT_RISK
-        else:
-            return STATUS_CRITICAL
+        """Determines Issue Resolution status"""
+        return self._get_status(self.average_resolution_days, metric_type='resolution', target=target)
 
     def get_satisfaction_status(self, target=4.0):
-        current_value = self.average_satisfaction_score
-
-        if current_value == 0:
-            return STATUS_UNKNOWN
-
-        deviation = ((target - current_value) / target) * 100
-
-        if deviation <= 10:
-            return STATUS_GOOD
-        elif deviation <= 20:
-            return STATUS_AT_RISK
-        else:
-            return STATUS_CRITICAL
+        """Determine Citizen Satisfaction status"""
+        return self._get_status(self.average_satisfaction_score, metric_type='satisfaction', target=target)

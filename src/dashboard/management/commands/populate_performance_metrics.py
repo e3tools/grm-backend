@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from dashboard.constants import PERIOD_CHOICES
 from dashboard.models import PerformanceMetrics
 from issues.models import AdministrativeRegion, IssueCategory
 
@@ -97,7 +98,7 @@ class Command(BaseCommand):
         no_progress = options['no_progress']
 
         # Validate period choices against model choices
-        valid_periods = {choice[0] for choice in PerformanceMetrics.PERIOD_CHOICES}
+        valid_periods = {choice[0] for choice in PERIOD_CHOICES}
         for p in periods:
             if p not in valid_periods:
                 self.stderr.write(self.style.ERROR(f"Invalid period: {p}. Valid: {sorted(valid_periods)}"))
