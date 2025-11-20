@@ -1,9 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import cryptocode
 from celery import shared_task
+from celery.schedules import crontab
 from django.conf import settings
+from django.core.management import call_command
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
@@ -353,6 +356,82 @@ def task_two(x, y):
     return x + y
 
 
+@shared_task
+def update_performance_metrics(
+    periods=None,
+    create_global=False,
+    create_regions=True,
+    create_categories=False,
+    create_region_category=False,
+    limit_regions=0,
+    offset_regions=0,
+    limit_categories=0,
+    offset_categories=0,
+    batch_size=50,
+    no_progress=True,
+    dry_run=False,
+):
+    """
+    Wrapper task that calls the management command `populate_performance_metrics`.
+    Arguments mirror the command flags; pass them as kwargs when calling the task.
+
+    Examples:
+      # Full update (may be heavy)
+      update_performance_metrics.delay(periods=['7d','30d','90d'], create_global=True, create_regions=True, create_categories=True, create_region_category=False)
+
+      # Sharded update for worker 1
+      update_performance_metrics.delay(create_regions=True, limit_regions=100, offset_regions=0)
+
+      # Sharded update for worker 2
+      update_performance_metrics.delay(create_regions=True, limit_regions=100, offset_regions=100)
+    """
+    periods = periods or ['7d', '30d', '90d']
+
+    cmd_args = []
+    for p in periods:
+        cmd_args.extend(['--periods', p])
+
+    if create_global:
+        cmd_args.append('--create-global')
+    if create_regions:
+        cmd_args.append('--create-regions')
+    if create_categories:
+        cmd_args.append('--create-categories')
+    if create_region_category:
+        cmd_args.append('--create-region-category')
+
+    if limit_regions:
+        cmd_args.extend(['--limit-regions', str(limit_regions)])
+    if offset_regions:
+        cmd_args.extend(['--offset-regions', str(offset_regions)])
+    if limit_categories:
+        cmd_args.extend(['--limit-categories', str(limit_categories)])
+    if offset_categories:
+        cmd_args.extend(['--offset-categories', str(offset_categories)])
+
+    if batch_size and int(batch_size) != 50:
+        cmd_args.extend(['--batch-size', str(batch_size)])
+    if no_progress:
+        cmd_args.append('--no-progress')
+    if dry_run:
+        cmd_args.append('--dry-run')
+
+    start = timezone.now()
+    try:
+        # call_command handles management command invocation in-process
+        call_command('populate_performance_metrics', *cmd_args)
+    except Exception:
+        # Re-raise or fail the task depending on your retry policy; here we mark as failure.
+        raise
+
+    elapsed = timezone.now() - start
+    return {
+        'status': 'ok',
+        'started_at': start.isoformat(),
+        'elapsed_seconds': elapsed.total_seconds(),
+    }
+
+
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls check_issues() every 5 minutes.
@@ -372,3 +451,59 @@ def setup_periodic_tasks(sender, **kwargs):
 
     # Calls reassign_issues_to_appeal() every hour.
     sender.add_periodic_task(3600, reassign_issues_to_appeal.s(), name="reassign issues to appeal every hour")
+
+    # === Frequent small-window updates (7d) every 15 minutes, sharded ===
+    # Now that we process ancestors, the regions set grows. Use smaller shards.
+    # Example: 20 shards, each handles 50 regions (20 * 50 = 1000 regions covered)
+    shards_7d = 20
+    limit_per_shard = 50
+    for i in range(shards_7d):
+        sender.add_periodic_task(
+            900,  # 15 minutes
+            update_performance_metrics.s(
+                periods=['7d'],
+                create_global=True,
+                create_regions=True,
+                create_categories=True,
+                create_region_category=False,
+                limit_regions=limit_per_shard,
+                offset_regions=i * limit_per_shard,
+                no_progress=True,
+            ),
+            name=f"update metrics 7d shard {i}",
+        )
+
+    # === Medium-window updates (30d) every hour, fewer shards but still safe ===
+    shards_30d = 8
+    limit_30 = 125  # approx 1000 / 8
+    for i in range(shards_30d):
+        sender.add_periodic_task(
+            3600,  # every hour
+            update_performance_metrics.s(
+                periods=['30d'],
+                create_global=True,
+                create_regions=True,
+                create_categories=True,
+                create_region_category=False,
+                limit_regions=limit_30,
+                offset_regions=i * limit_30,
+                no_progress=True,
+            ),
+            name=f"update metrics 30d shard {i}",
+        )
+
+    # === Long-window updates (90d) daily ===
+    # Daily recalculation can be heavier; run with fewer shards or single run.
+    # If you expect >2000 regions+ancestors, consider 2 shards instead.
+    sender.add_periodic_task(
+        crontab(hour=2, minute=30),
+        update_performance_metrics.s(
+            periods=['90d'],
+            create_global=True,
+            create_regions=True,
+            create_categories=True,
+            create_region_category=False,
+            no_progress=True,
+        ),
+        name="update metrics 90d daily",
+    )

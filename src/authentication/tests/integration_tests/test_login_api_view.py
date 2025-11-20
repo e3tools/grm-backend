@@ -1,5 +1,6 @@
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -37,7 +38,7 @@ class LoginAPIViewTest(APITestCase):
     def test_successful_login(self):
         """Test successful login with valid credentials."""
         login_data = {'username': self.username, 'password': self.password}
-
+        before = timezone.now()
         response = self.client.post(self.url, login_data, format='json')
 
         assert response.status_code == status.HTTP_200_OK
@@ -58,6 +59,10 @@ class LoginAPIViewTest(APITestCase):
         # Verify token was created in database
         token = Token.objects.get(user=self.user)
         assert token.key == response.data['token']
+
+        # Check last_login was updated
+        self.user.refresh_from_db()
+        assert self.user.last_login >= before
 
     def test_invalid_username(self):
         """Test login with invalid username."""

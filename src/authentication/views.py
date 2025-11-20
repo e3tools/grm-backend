@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
 from django.views import View
@@ -91,6 +92,10 @@ class BaseLoginAPIView(APIView):
 
         # Get or create token for the user
         token, _ = Token.objects.get_or_create(user=user)
+
+        # Makes last_login reflect this login
+        user.last_login = timezone.now()
+        user.save(update_fields=['last_login'])
 
         return Response(
             {

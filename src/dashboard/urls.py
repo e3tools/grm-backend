@@ -8,6 +8,7 @@ urlpatterns = [
     path("grm/", include("dashboard.grm.urls")),
     path("search/", include("dashboard.search.urls")),
     path("user-management/", include("dashboard.user_management.urls")),
+    path("performance-diagnostics/", include("dashboard.performance_diagnostics.urls")),
     # path('subprojects/', include('dashboard.subprojects.urls')),
     # path("couchdb-proxy/", include("dashboard.couchdb_proxy.urls")),
     # path("logs/", include("dashboard.logs.urls")),

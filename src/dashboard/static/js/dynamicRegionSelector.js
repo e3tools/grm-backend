@@ -1,13 +1,32 @@
 let ancestors = [];
 let governmentWorkerId = null;
+let current_region_id;
 
-function changeRegionTrigger(url, placeholder, government_worker_id = null) {
-    governmentWorkerId = government_worker_id;
+$("#administrative_level_label").html($("label[for='id_administrative_region']").html());
+
+function triggerRegionChange() {
+    const event = new CustomEvent("region:changed", {
+        detail: {region_id: current_region_id}
+    });
+    document.dispatchEvent(event);
+}
+
+function changeRegionTrigger(url, placeholder) {
     $(document).on("change", ".region", function () {
-        $("#id_administrative_region_value").val($("select.region:last").val());
         loadNextLevelRegions($(this), url, placeholder);
+        let current_input_value = $(this).val();
+        if (current_input_value) {
+            current_region_id = current_input_value;
+            triggerRegionChange();
+        }
     });
 }
+
+$(document).on('select2:clear', ".region", function (e) {
+    current_region_id = $(this).closest('.form-group')
+        .prev('.form-group').find('select.region').val();
+    triggerRegionChange();
+});
 
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();

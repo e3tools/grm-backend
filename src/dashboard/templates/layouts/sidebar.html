@@ -27,10 +27,19 @@
 				<li class="nav-item">
 					<a href="{% url 'dashboard:diagnostics:home' %}"
 					   class="nav-link {% if active_level1 == 'diagnostics' %}active{% endif %}">
-						<i class="nav-icon fa fa-chart-area"></i>
+						<i class="nav-icon fa fa-chart-pie"></i>
 						<p>{% translate "Diagnostics" %}</p>
 					</a>
 				</li>
+				{% if user.grm_manager %}
+					<li class="nav-item">
+						<a href="{% url 'dashboard:performance_diagnostics:dashboard' %}"
+						   class="nav-link {% if active_level1 == 'performance_diagnostics' %}active{% endif %}">
+							<i class="nav-icon fa fa-dashboard"></i>
+							<p>{% translate "Dashboard" %}</p>
+						</a>
+					</li>
+				{% endif %}
 				<li class="nav-item">
 					<a href="{% url 'dashboard:grm:review_issues' %}"
 					   class="nav-link {% if active_level1 == 'review_issues' %}active{% endif %}">

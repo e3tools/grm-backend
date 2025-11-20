@@ -4,7 +4,7 @@
         <div class="col-md-6">
 			{% if comment.user %}
 				<div class="circle-icon float-left mr-2 navbar-{{ colors|next_in_circular_list:comment.user.id }}">
-					<div class="center-32 pt-1 text-white text-bold">
+					<div class="center-32 text-white text-bold">
 						{% get_initials comment.user.name %}
 					</div>
 				</div>
@@ -14,7 +14,7 @@
 			{% else %}
 				{% translate 'GRM system' as grm_system %}
 				<div class="circle-icon float-left mr-2 navbar-dark">
-					<div class="center-32 pt-1 text-white text-bold">
+					<div class="center-32 text-white text-bold">
 						{% get_initials grm_system %}
 					</div>
 				</div>
