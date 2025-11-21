@@ -2,7 +2,12 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from dashboard.constants import PERIOD_CHOICES
+from dashboard.constants import (
+    MONTHLY_CHOICE,
+    PERIOD_CHOICES,
+    QUARTERLY_CHOICE,
+    WEEKLY_CHOICE,
+)
 from dashboard.models import PerformanceMetrics
 from issues.models import AdministrativeRegion, IssueCategory
 
@@ -15,7 +20,7 @@ class Command(BaseCommand):
             '--periods',
             nargs='+',
             type=str,
-            default=['7d', '30d', '90d'],
+            default=[WEEKLY_CHOICE, MONTHLY_CHOICE, QUARTERLY_CHOICE],
             help="Periods to calculate (default: 7d 30d 90d)",
         )
         parser.add_argument(

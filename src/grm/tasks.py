@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
 
 from authentication.models import Cdata
+from dashboard.constants import MONTHLY_CHOICE, QUARTERLY_CHOICE, WEEKLY_CHOICE
 from grm.celery_app import app
 from grm.constants import (
     ACCEPTED_CHOICE,
@@ -385,7 +386,7 @@ def update_performance_metrics(
       # Sharded update for worker 2
       update_performance_metrics.delay(create_regions=True, limit_regions=100, offset_regions=100)
     """
-    periods = periods or ['7d', '30d', '90d']
+    periods = periods or [WEEKLY_CHOICE, MONTHLY_CHOICE, QUARTERLY_CHOICE]
 
     cmd_args = []
     for p in periods:
@@ -461,7 +462,7 @@ def setup_periodic_tasks(sender, **kwargs):
         sender.add_periodic_task(
             900,  # 15 minutes
             update_performance_metrics.s(
-                periods=['7d'],
+                periods=[WEEKLY_CHOICE],
                 create_global=True,
                 create_regions=True,
                 create_categories=True,
@@ -480,7 +481,7 @@ def setup_periodic_tasks(sender, **kwargs):
         sender.add_periodic_task(
             3600,  # every hour
             update_performance_metrics.s(
-                periods=['30d'],
+                periods=[MONTHLY_CHOICE],
                 create_global=True,
                 create_regions=True,
                 create_categories=True,
@@ -498,7 +499,7 @@ def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
         crontab(hour=2, minute=30),
         update_performance_metrics.s(
-            periods=['90d'],
+            periods=[QUARTERLY_CHOICE],
             create_global=True,
             create_regions=True,
             create_categories=True,
