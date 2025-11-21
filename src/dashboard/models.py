@@ -9,13 +9,16 @@ from django.utils.translation import gettext_lazy as _
 from authentication.models import User
 from dashboard.constants import (
     MAU_ABBREV,
+    MONTHLY_CHOICE,
     PERIOD_CHOICES,
     QAU_ABBREV,
+    QUARTERLY_CHOICE,
     STATUS_AT_RISK,
     STATUS_CRITICAL,
     STATUS_GOOD,
     STATUS_UNKNOWN,
     WAU_ABBREV,
+    WEEKLY_CHOICE,
 )
 
 
@@ -115,20 +118,20 @@ class PerformanceMetrics(models.Model):
         Returns (metric_name, lookback_days)
         """
         metric = (WAU_ABBREV, 7)
-        if period == '30d':
+        if period == MONTHLY_CHOICE:
             metric = (MAU_ABBREV, 30)
-        elif period == '90d':
+        elif period == QUARTERLY_CHOICE:
             metric = (QAU_ABBREV, 90)
         return metric
 
     @classmethod
     def calculate_and_save(cls, period, region=None, category=None):
         end_date = timezone.now()
-        if period == '7d':
+        if period == WEEKLY_CHOICE:
             start_date = end_date - timedelta(days=7)
-        elif period == '30d':
+        elif period == MONTHLY_CHOICE:
             start_date = end_date - timedelta(days=30)
-        elif period == '90d':
+        elif period == QUARTERLY_CHOICE:
             start_date = end_date - timedelta(days=90)
         else:
             raise ValueError(f"Invalid period: {period}. Must be one of '7d', '30d', '90d'")

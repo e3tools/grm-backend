@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from authentication.models import User
+from dashboard.constants import MONTHLY_CHOICE, QUARTERLY_CHOICE, WEEKLY_CHOICE
 from issues.models import AdministrativeRegion, Issue, IssueCategory, IssueStatus
 
 
@@ -65,9 +66,9 @@ class Command(BaseCommand):
 
         # Period definitions (same durations used by PerformanceMetrics.calculate_and_save)
         periods = {
-            "7d": {"days": 7},
-            "30d": {"days": 30},
-            "90d": {"days": 90},
+            WEEKLY_CHOICE: {"days": 7},
+            MONTHLY_CHOICE: {"days": 30},
+            QUARTERLY_CHOICE: {"days": 90},
         }
 
         tracking_prefix = "perf_test_tc_"

@@ -103,3 +103,15 @@ class IssueCommentDeleteAPIViewTest(APITestCase):
         assert self.client.put(self.url).status_code == status.HTTP_405_METHOD_NOT_ALLOWED
         assert self.client.patch(self.url).status_code == status.HTTP_405_METHOD_NOT_ALLOWED
         assert self.client.get(self.url).status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+    def test_idempotent_delete_returns_404_on_second_comment(self):
+        """Attempting to delete already deleted comment returns 404."""
+        self.authenticate(self.reporter_token)
+
+        # First delete succeeds
+        response = self.client.delete(self.url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Second delete returns 404
+        response = self.client.delete(self.url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
