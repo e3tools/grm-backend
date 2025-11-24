@@ -24,7 +24,7 @@
 
 			<div id="formset-container">
 				{% for form in formset %}
-					<div class="form-row formset-row pt-3" data-form-index="{{ forloop.counter0 }}">
+					<div class="form-row formset-row pt-3 border-bottom" data-form-index="{{ forloop.counter0 }}">
 						<div class="col-md-12">
 							<!-- Hidden fields (like id) -->
 							{% for hidden in form.hidden_fields %}

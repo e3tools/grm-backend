@@ -15,7 +15,7 @@ from wizard.registry import get_step_by_name
 
 
 class SummaryViewTest(ViewTestCase):
-    """Integration tests for the SummaryView (step 10)."""
+    """Integration tests for the SummaryView."""
 
     def setUp(self):
         """Set up the test environment for the summary step."""
