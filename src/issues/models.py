@@ -265,7 +265,10 @@ class SubProjectGroup(models.Model):
 
 
 class IssueStatus(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name=_('Name'))
+    threshold_days = models.PositiveIntegerField(
+        default=1, help_text=_("Threshold in days for performance evaluation"), verbose_name=_('Threshold days')
+    )
     final_status = models.BooleanField(default=False)
     initial_status = models.BooleanField(default=False)
     rejected_status = models.BooleanField(default=False)
@@ -277,6 +280,13 @@ class IssueStatus(models.Model):
         verbose_name = _("Issue Status")
         verbose_name_plural = _("Issue Status")
         ordering = ['id']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(threshold_days__gt=0),
+                name="%(app_label)s_%(class)s_threshold_days_gt_0",
+                violation_error_message=_("Threshold must be greater than zero."),
+            )
+        ]
 
     def __str__(self):
         return self.name

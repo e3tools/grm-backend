@@ -23,7 +23,7 @@ from wizard.registry import get_next_step, get_step_by_name
 
 
 class IssueCategoriesFormViewTest(ViewTestCase):
-    """Integration tests for the IssueCategoriesFormView (step 5)."""
+    """Integration tests for the IssueCategoriesFormView."""
 
     def setUp(self):
         super().setUp()

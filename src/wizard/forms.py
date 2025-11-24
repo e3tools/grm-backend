@@ -401,10 +401,18 @@ class IssueStatusForm(forms.ModelForm):
 
     class Meta:
         model = IssueStatus
-        fields = ["name"]
+        fields = ["name", "threshold_days"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter status name")}),
+            "threshold_days": forms.NumberInput(attrs={"min": 1, "step": 1}),
         }
+
+    def clean_threshold_days(self):
+        """Reject 0."""
+        value = self.cleaned_data["threshold_days"]
+        if value == 0:
+            raise ValidationError(_("Threshold must be greater than zero."))
+        return value
 
     def has_changed(self):
         """Force it to always be considered changed to run validation."""
@@ -445,19 +453,20 @@ class IssueStatusBaseFormSet(forms.BaseModelFormSet):
         super().__init__(*args, **kwargs)
 
         for i, form in enumerate(self.forms):
-            instance = form.instance
-            if instance.pk:
-                for flag in ('initial_status', 'open_status', 'rejected_status', 'final_status'):
-                    if getattr(instance, flag):
-                        form.fields['name'].label = ISSUE_STATUS_DEFINITIONS[flag]['label']
-                        form.fields['name'].help_text = ISSUE_STATUS_DEFINITIONS[flag]['help_text']
-                        break
+            # 1. Decide which row of definitions corresponds to it.
+            if form.instance.pk:
+                flag = next((f for f in ISSUE_STATUS_DEFINITIONS if getattr(form.instance, f)), None)
             else:
-                if i < len(STATUS_METADATA):
-                    metadata = STATUS_METADATA[i]
-                    if 'name' in form.fields:
-                        form.fields['name'].label = metadata['label']
-                        form.fields['name'].help_text = metadata['help_text']
+                flag = list(ISSUE_STATUS_DEFINITIONS)[i] if i < len(ISSUE_STATUS_DEFINITIONS) else None
+
+            # 2. Decorate the field name
+            if flag:
+                form.fields['name'].label = ISSUE_STATUS_DEFINITIONS[flag]['label']
+                form.fields['name'].help_text = ISSUE_STATUS_DEFINITIONS[flag]['help_text']
+
+            # 3. Remove threshold_days for rejected/final
+            if flag in ('rejected_status', 'final_status'):
+                form.fields.pop('threshold_days', None)
 
 
 ExistingIssueStatusFormSet = forms.modelformset_factory(
