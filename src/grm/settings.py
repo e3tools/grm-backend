@@ -62,6 +62,7 @@ CREATED_APPS = [
     "etl",
     "issues",
     "wizard",
+    "integrations.apps.IntegrationsConfig",
 ]
 
 THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", 'rest_framework.authtoken', "django_celery_results"]
