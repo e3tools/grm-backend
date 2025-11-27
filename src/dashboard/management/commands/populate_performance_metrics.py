@@ -1,6 +1,8 @@
-from django.core.management.base import BaseCommand
+from django.core.management import call_command
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from dashboard.constants import (
     MONTHLY_CHOICE,
@@ -87,6 +89,18 @@ class Command(BaseCommand):
             action='store_true',
             help='Suppress progress output (useful for CI/Celery logs).',
         )
+        parser.add_argument(
+            '--create-status-bottlenecks',
+            action='store_true',
+            dest='create_status_bottlenecks',
+            help='Also compute and persist StatusBottleneckMetrics for a bounded set of filters.',
+        )
+        parser.add_argument(
+            '--calculated-at',
+            type=str,
+            default=None,
+            help="Optional ISO datetime to use as calculated_at for the snapshot (overrides default timezone.now()).",
+        )
 
     def handle(self, *args, **options):
         periods = options['periods']
@@ -101,13 +115,26 @@ class Command(BaseCommand):
         batch_size = options['batch_size']
         dry_run = options['dry_run']
         no_progress = options['no_progress']
+        create_status = options.get('create_status_bottlenecks', False)
+        calculated_at_opt = options.get('calculated_at')
+
+        if calculated_at_opt:
+            parsed = parse_datetime(calculated_at_opt)
+            if parsed is None:
+                raise CommandError(f"Invalid --calculated-at datetime: {calculated_at_opt}")
+            # Ensure timezone-aware (assume UTC if naive)
+            if timezone.is_naive(parsed):
+                calculated_at = timezone.make_aware(parsed, timezone=timezone.utc)
+            else:
+                calculated_at = parsed
+        else:
+            calculated_at = timezone.now()
 
         # Validate period choices against model choices
         valid_periods = {choice[0] for choice in PERIOD_CHOICES}
-        for p in periods:
-            if p not in valid_periods:
-                self.stderr.write(self.style.ERROR(f"Invalid period: {p}. Valid: {sorted(valid_periods)}"))
-                return
+        invalid_periods = [p for p in periods if p not in valid_periods]
+        if invalid_periods:
+            raise CommandError(f"Invalid period(s) passed: {invalid_periods}. Valid periods: {sorted(valid_periods)}")
 
         # loads the entire tree into memory (id->parent_id)
         parent_map = {r['id']: r['parent_id'] for r in AdministrativeRegion.objects.values('id', 'parent_id')}
@@ -204,15 +231,55 @@ class Command(BaseCommand):
                 if dry_run:
                     # The safe approach is to call calculate_and_save but rollback, so use transaction.atomic and raise to rollback
                     with transaction.atomic():
-                        PerformanceMetrics.calculate_and_save(period=period, region=region, category=category)
+                        PerformanceMetrics.calculate_and_save(
+                            period=period, region=region, category=category, calculated_at=calculated_at
+                        )
                         raise RuntimeError("dry-run rollback")
                 else:
                     with transaction.atomic():
-                        obj = PerformanceMetrics.calculate_and_save(period=period, region=region, category=category)
+                        obj = PerformanceMetrics.calculate_and_save(
+                            period=period, region=region, category=category, calculated_at=calculated_at
+                        )
                 if not no_progress:
                     self.stdout.write(
                         self.style.SUCCESS(f"[{processed}/{total_tasks}] Created/updated metrics id={obj.id} ({desc})")
                     )
+
+                if create_status:
+                    cmd_args = []
+
+                    cmd_args.extend(['--period', period])
+
+                    if getattr(obj, 'start_date', None):
+                        cmd_args.extend(['--start-date', obj.start_date.isoformat()])
+                    if getattr(obj, 'end_date', None):
+                        cmd_args.extend(['--end-date', obj.end_date.isoformat()])
+
+                    if getattr(obj, 'calculated_at', None):
+                        cmd_args.extend(['--calculated-at', obj.calculated_at.isoformat()])
+
+                    if region is None and category is None:
+                        cmd_args.append('--only-global')
+                    else:
+                        if region is not None:
+                            cmd_args.extend(['--regions', str(region.id)])
+                        if category is not None:
+                            cmd_args.extend(['--categories', str(category.id)])
+
+                    if dry_run:
+                        cmd_args.append('--dry-run')
+
+                    # Llamada al comando optimizado
+                    try:
+                        call_command('populate_status_bottlenecks', *cmd_args)
+                    except Exception as exc:
+                        errors += 1
+                        self.stderr.write(
+                            self.style.ERROR(
+                                f"[{processed}/{total_tasks}] ERROR creating status bottlenecks ({desc}): {exc}"
+                            )
+                        )
+
             except RuntimeError:
                 # dry-run intentional rollback
                 if not no_progress:

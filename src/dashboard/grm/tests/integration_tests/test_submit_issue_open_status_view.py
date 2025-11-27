@@ -7,6 +7,7 @@ from issues.factories import (
     IssueFactory,
     IssueStatusFactory,
 )
+from issues.models import IssueStatusChange
 
 
 class SubmitIssueOpenStatusViewTest(DashboardTestCase):
@@ -33,15 +34,49 @@ class SubmitIssueOpenStatusViewTest(DashboardTestCase):
         manager = UserFactory(grm_manager=True)
         resp = self.post(self.url, data={}, ajax=True, user=manager)
         assert resp.status_code == 200
+
+        # Reload and assert status changed
         self.issue.refresh_from_db()
         assert self.issue.status == self.open_status
+
+        # Verify IssueStatusChange behavior:
+        # - any previous open ISC for the initial status should be closed
+        prev_open = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.initial_status)
+            .order_by('-entered_at')
+            .first()
+        )
+        assert prev_open.exited_at is not None
+
+        # - a new open ISC for the open_status should exist
+        new_isc = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.open_status).order_by('-entered_at').first()
+        )
+        assert new_isc is not None
+        assert new_isc.exited_at is None
 
     def test_post_by_assignee_piu_staff_sets_open_status(self):
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)
         resp = self.post(self.url, data={}, ajax=True, user=self.issue.assignee)
         assert resp.status_code == 200
+
+        # Reload and assert status changed
         self.issue.refresh_from_db()
         assert self.issue.status == self.open_status
+
+        # Verify IssueStatusChange behavior:
+        prev_open = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.initial_status)
+            .order_by('-entered_at')
+            .first()
+        )
+        assert prev_open.exited_at is not None
+
+        new_isc = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.open_status).order_by('-entered_at').first()
+        )
+        assert new_isc is not None
+        assert new_isc.exited_at is None
 
     def test_post_denied_for_unrelated_user(self):
         outsider = UserFactory()
@@ -49,3 +84,6 @@ class SubmitIssueOpenStatusViewTest(DashboardTestCase):
         assert resp.status_code == 403
         self.issue.refresh_from_db()
         assert self.issue.status == self.initial_status
+
+        # Ensure no ISC was created for open_status and any existing ISC remains unchanged
+        assert not IssueStatusChange.objects.filter(issue=self.issue, status=self.open_status).exists()
