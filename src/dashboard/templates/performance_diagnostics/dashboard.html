@@ -61,6 +61,12 @@
 	<div class="justify-content-center" id="kpi-spin">
 		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 	</div>
+
+	<!-- Status Bottlenecks Container -->
+	<div id="status-bottlenecks-container" class="mt-3"></div>
+	<div class="justify-content-center" id="status-bottlenecks-spin" style="display:none;">
+		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+	</div>
 {% endblock %}
 
 {% block javascript %}
@@ -94,10 +100,12 @@
 
         $(document).ready(function () {
             loadKPIs();
-		});
+    		loadStatusBottlenecks();
+        });
 
         document.addEventListener("region:changed", function (event) {
             loadKPIs();
+    		loadStatusBottlenecks();
         });
 
         changeRegionTrigger(get_choices_url, choice_placeholder);
@@ -107,12 +115,37 @@
             $('#period').val('7d').trigger('change.select2');
             current_region_id = null;
             loadKPIs();
+            loadStatusBottlenecks();
             loadNextLevelRegions($("#id_administrative_region"), '', '');
         });
 
         $('.issues-filter select').on('change', function () {
             loadKPIs();
+    		loadStatusBottlenecks();
         });
+
+        let sb_spin = $('#status-bottlenecks-spin');
+
+        function loadStatusBottlenecks() {
+            sb_spin.show();
+            $.ajax({
+                type: 'GET',
+                url: '{% url "dashboard:performance_diagnostics:api_status_bottlenecks" %}',
+                data: {
+                    period: $('#period').val(),
+                    category: $('#category').val(),
+                    administrative_region: current_region_id,
+                },
+                success: function (data) {
+                    $('#status-bottlenecks-container').html(data);
+                    sb_spin.hide();
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                    sb_spin.hide();
+                }
+            });
+        }
 
         // Update last updated time every minute
         function updateLastUpdatedTime() {

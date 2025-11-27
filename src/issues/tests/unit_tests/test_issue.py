@@ -20,7 +20,9 @@ from issues.factories import (
     IssueDepartmentAdministrativeLevelFactory,
     IssueDepartmentFactory,
     IssueFactory,
+    IssueStatusFactory,
 )
+from issues.models import IssueStatusChange
 
 
 @pytest.mark.django_db
@@ -180,3 +182,93 @@ class TestIssueIsPiuStaff(TestCase):
         user = UserFactory()
         issue = IssueFactory(administrative_region=self.root_region)
         assert issue.is_piu_staff(user) is False
+
+
+@pytest.mark.django_db
+class IssueStatusChangeSaveBehaviorTest(TestCase):
+    """Tests that Issue.save() correctly creates/closes IssueStatusChange rows."""
+
+    def setUp(self):
+        super().setUp()
+        self.root_region = AdministrativeRegionFactory()
+        self.category = IssueCategoryFactory()
+
+        # Non-terminal statuses
+        self.status_open = IssueStatusFactory(final_status=False, rejected_status=False, threshold_days=5)
+        self.status_other = IssueStatusFactory(final_status=False, rejected_status=False, threshold_days=3)
+
+        # Terminal status (final) - DB requires threshold_days > 0
+        self.status_terminal = IssueStatusFactory(final_status=True, rejected_status=False, threshold_days=1)
+
+    def test_create_issue_with_non_terminal_status_creates_issue_status_change(self):
+        """Creating an Issue with a non-terminal status should create an open IssueStatusChange."""
+        issue = IssueFactory(
+            administrative_region=self.root_region,
+            category=self.category,
+            status=self.status_open,
+            confirmed=True,
+        )
+
+        # There should be exactly one open IssueStatusChange for this issue/status
+        isc = IssueStatusChange.objects.filter(issue=issue, status=self.status_open).order_by('-entered_at').first()
+        assert isc is not None
+        assert isc.exited_at is None
+
+    def test_create_issue_with_terminal_status_sets_resolution_date_and_no_isc(self):
+        """Creating an Issue with a terminal status should set resolution_date and NOT create an IssueStatusChange."""
+        issue = IssueFactory(
+            administrative_region=self.root_region,
+            category=self.category,
+            status=self.status_terminal,
+            confirmed=True,
+        )
+
+        # Reload from DB to ensure fields set by save() are visible
+        issue.refresh_from_db()
+        assert issue.resolution_date is not None
+
+        # No IssueStatusChange rows should exist for terminal statuses on create
+        assert not IssueStatusChange.objects.filter(issue=issue).exists()
+
+    def test_updating_status_closes_previous_and_creates_new_issue_status_change(self):
+        """When an Issue changes status, the previous open ISC is closed and a new ISC is created for the new status."""
+        # Create issue with initial non-terminal status -> should create ISC A
+        issue = IssueFactory(
+            administrative_region=self.root_region,
+            category=self.category,
+            status=self.status_open,
+            confirmed=True,
+        )
+
+        isc_a = IssueStatusChange.objects.filter(issue=issue, status=self.status_open).order_by('-entered_at').first()
+        assert isc_a is not None
+        assert isc_a.exited_at is None
+
+        # Change status to another non-terminal status and save -> should close ISC A and create ISC B
+        issue.status = self.status_other
+        issue.save()
+
+        # Refresh ISCs
+        isc_a.refresh_from_db()
+        assert isc_a.exited_at is not None
+
+        isc_b = IssueStatusChange.objects.filter(issue=issue, status=self.status_other).order_by('-entered_at').first()
+        assert isc_b is not None
+        assert isc_b.exited_at is None
+
+    def test_saving_without_status_change_does_not_create_additional_isc(self):
+        """Saving an Issue without changing status should not create extra IssueStatusChange rows."""
+        issue = IssueFactory(
+            administrative_region=self.root_region,
+            category=self.category,
+            status=self.status_open,
+            confirmed=True,
+        )
+
+        initial_count = IssueStatusChange.objects.filter(issue=issue).count()
+        # Save without changing status
+        issue.description = "Minor edit"
+        issue.save()
+
+        final_count = IssueStatusChange.objects.filter(issue=issue).count()
+        assert final_count == initial_count

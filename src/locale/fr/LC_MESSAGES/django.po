@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-20 18:22+0000\n"
+"POT-Creation-Date: 2025-11-26 21:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -80,22 +80,22 @@ msgid "Government Workers"
 msgstr "Travailleurs du Gouvernement"
 
 #: authentication/models.py:131 authentication/models.py:146
-#: issues/models.py:33 issues/models.py:61 issues/models.py:214
-#: issues/models.py:233 issues/models.py:252 issues/models.py:273
-#: issues/models.py:292 issues/models.py:307 issues/models.py:319
-#: issues/models.py:338 issues/models.py:375 issues/models.py:394
-#: issues/models.py:412 issues/models.py:440 issues/models.py:704
-#: issues/models.py:738
+#: issues/models.py:35 issues/models.py:63 issues/models.py:216
+#: issues/models.py:235 issues/models.py:254 issues/models.py:278
+#: issues/models.py:334 issues/models.py:349 issues/models.py:361
+#: issues/models.py:380 issues/models.py:417 issues/models.py:436
+#: issues/models.py:454 issues/models.py:482 issues/models.py:853
+#: issues/models.py:887
 msgid "Created at"
 msgstr "Créé à"
 
 #: authentication/models.py:132 authentication/models.py:147
-#: issues/models.py:34 issues/models.py:62 issues/models.py:215
-#: issues/models.py:234 issues/models.py:253 issues/models.py:274
-#: issues/models.py:293 issues/models.py:308 issues/models.py:320
-#: issues/models.py:339 issues/models.py:376 issues/models.py:395
-#: issues/models.py:413 issues/models.py:441 issues/models.py:504
-#: issues/models.py:705 issues/models.py:739
+#: issues/models.py:36 issues/models.py:64 issues/models.py:217
+#: issues/models.py:236 issues/models.py:255 issues/models.py:279
+#: issues/models.py:335 issues/models.py:350 issues/models.py:362
+#: issues/models.py:381 issues/models.py:418 issues/models.py:437
+#: issues/models.py:455 issues/models.py:483 issues/models.py:584
+#: issues/models.py:854 issues/models.py:888
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -111,11 +111,11 @@ msgstr "Facilitateur"
 msgid "Facilitators"
 msgstr "Code de l'animateur"
 
-#: authentication/models.py:150 issues/models.py:444
+#: authentication/models.py:150 issues/models.py:486
 msgid "Citizen"
 msgstr "Citoyen"
 
-#: authentication/models.py:151 issues/models.py:445
+#: authentication/models.py:151 issues/models.py:487
 msgid "Citizens"
 msgstr "Citoyens"
 
@@ -186,39 +186,43 @@ msgstr "Critique"
 msgid "No Data"
 msgstr "Aucune donnée"
 
-#: dashboard/constants.py:36
+#: dashboard/constants.py:31
+msgid "N/A"
+msgstr "N/A"
+
+#: dashboard/constants.py:44
 msgid "WAU"
 msgstr "UAH"
 
-#: dashboard/constants.py:37
+#: dashboard/constants.py:44
 msgid "MAU"
 msgstr "UAM"
 
-#: dashboard/constants.py:38
+#: dashboard/constants.py:44
 msgid "QAU"
 msgstr "UAT"
 
-#: dashboard/constants.py:42
+#: dashboard/constants.py:47
 msgid "Weekly Active User"
 msgstr "Utilisateurs Actifs Hebdomadaires"
 
-#: dashboard/constants.py:43
+#: dashboard/constants.py:48
 msgid "Monthly Active User"
 msgstr "Utilisateurs Actifs Mensuels"
 
-#: dashboard/constants.py:44
+#: dashboard/constants.py:49
 msgid "Quarterly Active User"
 msgstr "Utilisateurs Actifs Trimestriels"
 
-#: dashboard/constants.py:52
+#: dashboard/constants.py:57
 msgid "Last 7 Days"
 msgstr "7 derniers jours"
 
-#: dashboard/constants.py:53
+#: dashboard/constants.py:58
 msgid "Last 30 Days"
 msgstr "30 derniers jours"
 
-#: dashboard/constants.py:54
+#: dashboard/constants.py:59
 msgid "Last 90 Days"
 msgstr "90 derniers jours"
 
@@ -296,7 +300,7 @@ msgid "The category of grievance"
 msgstr "La catégorie de la réclamation"
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:218
+#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:220
 #: wizard/templates/wizard/nested_formset.html:32
 #: wizard/templates/wizard/nested_formset.html:164
 msgid "Component"
@@ -326,7 +330,7 @@ msgstr "Evénement en cours ou occurrences multiples"
 #: dashboard/templates/user_management/list.html:27
 #: dashboard/user_management/forms.py:164
 #: dashboard/user_management/forms.py:234
-#: dashboard/user_management/forms.py:288 issues/models.py:37
+#: dashboard/user_management/forms.py:288 issues/models.py:39
 #: wizard/templates/wizard/regions.html:28
 #: wizard/templates/wizard/summary.html:47
 msgid "Administrative Level"
@@ -471,40 +475,59 @@ msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
 
-#: dashboard/models.py:19 dashboard/templates/grm/issue_detail.html:74
-#: dashboard/templates/user_management/list.html:24 issues/models.py:290
-#: issues/models.py:357 issues/models.py:410 wizard/forms.py:34
-#: wizard/views.py:647 wizard/views.py:657 wizard/views.py:680
-#: wizard/views.py:696 wizard/views.py:718 wizard/views.py:759
-#: wizard/views.py:769 wizard/views.py:786 wizard/views.py:792
+#: dashboard/models.py:26 dashboard/templates/grm/issue_detail.html:74
+#: dashboard/templates/user_management/list.html:24 issues/models.py:270
+#: issues/models.py:332 issues/models.py:399 issues/models.py:452
+#: wizard/forms.py:34 wizard/views.py:647 wizard/views.py:657
+#: wizard/views.py:680 wizard/views.py:696 wizard/views.py:718
+#: wizard/views.py:759 wizard/views.py:769 wizard/views.py:786
+#: wizard/views.py:792
 msgid "Name"
 msgstr "Nom"
 
-#: dashboard/models.py:20
+#: dashboard/models.py:27
 #: dashboard/templates/grm/new_issue_confirmation.html:150 wizard/forms.py:41
 #: wizard/views.py:648 wizard/views.py:787 wizard/views.py:793
 msgid "Description"
 msgstr "La description"
 
-#: dashboard/models.py:23
+#: dashboard/models.py:30
 msgid "Project"
 msgstr "Projet"
 
-#: dashboard/models.py:24
+#: dashboard/models.py:31
 msgid "Projects"
 msgstr "Projets"
 
-#: dashboard/models.py:90 dashboard/models.py:91
+#: dashboard/models.py:97 dashboard/models.py:98
 msgid "Performance Metrics"
 msgstr "Indicateurs de performance"
 
-#: dashboard/performance_diagnostics/views.py:19
+#: dashboard/models.py:426
+msgid "Status Bottleneck Metric"
+msgstr "Indicateur de goulot d'étranglement d'état"
+
+#: dashboard/models.py:427
+msgid "Status Bottleneck Metrics"
+msgstr "Métriques de goulot d'étranglement de l'état"
+
+#: dashboard/performance_diagnostics/views.py:24
 msgid "Performance Diagnostics"
 msgstr "Diagnostic de performance"
 
-#: dashboard/performance_diagnostics/views.py:66
+#: dashboard/performance_diagnostics/views.py:69
 msgid "No metrics available for the selected filters."
 msgstr "Aucune donnée disponible pour les filtres sélectionnés."
+
+#: dashboard/performance_diagnostics/views.py:230
+#, python-format
+msgid ""
+"The red flag on '%(status)s' immediately tells the admin that this status is "
+"a major bottleneck. Issues are waiting %(days).1f days on average."
+msgstr ""
+"Le drapeau rouge sur '%(status)s' indique immédiatement à l'administrateur "
+"que ce statut représente un goulot d'étranglement majeur. Les problèmes sont en "
+"attente de %(days).1f jours en moyenne."
 
 #: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
 msgid "Search Issues"
@@ -601,6 +624,7 @@ msgstr "Pourcentage"
 #: dashboard/templates/grm/issue_status_buttons.html:5
 #: dashboard/templates/grm/review_issues.html:48
 #: dashboard/templates/grm/review_issues.html:253
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:20
 msgid "Status"
 msgstr "Statut"
 
@@ -609,7 +633,7 @@ msgstr "Statut"
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:47
 #: dashboard/templates/grm/review_issues.html:248
-#: dashboard/templates/search/_filters.html:11 issues/models.py:411
+#: dashboard/templates/search/_filters.html:11 issues/models.py:453
 #: wizard/views.py:770
 msgid "Type"
 msgstr "Type"
@@ -662,13 +686,13 @@ msgstr "Aucun réclamation ou demande n'a été trouvée"
 #: dashboard/templates/diagnostics/home.html:453
 #: dashboard/templates/grm/new_issue_confirm.html:238
 #: dashboard/templates/grm/new_issue_location.html:61
-#: dashboard/templates/performance_diagnostics/dashboard.html:72
+#: dashboard/templates/performance_diagnostics/dashboard.html:78
 msgid "Click to select location"
 msgstr "Cliquez pour sélectionner l'emplacement"
 
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:743
+#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:892
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -947,28 +971,28 @@ msgstr "Période couverte"
 msgid "All Categories"
 msgstr "Catégories"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:129
+#: dashboard/templates/performance_diagnostics/dashboard.html:162
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:11
 msgid "Just now"
 msgstr "Tout à l' heure"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:131
+#: dashboard/templates/performance_diagnostics/dashboard.html:164
 msgid "1 minute ago"
 msgstr "il y a 1 minute"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:133
+#: dashboard/templates/performance_diagnostics/dashboard.html:166
 msgid "minutes ago"
 msgstr "il y a quelques minutes"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:135
+#: dashboard/templates/performance_diagnostics/dashboard.html:168
 msgid "1 hour ago"
 msgstr "il y a 1 heure"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:138
+#: dashboard/templates/performance_diagnostics/dashboard.html:171
 msgid "hours ago"
 msgstr "il y a quelques heures"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:158
+#: dashboard/templates/performance_diagnostics/dashboard.html:191
 #: dashboard/templates/search/semantic_search.html:50
 #: dashboard/templates/search/semantic_search.html:67
 msgid "All"
@@ -1006,9 +1030,37 @@ msgstr "Satisfaction des citoyens"
 msgid "Appeal Rate"
 msgstr "Taux d'appel"
 
-#: dashboard/templates/performance_diagnostics/kpi_error.html:6
+#: dashboard/templates/performance_diagnostics/no_metrics.html:6
 msgid "No Data Available"
 msgstr "Aucune donnée disponible"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:10
+msgid "Issue Lifecycle Bottlenecks (by Status)"
+msgstr "Points de blocage du cycle de vie des problèmes (par statut)"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:11
+msgid "Identify where issues are getting stuck in the workflow"
+msgstr "Identifiez les points de blocage dans le flux de travail"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:21
+msgid "Issues in Status"
+msgstr "Problèmes liés au statut"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:22
+msgid "Avg. Time in Status (days)"
+msgstr "Durée moyenne de séjour dans ce statut (jours)"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
+msgid "Performance"
+msgstr "Performance"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:40
+msgid "No data available"
+msgstr "Aucune donnée disponible"
+
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:50
+msgid "Insight"
+msgstr "Aperçu"
 
 #: dashboard/templates/search/_filters.html:21
 msgid "Age Group"
@@ -1109,7 +1161,7 @@ msgid "Edit Profile"
 msgstr "Modifier le profil"
 
 #: dashboard/templates/user_management/profile.html:44
-#: dashboard/templates/user_management/profile.html:64 issues/models.py:65
+#: dashboard/templates/user_management/profile.html:64 issues/models.py:67
 msgid "Administrative Region"
 msgstr "Région administrative"
 
@@ -1621,12 +1673,12 @@ msgstr "Kinyarwanda"
 msgid "Ethiopia"
 msgstr "Ethiopie"
 
-#: grm/tasks.py:89
+#: grm/tasks.py:90
 #, python-format
 msgid "The issue has been assigned to %s."
 msgstr "La réclamation a été assignée à %s."
 
-#: grm/tasks.py:173
+#: grm/tasks.py:174
 msgid ""
 "The complaint has been escalated automatically because the processing time "
 "has passed."
@@ -1634,7 +1686,7 @@ msgstr ""
 "La plainte a été escaladée/remontée automatiquement car le délai de "
 "traitement est dépassé."
 
-#: grm/tasks.py:215 grm/tasks.py:281
+#: grm/tasks.py:216 grm/tasks.py:282
 #, python-format
 msgid ""
 "Your issue submitted has been accepted into the system with the tracking "
@@ -1643,7 +1695,7 @@ msgstr ""
 "Votre problème soumis a été accepté dans le système avec le code "
 "%s(tracking_code)s"
 
-#: grm/tasks.py:216
+#: grm/tasks.py:217
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been rejected with the following response: "
@@ -1652,144 +1704,164 @@ msgstr ""
 "Votre problème %s(tracking_code)s a été rejeté avec la réponse suivante: "
 "%s(reason)s"
 
-#: grm/tasks.py:217 grm/tasks.py:283
+#: grm/tasks.py:218 grm/tasks.py:284
 #, python-format
 msgid "Your issue %s has been resolved with the following response: %s"
 msgstr ""
 "Votre problème %s(tracking_code)s a été résolu avec la réponse suivante: "
 "%s(resolution)s"
 
-#: grm/tasks.py:282
+#: grm/tasks.py:283
 #, python-format
 msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""
 "Votre problème %s(tracking_code)s a été rejeté avec la réponse suivante: "
 "%s(reason)s"
 
-#: issues/models.py:38 wizard/templates/wizard/regions.html:13
+#: issues/models.py:40 wizard/templates/wizard/regions.html:13
 msgid "Administrative Levels"
 msgstr "Niveaux Administratifs"
 
-#: issues/models.py:60
+#: issues/models.py:62
 msgid "Hierarchical Name"
 msgstr "Nom hiérarchique"
 
-#: issues/models.py:66
+#: issues/models.py:68
 msgid "Administrative Regions"
 msgstr "Région administratives"
 
-#: issues/models.py:219
+#: issues/models.py:221
 msgid "Components"
 msgstr "Composants"
 
-#: issues/models.py:237
+#: issues/models.py:239
 msgid "Subcomponent"
 msgstr "Sous-Composante"
 
-#: issues/models.py:238 wizard/templates/wizard/grm_customization.html:417
+#: issues/models.py:240 wizard/templates/wizard/grm_customization.html:417
 #: wizard/templates/wizard/nested_formset.html:73
 #: wizard/templates/wizard/nested_formset.html:193
 #: wizard/templates/wizard/summary.html:29
 msgid "Subcomponents"
 msgstr "Sous-Composants"
 
-#: issues/models.py:256
+#: issues/models.py:258
 msgid "Subproject Group"
 msgstr "Groupe de sous-projets"
 
-#: issues/models.py:257
+#: issues/models.py:259
 msgid "Subproject Groups"
 msgstr "Groupes de sous-projets"
 
-#: issues/models.py:277 issues/models.py:278 wizard/views.py:458
+#: issues/models.py:272
+msgid "Threshold in days for performance evaluation"
+msgstr "Seuil en jours pour l'évaluation des performances"
+
+#: issues/models.py:272
+msgid "Threshold days"
+msgstr "Jours seuils"
+
+#: issues/models.py:282 issues/models.py:283 wizard/views.py:458
 msgid "Issue Status"
 msgstr "Détails du problème"
 
-#: issues/models.py:296
+#: issues/models.py:289 wizard/forms.py:414
+msgid "Threshold must be greater than zero."
+msgstr "Le seuil doit être supérieur à zéro."
+
+#: issues/models.py:338
 msgid "Issue Department"
 msgstr "Département des émissions"
 
-#: issues/models.py:297
+#: issues/models.py:339
 msgid "Issue Departments"
 msgstr "Départements concernés"
 
-#: issues/models.py:323
+#: issues/models.py:365
 msgid "Issue Type"
 msgstr "Type de problème"
 
-#: issues/models.py:324 wizard/views.py:398
+#: issues/models.py:366 wizard/views.py:398
 msgid "Issue Types"
 msgstr "Types de problème"
 
-#: issues/models.py:342
+#: issues/models.py:384
 msgid "Issue Subtype"
 msgstr "Sous-type de problème"
 
-#: issues/models.py:343
+#: issues/models.py:385
 msgid "Issue Subtypes"
 msgstr "Sous-types de problèmes"
 
-#: issues/models.py:358 wizard/views.py:719
+#: issues/models.py:400 wizard/views.py:719
 msgid "Abbreviation"
 msgstr "Abréviation"
 
-#: issues/models.py:370 wizard/views.py:725
+#: issues/models.py:412 wizard/views.py:725
 msgid "Confidentiality level"
 msgstr "Niveau de confidentialité"
 
-#: issues/models.py:373 wizard/views.py:729
+#: issues/models.py:415 wizard/views.py:729
 msgid "Redirection protocol"
 msgstr "Protocole de redirection"
 
-#: issues/models.py:379
+#: issues/models.py:421
 msgid "Issue Category"
 msgstr "Catégorie de problème"
 
-#: issues/models.py:380
+#: issues/models.py:422
 msgid "Issue Categories"
 msgstr "Catégories de problème"
 
-#: issues/models.py:398
+#: issues/models.py:440
 msgid "Citizen Age Group"
 msgstr "Groupe d'âge des citoyens"
 
-#: issues/models.py:399 wizard/constants.py:18 wizard/views.py:486
+#: issues/models.py:441 wizard/constants.py:18 wizard/views.py:486
 msgid "Citizen Age Groups"
 msgstr "Groupes d'âge des citoyens"
 
-#: issues/models.py:416
+#: issues/models.py:458
 msgid "Citizen Group"
 msgstr "Groupe de citoyens"
 
-#: issues/models.py:417 wizard/constants.py:20 wizard/views.py:510
+#: issues/models.py:459 wizard/constants.py:20 wizard/views.py:510
 msgid "Citizen Groups"
 msgstr "Groupes de citoyens"
 
-#: issues/models.py:517 issues/models.py:726
+#: issues/models.py:511
+msgid "Issue Status Change"
+msgstr "Changement de statut du problème"
+
+#: issues/models.py:512
+msgid "Issue Status Changes"
+msgstr "Changements d'état du problème"
+
+#: issues/models.py:597 issues/models.py:875
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:518
+#: issues/models.py:598
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:708
+#: issues/models.py:857
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:709
+#: issues/models.py:858
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:728
+#: issues/models.py:877
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:736
+#: issues/models.py:885
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:742
+#: issues/models.py:891
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 
@@ -2019,69 +2091,69 @@ msgstr "Télécharger un fichier Excel"
 msgid "Enter status name"
 msgstr "Entrez le nom du statut"
 
-#: wizard/forms.py:417
+#: wizard/forms.py:425
 msgid "Created"
 msgstr "Créé"
 
-#: wizard/forms.py:418
+#: wizard/forms.py:426
 msgid "Represents the starting point of the issue"
 msgstr "Représente le point de départ du problème."
 
-#: wizard/forms.py:419
+#: wizard/forms.py:427
 msgid ""
 "This status indicates that the issue has just been created or initiated."
 msgstr "Ce statut indique que le problème vient d'être créé ou initié."
 
-#: wizard/forms.py:422
+#: wizard/forms.py:430
 msgid "Open"
 msgstr "Ouvrir"
 
-#: wizard/forms.py:423
+#: wizard/forms.py:431
 msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution"
 msgstr ""
 "Indique que le problème est activement traité ou en attente de résolution."
 
-#: wizard/forms.py:427
+#: wizard/forms.py:435
 msgid "Rejected"
 msgstr "Rejeté"
 
-#: wizard/forms.py:428
+#: wizard/forms.py:436
 msgid "Indicates that the issue has been reviewed and rejected"
 msgstr "Indique que le problème a été examiné et rejeté."
 
-#: wizard/forms.py:429
+#: wizard/forms.py:437
 msgid "This status is used when the issue is deemed invalid or unnecessary."
 msgstr ""
 "Ce statut est utilisé lorsque le problème est jugé invalide ou inutile."
 
-#: wizard/forms.py:432
+#: wizard/forms.py:440
 msgid "Resolved"
 msgstr "Résolu"
 
-#: wizard/forms.py:433
+#: wizard/forms.py:441
 msgid "Marks the resolution or closure of the issue"
 msgstr "Marque la résolution ou la clôture du problème."
 
-#: wizard/forms.py:434
+#: wizard/forms.py:442
 msgid ""
 "This status signifies that the issue has been successfully completed or "
 "resolved."
 msgstr "Ce statut signifie que le problème a été résolu avec succès."
 
-#: wizard/forms.py:488
+#: wizard/forms.py:497
 msgid "Enter citizen age group name"
 msgstr "Entrez le nom du groupe d'âge du citoyen"
 
-#: wizard/forms.py:541
+#: wizard/forms.py:550
 msgid "Enter citizen group name"
 msgstr "Entrez le nom du groupe de citoyens"
 
-#: wizard/forms.py:543
+#: wizard/forms.py:552
 msgid "Select the type that groups each of the options that you are creating"
 msgstr "Sélectionnez le type qui regroupe chacune des options que vous créez"
 
-#: wizard/forms.py:550
+#: wizard/forms.py:559
 msgid ""
 "Use this option to classify between two different types for additional "
 "internal analysis."
@@ -2089,21 +2161,21 @@ msgstr ""
 "Utilisez cette option pour classer entre deux types différents pour une "
 "analyse interne supplémentaire."
 
-#: wizard/forms.py:585 wizard/templates/wizard/nested_formset.html:210
+#: wizard/forms.py:594 wizard/templates/wizard/nested_formset.html:210
 #: wizard/templates/wizard/nested_formset.html:239
 msgid "Enter subcomponent name"
 msgstr "Entrez le nom du sous-composant"
 
-#: wizard/forms.py:587 wizard/templates/wizard/nested_formset.html:215
+#: wizard/forms.py:596 wizard/templates/wizard/nested_formset.html:215
 #: wizard/templates/wizard/nested_formset.html:244
 msgid "Enter subcomponent description"
 msgstr "Entrez la description du sous-composant"
 
-#: wizard/forms.py:651
+#: wizard/forms.py:660
 msgid "Enter component name"
 msgstr "Entrez le nom du composant"
 
-#: wizard/forms.py:652
+#: wizard/forms.py:661
 msgid "Enter component description"
 msgstr "Entrez la description du composant"
 

@@ -4,12 +4,13 @@ import cryptocode
 import shortuuid as uuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import connection, models
+from django.db import connection, models, transaction
 from django.db.models import Count
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from authentication.models import Cdata, Facilitator, GovernmentWorker, Pdata, User
+from dashboard.constants import STATUS_AT_RISK, STATUS_CRITICAL, STATUS_GOOD, STATUS_NA
 from grm.constants import (
     ALERT_CHOICE,
     ALERT_CHOICES,
@@ -295,6 +296,36 @@ class IssueStatus(models.Model):
     def get_choices(cls, empty_choice=True):
         return get_choices(cls.objects.all(), empty_choice)
 
+    def performance_for_status(self, avg_days):
+        """
+        Determine the performance dictionary for this IssueStatus given an average time in days.
+
+        Returns a dict with keys:
+          - label: human label ("Critical", "At Risk", "Good Performance", "N/A")
+          - badge_class, icon_class, label: visual metadata (from dashboard.constants)
+
+        Acceptance criteria:
+          - If final_status or rejected_status -> return N/A
+          - If threshold_days missing or <= 0 -> return N/A
+          - Critical: avg_days > threshold * 1.5
+          - At Risk: avg_days > threshold * 1.2
+          - Good Performance: avg_days <= threshold * 1.2
+        """
+        # Terminal statuses are not evaluated
+        if self.final_status or self.rejected_status:
+            return STATUS_NA
+
+        threshold = getattr(self, 'threshold_days', None)
+        if not threshold or threshold <= 0:
+            return STATUS_NA
+
+        # Compare average days to threshold
+        if avg_days > threshold * 1.5:
+            return STATUS_CRITICAL
+        if avg_days > threshold * 1.2:
+            return STATUS_AT_RISK
+        return STATUS_GOOD
+
 
 class IssueDepartment(models.Model):
     name = models.CharField(max_length=255, unique=True, verbose_name=_("Name"))
@@ -458,6 +489,46 @@ class Citizen(models.Model):
         return f'{self.id} {self.name}'
 
 
+class IssueStatusChange(models.Model):
+    """
+    Historical record of when an Issue enters and exits an IssueStatus.
+
+    Each time an Issue changes status:
+      - a new IssueStatusChange row is created with entered_at
+      - the previous open IssueStatusChange for that issue (if any) is closed by setting exited_at
+
+    Note: We intentionally do NOT create IssueStatusChange rows for statuses that are
+    terminal (final_status=True) or rejected (rejected_status=True) to avoid storing
+    rows that are not needed for bottleneck calculations.
+    """
+
+    issue = models.ForeignKey('Issue', on_delete=models.CASCADE, related_name='status_changes')
+    status = models.ForeignKey('IssueStatus', on_delete=models.PROTECT, related_name='status_changes')
+    entered_at = models.DateTimeField(default=now, db_index=True)
+    exited_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        verbose_name = _("Issue Status Change")
+        verbose_name_plural = _("Issue Status Changes")
+        ordering = ['-entered_at']
+        indexes = [
+            models.Index(fields=['issue', 'status', 'entered_at']),
+            models.Index(fields=['status', 'entered_at']),
+        ]
+
+    def __str__(self):
+        return f"Issue {self.issue_id} - {self.status.name} @ {self.entered_at.isoformat()}"
+
+    @property
+    def duration_seconds(self):
+        end = self.exited_at or now()
+        return (end - self.entered_at).total_seconds()
+
+    @property
+    def duration_days(self):
+        return self.duration_seconds / 86400.0
+
+
 class Issue(models.Model):
     external_id = models.CharField(
         max_length=255, verbose_name="couchDB document _id", default=None, null=True, blank=True
@@ -538,8 +609,74 @@ class Issue(models.Model):
         return f"{self.id}"
 
     def save(self, *args, **kwargs):
+        """
+        Override save to:
+          1. Apply contact-method validation.
+          2. Maintain IssueStatusChange history.
+
+        Behavior:
+          - On create: if the issue has a status, create an initial IssueStatusChange row.
+          - On update: if status changed, close the previous open IssueStatusChange (set exited_at)
+            and create a new IssueStatusChange for the new status.
+        """
+        # Apply contact-method validation (existing behavior)
         self._validate_contact_method_based_on_contact_medium()
-        return super().save(*args, **kwargs)
+
+        # Detect create vs update and capture previous status_id
+        is_create = self._state.adding
+        old_status_id = None
+        if not is_create:
+            try:
+                old = self.__class__.objects.only('status_id').get(pk=self.pk)
+                old_status_id = getattr(old, 'status_id', None)
+            except self.__class__.DoesNotExist:
+                old_status_id = None
+
+        # Save the Issue first so we have a PK for related IssueStatusChange rows
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            new_status_id = getattr(self, 'status_id', None)
+
+            # Helper: check whether a status id corresponds to a terminal/rejected status
+            def _is_terminal_or_rejected(status_id):
+                if not status_id:
+                    return False
+                try:
+                    st = IssueStatus.objects.only('final_status', 'rejected_status').get(pk=status_id)
+                    return bool(st.final_status or st.rejected_status)
+                except IssueStatus.DoesNotExist:
+                    return False
+
+            # Creation: if initial status is non-terminal create a change row,
+            # otherwise persist resolution_date immediately (no IssueStatusChange for terminal statuses)
+            if is_create and new_status_id:
+                if _is_terminal_or_rejected(new_status_id):
+                    # Persist resolution_date without calling save() again to avoid recursion
+                    self.__class__.objects.filter(pk=self.pk).update(resolution_date=now())
+                else:
+                    IssueStatusChange.objects.create(issue=self, status_id=new_status_id, entered_at=now())
+                return
+
+            # If status didn't change, nothing else to do
+            if old_status_id == new_status_id:
+                return
+
+            # Close previous open change for this issue (if any)
+            prev_open = (
+                IssueStatusChange.objects.filter(issue=self, exited_at__isnull=True).order_by('-entered_at').first()
+            )
+            if prev_open:
+                prev_open.exited_at = now()
+                prev_open.save(update_fields=['exited_at'])
+
+            # If new status is terminal/rejected: persist resolution_date (DB update) and do NOT create a new change row
+            if new_status_id and _is_terminal_or_rejected(new_status_id):
+                # Use update to avoid triggering save() again and to ensure the field is persisted
+                self.__class__.objects.filter(pk=self.pk).update(resolution_date=now())
+            # Otherwise create a new IssueStatusChange row for the new status
+            elif new_status_id:
+                IssueStatusChange.objects.create(issue=self, status_id=new_status_id, entered_at=now())
 
     def _validate_contact_method_based_on_contact_medium(self):
         if self.contact_medium == ALERT_CHOICE and not self.contact_method:

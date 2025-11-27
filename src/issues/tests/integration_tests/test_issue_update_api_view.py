@@ -18,6 +18,7 @@ from grm.constants import (
 )
 from grm.utils import reset_sequences
 from issues.factories import IssueFactory, IssueStatusFactory
+from issues.models import IssueStatusChange
 
 
 @pytest.mark.django_db
@@ -347,3 +348,55 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.issue.refresh_from_db()
         self.assertIsNone(self.issue.escalation_reason)
         self.assertIsNone(self.issue.research_result)
+
+    def test_assignee_status_update_closes_previous_and_creates_new_isc(self):
+        """When assignee updates status, previous open ISC is closed and a new ISC is created."""
+        # Ensure the issue has an initial non-terminal status and an open ISC
+        initial_status = IssueStatusFactory(final_status=False, rejected_status=False, threshold_days=1)
+        self.issue.status = initial_status
+        self.issue.save()
+
+        # There should be an open ISC for the initial status
+        isc_before = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=initial_status).order_by('-entered_at').first()
+        )
+        self.assertIsNotNone(isc_before)
+        self.assertIsNone(isc_before.exited_at)
+
+        # Authenticate as assignee and update status to new_status
+        self.authenticate_with_token(self.assignee_token)
+        response = self.client.patch(self.url, {'status': self.new_status.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
+
+        # Refresh previous ISC and assert it was closed
+        isc_before.refresh_from_db()
+        self.assertIsNotNone(isc_before.exited_at)
+
+        # New ISC for the new_status should exist and be open
+        isc_after = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.new_status).order_by('-entered_at').first()
+        )
+        self.assertIsNotNone(isc_after)
+        self.assertIsNone(isc_after.exited_at)
+
+    def test_updating_status_to_terminal_sets_resolution_and_does_not_create_isc(self):
+        """Updating an issue's status to a terminal status should set resolution_date and not create an ISC."""
+        # Create a terminal status and ensure assignee can set it
+        terminal_status = IssueStatusFactory(final_status=True, rejected_status=False, threshold_days=1)
+
+        # Authenticate as assignee and update status to terminal
+        self.authenticate_with_token(self.assignee_token)
+        response = self.client.patch(self.url, {'status': terminal_status.id}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
+
+        # Reload issue and assert resolution_date set
+        self.issue.refresh_from_db()
+        self.assertIsNotNone(self.issue.resolution_date)
+
+        # No open ISC should exist for terminal status; previous open ISC (if any) should have been closed
+        iscs = IssueStatusChange.objects.filter(issue=self.issue)
+        # There may be previous ISCs but none should be open for the terminal status
+        open_iscs = iscs.filter(exited_at__isnull=True)
+        self.assertFalse(open_iscs.exists())

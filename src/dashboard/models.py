@@ -125,8 +125,27 @@ class PerformanceMetrics(models.Model):
         return metric
 
     @classmethod
-    def calculate_and_save(cls, period, region=None, category=None):
-        end_date = timezone.now()
+    def calculate_and_save(cls, period, region=None, category=None, calculated_at=None):
+        """
+        Calculate metrics for the given period/filters and persist a PerformanceMetrics row.
+
+        - If `calculated_at` is provided (timezone-aware datetime), it is used as the
+          reference "now" to compute end_date and start_date. If not provided, timezone.now()
+          is used.
+        - The DB lookup for update_or_create uses the unique key (period, start_date, end_date,
+          administrative_region, category). calculated_at is stored via defaults so repeated
+          runs with the same calculated_at will update the same logical snapshot.
+        """
+        # Normalize calculated_at: use provided value or now, ensure timezone-aware
+        if calculated_at is None:
+            calculated_at = timezone.now()
+        else:
+            # If a naive datetime was passed, assume UTC (adjust if you prefer another default)
+            if timezone.is_naive(calculated_at):
+                calculated_at = timezone.make_aware(calculated_at, timezone=timezone.utc)
+
+        # Use calculated_at as the reference "now" for start/end computation
+        end_date = calculated_at
         if period == WEEKLY_CHOICE:
             start_date = end_date - timedelta(days=7)
         elif period == MONTHLY_CHOICE:
@@ -136,15 +155,21 @@ class PerformanceMetrics(models.Model):
         else:
             raise ValueError(f"Invalid period: {period}. Must be one of '7d', '30d', '90d'")
 
+        # Compute metrics using the explicit window
         metrics_data = cls._calculate_metrics(start_date, end_date, region, category, period)
 
+        # Ensure calculated_at is saved but NOT used as part of the lookup keys
+        defaults = metrics_data.copy()
+        defaults['calculated_at'] = calculated_at
+
+        # Update or create based on the model's unique key (period, start_date, end_date, region, category)
         metrics_obj, created = cls.objects.update_or_create(
             period=period,
             start_date=start_date,
             end_date=end_date,
             administrative_region=region,
             category=category,
-            defaults={**metrics_data, 'calculated_at': timezone.now()},
+            defaults=defaults,
         )
 
         return metrics_obj
@@ -395,3 +420,59 @@ class PerformanceMetrics(models.Model):
     def get_satisfaction_status(self, target=4.0):
         """Determine Citizen Satisfaction status"""
         return self._get_status(self.average_satisfaction_score, metric_type='satisfaction', target=target)
+
+
+class StatusBottleneckMetrics(models.Model):
+    """
+    Snapshot metrics per IssueStatus used by the Performance Diagnostics table.
+
+    Each row represents aggregated metrics for a single IssueStatus and a given
+    (period, start_date, end_date, administrative_region, category) combination.
+    """
+
+    period = models.CharField(max_length=3, choices=PERIOD_CHOICES, db_index=True)
+    start_date = models.DateTimeField(db_index=True)
+    end_date = models.DateTimeField(db_index=True)
+
+    administrative_region = models.ForeignKey(
+        'issues.AdministrativeRegion', on_delete=models.CASCADE, null=True, blank=True
+    )
+    category = models.ForeignKey('issues.IssueCategory', on_delete=models.CASCADE, null=True, blank=True)
+    issue_status = models.ForeignKey('issues.IssueStatus', on_delete=models.CASCADE)
+
+    issues_count = models.IntegerField(default=0)
+    average_time_in_status_days = models.FloatField(default=0.0)
+
+    calculated_at = models.DateTimeField(default=now, db_index=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Status Bottleneck Metric")
+        verbose_name_plural = _("Status Bottleneck Metrics")
+        unique_together = [('period', 'start_date', 'end_date', 'administrative_region', 'category', 'issue_status')]
+        indexes = [
+            models.Index(fields=['period', 'administrative_region', 'category', 'issue_status', '-calculated_at']),
+        ]
+
+    def __str__(self):
+        region = self.administrative_region.name if self.administrative_region else "All"
+        cat = self.category.name if self.category else "All"
+        return f"{self.get_period_display()} | {self.issue_status.name} | {region} | {cat} @ {self.calculated_at.isoformat()}"
+
+    @classmethod
+    def get_latest_for_filters(cls, period, region=None, category=None):
+        """
+        Return a queryset of StatusBottleneckMetrics ordered by -calculated_at for the given filters.
+        Caller can further filter by calculated_at to get a single snapshot.
+        """
+        filters = {'period': period}
+        if region is None:
+            filters['administrative_region__isnull'] = True
+        else:
+            filters['administrative_region'] = region
+        if category is None:
+            filters['category__isnull'] = True
+        else:
+            filters['category'] = category
+        return cls.objects.filter(**filters).order_by('-calculated_at')

@@ -4,15 +4,15 @@
 <div class="modal-dialog modal-confirmation">
 	<div class="modal-content">
 		<div class="modal-header">
-			<h4 class="modal-title">{{ title }}</h4>
-			{% if subtitle %}
-				<p>
-					<small class="subtitle">{{ subtitle }}</small>
-				</p>
-			{% endif %}
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				<span aria-hidden="true">×</span>
-			</button>
+			<div class="d-flex flex-column align-items-start">
+				<h4 class="modal-title">{{ title }}</h4>
+				{% if subtitle %}
+					<small class="text-muted">{{ subtitle }}</small>
+				{% endif %}
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
 		</div>
 		<form id="{{ id_form }}" enctype="multipart/form-data">
 			{% csrf_token %}

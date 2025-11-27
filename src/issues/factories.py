@@ -1,4 +1,5 @@
 import random
+from datetime import timedelta
 
 import factory
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -23,6 +24,7 @@ from issues.models import (
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
     IssueStatus,
+    IssueStatusChange,
     IssueSubType,
     IssueType,
     SubComponent,
@@ -44,6 +46,7 @@ class IssueStatusFactory(DjangoModelFactory):
     initial_status = False
     rejected_status = False
     open_status = False
+    threshold_days = 1.0
 
 
 class AdministrativeLevelFactory(DjangoModelFactory):
@@ -249,3 +252,56 @@ class IssueAttachmentFactory(DjangoModelFactory):
     @factory.lazy_attribute
     def file(self):
         return SimpleUploadedFile(name='test.txt', content=b'Test content', content_type='text/plain')
+
+
+class IssueStatusChangeFactory(DjangoModelFactory):
+    """Factory for creating IssueStatusChange instances.
+
+    - By default creates a closed status change (exited_at > entered_at).
+    - You can override exited_at=None to create an open status change.
+    - Provides two traits: `open` (exited_at=None) and `closed` (exited_at set).
+    """
+
+    class Meta:
+        model = IssueStatusChange
+
+    issue = factory.SubFactory(IssueFactory)
+    status = factory.SubFactory(IssueStatusFactory)
+
+    # Use the issue.intake_date when available, otherwise fallback to now - random days
+    entered_at = factory.LazyAttribute(
+        lambda o: (
+            o.issue.intake_date
+            if getattr(o.issue, "intake_date", None)
+            else timezone.now() - timedelta(days=random.randint(1, 10))
+        )
+    )
+
+    # By default create a closed ISC with a small random duration; callers can override exited_at=None
+    exited_at = factory.LazyAttribute(
+        lambda o: None if getattr(o, "force_open", False) else (o.entered_at + timedelta(days=random.randint(1, 7)))
+    )
+
+    # Optional helper attribute that tests can set to force an open ISC
+    @factory.post_generation
+    def force_open(self, create, extracted, **kwargs):
+        """
+        If the factory is called with force_open=True, ensure exited_at is None.
+        Example: IssueStatusChangeFactory(issue=..., force_open=True)
+        """
+        if extracted:
+            # update the instance if already created
+            if create:
+                # instance already saved; update exited_at to None
+                self.exited_at = None
+                self.save(update_fields=["exited_at"])
+            else:
+                # when building (not creating), just set attribute
+                self.exited_at = None
+
+    # Traits for convenience
+    class Params:
+        open = factory.Trait(exited_at=None)
+        closed = factory.Trait(
+            exited_at=factory.LazyAttribute(lambda o: o.entered_at + timedelta(days=random.randint(1, 7)))
+        )
