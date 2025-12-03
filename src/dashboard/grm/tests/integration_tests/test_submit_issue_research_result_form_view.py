@@ -7,7 +7,7 @@ from issues.factories import (
     IssueFactory,
     IssueStatusFactory,
 )
-from issues.models import Comment
+from issues.models import Comment, IssueStatusChange
 
 
 class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
@@ -68,3 +68,41 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         comments = Comment.objects.filter(issue=self.issue, user=manager)
         assert comments.exists()
         assert "resolved" in comments.last().comment.lower()
+
+    def test_post_closes_previous_isc_and_sets_resolution_when_final_status(self):
+        """
+        Submitting a research result that moves the issue to a final status should:
+        - close any previous open IssueStatusChange (set exited_at),
+        - set the issue's resolution_date,
+        - NOT create a new IssueStatusChange for the terminal status,
+        - still create the resolution Comment (covered elsewhere).
+        """
+        # Ensure there is an open ISC for the current open_status
+        isc_before = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.open_status).order_by('-entered_at').first()
+        )
+        assert isc_before.exited_at is None
+
+        manager = UserFactory(grm_manager=True)
+        data = {"research_result": "Final resolution applied."}
+        resp = self.post(self.url, data=data, ajax=True, user=manager)
+        assert resp.status_code == 200
+
+        # Reload issue and verify final status and research_result
+        self.issue.refresh_from_db()
+        assert self.issue.status == self.final_status
+        assert self.issue.research_result == "Final resolution applied."
+
+        # Resolution date must be set for terminal status
+        assert self.issue.resolution_date is not None
+
+        # Previous open ISC must have been closed
+        isc_before.refresh_from_db()
+        assert isc_before.exited_at is not None
+
+        # No new ISC should be created for the terminal final_status
+        assert not IssueStatusChange.objects.filter(issue=self.issue, status=self.final_status).exists()
+
+        # Comment creation is already tested elsewhere, but ensure at least one comment exists for completeness
+        comments = Comment.objects.filter(issue=self.issue, user=manager)
+        assert comments.exists()

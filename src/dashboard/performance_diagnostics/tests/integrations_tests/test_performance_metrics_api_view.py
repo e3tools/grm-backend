@@ -55,7 +55,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
     def test_api_context_contains_expected_keys_and_values(self):
         """The view should populate context with metrics dict and derived status objects."""
         data = {"period": WEEKLY_CHOICE, "administrative_region": self.region.id}
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
 
         # Response should be OK and render a template
         assert resp.status_code == 200
@@ -84,7 +84,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
     def test_api_returns_html_fragment_for_existing_metrics(self):
         """When a precomputed PerformanceMetrics exists, the API should return an HTML fragment (200, text/html) with KPI cards."""
         data = {"period": WEEKLY_CHOICE, "administrative_region": self.region.id}
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
         assert resp.status_code == 200
         # Content-Type should be HTML (template fragment)
         ctype = resp.get("Content-Type", "")
@@ -102,7 +102,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
         """When no precomputed metrics exist for the requested filters, API returns the error fragment with message."""
         # Use a period that we didn't create (30d)
         data = {"period": MONTHLY_CHOICE, "administrative_region": self.region.id}
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
         assert resp.status_code == 200
         ctype = resp.get("Content-Type", "")
         assert "html" in ctype.lower()
@@ -113,8 +113,14 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
     def test_access_denied_for_non_manager(self):
         """Non-GRM Manager should be forbidden from accessing the endpoint."""
         data = {"period": WEEKLY_CHOICE, "administrative_region": self.region.id}
-        resp = self.get(self.url, data=data, user=self.normal_user)
+        resp = self.get(self.url, data=data, user=self.normal_user, ajax=True)
         assert resp.status_code == 403
+
+    def test_non_ajax_request_returns_404(self):
+        """Test that non-AJAX requests return 404 due to AJAXRequestMixin."""
+        data = {"period": WEEKLY_CHOICE, "administrative_region": self.region.id}
+        resp = self.get(self.url, data=data, user=self.manager)
+        assert resp.status_code == 404
 
     def test_api_returns_html_fragment_when_filtered_by_category(self):
         """When a precomputed PerformanceMetrics exists for a specific category, API returns that fragment."""
@@ -147,7 +153,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
             "administrative_region": self.region.id,
             "category": self.category.id,
         }
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
         assert resp.status_code == 200
         text = resp.content.decode("utf-8")
         # Should render KPI fragment and show the category-specific primary metric value (7)
@@ -162,7 +168,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
             "administrative_region": self.region.id,
             "category": self.category.id,
         }
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
         assert resp.status_code == 200
         text = resp.content.decode("utf-8")
         assert "No metrics available for the selected filters." in text
@@ -174,7 +180,7 @@ class PerformanceMetricsAPIViewTest(DashboardTestCase):
             "period": "invalid_period",
             "administrative_region": self.region.id,
         }
-        resp = self.get(self.url, data=data, user=self.manager)
+        resp = self.get(self.url, data=data, user=self.manager, ajax=True)
         assert resp.status_code == 200
         text = resp.content.decode("utf-8")
         assert "User Adoption" in text

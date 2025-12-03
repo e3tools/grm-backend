@@ -28,6 +28,15 @@ STATUS_UNKNOWN = {
     'badge_text': _('No Data'),
 }
 
+NOT_APPLICABLE = _('N/A')
+
+STATUS_NA = {
+    'status': 'na',
+    'icon_class': 'fa fa-ban',
+    'badge_class': 'badge-secondary',
+    'badge_text': NOT_APPLICABLE,
+}
+
 WAU_ABBREV = 'WAU'
 MAU_ABBREV = 'MAU'
 QAU_ABBREV = 'QAU'

@@ -7,7 +7,7 @@ from issues.factories import (
     IssueFactory,
     IssueStatusFactory,
 )
-from issues.models import Comment
+from issues.models import Comment, IssueStatusChange
 
 
 class SubmitIssueRejectReasonFormViewTest(DashboardTestCase):
@@ -66,6 +66,47 @@ class SubmitIssueRejectReasonFormViewTest(DashboardTestCase):
         data = {"reject_reason": "Complaint not valid."}
         resp = self.post(self.url, data=data, ajax=True, user=manager)
         assert resp.status_code == 200
+        comments = Comment.objects.filter(issue=self.issue, user=manager)
+        assert comments.exists()
+        assert "rejected" in comments.last().comment.lower()
+
+    def test_post_closes_previous_isc_and_sets_resolution_for_rejected_status(self):
+        """
+        Submitting a reject reason that moves the issue to a rejected (terminal) status should:
+        - close any previous open IssueStatusChange (set exited_at),
+        - set the issue's reject_reason and resolution_date,
+        - not create a new IssueStatusChange for the terminal rejected status,
+        - create the rejection Comment (covered elsewhere).
+        """
+        # Ensure there is an open ISC for the current initial_status
+        isc_before = (
+            IssueStatusChange.objects.filter(issue=self.issue, status=self.initial_status)
+            .order_by('-entered_at')
+            .first()
+        )
+        assert isc_before.exited_at is None
+
+        manager = UserFactory(grm_manager=True)
+        data = {"reject_reason": "Complaint not valid."}
+        resp = self.post(self.url, data=data, ajax=True, user=manager)
+        assert resp.status_code == 200
+
+        # Reload issue and verify rejected status and reason
+        self.issue.refresh_from_db()
+        assert self.issue.status == self.rejected_status
+        assert self.issue.reject_reason == "Complaint not valid."
+
+        # Resolution date should be set for terminal/rejected status
+        assert self.issue.resolution_date is not None
+
+        # Previous open ISC must have been closed
+        isc_before.refresh_from_db()
+        assert isc_before.exited_at is not None
+
+        # No new ISC should be created for the terminal rejected_status
+        assert not IssueStatusChange.objects.filter(issue=self.issue, status=self.rejected_status).exists()
+
+        # Ensure a comment was created for the rejection
         comments = Comment.objects.filter(issue=self.issue, user=manager)
         assert comments.exists()
         assert "rejected" in comments.last().comment.lower()

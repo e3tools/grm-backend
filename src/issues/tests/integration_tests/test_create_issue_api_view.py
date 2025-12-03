@@ -32,7 +32,7 @@ from issues.factories import (
     IssueTypeFactory,
     SubComponentFactory,
 )
-from issues.models import Issue
+from issues.models import Issue, IssueStatusChange
 
 
 @pytest.mark.django_db
@@ -298,3 +298,51 @@ class IssueCreateAPIViewTest(APITestCase):
             "tracking_code": "TRACK123",
             "location_description": "This is a test location.",
         }
+
+    def test_create_issue_creates_issue_status_change(self):
+        """Creating an issue via the API with a non-terminal status should create an open IssueStatusChange."""
+        self.client.force_authenticate(user=self.reporter_user)
+
+        # Ensure we have a non-terminal status
+        non_terminal_status = IssueStatusFactory(final_status=False, rejected_status=False, threshold_days=1)
+
+        data = self.__get_valid_data()
+        data['status'] = non_terminal_status.pk
+
+        response = self.client.post(self.url, data=data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify issue created
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+
+        # Verify an open IssueStatusChange was created for the issue and status
+        isc = (
+            IssueStatusChange.objects.filter(issue=created_issue, status=non_terminal_status)
+            .order_by('-entered_at')
+            .first()
+        )
+        self.assertIsNotNone(isc)
+        self.assertIsNone(isc.exited_at)
+
+    def test_create_issue_with_terminal_status_does_not_create_isc_and_sets_resolution(self):
+        """Creating an issue via the API with a terminal status should set resolution_date and not create an ISC."""
+        self.client.force_authenticate(user=self.reporter_user)
+
+        # Terminal status (final) must satisfy DB constraint threshold_days > 0
+        terminal_status = IssueStatusFactory(final_status=True, rejected_status=False, threshold_days=1)
+
+        data = self.__get_valid_data()
+        data['status'] = terminal_status.pk
+
+        response = self.client.post(self.url, data=data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify issue created and resolution_date set
+        self.assertEqual(Issue.objects.count(), 1)
+        created_issue = Issue.objects.get()
+        created_issue.refresh_from_db()
+        self.assertIsNotNone(created_issue.resolution_date)
+
+        # No IssueStatusChange rows should exist for terminal statuses on create
+        self.assertFalse(IssueStatusChange.objects.filter(issue=created_issue).exists())

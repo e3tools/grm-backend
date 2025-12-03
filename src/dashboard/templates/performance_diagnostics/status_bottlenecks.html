@@ -1,0 +1,53 @@
+{# templates/performance_diagnostics/status_bottlenecks.html #}{% load i18n %}
+
+<div class="card mt-4">
+	<div class="card-header">
+		<div class="d-flex">
+			<div class="d-inline-block align-content-center mr-2">
+				<i class="far fa-clock text-primary"></i>
+			</div>
+			<div class="d-inline-block d-flex flex-column">
+				<h3 class="card-title">{% translate "Issue Lifecycle Bottlenecks (by Status)" %}</h3>
+				<small class="text-muted">{% translate "Identify where issues are getting stuck in the workflow" %}</small>
+			</div>
+		</div>
+	</div>
+
+	<div class="card-body table-responsive">
+		<table class="table table-sm table-hover">
+			<thead>
+			<tr>
+				<th>{% translate "Status" %}</th>
+				<th class="text-right">{% translate "Issues in Status" %}</th>
+				<th class="text-right">{% translate "Avg. Time in Status (days)" %}</th>
+				<th class="text-center">{% translate "Performance" %}</th>
+			</tr>
+			</thead>
+			<tbody>
+			{% for row in status_bottlenecks %}
+				<tr>
+					<td>{{ row.issue_status.name }}</td>
+					<td class="text-right">{{ row.issues_count }}</td>
+					<td class="text-right">{{ row.average_time_in_status_days }}</td>
+					<td class="text-right">
+						<div class="mt-3 badge {{ row.performance.badge_class }}">
+							<i class="{{ row.performance.icon_class }} mr-2"></i>{{ row.performance.badge_text }}
+						</div>
+					</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="4" class="text-center text-muted">{% translate "No data available" %}</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	{% if status_insight %}
+		<div class="alert alert-info">
+			<i class="fa fa-exclamation-circle"></i>
+			<span class="text-bold">{% translate "Insight" %}:</span> {{ status_insight }}
+		</div>
+	{% endif %}
+</div>

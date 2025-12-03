@@ -62,7 +62,11 @@ class StartNewIssueView(LoginRequiredMixin, generic.View):
 
     def dispatch(self, request, *args, **kwargs):
         # Only GRM Manager and Case Manager can create issues
-        if not request.user.grm_manager and not hasattr(request.user, 'governmentworker'):
+        if (
+            hasattr(request.user, 'grm_manager')
+            and not request.user.grm_manager
+            and not hasattr(request.user, 'governmentworker')
+        ):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -234,7 +238,11 @@ class NewIssueMixin(PageMixin, LoginRequiredMixin, IssueFormMixin):
 
     def dispatch(self, request, *args, **kwargs):
         # Only GRM Manager and Case Manager can create issues
-        if not request.user.grm_manager and not hasattr(request.user, 'governmentworker'):
+        if (
+            hasattr(request.user, 'grm_manager')
+            and not request.user.grm_manager
+            and not hasattr(request.user, 'governmentworker')
+        ):
             raise PermissionDenied
 
         dispatch = super().dispatch(request, *args, **kwargs)

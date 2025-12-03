@@ -433,6 +433,83 @@ def update_performance_metrics(
     }
 
 
+@shared_task
+def update_status_bottlenecks(
+    periods=None,
+    create_global=False,
+    limit_regions=0,
+    limit_categories=0,
+    batch_size=50,
+    dry_run=False,
+):
+    """
+    Wrapper task that calls the management command `populate_status_bottlenecks`.
+    - If `periods` is None or empty, calls the command once WITHOUT --period (command will compute all periods).
+    - If `periods` is a list, calls the command once per period (each run will have its own calculated_at).
+    """
+    # default to weekly if explicitly passed None as single value
+    if periods is None or len(periods) == 0:
+        # call once without --period to compute all supported periods
+        cmd_args = []
+        if create_global:
+            cmd_args.append('--only-global')
+        if limit_regions:
+            cmd_args.extend(['--limit-regions', str(limit_regions)])
+        if limit_categories:
+            cmd_args.extend(['--limit-categories', str(limit_categories)])
+        if batch_size and int(batch_size) != 10:  # default in command is 10
+            cmd_args.extend(['--batch-size', str(batch_size)])
+        if dry_run:
+            cmd_args.append('--dry-run')
+
+        start = timezone.now()
+        try:
+            call_command('populate_status_bottlenecks', *cmd_args)
+        except Exception:
+            raise
+        elapsed = timezone.now() - start
+        return {
+            'status': 'ok',
+            'started_at': start.isoformat(),
+            'elapsed_seconds': elapsed.total_seconds(),
+        }
+
+    # If periods provided, call once per period so each run has its own calculated_at
+    results = []
+    for p in periods:
+        cmd_args = ['--period', p]
+        if create_global:
+            cmd_args.append('--only-global')
+        if limit_regions:
+            cmd_args.extend(['--limit-regions', str(limit_regions)])
+        if limit_categories:
+            cmd_args.extend(['--limit-categories', str(limit_categories)])
+        if batch_size and int(batch_size) != 10:
+            cmd_args.extend(['--batch-size', str(batch_size)])
+        if dry_run:
+            cmd_args.append('--dry-run')
+
+        start = timezone.now()
+        try:
+            call_command('populate_status_bottlenecks', *cmd_args)
+        except Exception:
+            # Re-raise para que Celery pueda manejar retries
+            raise
+        elapsed = timezone.now() - start
+        results.append(
+            {
+                'period': p,
+                'started_at': start.isoformat(),
+                'elapsed_seconds': elapsed.total_seconds(),
+            }
+        )
+
+    return {
+        'status': 'ok',
+        'runs': results,
+    }
+
+
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls check_issues() every 5 minutes.
@@ -507,4 +584,49 @@ def setup_periodic_tasks(sender, **kwargs):
             no_progress=True,
         ),
         name="update metrics 90d daily",
+    )
+
+    # === Status Bottlenecks periodic tasks ===
+    # Frequent small-window updates (7d) every 15 minutes, sharded by limit_regions
+    shards_7d_sb = 20
+    limit_per_shard_sb = 50
+    for i in range(shards_7d_sb):
+        sender.add_periodic_task(
+            900,  # 15 minutes
+            update_status_bottlenecks.s(
+                periods=[WEEKLY_CHOICE],
+                create_global=True,
+                limit_regions=limit_per_shard_sb,
+                batch_size=50,
+                dry_run=False,
+            ),
+            name=f"update status bottlenecks 7d shard {i}",
+        )
+
+    # Medium-window updates (30d) every hour, fewer shards
+    shards_30d_sb = 8
+    limit_30_sb = 125
+    for i in range(shards_30d_sb):
+        sender.add_periodic_task(
+            3600,  # every hour
+            update_status_bottlenecks.s(
+                periods=[MONTHLY_CHOICE],
+                create_global=True,
+                limit_regions=limit_30_sb,
+                batch_size=50,
+                dry_run=False,
+            ),
+            name=f"update status bottlenecks 30d shard {i}",
+        )
+
+    # Long-window updates (90d) daily
+    sender.add_periodic_task(
+        crontab(hour=3, minute=0),
+        update_status_bottlenecks.s(
+            periods=[QUARTERLY_CHOICE],
+            create_global=True,
+            batch_size=50,
+            dry_run=False,
+        ),
+        name="update status bottlenecks 90d daily",
     )
