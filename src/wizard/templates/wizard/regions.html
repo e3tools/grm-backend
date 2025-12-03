@@ -55,7 +55,7 @@
 </div>
 
 <div id="uploadModal" class="modal">
-	<div class="modal-dialog modal-confirmation">
+	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h4 class="modal-title">{{ upload_regions }}</h4>
@@ -75,7 +75,9 @@
 					</div>
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						{% translate 'Close' %}
+					</button>
 					<button type="submit" class="btn btn btn-primary">
 						{% translate "Upload" %}
 					</button>

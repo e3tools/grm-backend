@@ -510,6 +510,67 @@ def update_status_bottlenecks(
     }
 
 
+@shared_task
+def update_region_performance_metrics(
+    periods=None,
+    regions=None,
+    categories=None,
+    limit_regions=0,
+    dry_run=False,
+    verbose=False,
+):
+    """
+    Wrapper task that calls the management command `populate_region_performance_metrics`.
+
+    Examples:
+      # Full update for all regions and all periods
+      update_region_performance_metrics.delay()
+
+      # Update only 7d period
+      update_region_performance_metrics.delay(periods=['7d'])
+
+      # Sharded update for worker 1
+      update_region_performance_metrics.delay(limit_regions=100)
+    """
+    from dashboard.constants import MONTHLY_CHOICE, QUARTERLY_CHOICE, WEEKLY_CHOICE
+
+    periods = periods or [WEEKLY_CHOICE, MONTHLY_CHOICE, QUARTERLY_CHOICE]
+
+    cmd_args = []
+    for p in periods:
+        cmd_args.extend(['--periods', p])
+
+    if regions:
+        for r in regions:
+            cmd_args.extend(['--regions', str(r)])
+
+    if categories:
+        for c in categories:
+            cmd_args.extend(['--categories', str(c)])
+
+    if limit_regions:
+        cmd_args.extend(['--limit-regions', str(limit_regions)])
+
+    if verbose:
+        cmd_args.append('--verbose')
+
+    if dry_run:
+        cmd_args.append('--dry-run')
+
+    start = timezone.now()
+    try:
+        call_command('populate_region_performance_metrics', *cmd_args)
+    except Exception:
+        raise
+
+    elapsed = timezone.now() - start
+    return {
+        'status': 'ok',
+        'started_at': start.isoformat(),
+        'elapsed_seconds': elapsed.total_seconds(),
+    }
+
+
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls check_issues() every 5 minutes.
@@ -587,6 +648,7 @@ def setup_periodic_tasks(sender, **kwargs):
     )
 
     # === Status Bottlenecks periodic tasks ===
+
     # Frequent small-window updates (7d) every 15 minutes, sharded by limit_regions
     shards_7d_sb = 20
     limit_per_shard_sb = 50
@@ -629,4 +691,33 @@ def setup_periodic_tasks(sender, **kwargs):
             dry_run=False,
         ),
         name="update status bottlenecks 90d daily",
+    )
+
+    # === Region Performance Metrics Updates ===
+
+    # Frequent updates (7d) every 30 minutes
+    sender.add_periodic_task(
+        1800,  # 30 minutes
+        update_region_performance_metrics.s(
+            periods=[WEEKLY_CHOICE],
+        ),
+        name="update region performance 7d every 30min",
+    )
+
+    # Medium-window updates (30d) every 2 hours
+    sender.add_periodic_task(
+        7200,  # 2 hours
+        update_region_performance_metrics.s(
+            periods=[MONTHLY_CHOICE],
+        ),
+        name="update region performance 30d every 2h",
+    )
+
+    # Long-window updates (90d) daily at 3:30 AM
+    sender.add_periodic_task(
+        crontab(hour=3, minute=30),
+        update_region_performance_metrics.s(
+            periods=[QUARTERLY_CHOICE],
+        ),
+        name="update region performance 90d daily",
     )

@@ -4,7 +4,8 @@ STATUS_GOOD = {
     'status': 'good',
     'icon_class': 'far fa-check-circle',
     'badge_class': 'badge-primary',
-    'badge_text': _('Good Performance'),
+    'badge_text': _('Good'),
+    'sort_order': 3,
 }
 
 STATUS_AT_RISK = {
@@ -12,6 +13,7 @@ STATUS_AT_RISK = {
     'icon_class': 'fa fa-exclamation-circle',
     'badge_class': 'badge-warning',
     'badge_text': _('At Risk'),
+    'sort_order': 2,
 }
 
 STATUS_CRITICAL = {
@@ -19,6 +21,7 @@ STATUS_CRITICAL = {
     'icon_class': 'fa fa-exclamation-circle',
     'badge_class': 'badge-danger',
     'badge_text': _('Critical'),
+    'sort_order': 1,
 }
 
 STATUS_UNKNOWN = {
@@ -58,3 +61,8 @@ PERIOD_CHOICES = [
     (MONTHLY_CHOICE, _('Last 30 Days')),
     (QUARTERLY_CHOICE, _('Last 90 Days')),
 ]
+
+COLOR_PRIMARY = 'primary'
+COLOR_WARNING = 'warning'
+COLOR_DANGER = 'danger'
+COLOR_SECONDARY = 'secondary'

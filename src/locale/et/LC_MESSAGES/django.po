@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 21:43+0000\n"
+"POT-Creation-Date: 2025-12-03 11:25+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -77,22 +77,22 @@ msgid "Government Workers"
 msgstr ""
 
 #: authentication/models.py:131 authentication/models.py:146
-#: issues/models.py:35 issues/models.py:63 issues/models.py:216
-#: issues/models.py:235 issues/models.py:254 issues/models.py:278
-#: issues/models.py:334 issues/models.py:349 issues/models.py:361
-#: issues/models.py:380 issues/models.py:417 issues/models.py:436
-#: issues/models.py:454 issues/models.py:482 issues/models.py:853
-#: issues/models.py:887
+#: issues/models.py:34 issues/models.py:62 issues/models.py:215
+#: issues/models.py:234 issues/models.py:253 issues/models.py:277
+#: issues/models.py:333 issues/models.py:348 issues/models.py:360
+#: issues/models.py:379 issues/models.py:416 issues/models.py:435
+#: issues/models.py:453 issues/models.py:481 issues/models.py:851
+#: issues/models.py:885
 msgid "Created at"
 msgstr ""
 
 #: authentication/models.py:132 authentication/models.py:147
-#: issues/models.py:36 issues/models.py:64 issues/models.py:217
-#: issues/models.py:236 issues/models.py:255 issues/models.py:279
-#: issues/models.py:335 issues/models.py:350 issues/models.py:362
-#: issues/models.py:381 issues/models.py:418 issues/models.py:437
-#: issues/models.py:455 issues/models.py:483 issues/models.py:584
-#: issues/models.py:854 issues/models.py:888
+#: issues/models.py:35 issues/models.py:63 issues/models.py:216
+#: issues/models.py:235 issues/models.py:254 issues/models.py:278
+#: issues/models.py:334 issues/models.py:349 issues/models.py:361
+#: issues/models.py:380 issues/models.py:417 issues/models.py:436
+#: issues/models.py:454 issues/models.py:482 issues/models.py:585
+#: issues/models.py:852 issues/models.py:886
 msgid "Updated at"
 msgstr ""
 
@@ -108,11 +108,11 @@ msgstr ""
 msgid "Facilitators"
 msgstr ""
 
-#: authentication/models.py:150 issues/models.py:486
+#: authentication/models.py:150 issues/models.py:485
 msgid "Citizen"
 msgstr ""
 
-#: authentication/models.py:151 issues/models.py:487
+#: authentication/models.py:151 issues/models.py:486
 msgid "Citizens"
 msgstr ""
 
@@ -164,58 +164,58 @@ msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
 #: dashboard/constants.py:7
-msgid "Good Performance"
+msgid "Good"
 msgstr ""
 
-#: dashboard/constants.py:14
+#: dashboard/constants.py:15
 msgid "At Risk"
 msgstr ""
 
-#: dashboard/constants.py:21
+#: dashboard/constants.py:23
 msgid "Critical"
 msgstr ""
 
-#: dashboard/constants.py:28
+#: dashboard/constants.py:31
 msgid "No Data"
 msgstr ""
 
-#: dashboard/constants.py:31
+#: dashboard/constants.py:34
 msgid "N/A"
 msgstr ""
 
-#: dashboard/constants.py:44
+#: dashboard/constants.py:47
 msgid "WAU"
 msgstr ""
 
-#: dashboard/constants.py:44
+#: dashboard/constants.py:47
 msgid "MAU"
 msgstr ""
 
-#: dashboard/constants.py:44
+#: dashboard/constants.py:47
 msgid "QAU"
 msgstr ""
 
-#: dashboard/constants.py:47
+#: dashboard/constants.py:50
 msgid "Weekly Active User"
 msgstr ""
 
-#: dashboard/constants.py:48
+#: dashboard/constants.py:51
 msgid "Monthly Active User"
 msgstr ""
 
-#: dashboard/constants.py:49
+#: dashboard/constants.py:52
 msgid "Quarterly Active User"
 msgstr ""
 
-#: dashboard/constants.py:57
+#: dashboard/constants.py:60
 msgid "Last 7 Days"
 msgstr ""
 
-#: dashboard/constants.py:58
+#: dashboard/constants.py:61
 msgid "Last 30 Days"
 msgstr ""
 
-#: dashboard/constants.py:59
+#: dashboard/constants.py:62
 msgid "Last 90 Days"
 msgstr ""
 
@@ -228,6 +228,10 @@ msgstr ""
 msgid ""
 "Internal error while running etl_fetch_issue_data. For more details, check "
 "the server logs."
+msgstr ""
+
+#: dashboard/diagnostics/views.py:294
+msgid "Global"
 msgstr ""
 
 #: dashboard/grm/forms.py:35
@@ -291,7 +295,7 @@ msgid "The category of grievance"
 msgstr ""
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:220
+#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:219
 #: wizard/templates/wizard/nested_formset.html:32
 #: wizard/templates/wizard/nested_formset.html:164
 msgid "Component"
@@ -317,11 +321,13 @@ msgstr ""
 msgid "Current event or multiple occurrences"
 msgstr ""
 
-#: dashboard/grm/forms.py:236 dashboard/templates/search/_filters.html:4
+#: dashboard/grm/forms.py:236
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:15
+#: dashboard/templates/search/_filters.html:4
 #: dashboard/templates/user_management/list.html:27
 #: dashboard/user_management/forms.py:164
 #: dashboard/user_management/forms.py:234
-#: dashboard/user_management/forms.py:288 issues/models.py:39
+#: dashboard/user_management/forms.py:288 issues/models.py:38
 #: wizard/templates/wizard/regions.html:28
 #: wizard/templates/wizard/summary.html:47
 msgid "Administrative Level"
@@ -360,107 +366,107 @@ msgstr ""
 msgid "Add comment"
 msgstr ""
 
-#: dashboard/grm/views.py:136
+#: dashboard/grm/views.py:140
 msgid "Add attachment"
 msgstr ""
 
-#: dashboard/grm/views.py:137 wizard/templates/wizard/regions.html:80
+#: dashboard/grm/views.py:141 wizard/templates/wizard/regions.html:82
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:148
+#: dashboard/grm/views.py:152
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:150
+#: dashboard/grm/views.py:154
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:154
+#: dashboard/grm/views.py:158
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:160
+#: dashboard/grm/views.py:164
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:185
+#: dashboard/grm/views.py:189
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:188
+#: dashboard/grm/views.py:192
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:231
+#: dashboard/grm/views.py:235
 msgid "Enter New Issue"
 msgstr ""
 
-#: dashboard/grm/views.py:317
+#: dashboard/grm/views.py:325
 msgid ""
 "No staff member was found to assign the issue to. The issue will be created "
 "without an assignee."
 msgstr ""
 
-#: dashboard/grm/views.py:492 dashboard/grm/views.py:647
+#: dashboard/grm/views.py:500 dashboard/grm/views.py:655
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:642
+#: dashboard/grm/views.py:650
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:685
+#: dashboard/grm/views.py:693
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:700
+#: dashboard/grm/views.py:708
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:751 dashboard/grm/views.py:791
-#: dashboard/grm/views.py:825
+#: dashboard/grm/views.py:759 dashboard/grm/views.py:799
+#: dashboard/grm/views.py:833
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:772
+#: dashboard/grm/views.py:780
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:773 dashboard/grm/views.py:807
+#: dashboard/grm/views.py:781 dashboard/grm/views.py:815
 #: dashboard/templates/grm/issue_detail.html:188
 #: dashboard/templates/user_management/update.html:98
 #: dashboard/user_management/views.py:339
 msgid "Save"
 msgstr ""
 
-#: dashboard/grm/views.py:789
+#: dashboard/grm/views.py:797
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:806
+#: dashboard/grm/views.py:814
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:823
+#: dashboard/grm/views.py:831
 msgid "The complaint has been rejected"
 msgstr ""
 
-#: dashboard/grm/views.py:935 dashboard/user_management/views.py:318
+#: dashboard/grm/views.py:943 dashboard/user_management/views.py:318
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
-#: dashboard/models.py:26 dashboard/templates/grm/issue_detail.html:74
-#: dashboard/templates/user_management/list.html:24 issues/models.py:270
-#: issues/models.py:332 issues/models.py:399 issues/models.py:452
+#: dashboard/models.py:27 dashboard/templates/grm/issue_detail.html:74
+#: dashboard/templates/user_management/list.html:24 issues/models.py:269
+#: issues/models.py:331 issues/models.py:398 issues/models.py:451
 #: wizard/forms.py:34 wizard/views.py:647 wizard/views.py:657
 #: wizard/views.py:680 wizard/views.py:696 wizard/views.py:718
 #: wizard/views.py:759 wizard/views.py:769 wizard/views.py:786
@@ -468,45 +474,51 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: dashboard/models.py:27
+#: dashboard/models.py:28
 #: dashboard/templates/grm/new_issue_confirmation.html:150 wizard/forms.py:41
 #: wizard/views.py:648 wizard/views.py:787 wizard/views.py:793
 msgid "Description"
 msgstr ""
 
-#: dashboard/models.py:30
+#: dashboard/models.py:31
 msgid "Project"
 msgstr ""
 
-#: dashboard/models.py:31
+#: dashboard/models.py:32
 msgid "Projects"
 msgstr ""
 
-#: dashboard/models.py:97 dashboard/models.py:98
+#: dashboard/models.py:98 dashboard/models.py:99
 msgid "Performance Metrics"
 msgstr ""
 
-#: dashboard/models.py:426
+#: dashboard/models.py:452
 msgid "Status Bottleneck Metric"
 msgstr ""
 
-#: dashboard/models.py:427
+#: dashboard/models.py:453
 msgid "Status Bottleneck Metrics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:24
+#: dashboard/performance_diagnostics/views.py:35
 msgid "Performance Diagnostics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:69
+#: dashboard/performance_diagnostics/views.py:80
 msgid "No metrics available for the selected filters."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:230
+#: dashboard/performance_diagnostics/views.py:251
 #, python-format
 msgid ""
 "The red flag on '%(status)s' immediately tells the admin that this status is "
 "a major bottleneck. Issues are waiting %(days).1f days on average."
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:359
+msgid ""
+"No administrative sublevel is available. Showing current selected "
+"administrative level."
 msgstr ""
 
 #: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
@@ -577,12 +589,17 @@ msgid ""
 "to contact us. In the meantime, try refreshing."
 msgstr ""
 
-#: dashboard/templates/common/progress_bar.html:6 wizard/constants.py:77
-msgid "Completed"
+#: dashboard/templates/common/modal_form.html:34
+#: dashboard/templates/common/toast_template.html:8
+#: dashboard/templates/grm/issue_detail.html:235
+#: dashboard/templates/performance_diagnostics/dashboard.html:94
+#: dashboard/templates/user_management/profile.html:177
+#: wizard/templates/wizard/regions.html:79
+msgid "Close"
 msgstr ""
 
-#: dashboard/templates/common/toast_template.html:8
-msgid "Close"
+#: dashboard/templates/common/progress_bar.html:6 wizard/constants.py:77
+msgid "Completed"
 msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:16
@@ -606,7 +623,7 @@ msgstr ""
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:47
 #: dashboard/templates/grm/review_issues.html:248
-#: dashboard/templates/search/_filters.html:11 issues/models.py:453
+#: dashboard/templates/search/_filters.html:11 issues/models.py:452
 #: wizard/views.py:770
 msgid "Type"
 msgstr ""
@@ -651,21 +668,21 @@ msgstr ""
 msgid "Location"
 msgstr ""
 
-#: dashboard/templates/diagnostics/home.html:432
+#: dashboard/templates/diagnostics/home.html:407
 #: dashboard/templates/grm/issue_list.html:29
 msgid "No issues found"
 msgstr ""
 
-#: dashboard/templates/diagnostics/home.html:453
+#: dashboard/templates/diagnostics/home.html:464
 #: dashboard/templates/grm/new_issue_confirm.html:238
 #: dashboard/templates/grm/new_issue_location.html:61
-#: dashboard/templates/performance_diagnostics/dashboard.html:78
+#: dashboard/templates/performance_diagnostics/dashboard.html:108
 msgid "Click to select location"
 msgstr ""
 
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:892
+#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:890
 msgid "Attachments"
 msgstr ""
 
@@ -940,28 +957,73 @@ msgstr ""
 msgid "All Categories"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:162
+#: dashboard/templates/performance_diagnostics/dashboard.html:80
+msgid "Coming Soon"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:198
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:11
 msgid "Just now"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:164
+#: dashboard/templates/performance_diagnostics/dashboard.html:200
 msgid "1 minute ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:166
+#: dashboard/templates/performance_diagnostics/dashboard.html:202
 msgid "minutes ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:168
+#: dashboard/templates/performance_diagnostics/dashboard.html:204
 msgid "1 hour ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:171
+#: dashboard/templates/performance_diagnostics/dashboard.html:207
 msgid "hours ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:191
+#: dashboard/templates/performance_diagnostics/dashboard.html:230
+msgid "days"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:231
+msgid "issues"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:351
+msgid "Investigate"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:353
+#: dashboard/templates/performance_diagnostics/dashboard.html:373
+msgid "View Details"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:355
+msgid "Best Practices"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:367
+msgid "Investigate Administrative Level"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:368
+msgid "Deep dive analysis for x will be available soon."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:374
+msgid "Detailed region dashboard will be available soon."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:379
+msgid "Best practices from x will be available soon."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:380
+msgid "Learn Best Practices"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:422
 #: dashboard/templates/search/semantic_search.html:50
 #: dashboard/templates/search/semantic_search.html:67
 msgid "All"
@@ -977,6 +1039,14 @@ msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:51
 msgid "New Issues"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:62
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:112
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:167
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:19
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
+msgid "Performance"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:74
@@ -1003,6 +1073,30 @@ msgstr ""
 msgid "No Data Available"
 msgstr ""
 
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:5
+msgid "Performance by Administrative Level"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:6
+msgid "Pinpoint geographic areas that are struggling"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:16
+msgid "Open Issues"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:17
+msgid "Avg. Resolution Time"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:18
+msgid "Active Workers"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:20
+msgid "Actions"
+msgstr ""
+
 #: dashboard/templates/performance_diagnostics/status_bottlenecks.html:10
 msgid "Issue Lifecycle Bottlenecks (by Status)"
 msgstr ""
@@ -1017,10 +1111,6 @@ msgstr ""
 
 #: dashboard/templates/performance_diagnostics/status_bottlenecks.html:22
 msgid "Avg. Time in Status (days)"
-msgstr ""
-
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
-msgid "Performance"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/status_bottlenecks.html:40
@@ -1129,7 +1219,7 @@ msgid "Edit Profile"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:44
-#: dashboard/templates/user_management/profile.html:64 issues/models.py:67
+#: dashboard/templates/user_management/profile.html:64 issues/models.py:66
 msgid "Administrative Region"
 msgstr ""
 
@@ -1190,7 +1280,7 @@ msgstr ""
 msgid "Please enter your password to deactivate this account!"
 msgstr ""
 
-#: dashboard/templates/user_management/profile.html:217
+#: dashboard/templates/user_management/profile.html:219
 msgid "Edit Profile Picture"
 msgstr ""
 
@@ -1644,114 +1734,114 @@ msgstr ""
 msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""
 
-#: issues/models.py:40 wizard/templates/wizard/regions.html:13
+#: issues/models.py:39 wizard/templates/wizard/regions.html:13
 msgid "Administrative Levels"
 msgstr ""
 
-#: issues/models.py:62
+#: issues/models.py:61
 msgid "Hierarchical Name"
 msgstr ""
 
-#: issues/models.py:68
+#: issues/models.py:67
 msgid "Administrative Regions"
 msgstr ""
 
-#: issues/models.py:221
+#: issues/models.py:220
 msgid "Components"
 msgstr ""
 
-#: issues/models.py:239
+#: issues/models.py:238
 msgid "Subcomponent"
 msgstr ""
 
-#: issues/models.py:240 wizard/templates/wizard/grm_customization.html:417
+#: issues/models.py:239 wizard/templates/wizard/grm_customization.html:417
 #: wizard/templates/wizard/nested_formset.html:73
 #: wizard/templates/wizard/nested_formset.html:193
 #: wizard/templates/wizard/summary.html:29
 msgid "Subcomponents"
 msgstr ""
 
-#: issues/models.py:258
+#: issues/models.py:257
 msgid "Subproject Group"
 msgstr ""
 
-#: issues/models.py:259
+#: issues/models.py:258
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:272
+#: issues/models.py:271
 msgid "Threshold in days for performance evaluation"
 msgstr ""
 
-#: issues/models.py:272
+#: issues/models.py:271
 msgid "Threshold days"
 msgstr ""
 
-#: issues/models.py:282 issues/models.py:283 wizard/views.py:458
+#: issues/models.py:281 issues/models.py:282 wizard/views.py:458
 msgid "Issue Status"
 msgstr ""
 
-#: issues/models.py:289 wizard/forms.py:414
+#: issues/models.py:288 wizard/forms.py:414
 msgid "Threshold must be greater than zero."
 msgstr ""
 
-#: issues/models.py:338
+#: issues/models.py:337
 msgid "Issue Department"
 msgstr ""
 
-#: issues/models.py:339
+#: issues/models.py:338
 msgid "Issue Departments"
 msgstr ""
 
-#: issues/models.py:365
+#: issues/models.py:364
 msgid "Issue Type"
 msgstr ""
 
-#: issues/models.py:366 wizard/views.py:398
+#: issues/models.py:365 wizard/views.py:398
 msgid "Issue Types"
 msgstr ""
 
-#: issues/models.py:384
+#: issues/models.py:383
 msgid "Issue Subtype"
 msgstr ""
 
-#: issues/models.py:385
+#: issues/models.py:384
 msgid "Issue Subtypes"
 msgstr ""
 
-#: issues/models.py:400 wizard/views.py:719
+#: issues/models.py:399 wizard/views.py:719
 msgid "Abbreviation"
 msgstr ""
 
-#: issues/models.py:412 wizard/views.py:725
+#: issues/models.py:411 wizard/views.py:725
 msgid "Confidentiality level"
 msgstr ""
 
-#: issues/models.py:415 wizard/views.py:729
+#: issues/models.py:414 wizard/views.py:729
 msgid "Redirection protocol"
 msgstr ""
 
-#: issues/models.py:421
+#: issues/models.py:420
 msgid "Issue Category"
 msgstr ""
 
-#: issues/models.py:422
+#: issues/models.py:421
 msgid "Issue Categories"
 msgstr ""
 
-#: issues/models.py:440
+#: issues/models.py:439
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:441 wizard/constants.py:18 wizard/views.py:486
+#: issues/models.py:440 wizard/constants.py:18 wizard/views.py:486
 msgid "Citizen Age Groups"
 msgstr ""
 
-#: issues/models.py:458
+#: issues/models.py:457
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:459 wizard/constants.py:20 wizard/views.py:510
+#: issues/models.py:458 wizard/constants.py:20 wizard/views.py:510
 msgid "Citizen Groups"
 msgstr ""
 
@@ -1763,31 +1853,31 @@ msgstr ""
 msgid "Issue Status Changes"
 msgstr ""
 
-#: issues/models.py:597 issues/models.py:875
+#: issues/models.py:598 issues/models.py:873
 msgid "Issue"
 msgstr ""
 
-#: issues/models.py:598
+#: issues/models.py:599
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:857
+#: issues/models.py:855
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:858
+#: issues/models.py:856
 msgid "Comments"
 msgstr ""
 
-#: issues/models.py:877
+#: issues/models.py:875
 msgid "File attached to the issue"
 msgstr ""
 
-#: issues/models.py:885
+#: issues/models.py:883
 msgid "Uploaded by"
 msgstr ""
 
-#: issues/models.py:891
+#: issues/models.py:889
 msgid "Issue Attachment"
 msgstr ""
 

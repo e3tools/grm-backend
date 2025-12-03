@@ -301,7 +301,7 @@ class IssueStatus(models.Model):
         Determine the performance dictionary for this IssueStatus given an average time in days.
 
         Returns a dict with keys:
-          - label: human label ("Critical", "At Risk", "Good Performance", "N/A")
+          - label: human label ("Critical", "At Risk", "Good", "N/A")
           - badge_class, icon_class, label: visual metadata (from dashboard.constants)
 
         Acceptance criteria:
@@ -309,7 +309,7 @@ class IssueStatus(models.Model):
           - If threshold_days missing or <= 0 -> return N/A
           - Critical: avg_days > threshold * 1.5
           - At Risk: avg_days > threshold * 1.2
-          - Good Performance: avg_days <= threshold * 1.2
+          - Good: avg_days <= threshold * 1.2
         """
         # Terminal statuses are not evaluated
         if self.final_status or self.rejected_status:
