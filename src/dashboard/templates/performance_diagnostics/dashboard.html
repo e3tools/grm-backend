@@ -3,7 +3,7 @@
 {% block content %}
 
 	<!-- Filter Card -->
-	<div class="row mb-4">
+	<div class="row">
 		<div class="col-12">
 			<div class="card filter-card">
 				<div class="card-header">
@@ -63,9 +63,39 @@
 	</div>
 
 	<!-- Status Bottlenecks Container -->
-	<div id="status-bottlenecks-container" class="mt-3"></div>
+	<div id="status-bottlenecks-container"></div>
 	<div class="justify-content-center" id="status-bottlenecks-spin" style="display:none;">
 		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+	</div>
+
+	{% include 'performance_diagnostics/region_performance_table.html' %}
+{% endblock %}
+
+{% block modals %}
+	<div class="modal fade" id="comingSoonModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="comingSoonTitle">
+						{% translate "Coming Soon" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-info">
+						<i class="fas fa-info-circle"></i>
+						<span id="comingSoonMessage">This feature is coming soon.</span>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						{% translate 'Close' %}
+					</button>
+				</div>
+			</div>
+		</div>
 	</div>
 {% endblock %}
 
@@ -98,14 +128,20 @@
             });
         }
 
-        $(document).ready(function () {
+        function reloadAllMetrics() {
             loadKPIs();
-    		loadStatusBottlenecks();
+            loadStatusBottlenecks();
+            if ($.fn.dataTable && $.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().page(0).draw(false);
+            }
+        }
+
+        $(document).ready(function () {
+            reloadAllMetrics();
         });
 
         document.addEventListener("region:changed", function (event) {
-            loadKPIs();
-    		loadStatusBottlenecks();
+            reloadAllMetrics();
         });
 
         changeRegionTrigger(get_choices_url, choice_placeholder);
@@ -114,14 +150,12 @@
             $('.issues-filter select:not(#period)').val(null).trigger('change.select2');
             $('#period').val('7d').trigger('change.select2');
             current_region_id = null;
-            loadKPIs();
-            loadStatusBottlenecks();
             loadNextLevelRegions($("#id_administrative_region"), '', '');
+            reloadAllMetrics();
         });
 
         $('.issues-filter select').on('change', function () {
-            loadKPIs();
-    		loadStatusBottlenecks();
+            reloadAllMetrics();
         });
 
         let sb_spin = $('#status-bottlenecks-spin');
@@ -181,7 +215,202 @@
 
         // Initial update
         setTimeout(updateLastUpdatedTime, 1000);
+
+        // Initialize or reinitialize the table
+        function initRegionPerformanceTable() {
+            // destroy previous instance if it exists
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().destroy();
+                $('#regionPerformanceTable tbody').empty();
+            }
+
+            const defaultPerPage = 10;
+            const days = '{% translate "days" %}';
+            const issues = '{% translate "issues" %}';
+
+            const table = $('#regionPerformanceTable').DataTable({
+                dom: 'ltipr',
+                processing: true,
+                serverSide: true,
+                paging: true,
+                lengthChange: true,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: defaultPerPage,
+                searching: false,
+                ordering: true,
+                ajax: function (data, callback) {
+                    const perPage = parseInt(data.length || (table ? table.page.len() : defaultPerPage), 10);
+                    const page = Math.floor((data.start || 0) / perPage) + 1;
+
+                    // Map column index to API sort keys
+                    const map = {0: 'region', 1: 'open_issues', 2: 'resolution', 3: 'workers', 4: 'performance'};
+                    let sort_by = 'performance';
+                    let sort_dir = 'desc';
+                    if (data.order && data.order.length > 0) {
+                        const colIdx = data.order[0].column;
+                        sort_by = map[colIdx] || 'performance';
+                        sort_dir = data.order[0].dir || 'asc';
+                    }
+
+                    const params = {
+                        period: $('#period').val(),
+                        category: $('#category').val(),
+                        administrative_region: current_region_id,
+                        per_page: perPage,
+                        page: page,
+                        sort_by: sort_by,
+                        sort_dir: sort_dir,
+                    };
+
+                    $.ajax({
+                        url: "{% url 'dashboard:performance_diagnostics:api_region_performance' %}" + '?' + $.param(params),
+                        method: 'GET',
+                        dataType: 'json',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    }).done(function (json) {
+                        // Remove previous message
+                        $('#region-no-children-message').hide().empty();
+
+                        // If API indicates no_children, show the informational message below the table
+                        if (json.no_children) {
+                            const msg = json.message || 'No administrative sublevel is available. Showing issue-level data.';
+                            const alertHtml = `
+                        <div class="alert alert-info mt-3" id="no-children-alert">
+                            <i class="fas fa-info-circle"></i> ${msg}
+                        </div>
+                    `;
+                            $('#region-no-children-message').html(alertHtml).show();
+                        }
+
+                        const rows = json.data || [];
+
+                        callback({
+                            data: rows,
+                            recordsTotal: json.recordsTotal || 0,
+                            recordsFiltered: json.recordsFiltered || json.recordsTotal || 0,
+                        });
+                    }).fail(function (xhr, status, err) {
+                        console.error('Error loading region metrics', status, err);
+                        callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+                    });
+                },
+                columns: [
+                    {data: 'region_name', name: 'region'},
+                    {
+                        data: 'open_issues_count',
+                        name: 'open_issues',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const color = row.open_issues_color || 'secondary';
+                            return `<span class="badge bg-${color}">${data} ${issues}</span>`;
+                        }
+                    },
+                    {
+                        data: 'avg_resolution_days',
+                        name: 'resolution',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const color = row.resolution_color || 'secondary';
+                            return `<span class="badge bg-${color}">${parseFloat(data || 0).toFixed(1)} ${days}</span>`;
+                        }
+                    },
+                    {
+                        data: 'active_workers_count',
+                        name: 'workers',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const color = row.workers_color || 'secondary';
+                            const total = row.total_workers_in_region || '-';
+                            const pct = (row.workers_percentage != null) ? `${row.workers_percentage}%` : '';
+                            return `<span class="badge bg-${color}">${data} / ${total} (${pct})</span>`;
+                        }
+                    },
+                    {
+                        data: 'performance_status',
+                        name: 'performance',
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const badge = row.performance_badge_class || 'badge-secondary';
+                            const icon = row.performance_icon || '';
+                            const text = row.performance_badge_text || data || '';
+                            return `<span class="badge ${badge}"><i class="${icon} mr-2"></i>${text}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const regionId = row.id;
+                            const regionName = row.region_name;
+                            const isGood = row.performance_status === 'good';
+                            let html = '<div class="btn-group btn-group-sm" role="group">';
+                            if (!isGood) {
+                                html += `<button class="btn btn-warning investigate-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-search"></i> {% translate "Investigate" %}</button>`;
+                            }
+                            html += `<button class="btn btn-primary view-details-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-chart-line"></i> {% translate "View Details" %}</button>`;
+                            if (isGood) {
+                                html += `<button class="btn btn-info learn-practices-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-lightbulb"></i> {% translate "Best Practices" %}</button>`;
+                            }
+                            html += '</div>';
+                            return html;
+                        }
+                    }
+                ],
+                order: [[4, 'desc']],
+                drawCallback: function () {
+                    // rebind action handlers
+                    $('#regionPerformanceTable .investigate-btn').off('click').on('click', function () {
+                        const name = $(this).data('region-name');
+                        $('#comingSoonTitle').text('{% translate "Investigate Administrative Level" %}');
+                        const comingSoonMessage = '{% translate "Deep dive analysis for x will be available soon." %}';
+                        $('#comingSoonMessage').text(comingSoonMessage.replace('x', name));
+                        $('#comingSoonModal').modal('show');
+                    });
+                    $('#regionPerformanceTable .view-details-btn').off('click').on('click', function () {
+                        $('#comingSoonTitle').text('{% translate "View Details" %}');
+                        $('#comingSoonMessage').text('{% translate "Detailed region dashboard will be available soon." %}');
+                        $('#comingSoonModal').modal('show');
+                    });
+                    $('#regionPerformanceTable .learn-practices-btn').off('click').on('click', function () {
+                        const name = $(this).data('region-name');
+                        const comingSoonMessage = '{% translate "Best practices from x will be available soon." %}';
+                        $('#comingSoonTitle').text('{% translate "Learn Best Practices" %}');
+                        $('#comingSoonMessage').text(comingSoonMessage.replace('x', name));
+                        $('#comingSoonModal').modal('show');
+                    });
+                }
+            });
+
+            return table;
+        } // end initRegionPerformanceTable
+
+        // initializes the table if it is already in the DOM
+        let rpTableInstance = null;
+        if ($('#regionPerformanceTable').length) {
+            rpTableInstance = initRegionPerformanceTable();
+        }
+
+        // per-page local control
+        $('#rp-per-page').on('change', function () {
+            const val = parseInt($(this).val(), 10) || 10;
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().page.len(val).draw();
+            } else {
+                rpTableInstance = initRegionPerformanceTable();
+            }
+        });
+
+        // Expose global function to reload from other scripts
+        window.reloadRegionPerformanceTable = function () {
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().ajax.reload(null, false);
+            } else {
+                rpTableInstance = initRegionPerformanceTable();
+            }
+        };
 	</script>
+
 {% endblock %}
 
 {% block select2 %}
@@ -189,9 +418,11 @@
         $('.issues-filter select:not(#period)').select2({
             width: '100%',
             placeholder: "{% translate 'All' %}",
-            allowClear: true
+            allowClear: true,
         });
-        $('#period').select2({width: '100%'});
+        $('#period').select2({
+			width: '100%',
+        });
 	</script>
 {% endblock %}
 

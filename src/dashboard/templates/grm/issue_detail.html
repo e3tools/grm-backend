@@ -211,7 +211,7 @@
 	<div id="fileFormModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 	<div id="statusChangeModalForm" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 
-	<div class="modal fade modal-confirmation" id="checkPasswordModal">
+	<div class="modal fade" id="checkPasswordModal">
 		<div class="modal-dialog" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -231,7 +231,9 @@
 					</form>
 				</div>
 				<div class="modal-footer justify-content-between">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						{% translate 'Close' %}
+					</button>
 					<button id="check-password" type="submit" class="btn btn-primary" disabled>
 						{{ check_password }}
 					</button>

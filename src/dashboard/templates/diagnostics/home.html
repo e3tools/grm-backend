@@ -403,6 +403,9 @@
                         options: pieOptions
                     });
 
+                    const no_issues_msg_html = '<td class="text-center" colspan="3">' +
+						"{% translate "No issues found" %}" + '</td>';
+
                     if (Object.keys(region_stats).length > 0) {
                         let level = region_stats[Object.keys(region_stats).at(-1)].level;
                         $("#administrative_level_label").html(level);
@@ -428,9 +431,17 @@
                         fillStats(type_stats, $('#type-stats'), typeChartInstance);
                         fillStats(category_stats, $('#category-stats'), categoryChartInstance);
 
+                        if (Object.keys(status_stats).length === 0) {
+                        	$('#status-stats').html(no_issues_msg_html);
+						}
+                        if (Object.keys(type_stats).length === 0) {
+                        	$('#type-stats').html(no_issues_msg_html);
+						}
+                        if (Object.keys(category_stats).length === 0) {
+                            $('#category-stats').html(no_issues_msg_html);
+						}
+
                     } else {
-                        let no_issues_msg = "{% translate "No issues found" %}";
-                        let no_issues_msg_html = '<td class="text-center" colspan="3">' + no_issues_msg + '</td>';
                         $('#region-stats').html(no_issues_msg_html);
                         $('#status-stats').html(no_issues_msg_html);
                         $('#type-stats').html(no_issues_msg_html);

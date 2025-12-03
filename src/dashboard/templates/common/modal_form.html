@@ -1,7 +1,7 @@
-{% load bootstrap4 static %}
+{% load bootstrap4 static i18n %}
 <script src="{% static 'js/disableOnSubmit.js' %}"></script>
 
-<div class="modal-dialog modal-confirmation">
+<div class="modal-dialog">
 	<div class="modal-content">
 		<div class="modal-header">
 			<div class="d-flex flex-column align-items-start">
@@ -30,7 +30,9 @@
 				</div>
 			</div>
 			<div class="modal-footer justify-content-between">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					{% translate 'Close' %}
+				</button>
 				<button type="submit" class="btn btn-primary">
 					{{ submit_button }}
 				</button>
