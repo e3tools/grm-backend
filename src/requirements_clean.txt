@@ -42,6 +42,9 @@ cryptocode==0.1
 # SMS Service
 twilio==7.8.0
 
+# Email Service
+sendgrid==6.11.0
+
 # Vector/Embeddings
 pinecone==7.3.0
 
