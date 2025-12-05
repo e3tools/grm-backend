@@ -42,6 +42,12 @@ class Command(BaseCommand):
             help='Integration ID to use (optional, defaults to active email integration)',
         )
         parser.add_argument(
+            '--provider',
+            type=str,
+            choices=['sendgrid', 'mailchimp'],
+            help='Specific provider to use (optional, defaults to default email integration)',
+        )
+        parser.add_argument(
             '--service',
             type=str,
             default='email',
@@ -56,6 +62,7 @@ class Command(BaseCommand):
         html_body = options.get('html_body')
         use_html = options.get('html')
         integration_id = options.get('integration_id')
+        provider = options.get('provider')
         service_type = options['service']
 
         # Generate default HTML body if --html flag is used
@@ -66,7 +73,7 @@ class Command(BaseCommand):
             self.style.WARNING('\n========================================')
         )
         self.stdout.write(
-            self.style.WARNING('>> Sending Test Email via SendGrid')
+            self.style.WARNING('>> Sending Test Email')
         )
         self.stdout.write(
             self.style.WARNING('========================================')
@@ -89,6 +96,22 @@ class Command(BaseCommand):
                     self.style.ERROR(f'\n[X] Integration with ID {integration_id} not found')
                 )
                 return
+        elif provider:
+            # Get integration by provider name
+            integration = Integration.objects.filter(
+                provider__name=provider,
+                provider__provider_type='email',
+                status='active'
+            ).first()
+
+            if not integration:
+                self.stdout.write(
+                    self.style.ERROR(f'\n[X] No active {provider} integration found')
+                )
+                return
+
+            self.stdout.write(f'Integration: {integration.name} ({integration.provider.display_name})')
+
         else:
             # Get default email integration
             integration = Integration.objects.filter(
@@ -103,10 +126,15 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(
                     self.style.WARNING(
-                        '\nTip: Create a SendGrid integration first:\n'
+                        '\nTip: Create an email integration first:\n\n'
+                        'For SendGrid:\n'
                         'python manage.py test_sendgrid --create \\\n'
                         '  --api-key "SG.xxxxx" \\\n'
                         '  --api-key-id "xxxxx" \\\n'
+                        '  --from-email "your-email@example.com"\n\n'
+                        'For Mailchimp Transactional:\n'
+                        'python manage.py test_mailchimp --create \\\n'
+                        '  --api-key "md-xxxxx" \\\n'
                         '  --from-email "your-email@example.com"'
                     )
                 )
