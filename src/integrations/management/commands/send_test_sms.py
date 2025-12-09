@@ -5,7 +5,7 @@ from integrations.services import SMSService, NotificationService
 
 
 class Command(BaseCommand):
-    help = 'Send a test SMS using the Twilio integration'
+    help = 'Send a test SMS using Twilio, Africa\'s Talking, or another SMS integration'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -26,6 +26,12 @@ class Command(BaseCommand):
             help='Integration ID to use (optional, defaults to active SMS integration)',
         )
         parser.add_argument(
+            '--provider',
+            type=str,
+            choices=['twilio', 'africas_talking'],
+            help='Specific provider to use (optional, defaults to default SMS integration)',
+        )
+        parser.add_argument(
             '--service',
             type=str,
             default='notification',
@@ -37,14 +43,21 @@ class Command(BaseCommand):
         recipient = options['to']
         message = options['message']
         integration_id = options.get('integration_id')
+        provider = options.get('provider')
         service_type = options['service']
 
         self.stdout.write(
-            self.style.WARNING('\n>> Sending test SMS...')
+            self.style.WARNING('\n========================================')
         )
-        self.stdout.write(f'Recipient: {recipient}')
+        self.stdout.write(
+            self.style.WARNING('>> Sending Test SMS')
+        )
+        self.stdout.write(
+            self.style.WARNING('========================================')
+        )
+        self.stdout.write(f'\nRecipient: {recipient}')
         self.stdout.write(f'Message: {message}')
-        self.stdout.write(f'Service: {service_type.upper()}Service')
+        self.stdout.write(f'Service: {service_type.upper()}Service\n')
 
         # Get integration if specified
         integration = None
@@ -57,6 +70,22 @@ class Command(BaseCommand):
                     self.style.ERROR(f'\n[X] Integration with ID {integration_id} not found')
                 )
                 return
+        elif provider:
+            # Get integration by provider name
+            integration = Integration.objects.filter(
+                provider__name=provider,
+                provider__provider_type='sms',
+                status='active'
+            ).first()
+
+            if not integration:
+                self.stdout.write(
+                    self.style.ERROR(f'\n[X] No active {provider} integration found')
+                )
+                return
+
+            self.stdout.write(f'Integration: {integration.name} ({integration.provider.display_name})')
+
         else:
             # Get default SMS integration
             integration = Integration.objects.filter(
@@ -71,14 +100,26 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(
                     self.style.WARNING(
-                        '\nTip: Create an integration first using:\n'
-                        'python manage.py test_twilio --create --account-sid "..." '
-                        '--auth-token "..." --from-number "+1..."'
+                        '\nTip: Create an SMS integration first:\n\n'
+                        'For Twilio:\n'
+                        'python manage.py test_twilio --create \\\n'
+                        '  --account-sid "AC..." \\\n'
+                        '  --auth-token "..." \\\n'
+                        '  --from-number "+1..."\n\n'
+                        'For Africa\'s Talking:\n'
+                        'python manage.py test_africastalking --create \\\n'
+                        '  --username "sandbox" \\\n'
+                        '  --api-key "..." \\\n'
+                        '  --sender-id "GRM"'
                     )
                 )
                 return
 
-            self.stdout.write(f'Integration: {integration.name} (default)')
+            self.stdout.write(f'Integration: {integration.name} ({integration.provider.display_name})')
+
+        # Display configuration
+        self.stdout.write('\n' + '-' * 40)
+        self.stdout.write('Sending SMS...\n')
 
         # Send SMS using the selected service
         try:

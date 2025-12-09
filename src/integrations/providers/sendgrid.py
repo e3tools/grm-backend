@@ -1,7 +1,6 @@
 # providers/sendgrid.py
 from typing import Dict, List, Optional
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, Content
 from integrations.base.providers import BaseNotificationAdapter
 
 
@@ -181,4 +180,4 @@ class SendGridAdapter(BaseNotificationAdapter):
         Returns:
             List of required credential field names
         """
-        return ['api_key']
+        return ['api_key', 'api_key_id']
