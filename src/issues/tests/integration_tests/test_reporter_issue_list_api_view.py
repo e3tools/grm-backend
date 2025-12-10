@@ -171,6 +171,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
             'administrative_region',
             'reporter',
             'assignee',
+            'description',
         ]
 
         for field in expected_fields:
