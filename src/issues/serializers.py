@@ -134,8 +134,10 @@ class IssueSerializer(serializers.ModelSerializer):
         - assignee: Nested User object
         - reporter: Nested User object
         - status: Nested IssueStatus object
+        - description: Brief text describing the issue
     """
 
+    description = serializers.CharField(read_only=True)
     intake_date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ', read_only=True)
     assignee = UserBasicSerializer(read_only=True)
     reporter = UserBasicSerializer(read_only=True)
@@ -150,6 +152,7 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = [
             'id',
+            'description',
             'tracking_code',
             'intake_date',
             'administrative_region',

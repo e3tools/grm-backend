@@ -519,6 +519,9 @@ class AssigneeIssueListAPIView(ListAPIView):
                                     'title': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'description': openapi.Schema(
+                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
+                                    ),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -752,6 +755,9 @@ class ReporterIssueListAPIView(ListAPIView):
                                     'title': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'description': openapi.Schema(
+                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
+                                    ),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -981,6 +987,7 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
                         'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                         'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
+                        'description': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_DATETIME,
