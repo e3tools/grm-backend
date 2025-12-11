@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -134,6 +135,56 @@ class IssueAttachmentsListAPIViewTest(APITestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 0
         assert len(response.data["results"]) == 0
+
+    def test_filter_by_created_date_returns_only_recent_attachments(self):
+        """Test filtering attachments by created_date only returns those created after the given datetime."""
+        self.authenticate_with_token(self.reporter_token)
+
+        # Force attachment1 to be older than attachment2
+        self.attachment1.created_date = self.attachment1.created_date.replace(year=self.attachment1.created_date.year - 1)
+        self.attachment1.save(update_fields=["created_date"])
+
+        # Filter by date after attachment1
+        created_after = self.attachment1.created_date.isoformat().replace("+00:00", "Z")
+        response = self.client.get(self.url, {"created_date": created_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        attachments_ids = {i["id"] for i in response.data["results"]}
+        assert self.attachment2.id in attachments_ids
+        assert self.attachment1.id not in attachments_ids
+
+    def test_filter_by_updated_date_returns_only_recently_updated_attachments(self):
+        """Test filtering attachments by updated_date only returns those updated after the given datetime."""
+        self.authenticate_with_token(self.reporter_token)
+
+        # Force attachment1 to be updated much earlier
+        old_updated_date = self.attachment1.updated_date.replace(year=self.attachment1.updated_date.year - 1)
+        IssueAttachment.objects.filter(id=self.attachment1.id).update(updated_date=old_updated_date)
+        self.attachment1.refresh_from_db()
+
+        updated_after = self.attachment1.updated_date.isoformat().replace("+00:00", "Z")
+        response = self.client.get(self.url, {"updated_date": updated_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        attachments_ids = {i["id"] for i in response.data["results"]}
+        assert self.attachment2.id in attachments_ids
+        assert self.attachment1.id not in attachments_ids
+
+    def test_filter_by_deleted_date_returns_only_recently_deleted_attachments(self):
+        """Test filtering attachments by deleted_date only returns those updated after the given datetime."""
+        self.authenticate_with_token(self.reporter_token)
+
+        # Force attachment1 to be deleted much earlier
+        IssueAttachment.objects.filter(id=self.attachment1.id).update(deleted_date=timezone.now().date())
+        self.attachment1.refresh_from_db()
+        deleted_after = self.attachment1.deleted_date.replace(year=self.attachment1.deleted_date.year - 1)
+        deleted_after = deleted_after.isoformat().replace("+00:00", "Z")
+        response = self.client.get(self.url, {"deleted_date": deleted_after})
+
+        assert response.status_code == status.HTTP_200_OK
+        attachments_ids = {i["id"] for i in response.data["results"]}
+        assert self.attachment2.id not in attachments_ids
+        assert self.attachment1.id in attachments_ids
 
     # -----------------------------
     # Response format validation

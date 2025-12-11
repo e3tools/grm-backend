@@ -2180,12 +2180,35 @@ class IssueAttachmentsListAPIView(ListAPIView):
             ordered by created_date descending (as defined in Comment.Meta).
         """
         issue_id = self.kwargs.get("id")
-        return IssueAttachment.objects.filter(issue_id=issue_id).select_related("uploaded_by", "issue")
+        qs = IssueAttachment.objects.filter(issue_id=issue_id).select_related("uploaded_by", "issue")
+        created_date = self.request.query_params.get("created_date")
+        if created_date:
+            dt = parse_datetime(created_date)
+            if not dt:
+                raise ValidationError({"created_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(created_date__gt=dt)
+        updated_date = self.request.query_params.get("updated_date")
+        if updated_date:
+            dt = parse_datetime(updated_date)
+            if not dt:
+                raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(updated_date__gt=dt)
+        deleted_date = self.request.query_params.get("deleted_date")
+        if deleted_date:
+            dt = parse_datetime(deleted_date)
+            if not dt:
+                raise ValidationError({"deleted_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(deleted_date__gt=dt)
+        return qs
 
     @swagger_auto_schema(
         operation_summary="List attachments of a specific issue",
         operation_description="""
         Retrieve a paginated list of attachments associated with a specific issue.
+        Optional filters:
+        - `created_date`: Only include issues created after the given datetime.
+        - `updated_date`: Only include issues updated after the given datetime.
+        - `deleted_date`: Only include issues deleted after the given datetime.
 
         **Access Control:**
         Only users who are either the reporter or assignee of the issue can access this endpoint.
@@ -2200,7 +2223,31 @@ class IssueAttachmentsListAPIView(ListAPIView):
                 type=openapi.TYPE_INTEGER,
                 required=True,
                 example=123,
-            )
+            ),
+            openapi.Parameter(
+                'created_date',
+                openapi.IN_QUERY,
+                description="Filter issues created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'updated_date',
+                openapi.IN_QUERY,
+                description="Filter issues updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'deleted_date',
+                openapi.IN_QUERY,
+                description="Filter issues deleted after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
         ],
         responses={
             200: openapi.Response(
