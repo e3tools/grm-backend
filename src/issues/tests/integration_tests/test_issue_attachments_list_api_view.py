@@ -147,7 +147,7 @@ class IssueAttachmentsListAPIViewTest(APITestCase):
         results = response.data["results"]
         assert isinstance(results, list)
         first_attachment = results[0]
-        expected_fields = ["id", "uploaded_by", "issue", "file", "created_date"]
+        expected_fields = ["id", "uploaded_by", "issue", "file", "created_date", "deleted_date"]
         for field in expected_fields:
             assert field in first_attachment
 

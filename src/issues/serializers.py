@@ -473,8 +473,9 @@ class IssueAttachmentSerializer(serializers.ModelSerializer):
             'uploaded_by',
             'created_date',
             'updated_date',
+            'deleted_date',
         ]
-        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date', 'updated_date']
+        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date', 'updated_date', 'deleted_date']
 
 
 class IssueAttachmentCreateSerializer(serializers.ModelSerializer):

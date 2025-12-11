@@ -1,7 +1,10 @@
 from django.contrib import admin
+from sendgrid import Attachment
 
 from issues.models import (
     AdministrativeRegion,
+    IssueAttachment,
+    Issue,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
@@ -149,3 +152,5 @@ admin.site.register(IssueDepartment, IssueDepartmentAdmin)
 admin.site.register(AdministrativeRegion, AdministrativeRegionAdmin)
 admin.site.register(IssueCategory, IssueCategoryAdmin)
 admin.site.register(IssueDepartmentAdministrativeLevel, IssueDepartmentAdministrativeLevelAdmin)
+admin.site.register(Issue)
+admin.site.register(IssueAttachment)
