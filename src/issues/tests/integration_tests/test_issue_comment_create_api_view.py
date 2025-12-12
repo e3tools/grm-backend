@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -56,6 +57,7 @@ class IssueCommentCreateAPIViewTest(APITestCase):
 
     def test_reporter_can_create_comment(self):
         """Test that the reporter can create a comment."""
+        before = timezone.now()
         self.authenticate_with_token()
 
         response = self.client.post(self.url, self.valid_comment_data, format='json')
@@ -69,6 +71,10 @@ class IssueCommentCreateAPIViewTest(APITestCase):
         self.assertTrue(
             Comment.objects.filter(issue=self.issue, user=self.reporter_user, comment='This is a test comment').exists()
         )
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_assignee_can_create_comment(self):
         """Test that the assignee can create a comment."""

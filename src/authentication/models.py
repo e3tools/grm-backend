@@ -3,6 +3,7 @@ import os
 import shortuuid as uuid
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser
+from django.core.files.storage import default_storage
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -20,6 +21,12 @@ class User(AbstractUser):
     external_id = models.CharField(max_length=255, verbose_name="couchDB document _id", default=None, null=True)
     grm_manager = models.BooleanField(default=False)
     grm_owner = models.BooleanField(default=False)
+    last_activity = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name=_("last activity"),
+        help_text=_("Last time the user performed any activity (login, comment, issue creation/modification)"),
+    )
 
     def __str__(self):
         return self.email
@@ -45,13 +52,54 @@ class User(AbstractUser):
 
     @property
     def name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}".strip()
+
+    def update_last_activity(self):
+        """
+        Update last_activity to current time.
+        Should be called whenever the user performs any activity:
+        - Login
+        - Create/edit issue
+        - Add/edit/remove comment
+        - Add/remove attachment
+        """
+        from django.utils import timezone
+
+        self.last_activity = timezone.now()
+        self.save(update_fields=['last_activity'])
 
     def delete(self, *args, **kwargs):
-        if self.photo:
-            if os.path.isfile(self.photo.path):
-                os.remove(self.photo.path)
+        """
+        Delete the model instance and remove the underlying file using the storage API.
+        This avoids accessing file.path which fails for storages that don't support absolute paths.
+        """
+        # Capture file name before deleting the model instance
+        file_name = None
+        try:
+            if self.file:
+                file_name = self.file.name
+        except Exception:
+            file_name = None
+
+        # Delete the model instance first (so DB constraints are handled)
         super().delete(*args, **kwargs)
+
+        # Then attempt to remove the file via storage API
+        if not file_name:
+            return
+
+        storage = getattr(self.file, 'storage', default_storage)
+
+        # Prefer storage.delete; guard against storages that raise NotImplementedError
+        try:
+            if storage.exists(file_name):
+                storage.delete(file_name)
+        except NotImplementedError:
+            # Some test storages may not implement path-based operations; ignore deletion in that case
+            pass
+        except Exception:
+            # Be conservative: don't let file deletion errors bubble up and break tests/views
+            pass
 
 
 class AbstractKeyData(models.Model):

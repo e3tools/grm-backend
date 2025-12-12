@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import UserFactory
 from grm.tests.base import DashboardTestCase
@@ -24,10 +25,15 @@ class IssueAttachmentDeleteViewTest(DashboardTestCase):
         )
 
     def test_reporter_can_delete_attachment_ajax(self):
+        before = timezone.now()
         count_before = IssueAttachment.objects.filter(issue=self.issue).count()
         resp = self.post(self.url, {}, user=self.reporter, ajax=True)
         assert resp.status_code == 200
         assert IssueAttachment.objects.filter(issue=self.issue).count() == count_before - 1
+
+        # Check last_activity was updated
+        self.reporter.refresh_from_db()
+        assert self.reporter.last_activity >= before
 
     def test_other_user_cannot_delete_attachment_from_unconfirmed_issue(self):
         other = UserFactory()

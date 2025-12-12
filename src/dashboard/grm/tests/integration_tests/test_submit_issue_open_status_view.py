@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
@@ -31,9 +32,14 @@ class SubmitIssueOpenStatusViewTest(DashboardTestCase):
         self.url = reverse("dashboard:grm:submit_issue_open_status", kwargs={"issue": self.issue.id})
 
     def test_post_by_grm_manager_sets_open_status(self):
+        before = timezone.now()
         manager = UserFactory(grm_manager=True)
         resp = self.post(self.url, data={}, ajax=True, user=manager)
         assert resp.status_code == 200
+
+        # Check last_activity was updated
+        manager.refresh_from_db()
+        assert manager.last_activity >= before
 
         # Reload and assert status changed
         self.issue.refresh_from_db()

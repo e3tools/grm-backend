@@ -148,6 +148,9 @@ class UploadIssueAttachmentFormView(
             try:
                 IssueAttachment.objects.create(issue=self.obj, file=data["file"], uploaded_by=user)
 
+                # Update last_activity for attachment upload
+                user.update_last_activity()
+
                 # Add a comment relative to the action: Add new attachment to the issue.
                 comment = _("A new attachment %s has been added to the issue.") % data["file"].name
                 Comment.objects.create(user=user, comment=comment, issue=self.obj)
@@ -184,6 +187,9 @@ class IssueAttachmentDeleteView(
         if attachment:
             attachment_name = attachment.filename
             attachment.delete()
+
+            # Update last_activity for attachment deletion
+            request.user.update_last_activity()
 
             # Add a comment relative to the action: Attachment deletion
             comment = _("The attachment %s has been deleted to the issue.") % attachment_name
@@ -452,6 +458,10 @@ class NewIssueConfirmFormView(NewIssueMixin):
         self.obj.confirmed = True
         self.obj.anonymize_issue_data()
         self.obj.save()
+
+        # Update last_activity for issue creation
+        self.request.user.update_last_activity()
+
         if citizen_to_delete:
             citizen_to_delete.delete()
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}))
@@ -705,6 +715,10 @@ class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONRe
         comment = request.POST.get("comment").strip()[:TEXTAREA_MAX_LENGTH]
         if comment:
             Comment.objects.create(user=user, comment=comment, issue=self.obj)
+
+            # Update last_activity for comment creation
+            user.update_last_activity()
+
             msg = _("The comment was sent successfully.")
             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         else:
@@ -756,6 +770,10 @@ class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JS
         self.obj.reject_reason = ""
         self.obj.status = IssueStatus.objects.get(open_status=True)
         self.obj.save()
+
+        # Update last_activity for status change
+        request.user.update_last_activity()
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
@@ -796,6 +814,9 @@ class SubmitIssueResearchResultFormView(
 
         Comment.objects.create(user=self.request.user, comment=_("The complaint has been resolved"), issue=self.obj)
 
+        # Update last_activity for status change
+        self.request.user.update_last_activity()
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
@@ -829,6 +850,9 @@ class SubmitIssueRejectReasonFormView(
         self.obj.save()
 
         Comment.objects.create(user=self.request.user, comment=_("The complaint has been rejected"), issue=self.obj)
+
+        # Update last_activity for status change
+        self.request.user.update_last_activity()
 
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")

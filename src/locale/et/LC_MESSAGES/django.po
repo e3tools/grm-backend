@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-03 11:25+0000\n"
+"POT-Creation-Date: 2025-12-12 19:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -60,23 +60,33 @@ msgstr ""
 msgid "photo"
 msgstr ""
 
-#: authentication/models.py:87
+#: authentication/models.py:26
+msgid "last activity"
+msgstr ""
+
+#: authentication/models.py:27
+msgid ""
+"Last time the user performed any activity (login, comment, issue creation/"
+"modification)"
+msgstr ""
+
+#: authentication/models.py:107
 msgid "department"
 msgstr ""
 
-#: authentication/models.py:91
+#: authentication/models.py:111
 msgid "administrative region"
 msgstr ""
 
-#: authentication/models.py:95
+#: authentication/models.py:115 dashboard/performance_diagnostics/views.py:487
 msgid "Government Worker"
 msgstr ""
 
-#: authentication/models.py:96
+#: authentication/models.py:116
 msgid "Government Workers"
 msgstr ""
 
-#: authentication/models.py:131 authentication/models.py:146
+#: authentication/models.py:151 authentication/models.py:166
 #: issues/models.py:34 issues/models.py:62 issues/models.py:215
 #: issues/models.py:234 issues/models.py:253 issues/models.py:277
 #: issues/models.py:333 issues/models.py:348 issues/models.py:360
@@ -86,7 +96,7 @@ msgstr ""
 msgid "Created at"
 msgstr ""
 
-#: authentication/models.py:132 authentication/models.py:147
+#: authentication/models.py:152 authentication/models.py:167
 #: issues/models.py:35 issues/models.py:63 issues/models.py:216
 #: issues/models.py:235 issues/models.py:254 issues/models.py:278
 #: issues/models.py:334 issues/models.py:349 issues/models.py:361
@@ -96,7 +106,7 @@ msgstr ""
 msgid "Updated at"
 msgstr ""
 
-#: authentication/models.py:135
+#: authentication/models.py:155 dashboard/performance_diagnostics/views.py:490
 #: dashboard/templates/user_management/user_management.html:33
 #: dashboard/user_management/constants.py:11
 #: dashboard/user_management/constants.py:17
@@ -104,15 +114,15 @@ msgstr ""
 msgid "Facilitator"
 msgstr ""
 
-#: authentication/models.py:136
+#: authentication/models.py:156
 msgid "Facilitators"
 msgstr ""
 
-#: authentication/models.py:150 issues/models.py:485
+#: authentication/models.py:170 issues/models.py:485
 msgid "Citizen"
 msgstr ""
 
-#: authentication/models.py:151 issues/models.py:486
+#: authentication/models.py:171 issues/models.py:486
 msgid "Citizens"
 msgstr ""
 
@@ -163,60 +173,72 @@ msgstr ""
 msgid "Login is not allowed until the customization wizard is completed."
 msgstr ""
 
-#: dashboard/constants.py:7
+#: dashboard/constants.py:10
 msgid "Good"
 msgstr ""
 
-#: dashboard/constants.py:15
+#: dashboard/constants.py:18
 msgid "At Risk"
 msgstr ""
 
-#: dashboard/constants.py:23
+#: dashboard/constants.py:26
 msgid "Critical"
 msgstr ""
 
-#: dashboard/constants.py:31
+#: dashboard/constants.py:34
 msgid "No Data"
 msgstr ""
 
-#: dashboard/constants.py:34
+#: dashboard/constants.py:37
 msgid "N/A"
 msgstr ""
 
-#: dashboard/constants.py:47
+#: dashboard/constants.py:50
 msgid "WAU"
 msgstr ""
 
-#: dashboard/constants.py:47
+#: dashboard/constants.py:50
 msgid "MAU"
 msgstr ""
 
-#: dashboard/constants.py:47
+#: dashboard/constants.py:50
 msgid "QAU"
 msgstr ""
 
-#: dashboard/constants.py:50
+#: dashboard/constants.py:53
 msgid "Weekly Active User"
 msgstr ""
 
-#: dashboard/constants.py:51
+#: dashboard/constants.py:54
 msgid "Monthly Active User"
 msgstr ""
 
-#: dashboard/constants.py:52
+#: dashboard/constants.py:55
 msgid "Quarterly Active User"
 msgstr ""
 
-#: dashboard/constants.py:60
+#: dashboard/constants.py:63
 msgid "Last 7 Days"
 msgstr ""
 
-#: dashboard/constants.py:61
+#: dashboard/constants.py:64
 msgid "Last 30 Days"
 msgstr ""
 
-#: dashboard/constants.py:62
+#: dashboard/constants.py:65
 msgid "Last 90 Days"
+msgstr ""
+
+#: dashboard/constants.py:73
+msgid "Inactive"
+msgstr ""
+
+#: dashboard/constants.py:74
+msgid "Active"
+msgstr ""
+
+#: dashboard/constants.py:75
+msgid "Low Activity"
 msgstr ""
 
 #: dashboard/diagnostics/views.py:35
@@ -230,7 +252,7 @@ msgid ""
 "the server logs."
 msgstr ""
 
-#: dashboard/diagnostics/views.py:294
+#: dashboard/diagnostics/views.py:293
 msgid "Global"
 msgstr ""
 
@@ -374,97 +396,97 @@ msgstr ""
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:152
+#: dashboard/grm/views.py:155
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:154
+#: dashboard/grm/views.py:157
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:158
+#: dashboard/grm/views.py:161
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:164
+#: dashboard/grm/views.py:167
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:189
+#: dashboard/grm/views.py:195
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:192
+#: dashboard/grm/views.py:198
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:235
+#: dashboard/grm/views.py:241
 msgid "Enter New Issue"
 msgstr ""
 
-#: dashboard/grm/views.py:325
+#: dashboard/grm/views.py:331
 msgid ""
 "No staff member was found to assign the issue to. The issue will be created "
 "without an assignee."
 msgstr ""
 
-#: dashboard/grm/views.py:500 dashboard/grm/views.py:655
+#: dashboard/grm/views.py:510 dashboard/grm/views.py:665
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:650
+#: dashboard/grm/views.py:660
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:693
+#: dashboard/grm/views.py:703
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:708
+#: dashboard/grm/views.py:722
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:759 dashboard/grm/views.py:799
-#: dashboard/grm/views.py:833
+#: dashboard/grm/views.py:777 dashboard/grm/views.py:820
+#: dashboard/grm/views.py:857
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:780
+#: dashboard/grm/views.py:798
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:781 dashboard/grm/views.py:815
+#: dashboard/grm/views.py:799 dashboard/grm/views.py:836
 #: dashboard/templates/grm/issue_detail.html:188
 #: dashboard/templates/user_management/update.html:98
 #: dashboard/user_management/views.py:339
 msgid "Save"
 msgstr ""
 
-#: dashboard/grm/views.py:797
+#: dashboard/grm/views.py:815
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:814
+#: dashboard/grm/views.py:835
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:831
+#: dashboard/grm/views.py:852
 msgid "The complaint has been rejected"
 msgstr ""
 
-#: dashboard/grm/views.py:943 dashboard/user_management/views.py:318
+#: dashboard/grm/views.py:967 dashboard/user_management/views.py:318
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
-#: dashboard/models.py:27 dashboard/templates/grm/issue_detail.html:74
+#: dashboard/models.py:31 dashboard/templates/grm/issue_detail.html:74
 #: dashboard/templates/user_management/list.html:24 issues/models.py:269
 #: issues/models.py:331 issues/models.py:398 issues/models.py:451
 #: wizard/forms.py:34 wizard/views.py:647 wizard/views.py:657
@@ -474,51 +496,70 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: dashboard/models.py:28
+#: dashboard/models.py:32
 #: dashboard/templates/grm/new_issue_confirmation.html:150 wizard/forms.py:41
 #: wizard/views.py:648 wizard/views.py:787 wizard/views.py:793
 msgid "Description"
 msgstr ""
 
-#: dashboard/models.py:31
+#: dashboard/models.py:35
 msgid "Project"
 msgstr ""
 
-#: dashboard/models.py:32
+#: dashboard/models.py:36
 msgid "Projects"
 msgstr ""
 
-#: dashboard/models.py:98 dashboard/models.py:99
+#: dashboard/models.py:102 dashboard/models.py:103
 msgid "Performance Metrics"
 msgstr ""
 
-#: dashboard/models.py:452
+#: dashboard/models.py:456
 msgid "Status Bottleneck Metric"
 msgstr ""
 
-#: dashboard/models.py:453
+#: dashboard/models.py:457
 msgid "Status Bottleneck Metrics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:35
+#: dashboard/performance_diagnostics/views.py:39
 msgid "Performance Diagnostics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:80
+#: dashboard/performance_diagnostics/views.py:84
 msgid "No metrics available for the selected filters."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:251
+#: dashboard/performance_diagnostics/views.py:255
 #, python-format
 msgid ""
 "The red flag on '%(status)s' immediately tells the admin that this status is "
 "a major bottleneck. Issues are waiting %(days).1f days on average."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:359
+#: dashboard/performance_diagnostics/views.py:333
 msgid ""
 "No administrative sublevel is available. Showing current selected "
 "administrative level."
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:533
+#: dashboard/templates/user_management/list.html:35
+#: dashboard/templates/user_management/profile.html:135
+msgid "Never"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:536
+msgid "Today"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:538
+msgid "1 day ago"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:540
+#, python-format
+msgid "%(days)s days ago"
 msgstr ""
 
 #: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
@@ -592,7 +633,7 @@ msgstr ""
 #: dashboard/templates/common/modal_form.html:34
 #: dashboard/templates/common/toast_template.html:8
 #: dashboard/templates/grm/issue_detail.html:235
-#: dashboard/templates/performance_diagnostics/dashboard.html:94
+#: dashboard/templates/performance_diagnostics/dashboard.html:97
 #: dashboard/templates/user_management/profile.html:177
 #: wizard/templates/wizard/regions.html:79
 msgid "Close"
@@ -676,7 +717,7 @@ msgstr ""
 #: dashboard/templates/diagnostics/home.html:464
 #: dashboard/templates/grm/new_issue_confirm.html:238
 #: dashboard/templates/grm/new_issue_location.html:61
-#: dashboard/templates/performance_diagnostics/dashboard.html:108
+#: dashboard/templates/performance_diagnostics/dashboard.html:111
 msgid "Click to select location"
 msgstr ""
 
@@ -957,76 +998,159 @@ msgstr ""
 msgid "All Categories"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:80
+#: dashboard/templates/performance_diagnostics/dashboard.html:83
 msgid "Coming Soon"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:198
+#: dashboard/templates/performance_diagnostics/dashboard.html:92
+msgid "This feature is coming soon."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:201
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:11
 msgid "Just now"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:200
+#: dashboard/templates/performance_diagnostics/dashboard.html:203
 msgid "1 minute ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:202
+#: dashboard/templates/performance_diagnostics/dashboard.html:205
 msgid "minutes ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:204
+#: dashboard/templates/performance_diagnostics/dashboard.html:207
 msgid "1 hour ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:207
+#: dashboard/templates/performance_diagnostics/dashboard.html:210
 msgid "hours ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:230
+#: dashboard/templates/performance_diagnostics/dashboard.html:233
 msgid "days"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:231
+#: dashboard/templates/performance_diagnostics/dashboard.html:234
 msgid "issues"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:351
+#: dashboard/templates/performance_diagnostics/dashboard.html:354
 msgid "Investigate"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:353
-#: dashboard/templates/performance_diagnostics/dashboard.html:373
+#: dashboard/templates/performance_diagnostics/dashboard.html:356
+#: dashboard/templates/performance_diagnostics/dashboard.html:376
 msgid "View Details"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:355
+#: dashboard/templates/performance_diagnostics/dashboard.html:358
 msgid "Best Practices"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:367
+#: dashboard/templates/performance_diagnostics/dashboard.html:370
 msgid "Investigate Administrative Level"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:368
+#: dashboard/templates/performance_diagnostics/dashboard.html:371
 msgid "Deep dive analysis for x will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:374
+#: dashboard/templates/performance_diagnostics/dashboard.html:377
 msgid "Detailed region dashboard will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:379
+#: dashboard/templates/performance_diagnostics/dashboard.html:382
 msgid "Best practices from x will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:380
+#: dashboard/templates/performance_diagnostics/dashboard.html:383
 msgid "Learn Best Practices"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:422
+#: dashboard/templates/performance_diagnostics/dashboard.html:549
+msgid "View User Profile"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:550
+msgid "User profile page will be available soon."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:586
 #: dashboard/templates/search/semantic_search.html:50
 #: dashboard/templates/search/semantic_search.html:67
 msgid "All"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:5
+msgid "Inactive Government Workers / Facilitators"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:6
+msgid "Highlights specific users who are not engaging with the platform"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:15
+msgid "Role Filter"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:17
+msgid "All Roles"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:18
+msgid "Government Workers Only"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:19
+msgid "Facilitators Only"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:25
+msgid "Open Issues Filter"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:27
+msgid "All Users"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:28
+msgid "Users with Open Issues Only"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:29
+msgid "Users without Open Issues Only"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:39
+msgid "User Name"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:40
+msgid "Role"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:41
+#: dashboard/templates/user_management/profile.html:133
+msgid "Last Activity"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:42
+msgid "Open Issues Assigned"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:43
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:62
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:112
+#: dashboard/templates/performance_diagnostics/kpi_cards.html:167
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:19
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
+msgid "Performance"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:44
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:20
+msgid "Actions"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:9
@@ -1039,14 +1163,6 @@ msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:51
 msgid "New Issues"
-msgstr ""
-
-#: dashboard/templates/performance_diagnostics/kpi_cards.html:62
-#: dashboard/templates/performance_diagnostics/kpi_cards.html:112
-#: dashboard/templates/performance_diagnostics/kpi_cards.html:167
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:19
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
-msgid "Performance"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:74
@@ -1091,10 +1207,6 @@ msgstr ""
 
 #: dashboard/templates/performance_diagnostics/region_performance_table.html:18
 msgid "Active Workers"
-msgstr ""
-
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:20
-msgid "Actions"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/status_bottlenecks.html:10
@@ -1205,11 +1317,6 @@ msgstr ""
 msgid "Action"
 msgstr ""
 
-#: dashboard/templates/user_management/list.html:35
-#: dashboard/templates/user_management/profile.html:135
-msgid "Never"
-msgstr ""
-
 #: dashboard/templates/user_management/list.html:58
 msgid "View Profile"
 msgstr ""
@@ -1266,10 +1373,6 @@ msgstr ""
 
 #: dashboard/templates/user_management/profile.html:124
 msgid "Edit User"
-msgstr ""
-
-#: dashboard/templates/user_management/profile.html:133
-msgid "Last Activity"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:144

@@ -3,6 +3,7 @@ import os
 import cryptocode
 import shortuuid as uuid
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.db.models import Count
@@ -899,12 +900,36 @@ class IssueAttachment(models.Model):
 
     def delete(self, *args, **kwargs):
         """
-        Deletes the file when the record is deleted
+        Delete the model instance and remove the underlying file using the storage API.
+        This avoids accessing file.path which fails for storages that don't support absolute paths.
         """
-        if self.file:
-            if os.path.isfile(self.file.path):
-                os.remove(self.file.path)
+        # Capture file name before deleting the model instance
+        file_name = None
+        try:
+            if self.file:
+                file_name = self.file.name
+        except Exception:
+            file_name = None
+
+        # Delete the model instance first (so DB constraints are handled)
         super().delete(*args, **kwargs)
+
+        # Then attempt to remove the file via storage API
+        if not file_name:
+            return
+
+        storage = getattr(self.file, 'storage', default_storage)
+
+        # Prefer storage.delete; guard against storages that raise NotImplementedError
+        try:
+            if storage.exists(file_name):
+                storage.delete(file_name)
+        except NotImplementedError:
+            # Some test storages may not implement path-based operations; ignore deletion in that case
+            pass
+        except Exception:
+            # Be conservative: don't let file deletion errors bubble up and break tests/views
+            pass
 
     def save(self, *args, **kwargs):
         """

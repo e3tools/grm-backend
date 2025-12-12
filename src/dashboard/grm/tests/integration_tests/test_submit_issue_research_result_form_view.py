@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
@@ -31,6 +32,7 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         self.url = reverse("dashboard:grm:submit_issue_research_result", kwargs={"issue": self.issue.id})
 
     def test_post_by_grm_manager_sets_final_status_and_result(self):
+        before = timezone.now()
         manager = UserFactory(grm_manager=True)
         data = {"research_result": "After review, issue resolved."}
         resp = self.post(self.url, data=data, ajax=True, user=manager)
@@ -38,6 +40,10 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         self.issue.refresh_from_db()
         assert self.issue.status == self.final_status
         assert self.issue.research_result == "After review, issue resolved."
+
+        # Check last_activity was updated
+        manager.refresh_from_db()
+        assert manager.last_activity >= before
 
     def test_post_by_assignee_piu_staff_sets_result(self):
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)

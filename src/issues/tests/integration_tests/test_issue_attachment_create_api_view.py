@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -64,9 +65,14 @@ class IssueAttachmentCreateAPIViewTest(APITestCase):
 
     def test_reporter_can_create_attachment(self):
         """Test that the reporter can create an attachment."""
+        before = timezone.now()
         self.authenticate_with_token()
 
         response = self.client.post(self.url, self.valid_data, format='multipart')
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['message'], ATTACHMENT_CREATE_SUCCESS_MESSAGE)

@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from authentication.models import Facilitator, GovernmentWorker, User
@@ -148,6 +149,60 @@ class Command(BaseCommand):
         created_workers = 0
         created_issues = 0
 
+        # Test user names
+        first_names = [
+            "Alice",
+            "Bob",
+            "Carlos",
+            "Diana",
+            "Emma",
+            "Frank",
+            "Grace",
+            "Hassan",
+            "Isabel",
+            "John",
+            "Khadija",
+            "Louis",
+            "Maria",
+            "Nadia",
+            "Omar",
+            "Patricia",
+            "Quinn",
+            "Rachel",
+            "Samuel",
+            "Teresa",
+            "Ulrich",
+            "Vanessa",
+            "William",
+            "Yara",
+        ]
+        last_names = [
+            "Anderson",
+            "Brown",
+            "Chen",
+            "Davis",
+            "Evans",
+            "Garcia",
+            "Harris",
+            "Ibrahim",
+            "Johnson",
+            "Kim",
+            "Lee",
+            "Martin",
+            "Nguyen",
+            "O'Brien",
+            "Patel",
+            "Quinn",
+            "Rodriguez",
+            "Smith",
+            "Taylor",
+            "Usman",
+            "Valdez",
+            "Wang",
+            "Xu",
+            "Zhang",
+        ]
+
         with transaction.atomic():
             # Create test data for each region
             for idx, region in enumerate(regions):
@@ -175,31 +230,67 @@ class Command(BaseCommand):
                     num_resolved_issues = random.randint(30, 50)
                     resolution_days_range = (2, 6)
 
-                # Create workers for this region
+                # Create workers for this region with varied last_activity for InactiveUsersAPIView testing
                 for w_idx in range(num_workers):
                     # Randomly choose worker type
                     is_gov_worker = random.choice([True, False])
 
                     username = f"{prefix}worker_{region.id}_{w_idx}"
+                    first_name = random.choice(first_names)
+                    last_name = random.choice(last_names)
+
                     user = User.objects.create(
                         username=username,
                         email=f"{username}@test.local",
+                        first_name=first_name,
+                        last_name=last_name,
                         is_active=True,
                     )
                     user.set_unusable_password()
 
-                    # Set last_login to random time in last 7 days (for active workers metric)
-                    if scenario == "good" or (scenario == "at_risk" and w_idx < num_workers // 2):
-                        # Active workers
-                        user.last_login = now - timedelta(days=random.randint(1, 6))
-                    else:
-                        # Inactive workers (logged in >7 days ago)
-                        user.last_login = now - timedelta(days=random.randint(15, 60))
+                    # Create varied last_activity for testing inactive users table
+                    # Distribute across different inactivity thresholds:
+                    # - 40% active (<7 days) - won't appear in inactive table
+                    # - 20% inactive 7-14 days (secondary badge color)
+                    # - 20% inactive 14-30 days (warning badge color)
+                    # - 20% inactive >30 days (danger badge color)
+                    activity_scenario = random.random()
 
+                    if scenario == "good":
+                        # Good regions: mostly active users (80%)
+                        if activity_scenario < 0.8:
+                            days_inactive = random.randint(0, 6)
+                        elif activity_scenario < 0.9:
+                            days_inactive = random.randint(7, 13)
+                        else:
+                            days_inactive = random.randint(14, 45)
+                    elif scenario == "at_risk":
+                        # At-risk regions: 50% active, 50% inactive
+                        if activity_scenario < 0.5:
+                            days_inactive = random.randint(0, 6)
+                        elif activity_scenario < 0.7:
+                            days_inactive = random.randint(7, 13)
+                        elif activity_scenario < 0.85:
+                            days_inactive = random.randint(14, 30)
+                        else:
+                            days_inactive = random.randint(31, 60)
+                    else:
+                        # Critical regions: mostly inactive users (80%)
+                        if activity_scenario < 0.2:
+                            days_inactive = random.randint(0, 6)
+                        elif activity_scenario < 0.4:
+                            days_inactive = random.randint(7, 13)
+                        elif activity_scenario < 0.7:
+                            days_inactive = random.randint(14, 30)
+                        else:
+                            days_inactive = random.randint(31, 90)
+
+                    # Set both last_login and last_activity
+                    user.last_login = now - timedelta(days=days_inactive)
+                    user.last_activity = user.last_login
                     user.save()
 
                     if is_gov_worker:
-                        # FIXED: GovernmentWorker requires department
                         department = random.choice(departments)
                         GovernmentWorker.objects.create(
                             user=user,
@@ -214,12 +305,18 @@ class Command(BaseCommand):
 
                     created_workers += 1
 
-                # Create OPEN issues
+                # Get workers from this region for assigning issues
+                region_workers = list(
+                    User.objects.filter(
+                        Q(governmentworker__administrative_region=region) | Q(facilitator__administrative_region=region)
+                    ).distinct()
+                )
+
+                # Create OPEN issues (some assigned to test open_issues_count filter)
                 for i in range(num_open_issues):
                     tracking_code = f"{prefix}open_{region.id}_{i}"
                     intake_date = now - timedelta(days=random.randint(1, 30))
 
-                    # Use first user as reporter (or create a reporter if needed)
                     reporter = User.objects.filter(is_active=True).first()
                     if not reporter:
                         reporter = User.objects.create(
@@ -228,11 +325,17 @@ class Command(BaseCommand):
                             is_active=True,
                         )
 
+                    # Assign 70% of open issues to workers
+                    assignee = None
+                    if region_workers and random.random() < 0.7:
+                        assignee = random.choice(region_workers)
+
                     Issue.objects.create(
                         tracking_code=tracking_code,
                         administrative_region=region,
                         category=random.choice(categories),
                         reporter=reporter,
+                        assignee=assignee,
                         intake_date=intake_date,
                         confirmed=True,
                         status=open_status,
@@ -250,11 +353,17 @@ class Command(BaseCommand):
 
                     reporter = User.objects.filter(is_active=True).first()
 
+                    # Assign 80% of resolved issues to workers
+                    assignee = None
+                    if region_workers and random.random() < 0.8:
+                        assignee = random.choice(region_workers)
+
                     Issue.objects.create(
                         tracking_code=tracking_code,
                         administrative_region=region,
                         category=random.choice(categories),
                         reporter=reporter,
+                        assignee=assignee,
                         intake_date=intake_date,
                         resolution_date=resolution_date,
                         confirmed=True,

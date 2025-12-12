@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -72,6 +73,7 @@ class IssueUpdateAPIViewTest(APITestCase):
 
     def test_reporter_can_update_issue(self):
         """Test that the reporter can update an issue (excluding restricted fields)."""
+        before = timezone.now()
         self.authenticate_with_token()
 
         # Reporter should be able to update rating and general fields, but not status
@@ -95,6 +97,10 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.assertEqual(self.issue.rating, 4)
         self.assertEqual(self.issue.escalation_reason, 'Issue requires higher level approval')
         self.assertEqual(self.issue.research_result, 'Investigation completed. Root cause identified.')
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_assignee_can_update_issue(self):
         """Test that the assignee can update an issue (excluding restricted fields)."""

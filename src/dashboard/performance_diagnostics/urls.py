@@ -9,4 +9,5 @@ urlpatterns = [
     path("api/metrics/", views.PerformanceMetricsAPIView.as_view(), name="api_metrics"),
     path('api/status-bottlenecks/', views.StatusBottleneckMetricsAPIView.as_view(), name='api_status_bottlenecks'),
     path("api/region-performance/", views.RegionPerformanceAPIView.as_view(), name="api_region_performance"),
+    path("api/inactive-users/", views.InactiveUsersAPIView.as_view(), name="api_inactive_users"),
 ]
