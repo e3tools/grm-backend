@@ -1,5 +1,4 @@
 from django.contrib import admin
-from sendgrid import Attachment
 
 from issues.models import (
     AdministrativeRegion,

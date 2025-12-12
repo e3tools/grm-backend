@@ -2227,7 +2227,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
             openapi.Parameter(
                 'created_date',
                 openapi.IN_QUERY,
-                description="Filter issues created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                description="Filter attachments created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATETIME,
                 required=False,
@@ -2235,7 +2235,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
             openapi.Parameter(
                 'updated_date',
                 openapi.IN_QUERY,
-                description="Filter issues updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                description="Filter attachments updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATETIME,
                 required=False,
@@ -2243,7 +2243,7 @@ class IssueAttachmentsListAPIView(ListAPIView):
             openapi.Parameter(
                 'deleted_date',
                 openapi.IN_QUERY,
-                description="Filter issues deleted after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                description="Filter attachments deleted after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATETIME,
                 required=False,
