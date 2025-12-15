@@ -884,6 +884,7 @@ class IssueAttachment(models.Model):
     )
     created_date = models.DateTimeField(default=now, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
+    deleted_date = models.DateTimeField(null=True, blank=True, verbose_name=_('Deleted at'))
 
     class Meta:
         verbose_name = _('Issue Attachment')
