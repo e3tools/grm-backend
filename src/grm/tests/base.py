@@ -16,7 +16,7 @@ AJAX_HEADER_VALUE = "XMLHttpRequest"
 
 
 @pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
+@override_settings(DEFAULT_FILE_STORAGE='grm.test_storage.InMemoryStorage', LANGUAGE_CODE='en-us')
 class ViewTestCase(TestCase):
     content_type = URLENCODED_TYPE
     user = None

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -42,11 +43,16 @@ class IssueCommentDeleteAPIViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_reporter_can_delete_comment(self):
+        before = timezone.now()
         self.authenticate(self.reporter_token)
         response = self.client.delete(self.url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Comment.objects.filter(id=self.comment.id).exists()
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_assignee_can_delete_own_comment(self):
         assignee_comment = CommentFactory(issue=self.issue, user=self.assignee_user, comment="By assignee")

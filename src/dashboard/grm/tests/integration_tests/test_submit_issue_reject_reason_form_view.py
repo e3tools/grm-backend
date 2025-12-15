@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
@@ -40,6 +41,7 @@ class SubmitIssueRejectReasonFormViewTest(DashboardTestCase):
         assert self.issue.reject_reason == "Complaint not valid."
 
     def test_post_by_assignee_piu_staff_sets_reject_reason(self):
+        before = timezone.now()
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)
 
         data = {"reject_reason": "Duplicate complaint."}
@@ -48,6 +50,10 @@ class SubmitIssueRejectReasonFormViewTest(DashboardTestCase):
         self.issue.refresh_from_db()
         assert self.issue.status == self.rejected_status
         assert self.issue.reject_reason == "Duplicate complaint."
+
+        # Check last_activity was updated
+        self.issue.assignee.refresh_from_db()
+        assert self.issue.assignee.last_activity >= before
 
     def test_post_denied_for_unrelated_user(self):
         outsider = UserFactory()

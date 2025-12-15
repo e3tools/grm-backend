@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
@@ -23,11 +24,16 @@ class AddCommentToIssueViewTest(DashboardTestCase):
         self.url = reverse("dashboard:grm:add_comment_to_issue", kwargs={"issue": self.issue.id})
 
     def test_post_creates_comment_by_grm_manager(self):
+        before = timezone.now()
         grm_manager = UserFactory(grm_manager=True)
         data = {"comment": "Manager note."}
         resp = self.post(self.url, data=data, ajax=True, user=grm_manager)
         assert resp.status_code == 200
         assert Comment.objects.filter(issue=self.issue, user=grm_manager, comment="Manager note.").exists()
+
+        # Check last_activity was updated
+        grm_manager.refresh_from_db()
+        assert grm_manager.last_activity >= before
 
     def test_post_creates_comment_by_government_worker(self):
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)

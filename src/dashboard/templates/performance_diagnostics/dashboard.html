@@ -58,17 +58,20 @@
 
 	<!-- KPI Cards Container -->
 	<div id="kpi-container"></div>
-	<div class="justify-content-center" id="kpi-spin">
+	<div class="text-center" id="kpi-spin">
 		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 	</div>
 
 	<!-- Status Bottlenecks Container -->
 	<div id="status-bottlenecks-container"></div>
-	<div class="justify-content-center" id="status-bottlenecks-spin" style="display:none;">
+	<div class="text-center mt-3" id="status-bottlenecks-spin">
 		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 	</div>
 
 	{% include 'performance_diagnostics/region_performance_table.html' %}
+
+	<!-- Inactive Users Table -->
+	{% include 'performance_diagnostics/inactive_users_table.html' %}
 {% endblock %}
 
 {% block modals %}
@@ -86,7 +89,7 @@
 				<div class="modal-body">
 					<div class="alert alert-info">
 						<i class="fas fa-info-circle"></i>
-						<span id="comingSoonMessage">This feature is coming soon.</span>
+						<span id="comingSoonMessage">{% translate "This feature is coming soon." %}</span>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -142,6 +145,7 @@
 
         document.addEventListener("region:changed", function (event) {
             reloadAllMetrics();
+            window.reloadInactiveUsersTable();
         });
 
         changeRegionTrigger(get_choices_url, choice_placeholder);
@@ -152,6 +156,7 @@
             current_region_id = null;
             loadNextLevelRegions($("#id_administrative_region"), '', '');
             reloadAllMetrics();
+            window.reloadInactiveUsersTable();
         });
 
         $('.issues-filter select').on('change', function () {
@@ -273,7 +278,7 @@
 
                         // If API indicates no_children, show the informational message below the table
                         if (json.no_children) {
-                            const msg = json.message || 'No administrative sublevel is available. Showing issue-level data.';
+                            const msg = json.message;
                             const alertHtml = `
                         <div class="alert alert-info mt-3" id="no-children-alert">
                             <i class="fas fa-info-circle"></i> ${msg}
@@ -290,7 +295,7 @@
                             recordsFiltered: json.recordsFiltered || json.recordsTotal || 0,
                         });
                     }).fail(function (xhr, status, err) {
-                        console.error('Error loading region metrics', status, err);
+                        alert(error_server_message + "Error " + err);
                         callback({data: [], recordsTotal: 0, recordsFiltered: 0});
                     });
                 },
@@ -299,7 +304,7 @@
                     {
                         data: 'open_issues_count',
                         name: 'open_issues',
-                        className: 'text-center',
+                        className: 'text-right',
                         render: function (data, type, row) {
                             const color = row.open_issues_color || 'secondary';
                             return `<span class="badge bg-${color}">${data} ${issues}</span>`;
@@ -308,7 +313,7 @@
                     {
                         data: 'avg_resolution_days',
                         name: 'resolution',
-                        className: 'text-center',
+                        className: 'text-right',
                         render: function (data, type, row) {
                             const color = row.resolution_color || 'secondary';
                             return `<span class="badge bg-${color}">${parseFloat(data || 0).toFixed(1)} ${days}</span>`;
@@ -317,7 +322,7 @@
                     {
                         data: 'active_workers_count',
                         name: 'workers',
-                        className: 'text-center',
+                        className: 'text-right',
                         render: function (data, type, row) {
                             const color = row.workers_color || 'secondary';
                             const total = row.total_workers_in_region || '-';
@@ -328,7 +333,7 @@
                     {
                         data: 'performance_status',
                         name: 'performance',
-                        className: 'text-center',
+                        className: 'text-right',
                         render: function (data, type, row) {
                             const badge = row.performance_badge_class || 'badge-secondary';
                             const icon = row.performance_icon || '';
@@ -339,7 +344,7 @@
                     {
                         data: null,
                         orderable: false,
-                        className: 'text-center',
+                        className: 'text-right',
                         render: function (data, type, row) {
                             const regionId = row.id;
                             const regionName = row.region_name;
@@ -409,6 +414,167 @@
                 rpTableInstance = initRegionPerformanceTable();
             }
         };
+
+        // Initialize Inactive Users Table
+        function initInactiveUsersTable() {
+            // destroy previous instance if it exists
+            if ($.fn.dataTable.isDataTable('#inactiveUsersTable')) {
+                $('#inactiveUsersTable').DataTable().destroy();
+                $('#inactiveUsersTable tbody').empty();
+            }
+
+            const defaultPerPage = 10;
+
+            const table = $('#inactiveUsersTable').DataTable({
+                dom: 'ltipr',
+                processing: true,
+                serverSide: true,
+                paging: true,
+                lengthChange: true,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: defaultPerPage,
+                searching: false,
+                ordering: true,
+                ajax: function (data, callback) {
+                    const perPage = parseInt(data.length || (table ? table.page.len() : defaultPerPage), 10);
+                    const page = Math.floor((data.start || 0) / perPage) + 1;
+
+                    // Map column index to API sort keys
+                    const map = {0: 'name', 1: 'role', 2: 'last_activity', 3: 'open_issues', 4: 'performance'};
+                    let sort_by = 'last_activity';
+                    let sort_dir = 'asc';
+                    if (data.order && data.order.length > 0) {
+                        const colIdx = data.order[0].column;
+                        sort_by = map[colIdx] || 'last_activity';
+                        sort_dir = data.order[0].dir || 'asc';
+                    }
+
+                    const params = {
+                        inactivity_threshold: 7,
+                        per_page: perPage,
+                        page: page,
+                        sort_by: sort_by,
+                        sort_dir: sort_dir,
+                        administrative_region: current_region_id,
+                        role_filter: $('#inactive_users_role_filter').val(),
+                        has_open_issues: $('#inactive_users_open_issues_filter').val(),
+                    };
+
+                    $.ajax({
+                        url: "{% url 'dashboard:performance_diagnostics:api_inactive_users' %}" + '?' + $.param(params),
+                        method: 'GET',
+                        dataType: 'json',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    }).done(function (json) {
+                        const rows = json.data || [];
+                        callback({
+                            data: rows,
+                            recordsTotal: json.recordsTotal || 0,
+                            recordsFiltered: json.recordsFiltered || json.recordsTotal || 0,
+                        });
+                    }).fail(function (xhr, status, err) {
+                        alert(error_server_message + "Error " + err);
+                        callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+                    });
+                },
+                columns: [
+                    {
+                        data: 'name',
+                        render: function (data, type, row) {
+                            let html = '<div class="d-flex align-items-center">';
+                            if (row.photo_url) {
+                                html += `<img src="${row.photo_url}" class="rounded-circle center-32 mr-2" alt="${data}">`;
+                            } else {
+                                html += `<img src="{% static 'images/default-avatar.jpg' %}" class="rounded-circle center-32 mr-2"/>`;
+                            }
+                            html += `<span>${data}</span>`;
+                            html += '</div>';
+                            return html;
+                        }
+                    },
+                    {
+                        data: 'role',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const badgeClass = row.role_type === 'government_worker' ? 'badge-blue' : 'badge-purple';
+                            return `<span class="badge ${badgeClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'last_activity',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.last_activity_color || 'secondary';
+                            return `<span class="badge bg-${color}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'open_issues_count',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.open_issues_color || 'primary';
+                            return `<span class="badge bg-${color}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'performance_rating',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.performance_color || 'secondary';
+                            const icon = row.performance_icon || '';
+                            return `<span class="badge badge-${color}"><i class="${icon} mr-1"></i>${data}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const userId = row.id;
+                            const userName = row.name;
+                            let html = '<div class="btn-group btn-group-sm" role="group">';
+                            html += `<button class="btn btn-info view-profile-btn" data-user-id="${userId}" data-user-name="${userName}"><i class="fas fa-user"></i></button>`;
+                            html += '</div>';
+                            return html;
+                        }
+                    }
+                ],
+                order: [[2, 'asc']],
+                drawCallback: function () {
+                    // Initialize tooltips
+                    $('[data-toggle="tooltip"]').tooltip();
+
+                    // Bind action handlers
+                    $('#inactiveUsersTable .view-profile-btn').off('click').on('click', function () {
+                        $('#comingSoonTitle').text('{% translate "View User Profile" %}');
+                        $('#comingSoonMessage').text('{% translate "User profile page will be available soon." %}');
+                        $('#comingSoonModal').modal('show');
+                    });
+                }
+            });
+
+            return table;
+        }
+
+        // Initialize the inactive users table
+        let inactiveUsersTableInstance = null;
+        if ($('#inactiveUsersTable').length) {
+            inactiveUsersTableInstance = initInactiveUsersTable();
+        }
+
+        // Expose global function to reload inactive users table
+        window.reloadInactiveUsersTable = function () {
+            if ($.fn.dataTable.isDataTable('#inactiveUsersTable')) {
+                $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
+            } else {
+                inactiveUsersTableInstance = initInactiveUsersTable();
+            }
+        };
+
+        // Bind filter change handlers for inactive users table
+        $('#inactive_users_role_filter, #inactive_users_open_issues_filter').on('change', function () {
+            window.reloadInactiveUsersTable();
+        });
 	</script>
 
 {% endblock %}
@@ -420,7 +586,7 @@
             placeholder: "{% translate 'All' %}",
             allowClear: true,
         });
-        $('#period').select2({
+        $('#period, #inactive_users_role_filter, #inactive_users_open_issues_filter').select2({
 			width: '100%',
         });
 	</script>

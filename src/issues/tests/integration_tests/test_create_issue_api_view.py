@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -80,6 +81,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.citizen = CitizenFactory(age_group=self.age_group, group=self.group_one, group_2=self.group_two)
 
     def test_create_issue_with_valid_data(self):
+        before = timezone.now()
         self.client.force_authenticate(user=self.reporter_user)
 
         data = self.__get_valid_data()
@@ -93,6 +95,10 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(created_issue.description, "This is a test issue.")
         self.assertEqual(created_issue.reporter, self.reporter_user)
         self.assertEqual(created_issue.administrative_region, self.child_region)
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_create_issue_without_authentication(self):
         """

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -15,7 +16,7 @@ from issues.models import IssueAttachment
 
 
 @pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
+@override_settings(DEFAULT_FILE_STORAGE='grm.test_storage.InMemoryStorage', LANGUAGE_CODE='en-us')
 class IssueAttachmentDeleteAPIViewTest(APITestCase):
     """Integration tests for the IssueAttachmentDeleteAPIView."""
 
@@ -43,11 +44,16 @@ class IssueAttachmentDeleteAPIViewTest(APITestCase):
 
     def test_reporter_can_delete_attachment(self):
         """Reporter of the issue can delete attachments."""
+        before = timezone.now()
         self.authenticate(self.reporter_token)
         response = self.client.delete(self.url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not IssueAttachment.objects.filter(id=self.attachment.id).exists()
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_assignee_can_delete_attachment(self):
         """Assignee of the issue can delete attachments."""
@@ -84,15 +90,19 @@ class IssueAttachmentDeleteAPIViewTest(APITestCase):
         """Deleting attachment removes the file from storage."""
         self.authenticate(self.reporter_token)
 
-        # Get the file path before deletion
-        file_path = self.attachment.file.path
-        assert self.attachment.file.storage.exists(file_path)
+        with override_settings(DEFAULT_FILE_STORAGE='django.core.files.storage.FileSystemStorage'):
+            attachment = IssueAttachmentFactory(issue=self.issue, uploaded_by=self.reporter_user)
+            url = reverse("issues:delete-issue-attachment", kwargs={"id": attachment.id})
 
-        # Delete the attachment
-        response = self.client.delete(self.url)
+            # Get the file path before deletion
+            file_path = attachment.file.path
+            assert attachment.file.storage.exists(file_path)
 
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not IssueAttachment.objects.filter(id=self.attachment.id).exists()
+            # Delete the attachment
+            response = self.client.delete(url)
+
+            assert response.status_code == status.HTTP_204_NO_CONTENT
+            assert not IssueAttachment.objects.filter(id=attachment.id).exists()
 
     def test_multiple_attachments_only_one_deleted(self):
         """Deleting one attachment doesn't affect other attachments of same issue."""

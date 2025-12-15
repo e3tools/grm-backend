@@ -1096,3 +1096,43 @@ a.text-muted:hover {
 .kpi-change.negative {
     color: #dc3545;
 }
+
+/* Inactive Users Table Styles */
+
+/* Badge purple for facilitators */
+.badge-purple {
+    background-color: #6f42c1;
+    color: white;
+}
+
+/* Badge purple for government workers */
+.badge-blue {
+  color: #ffffff;
+  background-color: #007bff;
+}
+
+/* Improved avatar initials */
+#inactiveUsersTable .rounded-circle {
+    flex-shrink: 0;
+}
+
+/* Ensure proper alignment */
+#inactiveUsersTable .d-flex {
+    align-items: center;
+}
+
+/* Badge spacing */
+#inactiveUsersTable .badge i {
+    margin-right: 4px;
+}
+
+/* Table row hover effect */
+#inactiveUsersTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Action buttons styling */
+#inactiveUsersTable .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}

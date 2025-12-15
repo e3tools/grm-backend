@@ -423,6 +423,10 @@ class IssueCreateAPIView(CreateAPIView):
 
             if serializer.is_valid():
                 issue = serializer.save()
+
+                # Update last_activity for issue creation
+                request.user.update_last_activity()
+
                 detail_serializer = IssueDetailSerializer(issue)
                 return Response(
                     {'message': ISSUE_CREATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},
@@ -1598,6 +1602,10 @@ class IssueCommentCreateAPIView(CreateAPIView):
         """
         issue = self.get_issue()
         instance = serializer.save(issue=issue, user=self.request.user)
+
+        # Update last_activity for comment creation
+        self.request.user.update_last_activity()
+
         return instance
 
     def create(self, request, *args, **kwargs):
@@ -1934,6 +1942,9 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
         """
         self.comment_instance.delete()
 
+        # Update last_activity for comment deletion
+        self.request.user.update_last_activity()
+
     @swagger_auto_schema(
         operation_summary="Delete a comment from a specific issue",
         operation_description="""
@@ -2015,6 +2026,10 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         issue = self.get_issue()
         instance = serializer.save(issue=issue, uploaded_by=self.request.user)
+
+        # Update last_activity for attachment creation
+        self.request.user.update_last_activity()
+
         return instance
 
     def create(self, request, *args, **kwargs):
@@ -2372,6 +2387,9 @@ class IssueAttachmentDeleteAPIView(DestroyAPIView):
         """
         self.attachment_instance.delete()
 
+        # Update last_activity for attachment deletion
+        self.request.user.update_last_activity()
+
     @swagger_auto_schema(
         operation_summary="Delete an attachment from a specific issue",
         operation_description="""
@@ -2724,6 +2742,10 @@ class IssueUpdateAPIView(UpdateAPIView):
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 updated_issue = serializer.save()
+
+                # Update last_activity for issue modification
+                request.user.update_last_activity()
+
                 detail_serializer = IssueDetailSerializer(updated_issue)
                 return Response(
                     {'message': ISSUE_UPDATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},
