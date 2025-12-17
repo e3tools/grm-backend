@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -12,11 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from dashboard.grm.forms import SearchIssueForm
-from dashboard.mixins import (
-    JSONResponseMixin,
-    LoginRequiredAndAJAXRequestMixin,
-    PageMixin,
-)
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin, PageMixin
 from etl.models import ETLExecutionLog
 from issues.models import (
     AdministrativeRegion,
@@ -48,7 +45,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
@@ -85,10 +82,10 @@ class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
             "finished_at": finished_at,
         }
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, generic.View):
     def get(self, request, *args, **kwargs):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
@@ -101,7 +98,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             try:
                 root_region = AdministrativeRegion.objects.select_related('parent').get(id=region_id)
             except AdministrativeRegion.DoesNotExist:
-                return self.render_to_json_response({"error": "Region not found"})
+                return JsonResponse({"error": "Region not found"})
         else:
             root_region = AdministrativeRegion.objects.get(parent__isnull=True)
 
@@ -145,7 +142,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
         total_issues = issues_stats['total_count']
 
         if total_issues == 0:
-            return self.render_to_json_response(
+            return JsonResponse(
                 {
                     "region_stats": {},
                     "status_stats": {},
@@ -189,7 +186,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             "category_stats": category_stats,
         }
 
-        return self.render_to_json_response(statistics)
+        return JsonResponse(statistics)
 
     def get_region_stats_optimized(self, filters, target_region, total_issues):
         """

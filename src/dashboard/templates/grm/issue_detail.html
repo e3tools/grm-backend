@@ -262,7 +262,7 @@
                     "assignee": assignee.val()
                 },
                 success: function (response) {
-                    showPopupMessage(response.msg);
+                    showPopupMessage(response);
                 },
                 error: function (data) {
                     alert(error_server_message + "Error " + data.status);
@@ -311,7 +311,7 @@
                         type: "POST",
                         url: "{% url 'dashboard:grm:submit_issue_open_status' obj.id %}",
                         success: function (response) {
-                            showPopupMessage(response.msg);
+                            showPopupMessage(response);
                             loadStatusButtons();
                         },
                         error: function (data) {
@@ -369,7 +369,7 @@
                 })
                 .done(function (data) {
                     loadAttachments();
-                    showPopupMessage(data.msg);
+                    showPopupMessage(data);
                 })
         });
 
@@ -397,7 +397,7 @@
                     "comment": comment.val(),
                 },
                 success: function (response) {
-                    showPopupMessage(response.msg);
+                    showPopupMessage(response);
                     loadComments();
                     comment.val('');
                     add_comment.prop('disabled', true);
@@ -445,7 +445,7 @@
                 },
                 success: function (response) {
                     if (response.msg) {
-                        showPopupMessage(response.msg);
+                        showPopupMessage(response);
                     }
                     let data = response.data;
                     if (data && data.citizen) {

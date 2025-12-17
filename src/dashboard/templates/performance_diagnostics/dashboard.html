@@ -100,11 +100,146 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Notification Modal -->
+	<div class="modal fade" id="notificationModal" data-backdrop="static">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">
+						{% translate "Send Reminder Notification" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<form id="notification-form">
+						<div class="form-group">
+							<label for="notification-type">
+								{% translate "Notification Method" %}
+								<span class="text-danger">*</span>
+							</label>
+							<select id="notification-type" class="form-control" required>
+								<option value="email">{% translate "Email" %}</option>
+								<option value="sms">{% translate "SMS" %}</option>
+								<option value="email_and_sms">{% translate "Email & SMS" %}</option>
+							</select>
+							<small class="form-text text-muted">
+								{% translate "Choose how you want to notify the selected users" %}
+							</small>
+						</div>
+
+						<div class="form-group">
+							<label for="reminder-message">
+								{% translate "Message" %}
+								<span class="text-danger">*</span>
+							</label>
+							<textarea id="reminder-message" class="form-control" rows="6" maxlength="500" required
+									  placeholder="{% translate 'Enter your reminder message here...' %}"></textarea>
+							<small class="form-text text-muted">
+								<span id="char-count">0</span> / 500 {% translate "characters" %}
+								<span id="sms-warning" class="text-warning ml-2" style="display: none;">
+								<i class="fas fa-exclamation-triangle"></i>
+								{% translate "SMS messages will be truncated to 160 characters" %}
+							</span>
+							</small>
+						</div>
+
+						<!-- Collapsible Selected Users List -->
+						<div class="card">
+							<div class="card-header bg-light" id="selectedUsersHeader">
+								<h5 class="mb-0">
+									<button class="btn btn-link collapsed text-left w-100 d-flex justify-content-between align-items-center"
+											type="button" data-toggle="collapse" data-target="#selectedUsersList"
+											aria-expanded="false" aria-controls="selectedUsersList">
+									<span>
+										<i class="fas fa-users mr-2"></i>
+										{% translate "Selected Users" %}
+										(<span id="modal-selected-count">0</span>)
+									</span>
+										<i class="fas fa-chevron-down"></i>
+									</button>
+								</h5>
+							</div>
+							<div id="selectedUsersList" class="collapse" aria-labelledby="selectedUsersHeader">
+								<div class="card-body" style="max-height: 250px; overflow-y: auto;">
+									<div id="users-list-content">
+										<div class="text-center text-muted">
+											<i class="fas fa-spinner fa-spin"></i>
+											{% translate "Loading users..." %}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="alert alert-warning mt-3">
+							<i class="fas fa-exclamation-triangle mr-1"></i>
+							<strong>{% translate "Note:" %}</strong>
+							{% translate "Users without phone number will be skipped for the respective notification type." %}
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">
+						<i class="fas fa-times mr-1"></i>
+						{% translate "Cancel" %}
+					</button>
+					<button type="button" class="btn btn-primary" id="send-notification-btn">
+						<i class="fas fa-paper-plane mr-1"></i>
+						{% translate "Send" %}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Confirmation Modal -->
+	<div class="modal fade" id="confirmationModal"  data-backdrop="static">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">
+						{% translate "Confirm Send" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p class="mb-2">
+						<strong>{% translate "Are you sure you want to send this notification?" %}</strong>
+					</p>
+					<p class="mb-1">
+						{% translate "Method:" %} <span id="confirm-method"></span>
+					</p>
+					<p class="mb-1">
+						{% translate "Recipients:" %} <span id="confirm-count"></span>
+					</p>
+					<div class="alert alert-info mt-3 mb-0">
+						<small>{% translate "This action cannot be undone." %}</small>
+					</div>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">
+						<i class="fas fa-times mr-1"></i>
+						{% translate "Cancel" %}
+					</button>
+					<button type="button" class="btn btn-primary" id="confirm-send-btn">
+						<i class="fas fa-check mr-1"></i>
+						{% translate "Confirm & Send" %}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascript %}
 	{{ block.super }}
 	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
 	<script>
         let kpi_spin = $('#kpi-spin');
         let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
@@ -415,6 +550,9 @@
             }
         };
 
+        // Global variable to track selected users
+        let selectedUserIds = new Set();
+
         // Initialize Inactive Users Table
         function initInactiveUsersTable() {
             // destroy previous instance if it exists
@@ -439,8 +577,14 @@
                     const perPage = parseInt(data.length || (table ? table.page.len() : defaultPerPage), 10);
                     const page = Math.floor((data.start || 0) / perPage) + 1;
 
-                    // Map column index to API sort keys
-                    const map = {0: 'name', 1: 'role', 2: 'last_activity', 3: 'open_issues', 4: 'performance'};
+                    const map = {
+                        0: 'checkbox',
+                        1: 'name',
+                        2: 'role',
+                        3: 'last_activity',
+                        4: 'open_issues',
+                        5: 'performance'
+                    };
                     let sort_by = 'last_activity';
                     let sort_dir = 'asc';
                     if (data.order && data.order.length > 0) {
@@ -478,6 +622,21 @@
                     });
                 },
                 columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const checked = selectedUserIds.has(data) ? 'checked' : '';
+                            return `
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input user-checkbox"
+                                   id="user-${data}" value="${data}" ${checked}>
+                            <label class="custom-control-label" for="user-${data}"></label>
+                        </div>
+                    `;
+                        }
+                    },
                     {
                         data: 'name',
                         render: function (data, type, row) {
@@ -533,16 +692,19 @@
                             const userId = row.id;
                             const userName = row.name;
                             let html = '<div class="btn-group btn-group-sm" role="group">';
-                            html += `<button class="btn btn-info view-profile-btn" data-user-id="${userId}" data-user-name="${userName}"><i class="fas fa-user"></i></button>`;
+                            html += `<button class="btn btn-info view-profile-btn" data-user-id="${userId}" data-user-name="${userName}">
+                                <i class="fas fa-user"></i>
+                             </button>`;
                             html += '</div>';
                             return html;
                         }
                     }
                 ],
-                order: [[2, 'asc']],
+                order: [[3, 'asc']],
                 drawCallback: function () {
-                    // Initialize tooltips
                     $('[data-toggle="tooltip"]').tooltip();
+                    $('.user-checkbox').off('change').on('change', handleUserCheckboxChange);
+                    updateSelectAllCheckbox();
 
                     // Bind action handlers
                     $('#inactiveUsersTable .view-profile-btn').off('click').on('click', function () {
@@ -556,13 +718,290 @@
             return table;
         }
 
-        // Initialize the inactive users table
+        // Handle individual checkbox change
+        function handleUserCheckboxChange(e) {
+            const userId = parseInt($(this).val());
+            if ($(this).is(':checked')) {
+                selectedUserIds.add(userId);
+            } else {
+                selectedUserIds.delete(userId);
+            }
+            updateBulkActionsBar();
+            updateSelectAllCheckbox();
+        }
+
+        // Handle select all checkbox
+        $('#select-all-users').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('.user-checkbox:visible').each(function () {
+                const userId = parseInt($(this).val());
+                $(this).prop('checked', isChecked);
+                if (isChecked) {
+                    selectedUserIds.add(userId);
+                } else {
+                    selectedUserIds.delete(userId);
+                }
+            });
+            updateBulkActionsBar();
+        });
+
+        // Update select-all checkbox state
+        function updateSelectAllCheckbox() {
+            const visibleCheckboxes = $('.user-checkbox:visible');
+            const checkedCheckboxes = $('.user-checkbox:visible:checked');
+
+            if (visibleCheckboxes.length === 0) {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', false);
+            } else if (checkedCheckboxes.length === visibleCheckboxes.length) {
+                $('#select-all-users').prop('checked', true);
+                $('#select-all-users').prop('indeterminate', false);
+            } else if (checkedCheckboxes.length > 0) {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', true);
+            } else {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', false);
+            }
+        }
+
+        // Update bulk actions bar
+        function updateBulkActionsBar() {
+            const count = selectedUserIds.size;
+            $('#selected-count').text(count);
+
+            if (count > 0) {
+                $('#bulk-actions-bar').slideDown();
+                $('#send-reminder-btn').prop('disabled', false);
+            } else {
+                $('#bulk-actions-bar').slideUp();
+                $('#send-reminder-btn').prop('disabled', true);
+            }
+        }
+
+        // Clear selection
+        $('#clear-selection-btn').on('click', function () {
+            selectedUserIds.clear();
+            $('.user-checkbox').prop('checked', false);
+            $('#select-all-users').prop('checked', false);
+            updateBulkActionsBar();
+        });
+
+        // Open notification modal
+        $('#send-reminder-btn').on('click', function () {
+            if (selectedUserIds.size === 0) {
+                alert('{% translate "Please select at least one user" %}');
+                return;
+            }
+
+            $('#modal-selected-count').text(selectedUserIds.size);
+
+            // Load selected users info
+            loadSelectedUsersInfo();
+
+            $('#notificationModal').modal('show');
+        });
+
+        // Load selected users info for the collapsible list
+        function loadSelectedUsersInfo() {
+            $('#users-list-content').html(
+                `<div class="text-center text-muted">
+                <i class="fas fa-spinner fa-spin"></i>
+                {% translate "Loading users..." %}</div>`
+            );
+
+            $.ajax({
+                url: '{% url "dashboard:performance_diagnostics:api_get_selected_users" %}',
+                method: 'GET',
+                data: {
+                    user_ids: Array.from(selectedUserIds)
+                },
+    			traditional: true,
+                success: function (response) {
+                    if (response.success) {
+                        renderUsersList(response.users);
+                    } else {
+                        $('#users-list-content').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${response.error}
+                    </div>
+                `);
+                    }
+                },
+                error: function (xhr) {
+                    $('#users-list-content').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {% translate "Failed to load users information" %}
+                </div>
+            `);
+                }
+            });
+        }
+
+        // Render users list in modal
+        function renderUsersList(users) {
+            const notificationType = $('#notification-type').val();
+            let html = '<ul class="list-group list-group-flush">';
+
+            users.forEach(function (user) {
+                let hasContact = user.has_email;
+                if (notificationType === 'sms' || notificationType === 'email_and_sms') {
+                    hasContact = user.has_phone;
+                }
+                let contactInfo = user.email;
+                let noPhoneText = '{% translate "No contact phone" %}';
+                if (notificationType === 'sms') {
+                    contactInfo = hasContact ? user.phone : noPhoneText;
+                } else if (notificationType === 'email_and_sms') {
+                    let contactPhone = hasContact ? user.phone : noPhoneText;
+                    contactInfo = `<p>${user.email}</p><p>${contactPhone}</p>`;
+                }
+                const iconClass = hasContact ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-warning';
+
+                html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas ${iconClass} mr-2"></i>
+                    ${user.name}
+                </span>
+                <small class="text-muted">${contactInfo}</small>
+            </li>
+        `;
+            });
+
+            html += '</ul>';
+            $('#users-list-content').html(html);
+        }
+
+        // Update notification type
+        $('#notification-type').on('change', function () {
+            const type = $(this).val();
+
+            // Show SMS warning if SMS is selected
+            if (type === 'sms' || type === 'email_and_sms') {
+                $('#sms-warning').show();
+            } else {
+                $('#sms-warning').hide();
+            }
+
+            // Reload users list
+            loadSelectedUsersInfo();
+        });
+
+        // Character count
+        $('#reminder-message').on('input', function () {
+            const length = $(this).val().length;
+            $('#char-count').text(length);
+        });
+
+        function validateForm(event, form) {
+            let isValid = true;
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                $(form).addClass('was-validated');
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        // Send notification button (opens confirmation modal)
+        $('#send-notification-btn').on('click', function (event) {
+            let form = $("#notification-form")[0];
+            let isValid = validateForm(event, form);
+            if (!isValid) {
+                return
+            }
+
+            const notificationType = $('#notification-type').val();
+            let typeLabel = '{% translate "Email" %}'
+            if (notificationType === 'sms') {
+                typeLabel = '{% translate "SMS" %}';
+            } else if (notificationType === 'email_and_sms') {
+                typeLabel = '{% translate "Email & SMS" %}';
+            }
+
+            $('#confirm-method').text(typeLabel);
+            $('#confirm-count').text(selectedUserIds.size);
+
+            // Hide notification modal and show confirmation
+            $('#notificationModal').modal('hide');
+            $('#confirmationModal').modal('show');
+        });
+
+        // Confirm and send
+        $('#confirm-send-btn').on('click', function () {
+            const notificationType = $('#notification-type').val();
+            const message = $('#reminder-message').val().trim();
+            const userIdsArray = Array.from(selectedUserIds);
+
+            // Disable button and show loading
+            const $btn = $(this);
+            const originalText = $btn.html();
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> {% translate "Sending..." %}');
+
+            $.ajax({
+                url: '{% url "dashboard:performance_diagnostics:api_send_bulk_notification" %}',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    user_ids: userIdsArray,
+                    notification_type: notificationType,
+                    message: message
+                }),
+                success: function (response) {
+                    $('#confirmationModal').modal('hide');
+                    showPopupMessage(response);
+                    // Clear selection
+                    selectedUserIds.clear();
+                    $('.user-checkbox').prop('checked', false);
+                    updateBulkActionsBar();
+                },
+                error: function (xhr) {
+                    $('#confirmationModal').modal('hide');
+                    if (xhr.responseJSON && xhr.responseJSON.msg) {
+                        showPopupMessage(responseJSON)
+                    } else {
+                        let errorMessage = '{% translate "Failed to send notifications" %}';
+                        showPopupMessage({'msg': createHtmlAlert(errorMessage)});
+                    }
+
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html(originalText);
+
+                    $('#notification-form')[0].reset();
+                    $('#char-count').text('0');
+                    $('#sms-warning').hide();
+                    $('#selectedUsersList').collapse('hide');
+                    $('#notification-type').val('email').trigger('change');
+                }
+            });
+        });
+
+        // Reset selections when filters change
+        $('#inactive_users_role_filter, #inactive_users_open_issues_filter').on('change', function () {
+            selectedUserIds.clear();
+            $('#select-all-users').prop('checked', false);
+            updateBulkActionsBar();
+        });
+
+        $('#confirmationModal').on('hidden.bs.modal', function () {
+            // Re-show notification modal if it was previously shown
+            if ($('#reminder-message').val().trim()) {
+                $('#notificationModal').modal('show');
+            }
+        });
+
+        // Initialize table
         let inactiveUsersTableInstance = null;
         if ($('#inactiveUsersTable').length) {
             inactiveUsersTableInstance = initInactiveUsersTable();
         }
 
-        // Expose global function to reload inactive users table
+        // Expose reload function
         window.reloadInactiveUsersTable = function () {
             if ($.fn.dataTable.isDataTable('#inactiveUsersTable')) {
                 $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
@@ -570,11 +1009,6 @@
                 inactiveUsersTableInstance = initInactiveUsersTable();
             }
         };
-
-        // Bind filter change handlers for inactive users table
-        $('#inactive_users_role_filter, #inactive_users_open_issues_filter').on('change', function () {
-            window.reloadInactiveUsersTable();
-        });
 	</script>
 
 {% endblock %}
@@ -586,8 +1020,11 @@
             placeholder: "{% translate 'All' %}",
             allowClear: true,
         });
-        $('#period, #inactive_users_role_filter, #inactive_users_open_issues_filter').select2({
-			width: '100%',
+        $('#period').select2({
+            width: '100%',
+        });
+        $('select').not('.issues-filter select').select2({
+            width: '100%',
         });
 	</script>
 {% endblock %}

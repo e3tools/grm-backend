@@ -19,7 +19,7 @@ class FormAjaxSubmit {
                     } else {
                         modal.modal('hide');
                         self.submitted_form(xhr);
-                        showPopupMessage(xhr.msg);
+                        showPopupMessage(xhr);
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -47,7 +47,7 @@ class FormAjaxSubmit {
                     } else {
                         modal.modal('hide');
                         self.submitted_form(xhr);
-                        showPopupMessage(xhr.msg);
+                        showPopupMessage(xhr);
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {

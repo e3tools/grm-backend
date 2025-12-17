@@ -10,7 +10,6 @@ from django.views import generic
 from authentication.models import User
 from authentication.utils import get_validation_code
 from dashboard.mixins import (
-    JSONResponseMixin,
     ModalFormMixin,
     PageMixin,
     UserManagementAndAJAXMixin,
@@ -115,7 +114,7 @@ class UserListView(UserManagementAndAJAXMixin, generic.ListView):
         return context
 
 
-class CreateUserView(UserManagementAndAJAXMixin, JSONResponseMixin, generic.View):
+class CreateUserView(UserManagementAndAJAXMixin, generic.View):
     """AJAX view for creating users. Only accessible by GRM Managers."""
 
     def post(self, request, *args, **kwargs):
@@ -326,7 +325,6 @@ class ToggleUserStatusView(UserManagementPermissionMixin, generic.View):
 class EditUserProfileFormView(
     UserManagementAndAJAXMixin,
     ModalFormMixin,
-    JSONResponseMixin,
     generic.UpdateView,
 ):
     """Edit user profile form. Only accessible by GRM Managers."""
@@ -369,4 +367,4 @@ class EditUserProfileFormView(
             "user_code": user_code,
             "photo": user.photo.url if user.photo else self.picture,
         }
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)

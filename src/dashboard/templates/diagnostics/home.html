@@ -522,7 +522,7 @@
                     alert(error_server_message);
                 })
                 .done(function (data) {
-                    showPopupMessage(data.msg);
+                    showPopupMessage(data);
                     if (data.finished_at) {
                         $('#last_update').html(data.finished_at);
                     }
