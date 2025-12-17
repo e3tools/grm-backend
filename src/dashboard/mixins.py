@@ -48,14 +48,6 @@ class LoginRequiredAndAJAXRequestMixin(AccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class JSONResponseMixin:
-    def render_to_json_response(self, context, **response_kwargs):
-        return JsonResponse(self.get_data(context), **response_kwargs)
-
-    def get_data(self, context):
-        return context
-
-
 class UserManagementPermissionMixin(AccessMixin):
     """
     Mixin that requires the user to have user management permissions.

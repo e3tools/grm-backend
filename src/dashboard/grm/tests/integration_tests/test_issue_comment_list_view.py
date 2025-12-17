@@ -37,13 +37,13 @@ class IssueCommentListViewTest(DashboardTestCase):
         assert {comment.id for comment in context_data['comments']} == {c1.id, c2.id}
 
     def test_get_forbidden_for_unauthenticated_or_unrelated_user(self):
-        """A user without access should be denied (403) or redirected if not logged."""
-        # not logged in (client without user) -> our helper gives redirect (302) for login or 403
+        """A user without access should be denied (403)."""
+        # not logged in (client without user) -> our helper 403
         resp = self.get(self.url, authorized=False, ajax=True)
         assert resp.status_code == 403
 
         # logged user with no permissions (plain user)
         plain_user = UserFactory()
         resp2 = self.get(self.url, ajax=True, user=plain_user)
-        # permission logic may return 403 (or 200 with empty html depending on your policy)
+        # permission logic may return 403
         assert resp2.status_code == 403

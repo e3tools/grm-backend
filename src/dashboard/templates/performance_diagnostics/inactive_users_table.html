@@ -32,10 +32,40 @@
 			</div>
 		</div>
 
+		<!-- Bulk Actions Bar -->
+		<div class="row mb-3">
+			<div class="col-12">
+				<div id="bulk-actions-bar" class="alert alert-info" style="display: none;">
+					<div class="d-flex align-items-center justify-content-between">
+						<div>
+							<i class="fas fa-info-circle mr-2"></i>
+							<span id="selected-count">0</span> {% translate "user(s) selected" %}
+						</div>
+						<div class="btn-group">
+							<button type="button" class="btn btn-sm btn-primary" id="send-reminder-btn" disabled>
+								<i class="fas fa-paper-plane mr-1"></i>
+								{% translate "Send Reminder" %}
+							</button>
+							<button type="button" class="btn btn-sm btn-secondary" id="clear-selection-btn">
+								<i class="fas fa-times mr-1"></i>
+								{% translate "Clear Selection" %}
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<div class="table-responsive">
 			<table id="inactiveUsersTable" class="table table-hover table-striped">
 				<thead class="table-light">
 				<tr>
+					<th style="width: 40px;">
+						<div class="custom-control custom-checkbox">
+							<input type="checkbox" class="custom-control-input" id="select-all-users">
+							<label class="custom-control-label" for="select-all-users"></label>
+						</div>
+					</th>
 					<th>{% translate "User Name" %}</th>
 					<th>{% translate "Role" %}</th>
 					<th>{% translate "Last Activity" %}</th>

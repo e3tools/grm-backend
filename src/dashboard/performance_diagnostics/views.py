@@ -1,3 +1,6 @@
+import json
+
+from django.contrib import messages
 from django.db.models import (
     Count,
     DateTimeField,
@@ -7,6 +10,7 @@ from django.db.models import (
     Q,
     Subquery,
 )
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -43,6 +47,7 @@ from dashboard.models import (
     RegionPerformanceMetrics,
     StatusBottleneckMetrics,
 )
+from dashboard.services import NotificationService
 from issues.models import AdministrativeRegion, Issue, IssueCategory, IssueStatus
 
 
@@ -624,3 +629,127 @@ class InactiveUsersAPIView(UserManagementAndAJAXMixin, DataTableMixin, generic.V
 
         # Low Activity: 7-20 days
         return {'label': LABEL_LOW_ACTIVITY, 'color': COLOR_WARNING, 'icon': ICON_ALERT}
+
+
+class GetSelectedUsersInfoAPIView(UserManagementAndAJAXMixin, generic.View):
+    """
+    AJAX endpoint to get information about selected users for the modal.
+    """
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_ids = request.GET.getlist('user_ids')
+
+            if not user_ids:
+                return JsonResponse(
+                    {'success': False, 'error': _('No users selected')},
+                    status=400,
+                )
+
+            users_info = NotificationService.get_users_info(user_ids)
+
+            return JsonResponse({'success': True, 'users': users_info})
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {'success': False, 'error': _('Invalid request data')},
+                status=400,
+            )
+        except Exception as e:
+            return JsonResponse(
+                {'success': False, 'error': str(e)},
+                status=500,
+            )
+
+
+class SendBulkNotificationAPIView(UserManagementAndAJAXMixin, generic.View):
+    """
+    AJAX endpoint to send bulk notifications to selected inactive users.
+    Only accessible by GRM Managers.
+    """
+
+    def post(self, request, *args, **kwargs):
+        msg = ""
+        level = messages.ERROR
+        extra_tags = "danger"
+        status = 400
+        try:
+            data = json.loads(request.body)
+            user_ids = data.get('user_ids', [])
+            notification_type = data.get('notification_type', 'email')
+            message = data.get('message', '').strip()
+
+            # Validate inputs
+            if not user_ids:
+                msg = _('No users selected')
+
+            if notification_type not in ['email', 'sms', 'email_and_sms']:
+                msg = _('Invalid notification type')
+
+            if not message:
+                msg = _('Message cannot be empty')
+
+            if msg:
+                messages.add_message(self.request, level, msg, extra_tags=extra_tags)
+                context = {
+                    "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+                }
+                return JsonResponse(context, status=status)
+
+            # Send notifications
+            results = NotificationService.send_bulk_notifications(
+                user_ids=user_ids,
+                notification_type=notification_type,
+                message=message,
+            )
+
+            # Build response message
+            if results.get('success_email', 0) > 0 or results.get('success_sms', 0) > 0:
+                if notification_type == 'email':
+                    success_msg = _('%(count)d email(s) sent successfully') % {'count': results['success_email']}
+                elif notification_type == 'sms':
+                    success_msg = _('%(count)d SMS message(s) sent successfully') % {'count': results['success_sms']}
+                else:  # email_and_sms
+                    success_msg = _('%(email_count)d email(s) and %(count)d SMS message(s) sent successfully') % {
+                        'email_count': results['success_email'],
+                        'count': results['success_sms'],
+                    }
+
+                additional_info = []
+                if results.get('skipped', 0) > 0:
+                    additional_info.append(
+                        _('%(count)d user(s) skipped (missing contact info)') % {'count': results['skipped']}
+                    )
+                if results.get('failed', 0) > 0:
+                    additional_info.append(_('%(count)d notification(s) failed') % {'count': results['failed']})
+
+                if additional_info:
+                    success_msg += '. ' + '. '.join(additional_info)
+
+                level = messages.SUCCESS
+                extra_tags = "success"
+                status = 200
+                msg = success_msg
+
+            else:
+                error_msg = _('No notifications were sent')
+                if results.get('skipped', 0) > 0:
+                    error_msg += '. ' + _('%(count)d user(s) have no contact information') % {
+                        'count': results['skipped']
+                    }
+                if results.get('failed', 0) > 0:
+                    error_msg += '. ' + _('%(count)d notification(s) failed') % {'count': results['failed']}
+
+                msg = error_msg
+
+        except json.JSONDecodeError:
+            msg = _('Invalid request data')
+        except Exception as e:
+            msg = (str(e),)
+            status = 500
+
+        messages.add_message(self.request, level, msg, extra_tags=extra_tags)
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+        }
+        return JsonResponse(context, status=status)
