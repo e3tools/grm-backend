@@ -32,7 +32,7 @@
 							<!-- User Type Badge -->
 							<div class="row my-2">
 								<div class="col-md-12">
-									<span class="badge badge-secondary badge-lg">{{ role_info.type_display }}</span>
+									<span class="badge {{ role_info.badge_color }} badge-lg">{{ role_info.type_display }}</span>
 									<p class="text-muted small mt-1">{{ role_info.description }}</p>
 								</div>
 							</div>
@@ -125,27 +125,100 @@
 					</a>
 				</div>
 			</div>
-		</div>
-
-		<div class="col-md-5 display-flex flex-flow-column">
-			<div class="card">
-				<div class="card-body">
-					<div class="text-bold fs17">{% translate 'Last Activity' %}</div>
-					<div class="text-muted fs17">
-						{% translate 'Never' as never %}
-						{{ obj.last_login|date|default:never }}
-					</div>
-				</div>
-			</div>
 
 			{% if user_type == 'facilitator' %}
-				<div class="card h-100">
+				<div class="card">
 					<div class="card-body">
 						<div class="text-bold fs17">{% translate 'Facilitator Code' %}</div>
 						<div class="adl-code mt-3" id="user_code">{% get_code obj.email %}</div>
 					</div>
 				</div>
 			{% endif %}
+		</div>
+
+		<div class="col-md-5 display-flex flex-flow-column">
+			<!-- Activity Level Card -->
+			<div class="card">
+				<div class="card-body">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="text-bold fs17 mb-1">{% translate 'Activity Level' %}</div>
+							<div class="text-muted small">
+								{% translate 'Last Activity' %}: {{ activity_stats.last_activity_display }}
+							</div>
+						</div>
+						<div>
+							<span class="badge {{ activity_stats.activity_level.badge_color }} badge-lg">
+								<i class="{{ activity_stats.activity_level.icon }} mr-1"></i>
+								{{ activity_stats.activity_level.label }}
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Issue Statistics Card -->
+			<div class="card h-100">
+				<div class="card-header">
+					<h3 class="card-title">
+						<i class="fas fa-chart-bar mr-2"></i>
+						{% translate 'Issue Statistics' %}
+					</h3>
+				</div>
+				<div class="card-body">
+					<div class="row mb-3">
+						<div class="col-6">
+							<div class="text-center">
+								<div class="text-bold fs24 text-secondary">{{ activity_stats.assigned_issues }}</div>
+								<div class="text-muted small">{% translate 'Total Assigned' %}</div>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="text-center">
+								<div class="text-bold fs24 text-warning">{{ activity_stats.open_issues }}</div>
+								<div class="text-muted small">{% translate 'Currently Open' %}</div>
+							</div>
+						</div>
+					</div>
+
+					<hr class="my-3">
+
+					<div class="row mb-3">
+						<div class="col-6">
+							<div class="text-center">
+								<div class="text-bold fs24 text-success">{{ activity_stats.resolved_issues }}</div>
+								<div class="text-muted small">{% translate 'Resolved' %}</div>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="text-center">
+								<div class="text-bold fs24 text-danger">{{ activity_stats.rejected_issues }}</div>
+								<div class="text-muted small">{% translate 'Rejected' %}</div>
+							</div>
+						</div>
+					</div>
+
+					{% if activity_stats.resolution_rate is not None %}
+						<hr class="my-3">
+						<div class="text-center">
+							<div class="text-muted small mb-1">{% translate 'Resolution Rate' %}</div>
+							<div class="progress" style="height: 25px;">
+								<div class="progress-bar
+									{% if activity_stats.resolution_rate >= 80 %}bg-success
+									{% elif activity_stats.resolution_rate >= 50 %}bg-warning
+									{% else %}bg-danger{% endif %}"
+									role="progressbar"
+									style="width: {{ activity_stats.resolution_rate }}%;"
+									aria-valuenow="{{ activity_stats.resolution_rate }}"
+									aria-valuemin="0"
+									aria-valuemax="100">
+									<strong>{{ activity_stats.resolution_rate }}%</strong>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
 		</div>
 	</div>
 {% endblock content %}

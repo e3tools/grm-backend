@@ -690,11 +690,11 @@
                         className: 'text-right',
                         render: function (data, type, row) {
                             const userId = row.id;
-                            const userName = row.name;
                             let html = '<div class="btn-group btn-group-sm" role="group">';
-                            html += `<button class="btn btn-info view-profile-btn" data-user-id="${userId}" data-user-name="${userName}">
-                                <i class="fas fa-user"></i>
-                             </button>`;
+                            html += `<a href="{% url 'dashboard:user_management:detail' 0 %}"  target="_blank"
+                            class="btn btn-primary">
+								{% translate 'View Profile' %}
+							</a>`.replace("0", userId);
                             html += '</div>';
                             return html;
                         }
@@ -705,13 +705,6 @@
                     $('[data-toggle="tooltip"]').tooltip();
                     $('.user-checkbox').off('change').on('change', handleUserCheckboxChange);
                     updateSelectAllCheckbox();
-
-                    // Bind action handlers
-                    $('#inactiveUsersTable .view-profile-btn').off('click').on('click', function () {
-                        $('#comingSoonTitle').text('{% translate "View User Profile" %}');
-                        $('#comingSoonMessage').text('{% translate "User profile page will be available soon." %}');
-                        $('#comingSoonModal').modal('show');
-                    });
                 }
             });
 
@@ -986,6 +979,7 @@
             selectedUserIds.clear();
             $('#select-all-users').prop('checked', false);
             updateBulkActionsBar();
+            window.reloadInactiveUsersTable();
         });
 
         $('#confirmationModal').on('hidden.bs.modal', function () {

@@ -48,6 +48,10 @@ from dashboard.models import (
     StatusBottleneckMetrics,
 )
 from dashboard.services import NotificationService
+from dashboard.user_management.constants import (
+    CASE_MANAGER_DISPLAY,
+    FACILITATOR_DISPLAY,
+)
 from issues.models import AdministrativeRegion, Issue, IssueCategory, IssueStatus
 
 
@@ -430,7 +434,7 @@ class RegionPerformanceAPIView(UserManagementAndAJAXMixin, DataTableMixin, gener
 
 class InactiveUsersAPIView(UserManagementAndAJAXMixin, DataTableMixin, generic.View):
     """
-    AJAX endpoint that returns JSON data for inactive government workers and facilitators.
+    AJAX endpoint that returns JSON data for inactive case managers and facilitators.
     Returns users who have not logged in for 7+ days (configurable via inactivity_threshold parameter).
     """
 
@@ -537,10 +541,10 @@ class InactiveUsersAPIView(UserManagementAndAJAXMixin, DataTableMixin, generic.V
         role = None
         role_type = None
         if getattr(user, 'governmentworker', None):
-            role = _("Government Worker")
+            role = CASE_MANAGER_DISPLAY
             role_type = 'government_worker'
         elif getattr(user, 'facilitator', None):
-            role = _("Facilitator")
+            role = FACILITATOR_DISPLAY
             role_type = 'facilitator'
 
         last_activity_days = self._calculate_last_activity_days(user)
