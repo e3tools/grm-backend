@@ -1,14 +1,26 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from authentication.models import User
 from authentication.utils import get_validation_code
+from dashboard.constants import (
+    COLOR_PRIMARY,
+    COLOR_SECONDARY,
+    COLOR_WARNING,
+    ICON_ALERT,
+    ICON_CHECK,
+    LABEL_ACTIVE,
+    LABEL_INACTIVE,
+    LABEL_LOW_ACTIVITY,
+)
 from dashboard.mixins import (
     ModalFormMixin,
     PageMixin,
@@ -17,8 +29,11 @@ from dashboard.mixins import (
 )
 from dashboard.user_management.constants import (
     CASE_MANAGER_CHOICE,
+    CASE_MANAGER_DISPLAY,
     FACILITATOR_CHOICE,
+    FACILITATOR_DISPLAY,
     GRM_MANAGER_CHOICE,
+    GRM_MANAGER_DISPLAY,
     MAP_USER_TYPE,
     USER_CREATED_SUCCESS_MESSAGE,
     USER_UPDATED_SUCCESS_MESSAGE,
@@ -162,7 +177,7 @@ class CreateUserView(UserManagementAndAJAXMixin, generic.View):
 
 
 class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailView):
-    """User profile detail view. Only accessible by GRM Managers."""
+    """User profile detail view with activity statistics. Only accessible by GRM Managers."""
 
     template_name = "user_management/profile.html"
     title = _("User Profile")
@@ -183,6 +198,31 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
+    def get_queryset(self):
+        """Optimize query with annotations for issue statistics."""
+        return User.objects.annotate(
+            assigned_issues_count=Count('assigned_issues', filter=Q(assigned_issues__confirmed=True), distinct=True),
+            open_issues_count=Count(
+                'assigned_issues',
+                filter=Q(assigned_issues__confirmed=True, assigned_issues__status__open_status=True),
+                distinct=True,
+            ),
+            resolved_issues_count=Count(
+                'assigned_issues',
+                filter=Q(assigned_issues__confirmed=True, assigned_issues__status__final_status=True),
+                distinct=True,
+            ),
+            rejected_issues_count=Count(
+                'assigned_issues',
+                filter=Q(assigned_issues__confirmed=True, assigned_issues__status__rejected_status=True),
+                distinct=True,
+            ),
+        ).select_related(
+            'governmentworker__department',
+            'governmentworker__administrative_region',
+            'facilitator__administrative_region',
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["password_confirm_form"] = PasswordConfirmForm()
@@ -191,17 +231,20 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
         user_type = None
         role_info = {}
 
+        # Determine user type and basic role info
         if user.grm_manager:
             user_type = GRM_MANAGER_CHOICE
             role_info = {
-                'type_display': _("GRM Manager"),
+                'badge_color': 'badge-secondary',
+                'type_display': GRM_MANAGER_DISPLAY,
                 'description': _("Can view and create issues for all departments and add users."),
             }
         elif hasattr(user, 'governmentworker'):
             user_type = CASE_MANAGER_CHOICE
             worker = user.governmentworker
             role_info = {
-                'type_display': _("Case Manager"),
+                'badge_color': 'badge-blue',
+                'type_display': CASE_MANAGER_DISPLAY,
                 'administrative_region': worker.administrative_region.hierarchical_name,
                 'description': _("Can create issues and view assigned issues."),
                 'department': worker.department.name,
@@ -211,7 +254,8 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
             user_type = FACILITATOR_CHOICE
             facilitator = user.facilitator
             role_info = {
-                'type_display': _("Facilitator"),
+                'badge_color': 'badge-purple',
+                'type_display': FACILITATOR_DISPLAY,
                 'description': _("Community representative for a specific region."),
                 'administrative_region': facilitator.administrative_region.hierarchical_name,
                 'village_secretary': facilitator.village_secretary,
@@ -219,7 +263,114 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
 
         context['user_type'] = user_type
         context['role_info'] = role_info
+
+        # Add activity statistics
+        context['activity_stats'] = self._get_activity_statistics(user)
+
         return context
+
+    def _get_activity_statistics(self, user):
+        """
+        Calculate comprehensive activity statistics for the user.
+
+        Returns:
+            dict: Activity statistics including issue counts and activity level
+        """
+        # Get issue counts from annotations (if available) or query directly
+        assigned_count = getattr(user, 'assigned_issues_count', None)
+        if assigned_count is None:
+            assigned_count = user.assigned_issues.filter(confirmed=True).count()
+
+        open_count = getattr(user, 'open_issues_count', None)
+        if open_count is None:
+            open_count = user.assigned_issues.filter(confirmed=True, status__open_status=True).count()
+
+        resolved_count = getattr(user, 'resolved_issues_count', None)
+        if resolved_count is None:
+            resolved_count = user.assigned_issues.filter(confirmed=True, status__final_status=True).count()
+
+        rejected_count = getattr(user, 'rejected_issues_count', None)
+        if rejected_count is None:
+            rejected_count = user.assigned_issues.filter(confirmed=True, status__rejected_status=True).count()
+
+        # Calculate activity metrics
+        last_activity_days = self._calculate_last_activity_days(user)
+        last_activity_display = self._format_last_activity(last_activity_days)
+        activity_level = self._calculate_activity_level(last_activity_days)
+
+        # Calculate resolution rate if user has assigned issues
+        resolution_rate = None
+        if assigned_count > 0:
+            closed_count = resolved_count + rejected_count
+            resolution_rate = round((closed_count / assigned_count) * 100, 1)
+
+        return {
+            'assigned_issues': assigned_count,
+            'open_issues': open_count,
+            'resolved_issues': resolved_count,
+            'rejected_issues': rejected_count,
+            'resolution_rate': resolution_rate,
+            'last_activity_display': last_activity_display,
+            'last_activity_days': last_activity_days,
+            'activity_level': activity_level,
+        }
+
+    def _calculate_last_activity_days(self, user):
+        """
+        Calculate days since last activity.
+
+        Returns:
+            int or None: Number of days since last activity, None if never active
+        """
+        if not user.last_activity:
+            return None
+
+        now = timezone.now()
+        duration = now - user.last_activity
+        return duration.days
+
+    def _format_last_activity(self, days):
+        """
+        Format last activity for display.
+
+        Returns:
+            str: Formatted last activity string
+        """
+        if days is None:
+            return _("Never")
+
+        if days == 0:
+            return _("Today")
+        elif days == 1:
+            return _("1 day ago")
+        else:
+            return _("%(days)s days ago") % {'days': days}
+
+    def _calculate_activity_level(self, last_activity_days):
+        """
+        Calculate activity level based on last activity days.
+        Same logic as InactiveUsersAPIView.
+
+        Returns:
+            dict: Activity level with label, color, and icon
+        """
+        if last_activity_days is None or last_activity_days > 20:
+            return {
+                'label': LABEL_INACTIVE,
+                'color': COLOR_SECONDARY,
+                'badge_color': 'badge-secondary',
+                'icon': ICON_ALERT,
+            }
+        elif last_activity_days < 7:
+            return {'label': LABEL_ACTIVE, 'color': COLOR_PRIMARY, 'badge_color': 'badge-primary', 'icon': ICON_CHECK}
+        else:
+            # Low Activity: 7-20 days
+            return {
+                'label': LABEL_LOW_ACTIVITY,
+                'color': COLOR_WARNING,
+                'badge_color': 'badge-warning',
+                'icon': ICON_ALERT,
+            }
 
 
 class UserUpdateView(PageMixin, UserManagementPermissionMixin, generic.UpdateView):

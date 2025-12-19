@@ -563,7 +563,7 @@ class InactiveUsersAPIViewTest(DashboardTestCase):
         assert row['id'] == user.id
         assert row['name'] == "Test User"
         assert row['photo_url'] is None
-        assert row['role'] == 'Government Worker'
+        assert row['role'] == 'Case Manager'
         assert row['role_type'] == 'government_worker'
         assert row['last_activity'] == '10 days ago'
         assert row['last_activity_color'] == COLOR_SECONDARY

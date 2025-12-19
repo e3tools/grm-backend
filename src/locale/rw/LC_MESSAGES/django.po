@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-12 19:26+0000\n"
+"POT-Creation-Date: 2025-12-19 12:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,81 +48,81 @@ msgstr ""
 msgid "User does not have an associated facilitator profile."
 msgstr ""
 
-#: authentication/models.py:17
+#: authentication/models.py:18
 msgid "email address"
 msgstr ""
 
-#: authentication/models.py:18 grm/constants.py:20
+#: authentication/models.py:19 grm/constants.py:20
 msgid "phone number"
 msgstr ""
 
-#: authentication/models.py:19
+#: authentication/models.py:20
 msgid "photo"
 msgstr ""
 
-#: authentication/models.py:26
+#: authentication/models.py:27
 msgid "last activity"
 msgstr ""
 
-#: authentication/models.py:27
+#: authentication/models.py:28
 msgid ""
 "Last time the user performed any activity (login, comment, issue creation/"
 "modification)"
 msgstr ""
 
-#: authentication/models.py:107
+#: authentication/models.py:135
 msgid "department"
 msgstr ""
 
-#: authentication/models.py:111
+#: authentication/models.py:139
 msgid "administrative region"
 msgstr ""
 
-#: authentication/models.py:115 dashboard/performance_diagnostics/views.py:487
+#: authentication/models.py:143
 msgid "Government Worker"
 msgstr ""
 
-#: authentication/models.py:116
+#: authentication/models.py:144
 msgid "Government Workers"
 msgstr ""
 
-#: authentication/models.py:151 authentication/models.py:166
-#: issues/models.py:34 issues/models.py:62 issues/models.py:215
-#: issues/models.py:234 issues/models.py:253 issues/models.py:277
-#: issues/models.py:333 issues/models.py:348 issues/models.py:360
-#: issues/models.py:379 issues/models.py:416 issues/models.py:435
-#: issues/models.py:453 issues/models.py:481 issues/models.py:851
-#: issues/models.py:885
-msgid "Created at"
-msgstr ""
-
-#: authentication/models.py:152 authentication/models.py:167
+#: authentication/models.py:179 authentication/models.py:194
 #: issues/models.py:35 issues/models.py:63 issues/models.py:216
 #: issues/models.py:235 issues/models.py:254 issues/models.py:278
 #: issues/models.py:334 issues/models.py:349 issues/models.py:361
 #: issues/models.py:380 issues/models.py:417 issues/models.py:436
-#: issues/models.py:454 issues/models.py:482 issues/models.py:585
-#: issues/models.py:852 issues/models.py:886
+#: issues/models.py:454 issues/models.py:482 issues/models.py:852
+#: issues/models.py:886
+msgid "Created at"
+msgstr ""
+
+#: authentication/models.py:180 authentication/models.py:195
+#: issues/models.py:36 issues/models.py:64 issues/models.py:217
+#: issues/models.py:236 issues/models.py:255 issues/models.py:279
+#: issues/models.py:335 issues/models.py:350 issues/models.py:362
+#: issues/models.py:381 issues/models.py:418 issues/models.py:437
+#: issues/models.py:455 issues/models.py:483 issues/models.py:586
+#: issues/models.py:853 issues/models.py:887
 msgid "Updated at"
 msgstr ""
 
-#: authentication/models.py:155 dashboard/performance_diagnostics/views.py:490
+#: authentication/models.py:183 dashboard/performance_diagnostics/views.py:543
 #: dashboard/templates/user_management/user_management.html:33
 #: dashboard/user_management/constants.py:11
 #: dashboard/user_management/constants.py:17
-#: dashboard/user_management/views.py:215
+#: dashboard/user_management/views.py:269
 msgid "Facilitator"
 msgstr ""
 
-#: authentication/models.py:156
+#: authentication/models.py:184
 msgid "Facilitators"
 msgstr ""
 
-#: authentication/models.py:170 issues/models.py:485
+#: authentication/models.py:198 issues/models.py:486
 msgid "Citizen"
 msgstr ""
 
-#: authentication/models.py:171 issues/models.py:486
+#: authentication/models.py:199 issues/models.py:487
 msgid "Citizens"
 msgstr ""
 
@@ -153,6 +153,8 @@ msgid "Password reset complete"
 msgstr ""
 
 #: dashboard/authentication/forms.py:11
+#: dashboard/templates/performance_diagnostics/dashboard.html:124
+#: dashboard/templates/performance_diagnostics/dashboard.html:912
 #: dashboard/templates/user_management/profile.html:98
 #: dashboard/user_management/forms.py:78 dashboard/user_management/forms.py:79
 msgid "Email"
@@ -241,18 +243,18 @@ msgstr ""
 msgid "Low Activity"
 msgstr ""
 
-#: dashboard/diagnostics/views.py:35
+#: dashboard/diagnostics/views.py:32
 #: dashboard/templates/layouts/sidebar.html:31
 msgid "Diagnostics"
 msgstr ""
 
-#: dashboard/diagnostics/views.py:67
+#: dashboard/diagnostics/views.py:64
 msgid ""
 "Internal error while running etl_fetch_issue_data. For more details, check "
 "the server logs."
 msgstr ""
 
-#: dashboard/diagnostics/views.py:293
+#: dashboard/diagnostics/views.py:290
 msgid "Global"
 msgstr ""
 
@@ -317,7 +319,7 @@ msgid "The category of grievance"
 msgstr ""
 
 #: dashboard/grm/forms.py:143
-#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:219
+#: dashboard/templates/grm/new_issue_confirmation.html:131 issues/models.py:220
 #: wizard/templates/wizard/nested_formset.html:32
 #: wizard/templates/wizard/nested_formset.html:164
 msgid "Component"
@@ -349,7 +351,7 @@ msgstr ""
 #: dashboard/templates/user_management/list.html:27
 #: dashboard/user_management/forms.py:164
 #: dashboard/user_management/forms.py:234
-#: dashboard/user_management/forms.py:288 issues/models.py:38
+#: dashboard/user_management/forms.py:288 issues/models.py:39
 #: wizard/templates/wizard/regions.html:28
 #: wizard/templates/wizard/summary.html:47
 msgid "Administrative Level"
@@ -388,117 +390,117 @@ msgstr ""
 msgid "Add comment"
 msgstr ""
 
-#: dashboard/grm/views.py:140
+#: dashboard/grm/views.py:134
 msgid "Add attachment"
 msgstr ""
 
-#: dashboard/grm/views.py:141 wizard/templates/wizard/regions.html:82
+#: dashboard/grm/views.py:135 wizard/templates/wizard/regions.html:82
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:155
+#: dashboard/grm/views.py:149
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:157
+#: dashboard/grm/views.py:151
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:161
+#: dashboard/grm/views.py:155
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:167
+#: dashboard/grm/views.py:161
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:195
+#: dashboard/grm/views.py:187
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:198
+#: dashboard/grm/views.py:190
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:241
+#: dashboard/grm/views.py:233
 msgid "Enter New Issue"
 msgstr ""
 
-#: dashboard/grm/views.py:331
+#: dashboard/grm/views.py:323
 msgid ""
 "No staff member was found to assign the issue to. The issue will be created "
 "without an assignee."
 msgstr ""
 
-#: dashboard/grm/views.py:510 dashboard/grm/views.py:665
+#: dashboard/grm/views.py:502 dashboard/grm/views.py:657
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:660
+#: dashboard/grm/views.py:652
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:703
+#: dashboard/grm/views.py:695
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:722
+#: dashboard/grm/views.py:714
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:777 dashboard/grm/views.py:820
-#: dashboard/grm/views.py:857
+#: dashboard/grm/views.py:769 dashboard/grm/views.py:811
+#: dashboard/grm/views.py:847
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:798
+#: dashboard/grm/views.py:789
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:799 dashboard/grm/views.py:836
+#: dashboard/grm/views.py:790 dashboard/grm/views.py:826
 #: dashboard/templates/grm/issue_detail.html:188
 #: dashboard/templates/user_management/update.html:98
-#: dashboard/user_management/views.py:339
+#: dashboard/user_management/views.py:512
 msgid "Save"
 msgstr ""
 
-#: dashboard/grm/views.py:815
+#: dashboard/grm/views.py:806
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:835
+#: dashboard/grm/views.py:825
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:852
+#: dashboard/grm/views.py:842
 msgid "The complaint has been rejected"
 msgstr ""
 
-#: dashboard/grm/views.py:967 dashboard/user_management/views.py:318
+#: dashboard/grm/views.py:957 dashboard/user_management/views.py:492
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
 #: dashboard/models.py:31 dashboard/templates/grm/issue_detail.html:74
-#: dashboard/templates/user_management/list.html:24 issues/models.py:269
-#: issues/models.py:331 issues/models.py:398 issues/models.py:451
-#: wizard/forms.py:34 wizard/views.py:647 wizard/views.py:657
-#: wizard/views.py:680 wizard/views.py:696 wizard/views.py:718
-#: wizard/views.py:759 wizard/views.py:769 wizard/views.py:786
-#: wizard/views.py:792
+#: dashboard/templates/user_management/list.html:24 issues/models.py:270
+#: issues/models.py:332 issues/models.py:399 issues/models.py:452
+#: wizard/forms.py:34 wizard/views.py:648 wizard/views.py:658
+#: wizard/views.py:681 wizard/views.py:697 wizard/views.py:719
+#: wizard/views.py:760 wizard/views.py:770 wizard/views.py:787
+#: wizard/views.py:793
 msgid "Name"
 msgstr ""
 
 #: dashboard/models.py:32
 #: dashboard/templates/grm/new_issue_confirmation.html:150 wizard/forms.py:41
-#: wizard/views.py:648 wizard/views.py:787 wizard/views.py:793
+#: wizard/views.py:649 wizard/views.py:788 wizard/views.py:794
 msgid "Description"
 msgstr ""
 
@@ -522,48 +524,125 @@ msgstr ""
 msgid "Status Bottleneck Metrics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:39
+#: dashboard/performance_diagnostics/views.py:61
 msgid "Performance Diagnostics"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:84
+#: dashboard/performance_diagnostics/views.py:106
 msgid "No metrics available for the selected filters."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:255
+#: dashboard/performance_diagnostics/views.py:277
 #, python-format
 msgid ""
 "The red flag on '%(status)s' immediately tells the admin that this status is "
 "a major bottleneck. Issues are waiting %(days).1f days on average."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:333
+#: dashboard/performance_diagnostics/views.py:368
 msgid ""
 "No administrative sublevel is available. Showing current selected "
 "administrative level."
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:533
+#: dashboard/performance_diagnostics/views.py:540
+#: dashboard/templates/user_management/user_management.html:26
+#: dashboard/user_management/constants.py:10
+#: dashboard/user_management/constants.py:16
+#: dashboard/user_management/views.py:258
+msgid "Case Manager"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:586
 #: dashboard/templates/user_management/list.html:35
-#: dashboard/templates/user_management/profile.html:135
+#: dashboard/user_management/views.py:360
 msgid "Never"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:536
+#: dashboard/performance_diagnostics/views.py:589
+#: dashboard/user_management/views.py:363
 msgid "Today"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:538
+#: dashboard/performance_diagnostics/views.py:591
+#: dashboard/user_management/views.py:365
 msgid "1 day ago"
 msgstr ""
 
-#: dashboard/performance_diagnostics/views.py:540
+#: dashboard/performance_diagnostics/views.py:593
+#: dashboard/user_management/views.py:367
 #, python-format
 msgid "%(days)s days ago"
 msgstr ""
 
+#: dashboard/performance_diagnostics/views.py:645
+#: dashboard/performance_diagnostics/views.py:684
+msgid "No users selected"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:655
+#: dashboard/performance_diagnostics/views.py:746
+msgid "Invalid request data"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:687
+msgid "Invalid notification type"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:690
+msgid "Message cannot be empty"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:709
+#, python-format
+msgid "%(count)d email(s) sent successfully"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:711
+#, python-format
+msgid "%(count)d SMS message(s) sent successfully"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:713
+#, python-format
+msgid "%(email_count)d email(s) and %(count)d SMS message(s) sent successfully"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:721
+#, python-format
+msgid "%(count)d user(s) skipped (missing contact info)"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:724
+#: dashboard/performance_diagnostics/views.py:741
+#, python-format
+msgid "%(count)d notification(s) failed"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:735
+msgid "No notifications were sent"
+msgstr ""
+
+#: dashboard/performance_diagnostics/views.py:737
+#, python-format
+msgid "%(count)d user(s) have no contact information"
+msgstr ""
+
 #: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
 msgid "Search Issues"
+msgstr ""
+
+#: dashboard/services.py:88
+msgid "Activity Reminder - GRM System"
+msgstr ""
+
+#: dashboard/services.py:170
+#: dashboard/templates/user_management/profile.html:100
+msgid "No email"
+msgstr ""
+
+#: dashboard/services.py:171
+msgid "No phone"
 msgstr ""
 
 #: dashboard/subprojects/views.py:10
@@ -634,7 +713,7 @@ msgstr ""
 #: dashboard/templates/common/toast_template.html:8
 #: dashboard/templates/grm/issue_detail.html:235
 #: dashboard/templates/performance_diagnostics/dashboard.html:97
-#: dashboard/templates/user_management/profile.html:177
+#: dashboard/templates/user_management/profile.html:250
 #: wizard/templates/wizard/regions.html:79
 msgid "Close"
 msgstr ""
@@ -664,8 +743,8 @@ msgstr ""
 #: dashboard/templates/grm/issue_detail.html:134
 #: dashboard/templates/grm/review_issues.html:47
 #: dashboard/templates/grm/review_issues.html:248
-#: dashboard/templates/search/_filters.html:11 issues/models.py:452
-#: wizard/views.py:770
+#: dashboard/templates/search/_filters.html:11 issues/models.py:453
+#: wizard/views.py:771
 msgid "Type"
 msgstr ""
 
@@ -717,13 +796,13 @@ msgstr ""
 #: dashboard/templates/diagnostics/home.html:464
 #: dashboard/templates/grm/new_issue_confirm.html:238
 #: dashboard/templates/grm/new_issue_location.html:61
-#: dashboard/templates/performance_diagnostics/dashboard.html:111
+#: dashboard/templates/performance_diagnostics/dashboard.html:246
 msgid "Click to select location"
 msgstr ""
 
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:890
+#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:892
 msgid "Attachments"
 msgstr ""
 
@@ -742,7 +821,7 @@ msgid "Add attachments"
 msgstr ""
 
 #: dashboard/templates/grm/issue_comments.html:15
-#: wizard/templates/wizard/grm_customization.html:356
+#: wizard/templates/wizard/grm_customization.html:355
 msgid "GRM system"
 msgstr ""
 
@@ -981,8 +1060,8 @@ msgid "New Issue"
 msgstr ""
 
 #: dashboard/templates/layouts/sidebar.html:69
-#: dashboard/user_management/views.py:41 dashboard/user_management/views.py:176
-#: dashboard/user_management/views.py:263
+#: dashboard/user_management/views.py:53 dashboard/user_management/views.py:188
+#: dashboard/user_management/views.py:437
 msgid "User Management"
 msgstr ""
 
@@ -1006,84 +1085,192 @@ msgstr ""
 msgid "This feature is coming soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:201
+#: dashboard/templates/performance_diagnostics/dashboard.html:110
+msgid "Send Reminder Notification"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:120
+msgid "Notification Method"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:125
+#: dashboard/templates/performance_diagnostics/dashboard.html:914
+msgid "SMS"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:126
+#: dashboard/templates/performance_diagnostics/dashboard.html:916
+msgid "Email & SMS"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:129
+msgid "Choose how you want to notify the selected users"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:135
+msgid "Message"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:139
+msgid "Enter your reminder message here..."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:141
+msgid "characters"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:144
+msgid "SMS messages will be truncated to 160 characters"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:158
+msgid "Selected Users"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:170
+#: dashboard/templates/performance_diagnostics/dashboard.html:803
+msgid "Loading users..."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:179
+msgid "Note:"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:180
+msgid ""
+"Users without phone number will be skipped for the respective notification "
+"type."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:187
+#: dashboard/templates/performance_diagnostics/dashboard.html:227
+#: dashboard/templates/user_management/update.html:95
+msgid "Cancel"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:191
+msgid "Send"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:204
+msgid "Confirm Send"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:212
+msgid "Are you sure you want to send this notification?"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:215
+msgid "Method:"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:218
+msgid "Recipients:"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:221
+msgid "This action cannot be undone."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:231
+msgid "Confirm & Send"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:336
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:11
 msgid "Just now"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:203
+#: dashboard/templates/performance_diagnostics/dashboard.html:338
 msgid "1 minute ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:205
+#: dashboard/templates/performance_diagnostics/dashboard.html:340
 msgid "minutes ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:207
+#: dashboard/templates/performance_diagnostics/dashboard.html:342
 msgid "1 hour ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:210
+#: dashboard/templates/performance_diagnostics/dashboard.html:345
 msgid "hours ago"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:233
+#: dashboard/templates/performance_diagnostics/dashboard.html:368
 msgid "days"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:234
+#: dashboard/templates/performance_diagnostics/dashboard.html:369
 msgid "issues"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:354
+#: dashboard/templates/performance_diagnostics/dashboard.html:489
 msgid "Investigate"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:356
-#: dashboard/templates/performance_diagnostics/dashboard.html:376
+#: dashboard/templates/performance_diagnostics/dashboard.html:491
+#: dashboard/templates/performance_diagnostics/dashboard.html:511
 msgid "View Details"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:358
+#: dashboard/templates/performance_diagnostics/dashboard.html:493
 msgid "Best Practices"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:370
+#: dashboard/templates/performance_diagnostics/dashboard.html:505
 msgid "Investigate Administrative Level"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:371
+#: dashboard/templates/performance_diagnostics/dashboard.html:506
 msgid "Deep dive analysis for x will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:377
+#: dashboard/templates/performance_diagnostics/dashboard.html:512
 msgid "Detailed region dashboard will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:382
+#: dashboard/templates/performance_diagnostics/dashboard.html:517
 msgid "Best practices from x will be available soon."
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:383
+#: dashboard/templates/performance_diagnostics/dashboard.html:518
 msgid "Learn Best Practices"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:549
-msgid "View User Profile"
+#: dashboard/templates/performance_diagnostics/dashboard.html:696
+#: dashboard/templates/user_management/list.html:58
+msgid "View Profile"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:550
-msgid "User profile page will be available soon."
+#: dashboard/templates/performance_diagnostics/dashboard.html:786
+msgid "Please select at least one user"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:586
+#: dashboard/templates/performance_diagnostics/dashboard.html:829
+msgid "Failed to load users information"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:847
+msgid "No contact phone"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:936
+msgid "Sending..."
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:960
+msgid "Failed to send notifications"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:1014
 #: dashboard/templates/search/semantic_search.html:50
 #: dashboard/templates/search/semantic_search.html:67
 msgid "All"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/inactive_users_table.html:5
-msgid "Inactive Government Workers / Facilitators"
+msgid "Inactive Case Managers / Facilitators"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/inactive_users_table.html:6
@@ -1099,7 +1286,7 @@ msgid "All Roles"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/inactive_users_table.html:18
-msgid "Government Workers Only"
+msgid "Case Managers Only"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/inactive_users_table.html:19
@@ -1122,24 +1309,37 @@ msgstr ""
 msgid "Users without Open Issues Only"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:39
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:42
+msgid "user(s) selected"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:47
+msgid "Send Reminder"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:51
+msgid "Clear Selection"
+msgstr ""
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:69
 msgid "User Name"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:40
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:70
 msgid "Role"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:41
-#: dashboard/templates/user_management/profile.html:133
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:71
+#: dashboard/templates/user_management/list.html:29
+#: dashboard/templates/user_management/profile.html:147
 msgid "Last Activity"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:42
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:72
 msgid "Open Issues Assigned"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:43
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:73
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:62
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:112
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:167
@@ -1148,7 +1348,7 @@ msgstr ""
 msgid "Performance"
 msgstr ""
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:44
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:74
 #: dashboard/templates/performance_diagnostics/region_performance_table.html:20
 msgid "Actions"
 msgstr ""
@@ -1174,6 +1374,7 @@ msgid "days avg"
 msgstr ""
 
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:99
+#: dashboard/templates/user_management/profile.html:204
 msgid "Resolution Rate"
 msgstr ""
 
@@ -1306,19 +1507,11 @@ msgid "Photo"
 msgstr ""
 
 #: dashboard/templates/user_management/list.html:26
-msgid "Role info"
-msgstr ""
-
-#: dashboard/templates/user_management/list.html:29
-msgid "Last activity"
+msgid "Role Info"
 msgstr ""
 
 #: dashboard/templates/user_management/list.html:31
 msgid "Action"
-msgstr ""
-
-#: dashboard/templates/user_management/list.html:58
-msgid "View Profile"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:12
@@ -1326,14 +1519,14 @@ msgid "Edit Profile"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:44
-#: dashboard/templates/user_management/profile.html:64 issues/models.py:66
+#: dashboard/templates/user_management/profile.html:64 issues/models.py:67
 msgid "Administrative Region"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:52
 #: dashboard/user_management/forms.py:153
 #: dashboard/user_management/forms.py:296 wizard/forms.py:328
-#: wizard/views.py:721
+#: wizard/views.py:722
 msgid "Department"
 msgstr ""
 
@@ -1342,7 +1535,7 @@ msgid "Department Head"
 msgstr ""
 
 #: dashboard/templates/user_management/profile.html:68
-#: dashboard/user_management/views.py:102
+#: dashboard/user_management/views.py:114
 msgid "Village Secretary"
 msgstr ""
 
@@ -1358,12 +1551,8 @@ msgstr ""
 msgid "No phone number"
 msgstr ""
 
-#: dashboard/templates/user_management/profile.html:100
-msgid "No email"
-msgstr ""
-
 #: dashboard/templates/user_management/profile.html:112
-#: dashboard/templates/user_management/profile.html:154
+#: dashboard/templates/user_management/profile.html:227
 msgid "Deactivate Account"
 msgstr ""
 
@@ -1375,15 +1564,39 @@ msgstr ""
 msgid "Edit User"
 msgstr ""
 
-#: dashboard/templates/user_management/profile.html:144
+#: dashboard/templates/user_management/profile.html:132
 msgid "Facilitator Code"
 msgstr ""
 
-#: dashboard/templates/user_management/profile.html:171
+#: dashboard/templates/user_management/profile.html:145
+msgid "Activity Level"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:165
+msgid "Issue Statistics"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:173
+msgid "Total Assigned"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:179
+msgid "Currently Open"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:190 wizard/forms.py:440
+msgid "Resolved"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:196 wizard/forms.py:435
+msgid "Rejected"
+msgstr ""
+
+#: dashboard/templates/user_management/profile.html:244
 msgid "Please enter your password to deactivate this account!"
 msgstr ""
 
-#: dashboard/templates/user_management/profile.html:219
+#: dashboard/templates/user_management/profile.html:292
 msgid "Edit Profile Picture"
 msgstr ""
 
@@ -1413,10 +1626,6 @@ msgstr ""
 msgid "GRM Managers have full administrative access across all departments."
 msgstr ""
 
-#: dashboard/templates/user_management/update.html:95
-msgid "Cancel"
-msgstr ""
-
 #: dashboard/templates/user_management/update.html:131
 msgid "Search and select an administrative level"
 msgstr ""
@@ -1432,15 +1641,8 @@ msgstr ""
 #: dashboard/templates/user_management/user_management.html:19
 #: dashboard/user_management/constants.py:9
 #: dashboard/user_management/constants.py:15
-#: dashboard/user_management/views.py:198
+#: dashboard/user_management/views.py:250
 msgid "GRM Manager"
-msgstr ""
-
-#: dashboard/templates/user_management/user_management.html:26
-#: dashboard/user_management/constants.py:10
-#: dashboard/user_management/constants.py:16
-#: dashboard/user_management/views.py:205
-msgid "Case Manager"
 msgstr ""
 
 #: dashboard/templates/user_management/user_management.html:60
@@ -1544,61 +1746,61 @@ msgstr ""
 msgid "Is Village Secretary"
 msgstr ""
 
-#: dashboard/user_management/views.py:100
+#: dashboard/user_management/views.py:112
 msgid "Head"
 msgstr ""
 
-#: dashboard/user_management/views.py:102
+#: dashboard/user_management/views.py:114
 msgid "Yes"
 msgstr ""
 
-#: dashboard/user_management/views.py:102
+#: dashboard/user_management/views.py:114
 msgid "No"
 msgstr ""
 
-#: dashboard/user_management/views.py:132
+#: dashboard/user_management/views.py:144
 msgid "Invalid user type."
 msgstr ""
 
-#: dashboard/user_management/views.py:169
-#: dashboard/user_management/views.py:267
+#: dashboard/user_management/views.py:181
+#: dashboard/user_management/views.py:441
 msgid "User Profile"
 msgstr ""
 
-#: dashboard/user_management/views.py:199
+#: dashboard/user_management/views.py:251
 msgid "Can view and create issues for all departments and add users."
 msgstr ""
 
-#: dashboard/user_management/views.py:207
+#: dashboard/user_management/views.py:260
 msgid "Can create issues and view assigned issues."
 msgstr ""
 
-#: dashboard/user_management/views.py:216
+#: dashboard/user_management/views.py:270
 msgid "Community representative for a specific region."
 msgstr ""
 
-#: dashboard/user_management/views.py:232
+#: dashboard/user_management/views.py:406
 msgid "Update User"
 msgstr ""
 
-#: dashboard/user_management/views.py:309
+#: dashboard/user_management/views.py:483
 msgid "The account was successfully deactivated."
 msgstr ""
 
-#: dashboard/user_management/views.py:314
+#: dashboard/user_management/views.py:488
 msgid "The account was activated successfully."
 msgstr ""
 
-#: dashboard/user_management/views.py:336
+#: dashboard/user_management/views.py:509
 msgid "Profile information"
 msgstr ""
 
-#: dashboard/user_management/views.py:361
+#: dashboard/user_management/views.py:534
 msgid ""
 "Please note that the Facilitator Code has changed due to the email change."
 msgstr ""
 
-#: dashboard/user_management/views.py:365
+#: dashboard/user_management/views.py:538
 msgid "The profile information was successfully edited."
 msgstr ""
 
@@ -1837,150 +2039,154 @@ msgstr ""
 msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""
 
-#: issues/models.py:39 wizard/templates/wizard/regions.html:13
+#: issues/models.py:40 wizard/templates/wizard/regions.html:13
 msgid "Administrative Levels"
 msgstr ""
 
-#: issues/models.py:61
+#: issues/models.py:62
 msgid "Hierarchical Name"
 msgstr ""
 
-#: issues/models.py:67
+#: issues/models.py:68
 msgid "Administrative Regions"
 msgstr ""
 
-#: issues/models.py:220
+#: issues/models.py:221
 msgid "Components"
 msgstr ""
 
-#: issues/models.py:238
+#: issues/models.py:239
 msgid "Subcomponent"
 msgstr ""
 
-#: issues/models.py:239 wizard/templates/wizard/grm_customization.html:417
+#: issues/models.py:240 wizard/templates/wizard/grm_customization.html:416
 #: wizard/templates/wizard/nested_formset.html:73
 #: wizard/templates/wizard/nested_formset.html:193
 #: wizard/templates/wizard/summary.html:29
 msgid "Subcomponents"
 msgstr ""
 
-#: issues/models.py:257
+#: issues/models.py:258
 msgid "Subproject Group"
 msgstr ""
 
-#: issues/models.py:258
+#: issues/models.py:259
 msgid "Subproject Groups"
 msgstr ""
 
-#: issues/models.py:271
+#: issues/models.py:272
 msgid "Threshold in days for performance evaluation"
 msgstr ""
 
-#: issues/models.py:271
+#: issues/models.py:272
 msgid "Threshold days"
 msgstr ""
 
-#: issues/models.py:281 issues/models.py:282 wizard/views.py:458
+#: issues/models.py:282 issues/models.py:283 wizard/views.py:459
 msgid "Issue Status"
 msgstr ""
 
-#: issues/models.py:288 wizard/forms.py:414
+#: issues/models.py:289 wizard/forms.py:414
 msgid "Threshold must be greater than zero."
 msgstr ""
 
-#: issues/models.py:337
+#: issues/models.py:338
 msgid "Issue Department"
 msgstr ""
 
-#: issues/models.py:338
+#: issues/models.py:339
 msgid "Issue Departments"
 msgstr ""
 
-#: issues/models.py:364
+#: issues/models.py:365
 msgid "Issue Type"
 msgstr ""
 
-#: issues/models.py:365 wizard/views.py:398
+#: issues/models.py:366 wizard/views.py:399
 msgid "Issue Types"
 msgstr ""
 
-#: issues/models.py:383
+#: issues/models.py:384
 msgid "Issue Subtype"
 msgstr ""
 
-#: issues/models.py:384
+#: issues/models.py:385
 msgid "Issue Subtypes"
 msgstr ""
 
-#: issues/models.py:399 wizard/views.py:719
+#: issues/models.py:400 wizard/views.py:720
 msgid "Abbreviation"
 msgstr ""
 
-#: issues/models.py:411 wizard/views.py:725
+#: issues/models.py:412 wizard/views.py:726
 msgid "Confidentiality level"
 msgstr ""
 
-#: issues/models.py:414 wizard/views.py:729
+#: issues/models.py:415 wizard/views.py:730
 msgid "Redirection protocol"
 msgstr ""
 
-#: issues/models.py:420
+#: issues/models.py:421
 msgid "Issue Category"
 msgstr ""
 
-#: issues/models.py:421
+#: issues/models.py:422
 msgid "Issue Categories"
 msgstr ""
 
-#: issues/models.py:439
+#: issues/models.py:440
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:440 wizard/constants.py:18 wizard/views.py:486
+#: issues/models.py:441 wizard/constants.py:18 wizard/views.py:487
 msgid "Citizen Age Groups"
 msgstr ""
 
-#: issues/models.py:457
+#: issues/models.py:458
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:458 wizard/constants.py:20 wizard/views.py:510
+#: issues/models.py:459 wizard/constants.py:20 wizard/views.py:511
 msgid "Citizen Groups"
 msgstr ""
 
-#: issues/models.py:511
+#: issues/models.py:512
 msgid "Issue Status Change"
 msgstr ""
 
-#: issues/models.py:512
+#: issues/models.py:513
 msgid "Issue Status Changes"
 msgstr ""
 
-#: issues/models.py:598 issues/models.py:873
+#: issues/models.py:599 issues/models.py:874
 msgid "Issue"
 msgstr ""
 
-#: issues/models.py:599
+#: issues/models.py:600
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:855
+#: issues/models.py:856
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:856
+#: issues/models.py:857
 msgid "Comments"
 msgstr ""
 
-#: issues/models.py:875
+#: issues/models.py:876
 msgid "File attached to the issue"
 msgstr ""
 
-#: issues/models.py:883
+#: issues/models.py:884
 msgid "Uploaded by"
 msgstr ""
 
-#: issues/models.py:889
+#: issues/models.py:888
+msgid "Deleted at"
+msgstr ""
+
+#: issues/models.py:891
 msgid "Issue Attachment"
 msgstr ""
 
@@ -1996,7 +2202,7 @@ msgstr ""
 msgid "Load Administrative Levels"
 msgstr ""
 
-#: wizard/constants.py:10 wizard/views.py:372
+#: wizard/constants.py:10 wizard/views.py:373
 msgid "Departments"
 msgstr ""
 
@@ -2123,7 +2329,7 @@ msgstr ""
 msgid "Click to select administrative levels"
 msgstr ""
 
-#: wizard/forms.py:100 wizard/views.py:681
+#: wizard/forms.py:100 wizard/views.py:682
 msgid "Administrative levels"
 msgstr ""
 
@@ -2135,7 +2341,7 @@ msgstr ""
 msgid "Enter a new subtypes or choose one"
 msgstr ""
 
-#: wizard/forms.py:187 wizard/views.py:697
+#: wizard/forms.py:187 wizard/views.py:698
 msgid "Subtypes"
 msgstr ""
 
@@ -2147,15 +2353,15 @@ msgstr ""
 msgid "This field is required."
 msgstr ""
 
-#: wizard/forms.py:327 wizard/views.py:720
+#: wizard/forms.py:327 wizard/views.py:721
 msgid "Subtype"
 msgstr ""
 
-#: wizard/forms.py:329 wizard/views.py:722
+#: wizard/forms.py:329 wizard/views.py:723
 msgid "Appeal department"
 msgstr ""
 
-#: wizard/forms.py:330 wizard/views.py:723
+#: wizard/forms.py:330 wizard/views.py:724
 msgid "Escalation department"
 msgstr ""
 
@@ -2221,20 +2427,12 @@ msgid ""
 "Denotes that the issue is actively being worked on or is pending resolution"
 msgstr ""
 
-#: wizard/forms.py:435
-msgid "Rejected"
-msgstr ""
-
 #: wizard/forms.py:436
 msgid "Indicates that the issue has been reviewed and rejected"
 msgstr ""
 
 #: wizard/forms.py:437
 msgid "This status is used when the issue is deemed invalid or unnecessary."
-msgstr ""
-
-#: wizard/forms.py:440
-msgid "Resolved"
 msgstr ""
 
 #: wizard/forms.py:441
@@ -2299,7 +2497,7 @@ msgid "Next"
 msgstr ""
 
 #: wizard/templates/wizard/formset.html:60
-#: wizard/templates/wizard/grm_customization.html:227
+#: wizard/templates/wizard/grm_customization.html:226
 #: wizard/templates/wizard/nested_formset.html:36
 #: wizard/templates/wizard/nested_formset.html:106
 msgid "Delete"
@@ -2324,19 +2522,19 @@ msgid "Skip"
 msgstr ""
 
 #: wizard/templates/wizard/grm_customization.html:15
-#: wizard/templates/wizard/grm_customization.html:45
+#: wizard/templates/wizard/grm_customization.html:44
 msgid "GRM Customization"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:64
+#: wizard/templates/wizard/grm_customization.html:63
 msgid "Setup Progress"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:227
+#: wizard/templates/wizard/grm_customization.html:226
 msgid "Undo deletion"
 msgstr ""
 
-#: wizard/templates/wizard/grm_customization.html:350
+#: wizard/templates/wizard/grm_customization.html:349
 msgid "GRM Customization Summary"
 msgstr ""
 
@@ -2386,27 +2584,27 @@ msgstr ""
 msgid "Save and Finish"
 msgstr ""
 
-#: wizard/views.py:119
+#: wizard/views.py:120
 msgid "Configuration Options"
 msgstr ""
 
-#: wizard/views.py:189
+#: wizard/views.py:190
 msgid "Administrative Level Names"
 msgstr ""
 
-#: wizard/views.py:322
+#: wizard/views.py:323
 #, python-format
 msgid "There was an error processing the Excel file: %(error)s"
 msgstr ""
 
-#: wizard/views.py:417
+#: wizard/views.py:418
 msgid "Categories"
 msgstr ""
 
-#: wizard/views.py:573
+#: wizard/views.py:574
 msgid "Components and Subcomponents"
 msgstr ""
 
-#: wizard/views.py:814
+#: wizard/views.py:815
 msgid "The setup cannot be completed until all previous steps are completed."
 msgstr ""
