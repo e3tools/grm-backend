@@ -64,6 +64,7 @@ class IssueRetrieveAPIViewTest(APITestCase):
             issue_type=self.issue_type_complaint,
             status=self.status_open,
             tracking_code='TEST-001',
+            confirmed=True,
         )
 
         self.url = reverse("issues:issue-detail", kwargs={"id": self.issue.id})
