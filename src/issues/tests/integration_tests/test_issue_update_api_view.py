@@ -58,7 +58,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.new_status = IssueStatusFactory()
 
         # Issue where reporter and assignee are different users
-        self.issue = IssueFactory(reporter=self.reporter_user, assignee=self.assignee_user, rating=0)
+        self.issue = IssueFactory(reporter=self.reporter_user, assignee=self.assignee_user, rating=0, confirmed=True)
 
         # Issue where user is both reporter and assignee
         self.issue_reporter_assignee = IssueFactory(
@@ -66,6 +66,7 @@ class IssueUpdateAPIViewTest(APITestCase):
             assignee=self.reporter_assignee_user,
             rating=0,
             administrative_region=self.issue.administrative_region,
+            confirmed=True,
         )
 
         self.url = reverse("issues:update-issue", kwargs={"id": self.issue.id})

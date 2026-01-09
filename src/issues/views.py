@@ -676,7 +676,7 @@ class AssigneeIssueListAPIView(ListAPIView):
     def get_queryset(self):
         qs = Issue.objects.select_related(
             'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-        ).filter(assignee=self.request.user)
+        ).filter(assignee=self.request.user, confirmed=True)
         created_date = self.request.query_params.get("created_date")
         if created_date:
             dt = parse_datetime(created_date)
@@ -912,7 +912,7 @@ class ReporterIssueListAPIView(ListAPIView):
     def get_queryset(self):
         qs = Issue.objects.select_related(
             'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-        ).filter(reporter=self.request.user)
+        ).filter(reporter=self.request.user, confirmed=True)
         created_date = self.request.query_params.get("created_date")
         if created_date:
             dt = parse_datetime(created_date)
@@ -941,20 +941,24 @@ class IssueRetrieveAPIView(RetrieveAPIView):
         - Must be either the reporter or assignee of the issue
     """
 
-    queryset = Issue.objects.select_related(
-        'status',
-        'category',
-        'issue_type',
-        'administrative_region',
-        'reporter',
-        'assignee',
-        'category__assigned_department__department',
-        'category__assigned_department__administrative_level',
-        'category__assigned_appeal_department__department',
-        'category__assigned_appeal_department__administrative_level',
-        'category__assigned_escalation_department__department',
-        'category__assigned_escalation_department__administrative_level',
-    ).prefetch_related('category__parent')
+    queryset = (
+        Issue.objects.select_related(
+            'status',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'reporter',
+            'assignee',
+            'category__assigned_department__department',
+            'category__assigned_department__administrative_level',
+            'category__assigned_appeal_department__department',
+            'category__assigned_appeal_department__administrative_level',
+            'category__assigned_escalation_department__department',
+            'category__assigned_escalation_department__administrative_level',
+        )
+        .prefetch_related('category__parent')
+        .filter(confirmed=True)
+    )
     serializer_class = IssueSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
@@ -2476,7 +2480,8 @@ class IssueUpdateAPIView(UpdateAPIView):
     the reporter or assignee of the issue.
     """
 
-    queryset = Issue.objects.all()
+    # Only confirmed issues can be updated via this API
+    queryset = Issue.objects.filter(confirmed=True)
     serializer_class = IssueUpdateSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
