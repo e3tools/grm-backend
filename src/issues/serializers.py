@@ -342,9 +342,11 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             category_id=category_data,
             issue_type_id=issue_type_data,
             issue_sub_type_id=issue_sub_type_data,
+            confirmed=True,
             **validated_data
         )
         issue.save()
+        issue.anonymize_issue_data()
         return issue
 
     def validate(self, data):

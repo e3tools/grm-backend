@@ -1,3 +1,5 @@
+import logging
+
 from django.http import Http404
 from django.utils.dateparse import parse_datetime
 from drf_yasg import openapi
@@ -37,6 +39,7 @@ from grm.constants import (
     NOT_FOUND_MESSAGE,
     VALIDATION_FAILED_MESSAGE,
 )
+from grm.notifications import send_issue_notification
 from issues.models import (
     AdministrativeRegion,
     CitizenAgeGroup,
@@ -73,6 +76,8 @@ from issues.serializers import (
     SubComponentSerializer,
     SubProjectGroupSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class IssueCreateAPIView(CreateAPIView):
@@ -426,6 +431,13 @@ class IssueCreateAPIView(CreateAPIView):
 
                 # Update last_activity for issue creation
                 request.user.update_last_activity()
+
+                # Send number creation notification
+                try:
+                    send_issue_notification(issue, 'created')
+                except Exception as e:
+                    # Log error but don't fail the issue creation
+                    logger.error(f"Failed to send creation notification for issue {issue.id}: {str(e)}")
 
                 detail_serializer = IssueDetailSerializer(issue)
                 return Response(
@@ -2739,12 +2751,26 @@ class IssueUpdateAPIView(UpdateAPIView):
         """
         try:
             instance = self.get_object()
+            # Guardar el status anterior para detectar cambios
+            old_status_id = instance.status_id if instance.status else None
+
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 updated_issue = serializer.save()
 
                 # Update last_activity for issue modification
                 request.user.update_last_activity()
+
+                # Send notification if there was a change in status
+                new_status_id = updated_issue.status_id if updated_issue.status else None
+                if old_status_id != new_status_id:
+                    try:
+                        send_issue_notification(updated_issue, 'status_changed')
+                    except Exception as e:
+                        # Log error but don't fail the update
+                        logger.error(
+                            f"Failed to send status change notification for issue {updated_issue.id}: {str(e)}"
+                        )
 
                 detail_serializer = IssueDetailSerializer(updated_issue)
                 return Response(

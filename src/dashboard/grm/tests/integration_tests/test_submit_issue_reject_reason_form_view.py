@@ -1,7 +1,12 @@
+from unittest.mock import patch
+
+import cryptocode
 from django.urls import reverse
 from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
+from authentication.models import Cdata
+from grm.constants import ALERT_CHOICE, EMAIL_CHOICE
 from grm.tests.base import DashboardTestCase
 from issues.factories import (
     AdministrativeRegionFactory,
@@ -116,3 +121,38 @@ class SubmitIssueRejectReasonFormViewTest(DashboardTestCase):
         comments = Comment.objects.filter(issue=self.issue, user=manager)
         assert comments.exists()
         assert "rejected" in comments.last().comment.lower()
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_post_sends_notification_with_reject_reason(self, mock_send_mail):
+        """
+        Submitting reject reason should send notification including the rejection details.
+        """
+
+        issue_with_contact = IssueFactory(
+            confirmed=True,
+            status=self.initial_status,
+            administrative_region=self.region,
+            contact_medium=ALERT_CHOICE,
+            contact_method=EMAIL_CHOICE,
+            contact_information="citizen@example.com",
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("citizen@example.com", str(issue_with_contact.id))
+        Cdata.objects.create(key=str(issue_with_contact.id), data=encrypted_contact)
+
+        url = reverse("dashboard:grm:submit_issue_reject_reason", kwargs={"issue": issue_with_contact.id})
+
+        data = {"reject_reason": "Issue does not meet criteria for processing."}
+        manager = UserFactory(grm_manager=True)
+        resp = self.post(url, data=data, ajax=True, user=manager)
+        assert resp.status_code == 200
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Status Updated" in call_args[1]['subject']
+        # Verify reject_reason is in the message
+        assert "Reject Reason:" in call_args[1]['message']
+        assert "does not meet criteria" in call_args[1]['message']

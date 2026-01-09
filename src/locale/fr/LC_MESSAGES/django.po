@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 12:53+0000\n"
+"POT-Creation-Date: 2026-01-09 13:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,11 +111,9 @@ msgstr "Créé à"
 msgid "Updated at"
 msgstr "Mis à jour à"
 
-#: authentication/models.py:183 dashboard/performance_diagnostics/views.py:543
+#: authentication/models.py:183
 #: dashboard/templates/user_management/user_management.html:33
-#: dashboard/user_management/constants.py:11
-#: dashboard/user_management/constants.py:17
-#: dashboard/user_management/views.py:269
+#: dashboard/user_management/constants.py:9
 msgid "Facilitator"
 msgstr "Facilitateur"
 
@@ -401,24 +399,24 @@ msgstr "Aucun responsable"
 msgid "Add comment"
 msgstr "Ajouter un commentaire"
 
-#: dashboard/grm/views.py:134
+#: dashboard/grm/views.py:135
 msgid "Add attachment"
 msgstr "Ajouter une pièce jointe"
 
-#: dashboard/grm/views.py:135 wizard/templates/wizard/regions.html:82
+#: dashboard/grm/views.py:136 wizard/templates/wizard/regions.html:82
 msgid "Upload"
 msgstr "Téléverser"
 
-#: dashboard/grm/views.py:149
+#: dashboard/grm/views.py:150
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr "Une nouvelle pièce jointe %s a été ajouté à la réclamation."
 
-#: dashboard/grm/views.py:151
+#: dashboard/grm/views.py:152
 msgid "The attachment was successfully uploaded."
 msgstr "La pièce jointe a été téléverser avec succès."
 
-#: dashboard/grm/views.py:155
+#: dashboard/grm/views.py:156
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
@@ -427,7 +425,7 @@ msgstr ""
 "jointe dans la base de données. S'il vous plaît signaler au personnel des "
 "TIC."
 
-#: dashboard/grm/views.py:161
+#: dashboard/grm/views.py:162
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
@@ -436,20 +434,20 @@ msgstr ""
 "Le fichier n'a pas pu être téléverser car il a déjà atteint la limite de "
 "%(max)d pièces jointes."
 
-#: dashboard/grm/views.py:187
+#: dashboard/grm/views.py:188
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr "La pièce jointe %s a été supprimée."
 
-#: dashboard/grm/views.py:190
+#: dashboard/grm/views.py:191
 msgid "The attachment was successfully deleted."
 msgstr "La pièce jointe a été supprimée avec succès."
 
-#: dashboard/grm/views.py:233
+#: dashboard/grm/views.py:234
 msgid "Enter New Issue"
 msgstr "Entrez un nouveau problème"
 
-#: dashboard/grm/views.py:323
+#: dashboard/grm/views.py:324
 msgid ""
 "No staff member was found to assign the issue to. The issue will be created "
 "without an assignee."
@@ -457,52 +455,52 @@ msgstr ""
 "Aucun membre du personnel n'a été trouvé pour attribuer le problème. Le "
 "problème sera créé sans responsable."
 
-#: dashboard/grm/views.py:502 dashboard/grm/views.py:657
+#: dashboard/grm/views.py:512 dashboard/grm/views.py:667
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:652
+#: dashboard/grm/views.py:662
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:695
+#: dashboard/grm/views.py:716
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:714
+#: dashboard/grm/views.py:735
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:769 dashboard/grm/views.py:811
-#: dashboard/grm/views.py:847
+#: dashboard/grm/views.py:800 dashboard/grm/views.py:852
+#: dashboard/grm/views.py:898
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
-#: dashboard/grm/views.py:789
+#: dashboard/grm/views.py:820
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:790 dashboard/grm/views.py:826
+#: dashboard/grm/views.py:821 dashboard/grm/views.py:867
 #: dashboard/templates/grm/issue_detail.html:188
 #: dashboard/templates/user_management/update.html:98
-#: dashboard/user_management/views.py:512
+#: dashboard/user_management/views.py:488
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: dashboard/grm/views.py:806
+#: dashboard/grm/views.py:837
 msgid "The complaint has been resolved"
 msgstr "La réclamation a été résolue"
 
-#: dashboard/grm/views.py:825
+#: dashboard/grm/views.py:866
 msgid "Enter the reason for rejecting this issue"
 msgstr "Entrez la raison du rejet de ce problème"
 
-#: dashboard/grm/views.py:842
+#: dashboard/grm/views.py:883
 msgid "The complaint has been rejected"
 msgstr "La réclamation a été réjetée"
 
-#: dashboard/grm/views.py:957 dashboard/user_management/views.py:492
+#: dashboard/grm/views.py:1008 dashboard/user_management/views.py:468
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
@@ -543,15 +541,15 @@ msgstr "Indicateur de goulot d'étranglement d'état"
 msgid "Status Bottleneck Metrics"
 msgstr "Métriques de goulot d'étranglement de l'état"
 
-#: dashboard/performance_diagnostics/views.py:61
+#: dashboard/performance_diagnostics/views.py:65
 msgid "Performance Diagnostics"
 msgstr "Diagnostic de performance"
 
-#: dashboard/performance_diagnostics/views.py:106
+#: dashboard/performance_diagnostics/views.py:110
 msgid "No metrics available for the selected filters."
 msgstr "Aucune donnée disponible pour les filtres sélectionnés."
 
-#: dashboard/performance_diagnostics/views.py:277
+#: dashboard/performance_diagnostics/views.py:281
 #, python-format
 msgid ""
 "The red flag on '%(status)s' immediately tells the admin that this status is "
@@ -561,7 +559,7 @@ msgstr ""
 "que ce statut représente un goulot d'étranglement majeur. Les problèmes sont "
 "en attente de %(days).1f jours en moyenne."
 
-#: dashboard/performance_diagnostics/views.py:368
+#: dashboard/performance_diagnostics/views.py:372
 msgid ""
 "No administrative sublevel is available. Showing current selected "
 "administrative level."
@@ -569,83 +567,79 @@ msgstr ""
 "Aucun sous-niveau administratif n'est disponible. Affichage du niveau "
 "administratif actuellement sélectionné."
 
-#: dashboard/performance_diagnostics/views.py:540
-#: dashboard/templates/user_management/user_management.html:26
-#: dashboard/user_management/constants.py:10
-#: dashboard/user_management/constants.py:16
-#: dashboard/user_management/views.py:258
-msgid "Case Manager"
-msgstr "Gestionnaire de cas"
-
-#: dashboard/performance_diagnostics/views.py:586
+#: dashboard/performance_diagnostics/views.py:590
 #: dashboard/templates/user_management/list.html:35
-#: dashboard/user_management/views.py:360
+#: dashboard/user_management/views.py:340
 msgid "Never"
 msgstr "Jamais"
 
-#: dashboard/performance_diagnostics/views.py:589
-#: dashboard/user_management/views.py:363
+#: dashboard/performance_diagnostics/views.py:593
+#: dashboard/user_management/views.py:343
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: dashboard/performance_diagnostics/views.py:591
-#: dashboard/user_management/views.py:365
+#: dashboard/performance_diagnostics/views.py:595
+#: dashboard/user_management/views.py:345
 msgid "1 day ago"
 msgstr "il y a 1 jour"
 
-#: dashboard/performance_diagnostics/views.py:593
-#: dashboard/user_management/views.py:367
+#: dashboard/performance_diagnostics/views.py:597
+#: dashboard/user_management/views.py:347
 #, python-format
 msgid "%(days)s days ago"
 msgstr "%(days)s jours il y a"
 
-#: dashboard/performance_diagnostics/views.py:645
-#: dashboard/performance_diagnostics/views.py:684
+#: dashboard/performance_diagnostics/views.py:649
+#: dashboard/performance_diagnostics/views.py:688
 msgid "No users selected"
 msgstr "Aucun utilisateur sélectionné"
 
-#: dashboard/performance_diagnostics/views.py:655
-#: dashboard/performance_diagnostics/views.py:746
+#: dashboard/performance_diagnostics/views.py:659
+#: dashboard/performance_diagnostics/views.py:750
 msgid "Invalid request data"
 msgstr "Données de requête invalides"
 
-#: dashboard/performance_diagnostics/views.py:687
+#: dashboard/performance_diagnostics/views.py:691
 msgid "Invalid notification type"
 msgstr "Type de notification invalide"
 
-#: dashboard/performance_diagnostics/views.py:690
+#: dashboard/performance_diagnostics/views.py:694
 msgid "Message cannot be empty"
 msgstr "Le message ne peut pas être vide."
 
-#: dashboard/performance_diagnostics/views.py:709
+#: dashboard/performance_diagnostics/views.py:713
+#, python-format
 msgid "%(count)d email(s) sent successfully"
 msgstr "%(count)d courriel(s) envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:711
+#: dashboard/performance_diagnostics/views.py:715
+#, python-format
 msgid "%(count)d SMS message(s) sent successfully"
 msgstr "%(count)d SMS envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:713
+#: dashboard/performance_diagnostics/views.py:717
 #, python-format
 msgid "%(email_count)d email(s) and %(count)d SMS message(s) sent successfully"
 msgstr "%(email_count)d courriels et %(count)d SMS ont été envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:721
+#: dashboard/performance_diagnostics/views.py:725
 #, python-format
 msgid "%(count)d user(s) skipped (missing contact info)"
-msgstr "%(count)d utilisateur(s) ignoré(s) (informations de contact manquantes)"
+msgstr ""
+"%(count)d utilisateur(s) ignoré(s) (informations de contact manquantes)"
 
-#: dashboard/performance_diagnostics/views.py:724
-#: dashboard/performance_diagnostics/views.py:741
+#: dashboard/performance_diagnostics/views.py:728
+#: dashboard/performance_diagnostics/views.py:745
 #, python-format
 msgid "%(count)d notification(s) failed"
 msgstr "%(count)d notification(s) a/ont échoué"
 
-#: dashboard/performance_diagnostics/views.py:735
+#: dashboard/performance_diagnostics/views.py:739
 msgid "No notifications were sent"
 msgstr "Aucune notification n'a été envoyée"
 
-#: dashboard/performance_diagnostics/views.py:737
+#: dashboard/performance_diagnostics/views.py:741
+#, python-format
 msgid "%(count)d user(s) have no contact information"
 msgstr "%(count)d utilisateurs n'ont pas d'informations de contact"
 
@@ -1092,8 +1086,8 @@ msgid "New Issue"
 msgstr "Entrez un nouveau problème"
 
 #: dashboard/templates/layouts/sidebar.html:69
-#: dashboard/user_management/views.py:53 dashboard/user_management/views.py:188
-#: dashboard/user_management/views.py:437
+#: dashboard/user_management/views.py:55 dashboard/user_management/views.py:190
+#: dashboard/user_management/views.py:413
 msgid "User Management"
 msgstr "Gestion des utilisateurs"
 
@@ -1137,7 +1131,8 @@ msgstr "Courriel et SMS"
 
 #: dashboard/templates/performance_diagnostics/dashboard.html:129
 msgid "Choose how you want to notify the selected users"
-msgstr "Choisissez comment vous souhaitez notifier les utilisateurs sélectionnés"
+msgstr ""
+"Choisissez comment vous souhaitez notifier les utilisateurs sélectionnés"
 
 #: dashboard/templates/performance_diagnostics/dashboard.html:135
 msgid "Message"
@@ -1572,7 +1567,7 @@ msgid "Department Head"
 msgstr "Chef de département"
 
 #: dashboard/templates/user_management/profile.html:68
-#: dashboard/user_management/views.py:114
+#: dashboard/user_management/views.py:116
 msgid "Village Secretary"
 msgstr "Secrétaire de village"
 
@@ -1678,11 +1673,14 @@ msgid "Add New User"
 msgstr "Ajouter un nouvel utilisateur"
 
 #: dashboard/templates/user_management/user_management.html:19
-#: dashboard/user_management/constants.py:9
-#: dashboard/user_management/constants.py:15
-#: dashboard/user_management/views.py:250
+#: dashboard/user_management/constants.py:7
 msgid "GRM Manager"
 msgstr "Gestionnaire eMGP"
+
+#: dashboard/templates/user_management/user_management.html:26
+#: dashboard/user_management/constants.py:8
+msgid "Case Manager"
+msgstr "Gestionnaire de cas"
 
 #: dashboard/templates/user_management/user_management.html:60
 #: dashboard/templates/user_management/user_management.html:95
@@ -1719,27 +1717,27 @@ msgstr "Une erreur s'est produite lors de la création de l'utilisateur."
 msgid "Error loading user list."
 msgstr "Erreur lors du chargement de la liste des utilisateurs."
 
-#: dashboard/user_management/constants.py:21
+#: dashboard/user_management/constants.py:24
 #, python-format
 msgid "User '%(name)s' was successfully created."
 msgstr "L'utilisateur '%(name)s' a été créé avec succès."
 
-#: dashboard/user_management/constants.py:22
+#: dashboard/user_management/constants.py:25
 #, python-format
 msgid "User '%(name)s' was successfully updated."
 msgstr "L'utilisateur '%(name)s' a été mis à jour avec succès."
 
-#: dashboard/user_management/constants.py:25
+#: dashboard/user_management/constants.py:28
 msgid "There was an error creating the user. Please try again."
 msgstr ""
 "Une erreur s'est produite lors de la création de l'utilisateur. Veuillez "
 "réessayer."
 
-#: dashboard/user_management/constants.py:26
+#: dashboard/user_management/constants.py:29
 msgid "Department is required for Case Managers."
 msgstr "Le département est requis pour les gestionnaires de cas."
 
-#: dashboard/user_management/constants.py:28
+#: dashboard/user_management/constants.py:31
 #, python-format
 msgid ""
 "Department '%(dept)s' already has a head: %(head)s. You must unassign the "
@@ -1748,7 +1746,7 @@ msgstr ""
 "Le département '%(dept)s' a déjà un chef : %(head)s. Vous devez d'abord "
 "désassigner le chef actuel."
 
-#: dashboard/user_management/constants.py:30
+#: dashboard/user_management/constants.py:33
 msgid "Administrative level is required."
 msgstr "Le niveau administratif est requis."
 
@@ -1795,65 +1793,65 @@ msgstr "Est chef de département"
 msgid "Is Village Secretary"
 msgstr "Est secrétaire de village"
 
-#: dashboard/user_management/views.py:112
+#: dashboard/user_management/views.py:114
 msgid "Head"
 msgstr "Chef"
 
-#: dashboard/user_management/views.py:114
+#: dashboard/user_management/views.py:116
 msgid "Yes"
 msgstr "Oui"
 
-#: dashboard/user_management/views.py:114
+#: dashboard/user_management/views.py:116
 msgid "No"
 msgstr "Non"
 
-#: dashboard/user_management/views.py:144
+#: dashboard/user_management/views.py:146
 msgid "Invalid user type."
 msgstr "Type d'utilisateur invalide."
 
-#: dashboard/user_management/views.py:181
-#: dashboard/user_management/views.py:441
+#: dashboard/user_management/views.py:183
+#: dashboard/user_management/views.py:417
 msgid "User Profile"
 msgstr "Profil utilisateur"
 
-#: dashboard/user_management/views.py:251
+#: dashboard/user_management/views.py:240
 msgid "Can view and create issues for all departments and add users."
 msgstr ""
 "Peut consulter et créer des problèmes pour tous les départements et ajouter "
 "des utilisateurs."
 
-#: dashboard/user_management/views.py:260
+#: dashboard/user_management/views.py:249
 msgid "Can create issues and view assigned issues."
 msgstr "Peut créer des problèmes et consulter ceux qui lui sont attribués."
 
-#: dashboard/user_management/views.py:270
+#: dashboard/user_management/views.py:259
 msgid "Community representative for a specific region."
 msgstr "Représentant communautaire pour une région spécifique."
 
-#: dashboard/user_management/views.py:406
+#: dashboard/user_management/views.py:382
 msgid "Update User"
 msgstr "Mettre à jour l'utilisateur"
 
-#: dashboard/user_management/views.py:483
+#: dashboard/user_management/views.py:459
 msgid "The account was successfully deactivated."
 msgstr "Le compte a été désactivé avec succès."
 
-#: dashboard/user_management/views.py:488
+#: dashboard/user_management/views.py:464
 msgid "The account was activated successfully."
 msgstr "Le compte a été activé avec succès."
 
-#: dashboard/user_management/views.py:509
+#: dashboard/user_management/views.py:485
 msgid "Profile information"
 msgstr "Informations de profil"
 
-#: dashboard/user_management/views.py:534
+#: dashboard/user_management/views.py:510
 msgid ""
 "Please note that the Facilitator Code has changed due to the email change."
 msgstr ""
 "Veuillez noter que le Code de l'animateur a changé en raison du changement "
 "d'email."
 
-#: dashboard/user_management/views.py:538
+#: dashboard/user_management/views.py:514
 msgid "The profile information was successfully edited."
 msgstr "Les informations de profil ont été modifiées avec succès."
 
@@ -2057,19 +2055,149 @@ msgstr "un utilisateur avec cette adresse email existe déjà."
 msgid "Password confirmation does not match."
 msgstr "La confirmation du mot de passe ne correspond pas."
 
-#: grm/settings.py:139
+#: grm/notifications.py:117
+#, python-brace-format
+msgid "Issue Created - Tracking Code: {tracking_code}"
+msgstr "Problème créé - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:118
+#, python-brace-format
+msgid "Issue Status Updated - Tracking Code: {tracking_code}"
+msgstr "Statut du problème mis à jour - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:119
+#, python-brace-format
+msgid "Issue Assigned - Tracking Code: {tracking_code}"
+msgstr "Problème attribué - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:120
+#, python-brace-format
+msgid "Issue Updated - Tracking Code: {tracking_code}"
+msgstr "Problème mis à jour - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:123
+#, python-brace-format
+msgid "Issue Notification - Tracking Code: {tracking_code}"
+msgstr "Notification de problème - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:134
+#, python-brace-format
+msgid ""
+"Dear citizen,\n"
+"\n"
+"Your issue has been successfully created.\n"
+"Tracking Code: {tracking_code}\n"
+"Status: {status}\n"
+"\n"
+"Thank you for your report."
+msgstr ""
+" Cher citoyen,\n"
+"\n"
+"Votre demande a bien été enregistrée.\n"
+"Code de suivi: {tracking_code}\n"
+"Statut: {status}\n"
+"\n"
+"Merci pour votre signalement."
+
+#: grm/notifications.py:141
+#, python-brace-format
+msgid ""
+"Dear citizen,\n"
+"\n"
+"The status of your issue has been updated.\n"
+"Tracking Code: {tracking_code}\n"
+"New Status: {status}\n"
+"{additional_info}\n"
+"Thank you for your patience."
+msgstr ""
+"Cher citoyen,\n"
+"\n"
+"Le statut de votre dossier a été mis à jour.\n"
+"Code de suivi: {tracking_code}\n"
+"Nouveau statut: {status}\n"
+"{additional_info}\n"
+"Merci de votre patience."
+
+#: grm/notifications.py:149
+#, python-brace-format
+msgid ""
+"Dear citizen,\n"
+"\n"
+"Your issue has been assigned to a staff member.\n"
+"Tracking Code: {tracking_code}\n"
+"Status: {status}\n"
+"\n"
+"We are working on resolving your issue."
+msgstr ""
+"Cher citoyen,\n"
+"\n"
+"Votre problème a été attribué à un membre du personnel.\n"
+"Code de suivi: {tracking_code}\n"
+"Statut: {status}\n"
+"\n"
+"Nous travaillons à la résolution de votre problème."
+
+#: grm/notifications.py:156
+#, python-brace-format
+msgid ""
+"Dear citizen,\n"
+"\n"
+"Your issue has been updated.\n"
+"Tracking Code: {tracking_code}\n"
+"Status: {status}\n"
+"\n"
+"Thank you for your patience."
+msgstr ""
+"Cher citoyen,\n"
+"\n"
+"Votre dossier a été mis à jour.\n"
+"Code de suivi: {tracking_code}\n"
+"Statut: {status}\n"
+"\n"
+"Merci de votre patience."
+
+#: grm/notifications.py:167
+#, python-brace-format
+msgid ""
+"Dear citizen,\n"
+"\n"
+"Your issue has been updated.\n"
+"Tracking Code: {tracking_code}\n"
+"\n"
+"Thank you."
+msgstr ""
+"Cher citoyen,\n"
+"\n"
+"Votre dossier a été mis à jour.\n"
+"Code de suivi: {tracking_code}\n"
+"\n"
+"Merci."
+
+#: grm/notifications.py:178
+msgid "Resolution: {research_result}\n"
+msgstr "Résolution: {résultat_de_la_recherche}\n"
+
+#: grm/notifications.py:180
+msgid "Reject Reason: {reject_reason}\n"
+msgstr "Motif du refus: {reject_reason}\n"
+
+#: grm/notifications.py:184
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: grm/settings.py:132
 msgid "English"
 msgstr "Anglais"
 
-#: grm/settings.py:140
+#: grm/settings.py:133
 msgid "French"
 msgstr "Français"
 
-#: grm/settings.py:141
+#: grm/settings.py:134
 msgid "Kinyarwanda"
 msgstr "Kinyarwanda"
 
-#: grm/settings.py:142
+#: grm/settings.py:135
 msgid "Ethiopia"
 msgstr "Ethiopie"
 
@@ -2705,4 +2833,3 @@ msgid "The setup cannot be completed until all previous steps are completed."
 msgstr ""
 "La configuration ne peut pas être terminée tant que toutes les "
 "configurations précédentes ne sont pas terminées."
-
