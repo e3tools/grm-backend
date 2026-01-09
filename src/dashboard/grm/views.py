@@ -38,6 +38,7 @@ from grm.constants import (
     MAX_ATTACHMENTS,
     TEXTAREA_MAX_LENGTH,
 )
+from grm.notifications import send_issue_notification
 from grm.utils import get_issue_select_options_choices
 from issues.models import (
     AdministrativeRegion,
@@ -445,7 +446,6 @@ class NewIssueConfirmFormView(NewIssueMixin):
 
         # Remove the if not self.obj.assignee check - allow proceeding without assignee
 
-        self.set_contact_fields(data)
         self.obj.internal_code = self.obj.get_internal_code()
         self.obj.confirmed = True
         self.obj.anonymize_issue_data()
@@ -453,6 +453,16 @@ class NewIssueConfirmFormView(NewIssueMixin):
 
         # Update last_activity for issue creation
         self.request.user.update_last_activity()
+
+        # Send issue creation notification
+        try:
+            send_issue_notification(self.obj, 'created')
+        except Exception as e:
+            # Log error but don't fail the issue creation
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send creation notification for issue {self.obj.id}: {str(e)}")
 
         if citizen_to_delete:
             citizen_to_delete.delete()
@@ -692,6 +702,17 @@ class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
         worker = get_object_or_404(GovernmentWorker, user=assignee)
         self.obj.assignee = worker.user
         self.obj.save()
+
+        # Send assignment notification
+        try:
+            send_issue_notification(self.obj, 'assigned')
+        except Exception as e:
+            # Log error but don't fail the assignment
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send assignment notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
@@ -766,6 +787,16 @@ class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, ge
         # Update last_activity for status change
         request.user.update_last_activity()
 
+        # Send status change notification
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
@@ -808,6 +839,16 @@ class SubmitIssueResearchResultFormView(
         # Update last_activity for status change
         self.request.user.update_last_activity()
 
+        # Send status change notification (resolved)
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
@@ -843,6 +884,16 @@ class SubmitIssueRejectReasonFormView(
 
         # Update last_activity for status change
         self.request.user.update_last_activity()
+
+        # Send status change notification (rejected)
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
 
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")

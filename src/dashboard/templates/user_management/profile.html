@@ -204,7 +204,7 @@
 							<div class="text-muted small mb-1">{% translate 'Resolution Rate' %}</div>
 							<div class="progress" style="height: 25px;">
 								<div class="progress-bar
-									{% if activity_stats.resolution_rate >= 80 %}bg-success
+									{% if activity_stats.resolution_rate >= 80 %}bg-primary
 									{% elif activity_stats.resolution_rate >= 50 %}bg-warning
 									{% else %}bg-danger{% endif %}"
 									role="progressbar"
