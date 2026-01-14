@@ -15,7 +15,7 @@ window.setTimeout(function () {
 // alerts displayed in modal
 $(".messageModal").modal("show");
 window.setTimeout(function () {
-    $(".modal-success").modal("hide");
+    $(".modal-success").modal("hide").remove();
 }, 4000);
 
 // It is used to show the alerts from an ajax call
@@ -33,7 +33,7 @@ function showPopupMessage(responseJSON) {
     }
     let messages = $('#popup-messages-content');
     if (messages.length && content) {
-        messages.html(content);
+        messages.append(content);
     }
     $(".alert-div-content").fadeIn();
     window.setTimeout(function () {
@@ -42,11 +42,11 @@ function showPopupMessage(responseJSON) {
 
     $(".messageModal").show();
     window.setTimeout(function () {
-        $(".modal-success").hide();
+        $(".modal-success").hide().remove();
     }, 4000);
 
-    $('.close').click(function () {
-        $(this).closest('.alert').fadeOut();
+    $(document).on("click", ".close", function () {
+        $(this).closest('.alert').fadeOut().remove();
     });
     return response;
 }

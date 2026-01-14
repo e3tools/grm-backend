@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
@@ -768,6 +769,22 @@ class IssueStatusButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixi
         return context
 
 
+class IssueEscalateButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.TemplateView):
+    """Show issue escalate buttons. Permissions: GRM Manager or PIU staff."""
+
+    template_name = "grm/issue_escalate_buttons.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        region = self.obj.assignee.governmentworker.administrative_region
+        assignee_to_escalate = self.obj.get_assignee_to_escalate(region)
+        assignee_to_de_escalate = self.obj.get_assignee_to_de_escalate(region)
+        context["non_scalable"] = not assignee_to_escalate
+        context["non_descalable"] = not assignee_to_de_escalate
+
+        return context
+
+
 class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
     """Change issue status to open. Permissions: GRM Manager or PIU staff."""
 
@@ -1008,6 +1025,60 @@ class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, generic.View):
             msg = _("The password was not correct, we could not proceed with action.")
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
             context["msg"] = render(self.request, "common/messages.html").content.decode("utf-8")
+
+        return JsonResponse(context, safe=False)
+
+
+class EscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
+    """
+    Escalate the issue. Permissions: GRM Manager or PIU staff.
+    """
+
+    def post(self, request, *args, **kwargs):
+        assignee = self.obj.get_assignee_to_escalate(self.obj.assignee.governmentworker.administrative_region)
+
+        if assignee:
+            self.obj.assignee = assignee
+            self.obj.escalate_flag = False
+            self.obj.escalated_date = timezone.now()
+            self.obj.save()
+            msg = _("The issue was successfully escalated.")
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        else:
+            msg = _("There are no users to escalate the issue.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
+            "access_denied": not user_can_access_issue(self.request.user, self.obj),
+        }
+
+        return JsonResponse(context, safe=False)
+
+
+class DeEscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
+    """
+    De-escalate the issue. Permissions: GRM Manager or PIU staff.
+    """
+
+    def post(self, request, *args, **kwargs):
+        assignee = self.obj.get_assignee_to_de_escalate(self.obj.assignee.governmentworker.administrative_region)
+
+        if assignee:
+            self.obj.assignee = assignee
+            self.obj.save()
+            msg = _("The issue was successfully de-escalated.")
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        else:
+            msg = _("There are no users to de-escalate the issue.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
+            "access_denied": not user_can_access_issue(self.request.user, self.obj),
+        }
 
         return JsonResponse(context, safe=False)
 

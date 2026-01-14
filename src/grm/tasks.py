@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import cryptocode
 from celery import shared_task
@@ -111,14 +111,22 @@ def escalate_issues():
         "scale_is_not_available": [],
     }
     updated_issues = 0
+    now = timezone.now()
     for issue in issues:
         issues_updated = False
-        assignee = issue.get_assignee_to_escalate(issue.administrative_region)
+        assignee = issue.get_assignee_to_escalate(issue.assignee.governmentworker.administrative_region)
         if assignee:
             issue.assignee = assignee
             issue.escalate_flag = False
+            issue.escalated_date = now
             result["issues_updated"].append(issue.id)
             issues_updated = True
+            Comment.objects.create(
+                user=None,  # take None like user system
+                comment=_("The complaint has been escalated automatically because the processing time has passed."),
+                issue=issue,
+            )
+
         else:
             result["scale_is_not_available"].append(issue.id)
 
@@ -140,7 +148,7 @@ def escalate_old_issues():
     """
 
     issues = Issue.objects.filter(confirmed=True)
-    now = datetime.now(timezone.utc)
+    now = timezone.now()
     threshold = now - timedelta(days=3, hours=12)
 
     updated_issues = 0
@@ -166,15 +174,7 @@ def escalate_old_issues():
                     should_escalate = True
 
             if should_escalate:
-                issue.escalated_date = now
                 issue.escalate_flag = True
-
-                Comment.objects.create(
-                    user=None,  # take None like user system
-                    comment=_("The complaint has been escalated automatically because the processing time has passed."),
-                    issue=issue,
-                )
-
                 issue.save()
                 updated_issues += 1
 
