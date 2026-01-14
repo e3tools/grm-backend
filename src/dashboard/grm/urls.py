@@ -62,6 +62,21 @@ urlpatterns = [
         views.GetSensitiveIssueDataView.as_view(),
         name="get_sensitive_issue_data",
     ),
+    path(
+        "issue-escalate-buttons/<int:issue>/",
+        views.IssueEscalateButtonsTemplateView.as_view(),
+        name="issue_escalate_buttons",
+    ),
+    path(
+        "escalate-issue/<int:issue>/",
+        views.EscalateIssueView.as_view(),
+        name="escalate_issue",
+    ),
+    path(
+        "de-escalate-issue/<int:issue>/",
+        views.DeEscalateIssueView.as_view(),
+        name="de_escalate_issue",
+    ),
     path("edit-issue/<int:issue>/", views.EditIssueView.as_view(), name="edit_issue"),
     path(
         "add-comment-to-issue/<int:issue>/",

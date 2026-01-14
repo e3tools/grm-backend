@@ -269,7 +269,6 @@ class Command(BaseCommand):
                     if dry_run:
                         cmd_args.append('--dry-run')
 
-                    # Llamada al comando optimizado
                     try:
                         call_command('populate_status_bottlenecks', *cmd_args)
                     except Exception as exc:

@@ -54,7 +54,7 @@ class ProjectUpdateViewTest(ViewTestCase):
         self.assertTemplateUsed(response, "wizard/form.html")
 
     def test_get_context_contains_step(self):
-        """Test that context includes step and total steps."""
+        """Test that context includes step."""
         response = self.get(self.url, ajax=True)
         self.assertEqual(response.context["step"], self.step)
 

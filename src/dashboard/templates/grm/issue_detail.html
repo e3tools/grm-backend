@@ -34,6 +34,12 @@
 							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
 						</div>
 					</div>
+					<div class="overlay-wrapper">
+						<div id="escalate_buttons"></div>
+						<div class="overlay" id="load-escalate-buttons-spin">
+							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+						</div>
+					</div>
 
 					{% bootstrap_field form.assignee layout='horizontal' %}
 					<div class="row mr-2 mb-2">
@@ -251,6 +257,7 @@
 	<script type="text/javascript">
         let load_attachments_spin = $('#load-attachments-spin');
         let load_status_buttons_spin = $('#load-status-buttons-spin');
+        let load_escalate_buttons_spin = $('#load-escalate-buttons-spin');
         let status_change_modal = $('#statusChangeModalForm');
         let assignee = $('#id_assignee');
 
@@ -302,34 +309,41 @@
                     alert(error_server_message + "Error " + response.status);
                 }
                 load_status_buttons_spin.hide();
-                let accept_issue = $("#accept_issue");
-                let record_resolution = $("#record_resolution");
-                let reject_issue = $("#reject_issue");
+            });
+        }
 
-                accept_issue.on('click', function () {
-                    $.ajax({
-                        type: "POST",
-                        url: "{% url 'dashboard:grm:submit_issue_open_status' obj.id %}",
-                        success: function (response) {
-                            showPopupMessage(response);
-                            loadStatusButtons();
-                        },
-                        error: function (data) {
-                            alert(error_server_message + "Error " + data.status)
-                        }
-                    });
-                });
+		$(document).on("click", "#accept_issue", function () {
+			$.ajax({
+				type: "POST",
+				url: "{% url 'dashboard:grm:submit_issue_open_status' obj.id %}",
+				success: function (response) {
+					showPopupMessage(response);
+					loadStatusButtons();
+				},
+				error: function (data) {
+					alert(error_server_message + "Error " + data.status)
+				}
+			});
+		});
 
-                record_resolution.on('click', function () {
-                    let url = "{% url 'dashboard:grm:submit_issue_research_result' obj.id %}";
-                    research_result_form_ajax.load_form('#research_result_form', status_change_modal, url);
-                });
+		$(document).on("click", "#record_resolution", function () {
+			let url = "{% url 'dashboard:grm:submit_issue_research_result' obj.id %}";
+			research_result_form_ajax.load_form('#research_result_form', status_change_modal, url);
+		});
 
-                reject_issue.on('click', function () {
-                    let url = "{% url 'dashboard:grm:submit_issue_reject_reason' obj.id %}";
-                    reject_reason_form_ajax.load_form('#reject_reason_form', status_change_modal, url);
-                });
+		$(document).on("click", "#reject_issue", function () {
+			let url = "{% url 'dashboard:grm:submit_issue_reject_reason' obj.id %}";
+			reject_reason_form_ajax.load_form('#reject_reason_form', status_change_modal, url);
+		});
 
+        function loadEscalateButtons() {
+            load_escalate_buttons_spin.show();
+            $('#escalate_buttons').load("{% url 'dashboard:grm:issue_escalate_buttons' obj.id %}", function (
+                response, status, xhr) {
+                if (status === "error") {
+                    alert(error_server_message + "Error " + response.status);
+                }
+                load_escalate_buttons_spin.hide();
             });
         }
 
@@ -419,6 +433,7 @@
         $(document).ready(function () {
             loadAttachments();
             loadStatusButtons();
+            loadEscalateButtons();
         });
 
         $(".show-data").click(function () {
@@ -452,6 +467,52 @@
                         $("#citizen").html(data.citizen);
                     }
                     $('#checkPasswordModal').modal('hide')
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                }
+            });
+        });
+
+		$(document).on("click", "#escalate", function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'dashboard:grm:escalate_issue' obj.id %}",
+                success: function (response) {
+                    if (response.msg) {
+                        showPopupMessage(response);
+                    }
+                    if (response.access_denied) {
+                        window.location.replace('{% url 'dashboard:grm:review_issues' %}');
+                    }
+                    if (response.assignee) {
+                        const option = new Option(response.assignee.text, response.assignee.id, true, true);
+                        assignee.append(option).trigger('change');
+                    }
+                    loadEscalateButtons();
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                }
+            });
+        });
+
+        $(document).on("click", "#de-escalate", function () {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'dashboard:grm:de_escalate_issue' obj.id %}",
+                success: function (response) {
+                    if (response.msg) {
+                        showPopupMessage(response);
+                    }
+                    if (response.access_denied) {
+                        window.location.replace('{% url 'dashboard:grm:review_issues' %}');
+                    }
+                    if (response.assignee) {
+                        const option = new Option(response.assignee.text, response.assignee.id, true, true);
+                        assignee.append(option).trigger('change');
+                    }
+                    loadEscalateButtons();
                 },
                 error: function (data) {
                     alert(error_server_message + "Error " + data.status);

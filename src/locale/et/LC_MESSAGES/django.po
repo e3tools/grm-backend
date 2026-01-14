@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 13:15+0000\n"
+"POT-Creation-Date: 2026-01-14 21:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -90,9 +90,9 @@ msgstr ""
 #: issues/models.py:35 issues/models.py:63 issues/models.py:216
 #: issues/models.py:235 issues/models.py:254 issues/models.py:278
 #: issues/models.py:334 issues/models.py:349 issues/models.py:361
-#: issues/models.py:380 issues/models.py:417 issues/models.py:436
-#: issues/models.py:454 issues/models.py:482 issues/models.py:852
-#: issues/models.py:886
+#: issues/models.py:380 issues/models.py:420 issues/models.py:439
+#: issues/models.py:457 issues/models.py:485 issues/models.py:869
+#: issues/models.py:903
 msgid "Created at"
 msgstr ""
 
@@ -100,9 +100,9 @@ msgstr ""
 #: issues/models.py:36 issues/models.py:64 issues/models.py:217
 #: issues/models.py:236 issues/models.py:255 issues/models.py:279
 #: issues/models.py:335 issues/models.py:350 issues/models.py:362
-#: issues/models.py:381 issues/models.py:418 issues/models.py:437
-#: issues/models.py:455 issues/models.py:483 issues/models.py:586
-#: issues/models.py:853 issues/models.py:887
+#: issues/models.py:381 issues/models.py:421 issues/models.py:440
+#: issues/models.py:458 issues/models.py:486 issues/models.py:589
+#: issues/models.py:870 issues/models.py:904
 msgid "Updated at"
 msgstr ""
 
@@ -116,11 +116,11 @@ msgstr ""
 msgid "Facilitators"
 msgstr ""
 
-#: authentication/models.py:198 issues/models.py:486
+#: authentication/models.py:198 issues/models.py:489
 msgid "Citizen"
 msgstr ""
 
-#: authentication/models.py:199 issues/models.py:487
+#: authentication/models.py:199 issues/models.py:490
 msgid "Citizens"
 msgstr ""
 
@@ -388,107 +388,123 @@ msgstr ""
 msgid "Add comment"
 msgstr ""
 
-#: dashboard/grm/views.py:135
+#: dashboard/grm/views.py:136
 msgid "Add attachment"
 msgstr ""
 
-#: dashboard/grm/views.py:136 wizard/templates/wizard/regions.html:82
+#: dashboard/grm/views.py:137 wizard/templates/wizard/regions.html:82
 msgid "Upload"
 msgstr ""
 
-#: dashboard/grm/views.py:150
+#: dashboard/grm/views.py:151
 #, python-format
 msgid "A new attachment %s has been added to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:152
+#: dashboard/grm/views.py:153
 msgid "The attachment was successfully uploaded."
 msgstr ""
 
-#: dashboard/grm/views.py:156
+#: dashboard/grm/views.py:157
 msgid ""
 "An error has occurred that did not allow the attachment to be uploaded to "
 "the database. Please report to IT staff."
 msgstr ""
 
-#: dashboard/grm/views.py:162
+#: dashboard/grm/views.py:163
 #, python-format
 msgid ""
 "The file could not be uploaded because it has already reached the limit of "
 "%(max)d attachments."
 msgstr ""
 
-#: dashboard/grm/views.py:188
+#: dashboard/grm/views.py:189
 #, python-format
 msgid "The attachment %s has been deleted to the issue."
 msgstr ""
 
-#: dashboard/grm/views.py:191
+#: dashboard/grm/views.py:192
 msgid "The attachment was successfully deleted."
 msgstr ""
 
-#: dashboard/grm/views.py:234
+#: dashboard/grm/views.py:235
 msgid "Enter New Issue"
 msgstr ""
 
-#: dashboard/grm/views.py:324
+#: dashboard/grm/views.py:325
 msgid ""
 "No staff member was found to assign the issue to. The issue will be created "
 "without an assignee."
 msgstr ""
 
-#: dashboard/grm/views.py:512 dashboard/grm/views.py:667
+#: dashboard/grm/views.py:513 dashboard/grm/views.py:668
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr ""
 
-#: dashboard/grm/views.py:662
+#: dashboard/grm/views.py:663
 msgid "Issue Detail"
 msgstr ""
 
-#: dashboard/grm/views.py:716
+#: dashboard/grm/views.py:717
 msgid "The issue was successfully edited."
 msgstr ""
 
-#: dashboard/grm/views.py:735
+#: dashboard/grm/views.py:736
 msgid "The comment was sent successfully."
 msgstr ""
 
-#: dashboard/grm/views.py:800 dashboard/grm/views.py:852
-#: dashboard/grm/views.py:898
+#: dashboard/grm/views.py:817 dashboard/grm/views.py:869
+#: dashboard/grm/views.py:915
 msgid "The issue status was successfully updated."
 msgstr ""
 
-#: dashboard/grm/views.py:820
+#: dashboard/grm/views.py:837
 msgid "Please enter the resolution reached for this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:821 dashboard/grm/views.py:867
-#: dashboard/templates/grm/issue_detail.html:188
+#: dashboard/grm/views.py:838 dashboard/grm/views.py:884
+#: dashboard/templates/grm/issue_detail.html:194
 #: dashboard/templates/user_management/update.html:98
 #: dashboard/user_management/views.py:488
 msgid "Save"
 msgstr ""
 
-#: dashboard/grm/views.py:837
+#: dashboard/grm/views.py:854
 msgid "The complaint has been resolved"
 msgstr ""
 
-#: dashboard/grm/views.py:866
+#: dashboard/grm/views.py:883
 msgid "Enter the reason for rejecting this issue"
 msgstr ""
 
-#: dashboard/grm/views.py:883
+#: dashboard/grm/views.py:900
 msgid "The complaint has been rejected"
 msgstr ""
 
-#: dashboard/grm/views.py:1008 dashboard/user_management/views.py:468
+#: dashboard/grm/views.py:1025 dashboard/user_management/views.py:468
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 
-#: dashboard/models.py:31 dashboard/templates/grm/issue_detail.html:74
+#: dashboard/grm/views.py:1045
+msgid "The issue was successfully escalated."
+msgstr ""
+
+#: dashboard/grm/views.py:1048
+msgid "There are no users to escalate the issue."
+msgstr ""
+
+#: dashboard/grm/views.py:1071
+msgid "The issue was successfully de-escalated."
+msgstr ""
+
+#: dashboard/grm/views.py:1074
+msgid "There are no users to de-escalate the issue."
+msgstr ""
+
+#: dashboard/models.py:31 dashboard/templates/grm/issue_detail.html:80
 #: dashboard/templates/user_management/list.html:24 issues/models.py:270
-#: issues/models.py:332 issues/models.py:399 issues/models.py:452
+#: issues/models.py:332 issues/models.py:399 issues/models.py:455
 #: wizard/forms.py:34 wizard/views.py:648 wizard/views.py:658
 #: wizard/views.py:681 wizard/views.py:697 wizard/views.py:719
 #: wizard/views.py:760 wizard/views.py:770 wizard/views.py:787
@@ -701,7 +717,7 @@ msgstr ""
 
 #: dashboard/templates/common/modal_form.html:34
 #: dashboard/templates/common/toast_template.html:8
-#: dashboard/templates/grm/issue_detail.html:235
+#: dashboard/templates/grm/issue_detail.html:241
 #: dashboard/templates/performance_diagnostics/dashboard.html:97
 #: dashboard/templates/user_management/profile.html:250
 #: wizard/templates/wizard/regions.html:79
@@ -730,17 +746,17 @@ msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:19
 #: dashboard/templates/diagnostics/home.html:187
-#: dashboard/templates/grm/issue_detail.html:134
+#: dashboard/templates/grm/issue_detail.html:140
 #: dashboard/templates/grm/review_issues.html:47
 #: dashboard/templates/grm/review_issues.html:248
-#: dashboard/templates/search/_filters.html:11 issues/models.py:453
+#: dashboard/templates/search/_filters.html:11 issues/models.py:456
 #: wizard/views.py:771
 msgid "Type"
 msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:20
 #: dashboard/templates/diagnostics/home.html:182
-#: dashboard/templates/grm/issue_detail.html:124
+#: dashboard/templates/grm/issue_detail.html:130
 #: dashboard/templates/grm/review_issues.html:46
 #: dashboard/templates/grm/review_issues.html:243
 #: dashboard/templates/performance_diagnostics/dashboard.html:34
@@ -773,7 +789,7 @@ msgid "Clear all filters"
 msgstr ""
 
 #: dashboard/templates/diagnostics/home.html:192
-#: dashboard/templates/grm/issue_detail.html:110
+#: dashboard/templates/grm/issue_detail.html:116
 #: dashboard/templates/grm/new_issue_confirmation.html:185
 msgid "Location"
 msgstr ""
@@ -792,7 +808,7 @@ msgstr ""
 
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:892
+#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:909
 msgid "Attachments"
 msgstr ""
 
@@ -824,51 +840,59 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:42
+#: dashboard/templates/grm/issue_detail.html:48
 msgid "Reporter"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:52
+#: dashboard/templates/grm/issue_detail.html:58
 msgid "Reported"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:63
+#: dashboard/templates/grm/issue_detail.html:69
 msgid "Lodged by"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:79
-#: dashboard/templates/grm/issue_detail.html:99
-#: dashboard/templates/grm/issue_detail.html:115
+#: dashboard/templates/grm/issue_detail.html:85
+#: dashboard/templates/grm/issue_detail.html:105
+#: dashboard/templates/grm/issue_detail.html:121
 msgid "Confidential"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:84
+#: dashboard/templates/grm/issue_detail.html:90
 msgid "Show sensitive data"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:94
+#: dashboard/templates/grm/issue_detail.html:100
 #: dashboard/templates/grm/new_issue_confirmation.html:60
 msgid "Age"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:144
+#: dashboard/templates/grm/issue_detail.html:150
 msgid "Resolution"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:154
+#: dashboard/templates/grm/issue_detail.html:160
 msgid "Rejection reason"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:170
+#: dashboard/templates/grm/issue_detail.html:176
 msgid "Steps Taken"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:210
+#: dashboard/templates/grm/issue_detail.html:216
 msgid "Check password"
 msgstr ""
 
-#: dashboard/templates/grm/issue_detail.html:227
+#: dashboard/templates/grm/issue_detail.html:233
 msgid "Please enter your password to show sensitive data"
+msgstr ""
+
+#: dashboard/templates/grm/issue_escalate_buttons.html:5
+msgid "Escalate"
+msgstr ""
+
+#: dashboard/templates/grm/issue_escalate_buttons.html:8
+msgid "De-escalate"
 msgstr ""
 
 #: dashboard/templates/grm/issue_list.html:13
@@ -2054,7 +2078,7 @@ msgid ""
 "Thank you for your patience."
 msgstr ""
 
-#: grm/notifications.py:167
+#: grm/notifications.py:166
 #, python-brace-format
 msgid ""
 "Dear citizen,\n"
@@ -2065,33 +2089,33 @@ msgid ""
 "Thank you."
 msgstr ""
 
-#: grm/notifications.py:178
+#: grm/notifications.py:173
 #, python-brace-format
 msgid "Resolution: {research_result}\n"
 msgstr ""
 
-#: grm/notifications.py:180
+#: grm/notifications.py:175
 #, python-brace-format
 msgid "Reject Reason: {reject_reason}\n"
 msgstr ""
 
-#: grm/notifications.py:184
+#: grm/notifications.py:179
 msgid "Unknown"
 msgstr ""
 
-#: grm/settings.py:132
+#: grm/settings.py:131
 msgid "English"
 msgstr ""
 
-#: grm/settings.py:133
+#: grm/settings.py:132
 msgid "French"
 msgstr ""
 
-#: grm/settings.py:134
+#: grm/settings.py:133
 msgid "Kinyarwanda"
 msgstr ""
 
-#: grm/settings.py:135
+#: grm/settings.py:134
 msgid "Ethiopia"
 msgstr ""
 
@@ -2100,7 +2124,7 @@ msgstr ""
 msgid "The issue has been assigned to %s."
 msgstr ""
 
-#: grm/tasks.py:174
+#: grm/tasks.py:126
 msgid ""
 "The complaint has been escalated automatically because the processing time "
 "has passed."
@@ -2209,75 +2233,75 @@ msgstr ""
 msgid "Abbreviation"
 msgstr ""
 
-#: issues/models.py:412 wizard/views.py:726
+#: issues/models.py:415 wizard/views.py:726
 msgid "Confidentiality level"
 msgstr ""
 
-#: issues/models.py:415 wizard/views.py:730
+#: issues/models.py:418 wizard/views.py:730
 msgid "Redirection protocol"
 msgstr ""
 
-#: issues/models.py:421
+#: issues/models.py:424
 msgid "Issue Category"
 msgstr ""
 
-#: issues/models.py:422
+#: issues/models.py:425
 msgid "Issue Categories"
 msgstr ""
 
-#: issues/models.py:440
+#: issues/models.py:443
 msgid "Citizen Age Group"
 msgstr ""
 
-#: issues/models.py:441 wizard/constants.py:18 wizard/views.py:487
+#: issues/models.py:444 wizard/constants.py:18 wizard/views.py:487
 msgid "Citizen Age Groups"
 msgstr ""
 
-#: issues/models.py:458
+#: issues/models.py:461
 msgid "Citizen Group"
 msgstr ""
 
-#: issues/models.py:459 wizard/constants.py:20 wizard/views.py:511
+#: issues/models.py:462 wizard/constants.py:20 wizard/views.py:511
 msgid "Citizen Groups"
 msgstr ""
 
-#: issues/models.py:512
+#: issues/models.py:515
 msgid "Issue Status Change"
 msgstr ""
 
-#: issues/models.py:513
+#: issues/models.py:516
 msgid "Issue Status Changes"
 msgstr ""
 
-#: issues/models.py:599 issues/models.py:874
+#: issues/models.py:602 issues/models.py:891
 msgid "Issue"
 msgstr ""
 
-#: issues/models.py:600
+#: issues/models.py:603
 msgid "Issues"
 msgstr ""
 
-#: issues/models.py:856
+#: issues/models.py:873
 msgid "Comment"
 msgstr ""
 
-#: issues/models.py:857
+#: issues/models.py:874
 msgid "Comments"
 msgstr ""
 
-#: issues/models.py:876
+#: issues/models.py:893
 msgid "File attached to the issue"
 msgstr ""
 
-#: issues/models.py:884
+#: issues/models.py:901
 msgid "Uploaded by"
 msgstr ""
 
-#: issues/models.py:888
+#: issues/models.py:905
 msgid "Deleted at"
 msgstr ""
 
-#: issues/models.py:891
+#: issues/models.py:908
 msgid "Issue Attachment"
 msgstr ""
 

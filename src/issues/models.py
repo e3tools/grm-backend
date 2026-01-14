@@ -404,9 +404,12 @@ class IssueCategory(models.Model):
     assigned_appeal_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_appeal_categories'
     )
+
+    # TODO: Remove this field
     assigned_escalation_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_escalation_categories'
     )
+
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
     confidentiality_level = models.SlugField(
         default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES, verbose_name=_("Confidentiality level")
@@ -692,7 +695,7 @@ class Issue(models.Model):
         """
         Determine if a Case Manager (GovernmentWorker) is PIU staff for this issue.
 
-        New PIU staff criteria:
+        PIU staff criteria:
         1) User is the assignee of the issue; OR
         2) User is HEAD of their own department AND
            - Issue's category is assigned to that department AND
@@ -825,21 +828,31 @@ class Issue(models.Model):
         return assignee
 
     def get_assignee_to_escalate(self, region):
-        department = self.assignee.governmentworker.department
+        department = self.category.assigned_department.department
         parent = region.parent
-        region = parent
-        worker = GovernmentWorker.objects.filter(
-            department=int(department.id + 1), administrative_region=region
-        ).first()
+        worker = GovernmentWorker.objects.filter(department=department, administrative_region=parent).first()
         if worker:
-            facilitator = Facilitator.objects.filter(
-                user=worker.user, administrative_region=region, department=worker.department
-            ).first()
-            if facilitator:
-                return facilitator.user
-
+            return worker.user
         elif parent:
-            return self.get_assignee_to_escalate(region)
+            return self.get_assignee_to_escalate(parent)
+        else:
+            return None
+
+    def get_assignee_to_de_escalate(self, region):
+        department = self.category.assigned_department.department
+        children = region.children.all()
+        worker = GovernmentWorker.objects.filter(department=department, administrative_region_id__in=children).first()
+        if worker:
+            return worker.user
+        elif children:
+            assignee = None
+            for child in children:
+                assignee = self.get_assignee_to_de_escalate(child)
+                if assignee:
+                    break
+            return assignee
+        else:
+            return None
 
 
 class Comment(models.Model):
