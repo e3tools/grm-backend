@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -12,11 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
 from dashboard.grm.forms import SearchIssueForm
-from dashboard.mixins import (
-    JSONResponseMixin,
-    LoginRequiredAndAJAXRequestMixin,
-    PageMixin,
-)
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin, PageMixin
 from etl.models import ETLExecutionLog
 from issues.models import (
     AdministrativeRegion,
@@ -48,7 +45,7 @@ class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
         return context
 
 
-class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, generic.View):
 
     def post(self, request, *args, **kwargs):
         from django.core.management import call_command
@@ -85,10 +82,10 @@ class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
             "finished_at": finished_at,
         }
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, generic.View):
     def get(self, request, *args, **kwargs):
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
@@ -101,7 +98,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             try:
                 root_region = AdministrativeRegion.objects.select_related('parent').get(id=region_id)
             except AdministrativeRegion.DoesNotExist:
-                return self.render_to_json_response({"error": "Region not found"})
+                return JsonResponse({"error": "Region not found"})
         else:
             root_region = AdministrativeRegion.objects.get(parent__isnull=True)
 
@@ -119,8 +116,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
 
         # Get all descendant regions efficiently using CTE or optimized query
         if region_id:
-            # Usar raw SQL con CTE para mejor performance en regiones grandes
-            descendant_ids = self.get_descendant_ids_optimized(root_region.id)
+            descendant_ids = root_region.get_descendant_ids()
             filters &= Q(administrative_region__in=descendant_ids)
 
         # Single query to get all statistics using annotations
@@ -146,7 +142,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
         total_issues = issues_stats['total_count']
 
         if total_issues == 0:
-            return self.render_to_json_response(
+            return JsonResponse(
                 {
                     "region_stats": {},
                     "status_stats": {},
@@ -190,35 +186,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             "category_stats": category_stats,
         }
 
-        return self.render_to_json_response(statistics)
-
-    def get_descendant_ids_optimized(self, root_id):
-        """Gets descendant IDs using CTE for better performance"""
-        from django.db import connection
-
-        with connection.cursor() as cursor:
-            # Get the real name of the table
-            table_name = AdministrativeRegion._meta.db_table
-
-            cursor.execute(
-                f"""
-                WITH RECURSIVE region_tree AS (
-                    SELECT id, parent_id, name
-                    FROM {table_name}
-                    WHERE id = %s
-
-                    UNION ALL
-
-                    SELECT ar.id, ar.parent_id, ar.name
-                    FROM {table_name} ar
-                    INNER JOIN region_tree rt ON ar.parent_id = rt.id
-                )
-                SELECT id FROM region_tree
-            """,
-                [root_id],
-            )
-
-            return [row[0] for row in cursor.fetchall()]
+        return JsonResponse(statistics)
 
     def get_region_stats_optimized(self, filters, target_region, total_issues):
         """
@@ -259,10 +227,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
         target_regions.extend(direct_children)
 
         # Get all descendants of the target region (to filter issues that belong to this branch)
-        if hasattr(self, 'get_descendant_ids_optimized'):
-            target_branch_ids = self.get_descendant_ids_optimized(target_region.id)
-        else:
-            target_branch_ids = self.find_target_region_fallback(target_region.id)
+        target_branch_ids = target_region.get_descendant_ids()
 
         # Filter issues only from the target region branch
         branch_filter = filters & Q(administrative_region__in=target_branch_ids)
@@ -303,7 +268,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
             # Determine which target region this issue belongs to
             target_region_id = self.find_target_region(region_id, target_region.id, direct_children)
 
-            if target_region_id and target_region_id in region_counts:
+            if target_region_id in region_counts:
                 region_counts[target_region_id] += count
 
         # Build final result only with regions that have issues
@@ -322,7 +287,7 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
                         1 for item in region_data if item['administrative_region__id'] == target_region.id
                     )
                     if direct_issues_count > 0:
-                        region_name = "Global"
+                        region_name = _("Global")
                     else:
                         # If there are no direct issues, do not include the target region in the results
                         continue
@@ -427,48 +392,6 @@ class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, 
                 return root_region_id
 
         # Not found — return None
-        self._region_ancestry_cache[region_id] = None
-        return None
-
-    def find_target_region_fallback(self, region_id, root_region_id, direct_children_ids):
-        """
-        Fallback: climb the parents using a cached parent map. Efficient when
-        you prefetch a small subtree or can load parent relations for relevant nodes.
-        """
-        # quick checks
-        if region_id == root_region_id:
-            return root_region_id
-        if region_id in direct_children_ids:
-            return region_id
-
-        # build cache mapping id -> parent_id for the branch up to root
-        if not hasattr(self, "_parent_cache"):
-            self._parent_cache = {}
-
-        # walk upward until we hit root or we can't go further
-        current = region_id
-        while current and current != root_region_id:
-            parent = self._parent_cache.get(current)
-            if parent is None:
-                # load parent from DB
-                try:
-                    parent = AdministrativeRegion.objects.filter(id=current).values_list('parent_id', flat=True).first()
-                except Exception:
-                    parent = None
-                self._parent_cache[current] = parent
-
-            if parent == root_region_id:
-                # current is the direct child of root
-                self._region_ancestry_cache[region_id] = current
-                return current
-
-            current = parent
-
-        # If we reached root
-        if current == root_region_id:
-            self._region_ancestry_cache[region_id] = root_region_id
-            return root_region_id
-
         self._region_ancestry_cache[region_id] = None
         return None
 

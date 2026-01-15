@@ -23,10 +23,10 @@
 					<th>{% translate 'Photo' %}</th>
 					<th>{% translate 'Name' %}</th>
 					{% if user_type != grm_manager %}
-						<th>{% translate 'Role info' %}</th>
+						<th>{% translate 'Role Info' %}</th>
 						<th>{% translate 'Administrative Level' %}</th>
 					{% endif %}
-					<th>{% translate 'Last activity' %}</th>
+					<th>{% translate 'Last Activity' %}</th>
 					<th>Last active</th>
 					<th class="text-center">{% translate 'Action' %}</th>
 				</tr>
@@ -51,8 +51,8 @@
 								<td>{{ item.user.governmentworker.administrative_region.hierarchical_name }}</td>
 							{% endif %}
 						{% endif %}
-						<td>{{ item.user.last_login|date|default:never }}</td>
-						<td>{{ item.user.last_login|date:"Ymd" }}</td>
+						<td>{{ item.user.last_activity|date|default:never }}</td>
+						<td>{{ item.user.last_activity|date:"Ymd" }}</td>
 						<td class="text-center">
 							<a href="{% url 'dashboard:user_management:detail' item.user.id %}" class="btn btn-primary">
 								{% translate 'View Profile' %}

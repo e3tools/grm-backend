@@ -1,6 +1,11 @@
+from unittest.mock import patch
+
+import cryptocode
 from django.urls import reverse
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
+from authentication.models import Cdata
+from grm.constants import ALERT_CHOICE, EMAIL_CHOICE
 from grm.tests.base import DashboardTestCase
 from issues.factories import (
     AdministrativeRegionFactory,
@@ -72,3 +77,36 @@ class EditIssueViewTest(DashboardTestCase):
         self.issue.refresh_from_db()
         # Should remain unchanged
         assert self.issue.assignee_id != bad_id
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_post_sends_notification_when_assigning_with_contact_method(self, mock_send_mail):
+        """
+        Posting to edit (assign) an issue should send a notification if the issue has a contact_method.
+        """
+        grm_manager = UserFactory(grm_manager=True)
+        new_assignee = GovernmentWorkerFactory(administrative_region=self.root_region).user
+
+        # Create issue with contact information
+        issue_with_contact = IssueFactory(
+            confirmed=True,
+            administrative_region=self.region,
+            contact_medium=ALERT_CHOICE,
+            contact_method=EMAIL_CHOICE,
+            contact_information="citizen@example.com",
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("citizen@example.com", str(issue_with_contact.id))
+        Cdata.objects.create(key=str(issue_with_contact.id), data=encrypted_contact)
+
+        url = reverse("dashboard:grm:edit_issue", kwargs={"issue": issue_with_contact.id})
+        data = {"assignee": str(new_assignee.id)}
+
+        resp = self.post(url, data=data, ajax=True, user=grm_manager)
+        assert resp.status_code == 200
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Assigned" in call_args[1]['subject']

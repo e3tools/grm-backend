@@ -63,8 +63,9 @@ class CitizenLoginAPIViewTest(APITestCase):
         token = Token.objects.get(user=self.user)
         assert token.key == response.data["token"]
 
-        # Check last_login was updated
+        # Check last_login and last_activity was updated
         self.user.refresh_from_db()
+        assert self.user.last_login == self.user.last_activity
         assert self.user.last_login >= before
 
     def test_login_without_citizen_profile(self):

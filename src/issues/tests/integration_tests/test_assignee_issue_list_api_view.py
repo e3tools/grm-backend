@@ -66,6 +66,7 @@ class AssigneeIssueListAPIViewTest(APITestCase):
             assignee=self.user,
             citizen=self.citizen,
             description="Network connectivity issue",
+            confirmed=True,
         )
         self.issue2 = IssueFactory(
             status=self.status_open,
@@ -75,6 +76,7 @@ class AssigneeIssueListAPIViewTest(APITestCase):
             assignee=self.user,
             citizen=self.citizen,
             description="Water pollution complaint",
+            confirmed=True,
         )
 
         # Create an issue assigned to another user (should not appear in authenticated user’s results)
@@ -87,6 +89,7 @@ class AssigneeIssueListAPIViewTest(APITestCase):
             assignee=self.other_user,
             citizen=self.citizen,
             description="Other user issue",
+            confirmed=True,
         )
 
     def authenticate_with_token(self):
@@ -171,6 +174,7 @@ class AssigneeIssueListAPIViewTest(APITestCase):
             'administrative_region',
             'reporter',
             'assignee',
+            'description',
         ]
 
         for field in expected_fields:
@@ -337,6 +341,7 @@ class AssigneeIssueListAPIViewTest(APITestCase):
                     citizen=self.citizen,
                     assignee=self.user,
                     description="Issue description",
+                    confirmed=True,
                 )
             )
 

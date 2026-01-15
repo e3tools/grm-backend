@@ -1,6 +1,12 @@
+from unittest.mock import patch
+
+import cryptocode
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
+from authentication.models import Cdata
+from grm.constants import ALERT_CHOICE, EMAIL_CHOICE
 from grm.tests.base import DashboardTestCase
 from issues.factories import (
     AdministrativeRegionFactory,
@@ -31,9 +37,14 @@ class SubmitIssueOpenStatusViewTest(DashboardTestCase):
         self.url = reverse("dashboard:grm:submit_issue_open_status", kwargs={"issue": self.issue.id})
 
     def test_post_by_grm_manager_sets_open_status(self):
+        before = timezone.now()
         manager = UserFactory(grm_manager=True)
         resp = self.post(self.url, data={}, ajax=True, user=manager)
         assert resp.status_code == 200
+
+        # Check last_activity was updated
+        manager.refresh_from_db()
+        assert manager.last_activity >= before
 
         # Reload and assert status changed
         self.issue.refresh_from_db()
@@ -87,3 +98,33 @@ class SubmitIssueOpenStatusViewTest(DashboardTestCase):
 
         # Ensure no ISC was created for open_status and any existing ISC remains unchanged
         assert not IssueStatusChange.objects.filter(issue=self.issue, status=self.open_status).exists()
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_post_sends_notification_when_changing_to_open_status(self, mock_send_mail):
+        """
+        Posting to change status to open should send a notification if the issue has a contact_method.
+        """
+
+        issue_with_contact = IssueFactory(
+            confirmed=True,
+            status=self.initial_status,
+            administrative_region=self.region,
+            contact_medium=ALERT_CHOICE,
+            contact_method=EMAIL_CHOICE,
+            contact_information="citizen@example.com",
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("citizen@example.com", str(issue_with_contact.id))
+        Cdata.objects.create(key=str(issue_with_contact.id), data=encrypted_contact)
+
+        url = reverse("dashboard:grm:submit_issue_open_status", kwargs={"issue": issue_with_contact.id})
+        manager = UserFactory(grm_manager=True)
+        resp = self.post(url, data={}, ajax=True, user=manager)
+        assert resp.status_code == 200
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Status Updated" in call_args[1]['subject']

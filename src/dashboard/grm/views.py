@@ -7,9 +7,10 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
@@ -29,12 +30,7 @@ from dashboard.grm.forms import (
     SearchIssueForm,
 )
 from dashboard.grm.permissions import reporter_can_access_issue, user_can_access_issue
-from dashboard.mixins import (
-    JSONResponseMixin,
-    LoginRequiredAndAJAXRequestMixin,
-    ModalFormMixin,
-    PageMixin,
-)
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin, ModalFormMixin, PageMixin
 from dashboard.user_management.forms import PasswordConfirmForm
 from grm.constants import (
     ALERT_CHOICE,
@@ -43,6 +39,7 @@ from grm.constants import (
     MAX_ATTACHMENTS,
     TEXTAREA_MAX_LENGTH,
 )
+from grm.notifications import send_issue_notification
 from grm.utils import get_issue_select_options_choices
 from issues.models import (
     AdministrativeRegion,
@@ -125,7 +122,6 @@ class UploadIssueAttachmentFormView(
     IssueMixin,
     LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    JSONResponseMixin,
     generic.FormView,
 ):
     """
@@ -148,6 +144,9 @@ class UploadIssueAttachmentFormView(
             try:
                 IssueAttachment.objects.create(issue=self.obj, file=data["file"], uploaded_by=user)
 
+                # Update last_activity for attachment upload
+                user.update_last_activity()
+
                 # Add a comment relative to the action: Add new attachment to the issue.
                 comment = _("A new attachment %s has been added to the issue.") % data["file"].name
                 Comment.objects.create(user=user, comment=comment, issue=self.obj)
@@ -165,12 +164,10 @@ class UploadIssueAttachmentFormView(
             ) % {"max": MAX_ATTACHMENTS}
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class IssueAttachmentDeleteView(
-    IssueMixin, LoginRequiredAndAJAXRequestMixin, ModalFormMixin, JSONResponseMixin, generic.View
-):
+class IssueAttachmentDeleteView(IssueMixin, LoginRequiredAndAJAXRequestMixin, ModalFormMixin, generic.View):
     """
     Delete attachment from an issue.
 
@@ -185,6 +182,9 @@ class IssueAttachmentDeleteView(
             attachment_name = attachment.filename
             attachment.delete()
 
+            # Update last_activity for attachment deletion
+            request.user.update_last_activity()
+
             # Add a comment relative to the action: Attachment deletion
             comment = _("The attachment %s has been deleted to the issue.") % attachment_name
             Comment.objects.create(user=request.user, comment=comment, issue=self.obj)
@@ -192,7 +192,7 @@ class IssueAttachmentDeleteView(
         msg = _("The attachment was successfully deleted.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
 class IssueAttachmentListView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.ListView):
@@ -447,11 +447,24 @@ class NewIssueConfirmFormView(NewIssueMixin):
 
         # Remove the if not self.obj.assignee check - allow proceeding without assignee
 
-        self.set_contact_fields(data)
         self.obj.internal_code = self.obj.get_internal_code()
         self.obj.confirmed = True
         self.obj.anonymize_issue_data()
         self.obj.save()
+
+        # Update last_activity for issue creation
+        self.request.user.update_last_activity()
+
+        # Send issue creation notification
+        try:
+            send_issue_notification(self.obj, 'created')
+        except Exception as e:
+            # Log error but don't fail the issue creation
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send creation notification for issue {self.obj.id}: {str(e)}")
+
         if citizen_to_delete:
             citizen_to_delete.delete()
         return HttpResponseRedirect(reverse("dashboard:grm:new_issue_step_6", kwargs={"issue": self.kwargs["issue"]}))
@@ -501,7 +514,7 @@ class ReviewIssuesFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     active_level1 = "review_issues"
 
 
-class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class IssueListView(LoginRequiredAndAJAXRequestMixin, generic.View):
     template_name = "grm/issue_list.html"
     context_object_name = "issues"
 
@@ -611,7 +624,7 @@ class IssueListView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic
             "prev_cursor_id": first_issue.id if first_issue else None,
         }
 
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
 class IssueCommentsContextMixin:
@@ -682,7 +695,7 @@ class IssueDetailsFormView(
         return context
 
 
-class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
     """Edit issue (assign/reassign). Permissions: GRM Manager or PIU staff."""
 
     def post(self, request, *args, **kwargs):
@@ -690,13 +703,24 @@ class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMi
         worker = get_object_or_404(GovernmentWorker, user=assignee)
         self.obj.assignee = worker.user
         self.obj.save()
+
+        # Send assignment notification
+        try:
+            send_issue_notification(self.obj, 'assigned')
+        except Exception as e:
+            # Log error but don't fail the assignment
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send assignment notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
     """Add comment to an issue. Permissions: GRM Manager or PIU staff."""
 
     def post(self, request, *args, **kwargs):
@@ -705,13 +729,17 @@ class AddCommentToIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONRe
         comment = request.POST.get("comment").strip()[:TEXTAREA_MAX_LENGTH]
         if comment:
             Comment.objects.create(user=user, comment=comment, issue=self.obj)
+
+            # Update last_activity for comment creation
+            user.update_last_activity()
+
             msg = _("The comment was sent successfully.")
             messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         else:
             msg = EMPTY_COMMENT_ERROR_MESSAGE
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
 class IssueCommentListView(
@@ -741,7 +769,23 @@ class IssueStatusButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixi
         return context
 
 
-class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class IssueEscalateButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.TemplateView):
+    """Show issue escalate buttons. Permissions: GRM Manager or PIU staff."""
+
+    template_name = "grm/issue_escalate_buttons.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        region = self.obj.assignee.governmentworker.administrative_region
+        assignee_to_escalate = self.obj.get_assignee_to_escalate(region)
+        assignee_to_de_escalate = self.obj.get_assignee_to_de_escalate(region)
+        context["non_scalable"] = not assignee_to_escalate
+        context["non_descalable"] = not assignee_to_de_escalate
+
+        return context
+
+
+class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
     """Change issue status to open. Permissions: GRM Manager or PIU staff."""
 
     def check_permissions(self):
@@ -756,16 +800,29 @@ class SubmitIssueOpenStatusView(IssueMixin, LoginRequiredAndAJAXRequestMixin, JS
         self.obj.reject_reason = ""
         self.obj.status = IssueStatus.objects.get(open_status=True)
         self.obj.save()
+
+        # Update last_activity for status change
+        request.user.update_last_activity()
+
+        # Send status change notification
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
 class SubmitIssueResearchResultFormView(
     LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    JSONResponseMixin,
     IssueFormMixin,
 ):
     """
@@ -796,17 +853,29 @@ class SubmitIssueResearchResultFormView(
 
         Comment.objects.create(user=self.request.user, comment=_("The complaint has been resolved"), issue=self.obj)
 
+        # Update last_activity for status change
+        self.request.user.update_last_activity()
+
+        # Send status change notification (resolved)
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
 class SubmitIssueRejectReasonFormView(
     LoginRequiredAndAJAXRequestMixin,
     ModalFormMixin,
-    JSONResponseMixin,
     IssueFormMixin,
 ):
     form_class = IssueRejectReasonForm
@@ -830,14 +899,27 @@ class SubmitIssueRejectReasonFormView(
 
         Comment.objects.create(user=self.request.user, comment=_("The complaint has been rejected"), issue=self.obj)
 
+        # Update last_activity for status change
+        self.request.user.update_last_activity()
+
+        # Send status change notification (rejected)
+        try:
+            send_issue_notification(self.obj, 'status_changed')
+        except Exception as e:
+            # Log error but don't fail the status change
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send status change notification for issue {self.obj.id}: {str(e)}")
+
         msg = _("The issue status was successfully updated.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
 
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class GetChoicesForOptionView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class GetChoicesForOptionView(LoginRequiredAndAJAXRequestMixin, generic.View):
     def get(self, request, *args, **kwargs):
         model_class = request.GET.get("model_class")
         parent_id = int(request.GET.get("parent_id"))
@@ -845,7 +927,7 @@ class GetChoicesForOptionView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixi
         return render(self.request, "common/options.html", {"values": data})
 
 
-class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin, generic.View):
     """
     Get choices for next administrative level (children of a region).
 
@@ -878,10 +960,10 @@ class GetChoicesForNextAdministrativeLevelView(LoginRequiredAndAJAXRequestMixin,
         if children and exclude_lower_level and not children[0].children.exists():
             data = []
 
-        return self.render_to_json_response(data, safe=False)
+        return JsonResponse(data, safe=False)
 
 
-class GetAncestorAdministrativeLevelsView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class GetAncestorAdministrativeLevelsView(LoginRequiredAndAJAXRequestMixin, generic.View):
     """
     View that returns the ancestor administrative levels for a given region.
 
@@ -899,10 +981,10 @@ class GetAncestorAdministrativeLevelsView(LoginRequiredAndAJAXRequestMixin, JSON
         if region_id:
             region = get_object_or_404(AdministrativeRegion, id=region_id)
             ancestors = region.get_full_hierarchy_ids()[1:]
-        return self.render_to_json_response(ancestors, safe=False)
+        return JsonResponse(ancestors, safe=False)
 
 
-class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, generic.View):
     """
     Get sensitive/confidential data for an issue.
 
@@ -944,10 +1026,64 @@ class GetSensitiveIssueDataView(LoginRequiredAndAJAXRequestMixin, JSONResponseMi
             messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
             context["msg"] = render(self.request, "common/messages.html").content.decode("utf-8")
 
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, generic.View):
+class EscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
+    """
+    Escalate the issue. Permissions: GRM Manager or PIU staff.
+    """
+
+    def post(self, request, *args, **kwargs):
+        assignee = self.obj.get_assignee_to_escalate(self.obj.assignee.governmentworker.administrative_region)
+
+        if assignee:
+            self.obj.assignee = assignee
+            self.obj.escalate_flag = False
+            self.obj.escalated_date = timezone.now()
+            self.obj.save()
+            msg = _("The issue was successfully escalated.")
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        else:
+            msg = _("There are no users to escalate the issue.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
+            "access_denied": not user_can_access_issue(self.request.user, self.obj),
+        }
+
+        return JsonResponse(context, safe=False)
+
+
+class DeEscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
+    """
+    De-escalate the issue. Permissions: GRM Manager or PIU staff.
+    """
+
+    def post(self, request, *args, **kwargs):
+        assignee = self.obj.get_assignee_to_de_escalate(self.obj.assignee.governmentworker.administrative_region)
+
+        if assignee:
+            self.obj.assignee = assignee
+            self.obj.save()
+            msg = _("The issue was successfully de-escalated.")
+            messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
+        else:
+            msg = _("There are no users to de-escalate the issue.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
+            "access_denied": not user_can_access_issue(self.request.user, self.obj),
+        }
+
+        return JsonResponse(context, safe=False)
+
+
+class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, generic.View):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         selected_id = request.GET.get('id')
@@ -968,4 +1104,4 @@ class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, JSONRespo
             qs = qs.exclude(issues__isnull=True)
 
         results = [{'id': item.id, 'text': str(item)} for item in qs[:10]]
-        return self.render_to_json_response(results, safe=False)
+        return JsonResponse(results, safe=False)

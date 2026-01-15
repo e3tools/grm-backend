@@ -66,6 +66,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
             reporter=self.user,
             citizen=self.citizen,
             description="Network connectivity issue",
+            confirmed=True,
         )
         self.issue2 = IssueFactory(
             status=self.status_open,
@@ -75,6 +76,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
             reporter=self.user,
             citizen=self.citizen,
             description="Water pollution complaint",
+            confirmed=True,
         )
 
         # Create an issue reported by another user (should not appear in authenticated user’s results)
@@ -87,6 +89,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
             reporter=self.other_user,
             citizen=self.citizen,
             description="Other user issue",
+            confirmed=True,
         )
 
     def authenticate_with_token(self):
@@ -171,6 +174,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
             'administrative_region',
             'reporter',
             'assignee',
+            'description',
         ]
 
         for field in expected_fields:
@@ -338,6 +342,7 @@ class ReporterIssueListAPIViewTest(APITestCase):
                     citizen=self.citizen,
                     reporter=self.user,
                     description="Issue description",
+                    confirmed=True,
                 )
             )
 

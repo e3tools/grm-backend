@@ -134,8 +134,10 @@ class IssueSerializer(serializers.ModelSerializer):
         - assignee: Nested User object
         - reporter: Nested User object
         - status: Nested IssueStatus object
+        - description: Brief text describing the issue
     """
 
+    description = serializers.CharField(read_only=True)
     intake_date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ', read_only=True)
     assignee = UserBasicSerializer(read_only=True)
     reporter = UserBasicSerializer(read_only=True)
@@ -150,6 +152,7 @@ class IssueSerializer(serializers.ModelSerializer):
         model = Issue
         fields = [
             'id',
+            'description',
             'tracking_code',
             'intake_date',
             'administrative_region',
@@ -339,9 +342,11 @@ class IssueCreateSerializer(serializers.ModelSerializer):
             category_id=category_data,
             issue_type_id=issue_type_data,
             issue_sub_type_id=issue_sub_type_data,
+            confirmed=True,
             **validated_data
         )
         issue.save()
+        issue.anonymize_issue_data()
         return issue
 
     def validate(self, data):
@@ -470,8 +475,9 @@ class IssueAttachmentSerializer(serializers.ModelSerializer):
             'uploaded_by',
             'created_date',
             'updated_date',
+            'deleted_date',
         ]
-        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date', 'updated_date']
+        read_only_fields = ['id', 'url', 'uploaded_by', 'created_date', 'updated_date', 'deleted_date']
 
 
 class IssueAttachmentCreateSerializer(serializers.ModelSerializer):

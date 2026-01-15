@@ -1,9 +1,32 @@
-from django.db.models import DateTimeField, FloatField, IntegerField, OuterRef, Subquery
+import json
+
+from django.contrib import messages
+from django.db.models import (
+    Count,
+    DateTimeField,
+    FloatField,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+)
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
+from authentication.models import Facilitator, GovernmentWorker, User
 from dashboard.constants import (
+    COLOR_DANGER,
+    COLOR_PRIMARY,
+    COLOR_SECONDARY,
+    COLOR_WARNING,
+    ICON_ALERT,
+    ICON_CHECK,
+    LABEL_ACTIVE,
+    LABEL_INACTIVE,
+    LABEL_LOW_ACTIVITY,
     NOT_APPLICABLE,
     PERIOD_CHOICES,
     STATUS_AT_RISK,
@@ -14,11 +37,21 @@ from dashboard.constants import (
 )
 from dashboard.grm.forms import SearchIssueForm
 from dashboard.mixins import (
+    DataTableMixin,
     PageMixin,
     UserManagementAndAJAXMixin,
     UserManagementPermissionMixin,
 )
-from dashboard.models import PerformanceMetrics, StatusBottleneckMetrics
+from dashboard.models import (
+    PerformanceMetrics,
+    RegionPerformanceMetrics,
+    StatusBottleneckMetrics,
+)
+from dashboard.services import NotificationService
+from dashboard.user_management.constants import (
+    CASE_MANAGER_DISPLAY,
+    FACILITATOR_DISPLAY,
+)
 from issues.models import AdministrativeRegion, Issue, IssueCategory, IssueStatus
 
 
@@ -273,3 +306,454 @@ class StatusBottleneckMetricsAPIView(UserManagementAndAJAXMixin, generic.View):
             return IssueCategory.objects.get(id=category_id)
         except (IssueCategory.DoesNotExist, ValueError):
             return None
+
+
+class RegionPerformanceAPIView(UserManagementAndAJAXMixin, DataTableMixin, generic.View):
+    """
+    AJAX endpoint that returns JSON for DataTables.
+    Accepts filters: period, category, administrative_region.
+    Behavior:
+      - region with children -> return metrics for children
+      - region without children -> return metrics for the selected region, set no_children=True and message
+      - no region -> return metrics for children of the root_region (parent IS NULL)
+    """
+
+    def get(self, request, *args, **kwargs):
+        return self.handle(request, *args, **kwargs)
+
+    def get_column_key_from_index(self, idx):
+        idx_map = {0: 'region', 1: 'open_issues', 2: 'resolution', 3: 'workers', 4: 'performance'}
+        return idx_map.get(idx)
+
+    def get_base_queryset(self, request):
+        period = request.GET.get('period', WEEKLY_CHOICE)
+        valid_periods = {c[0] for c in PERIOD_CHOICES}
+        if period not in valid_periods:
+            period = WEEKLY_CHOICE
+        qs = (
+            RegionPerformanceMetrics.objects.filter(period=period)
+            .select_related('region', 'category')
+            .only(
+                'id',
+                'region__id',
+                'region__name',
+                'category__id',
+                'category__name',
+                'open_issues_count',
+                'avg_resolution_days',
+                'active_workers_count',
+                'total_workers_in_region',
+                'overall_performance_score',
+                'open_issues_score',
+                'resolution_score',
+                'active_workers_score',
+            )
+        )
+        return qs
+
+    def apply_filters(self, qs, params):
+        raw = params['raw']
+        category_id = raw.get('category')
+        region_id = raw.get('administrative_region')
+
+        # reset flags (por si se reutiliza la instancia)
+        self._no_children = False
+        self._message = None
+
+        if category_id:
+            try:
+                qs = qs.filter(category_id=int(category_id))
+            except Exception:
+                return qs.none()
+        else:
+            qs = qs.filter(category__isnull=True)
+
+        no_sublevel_available_msg = _(
+            'No administrative sublevel is available. Showing current selected administrative level.'
+        )
+
+        if region_id:
+            try:
+                region = AdministrativeRegion.objects.get(id=region_id)
+            except (AdministrativeRegion.DoesNotExist, ValueError):
+                return qs.none()
+
+            children_qs = region.children.all()
+            if not children_qs.exists():
+                self._no_children = True
+                self._message = no_sublevel_available_msg
+                qs = qs.filter(region=region)
+            else:
+                child_ids = list(children_qs.values_list('id', flat=True))
+                qs = qs.filter(region__in=child_ids)
+        else:
+            root_region = AdministrativeRegion.objects.filter(parent__isnull=True).first()
+            if root_region:
+                children_qs = root_region.children.all()
+                if not children_qs.exists():
+                    self._no_children = True
+                    self._message = no_sublevel_available_msg
+                    qs = qs.filter(region=root_region)
+                else:
+                    child_ids = list(children_qs.values_list('id', flat=True))
+                    qs = qs.filter(region__in=child_ids)
+            else:
+                qs = qs.filter(region__parent__isnull=True)
+
+        return qs
+
+    def get_sort_map(self):
+        return {
+            'region': 'region__name',
+            'open_issues': 'open_issues_count',
+            'resolution': 'avg_resolution_days',
+            'workers': 'active_workers_count',
+            'performance': '-overall_performance_score',
+        }
+
+    def serialize_row(self, metric):
+        perf_status = metric.get_performance_status()
+        return {
+            'id': metric.region.id,
+            'region_name': metric.region.name,
+            'open_issues_count': metric.open_issues_count,
+            'open_issues_color': metric.get_open_issues_color(),
+            'avg_resolution_days': metric.avg_resolution_days,
+            'resolution_color': metric.get_resolution_time_color(),
+            'active_workers_count': metric.active_workers_count,
+            'total_workers_in_region': metric.total_workers_in_region,
+            'workers_percentage': round(metric.get_active_workers_percentage(), 1),
+            'workers_color': metric.get_active_workers_color(),
+            'performance_status': perf_status.get('status') if isinstance(perf_status, dict) else perf_status,
+            'performance_badge_class': perf_status.get('badge_class') if isinstance(perf_status, dict) else '',
+            'performance_icon': perf_status.get('icon_class') if isinstance(perf_status, dict) else '',
+            'performance_badge_text': perf_status.get('badge_text') if isinstance(perf_status, dict) else '',
+            'performance_sort_order': perf_status.get('sort_order') if isinstance(perf_status, dict) else 0,
+        }
+
+
+class InactiveUsersAPIView(UserManagementAndAJAXMixin, DataTableMixin, generic.View):
+    """
+    AJAX endpoint that returns JSON data for inactive case managers and facilitators.
+    Returns users who have not logged in for 7+ days (configurable via inactivity_threshold parameter).
+    """
+
+    def get(self, request, *args, **kwargs):
+        return self.handle(request, *args, **kwargs)
+
+    def get_column_key_from_index(self, idx):
+        idx_map = {0: 'name', 1: 'role', 2: 'last_activity', 3: 'open_issues', 4: 'performance'}
+        return idx_map.get(idx)
+
+    def get_base_queryset(self, request):
+        role_filter = request.GET.get('role_filter')
+        if role_filter == 'government_worker':
+            ids = list(GovernmentWorker.objects.values_list('user_id', flat=True))
+        elif role_filter == 'facilitator':
+            ids = list(Facilitator.objects.values_list('user_id', flat=True))
+        else:
+            gw = set(GovernmentWorker.objects.values_list('user_id', flat=True))
+            fac = set(Facilitator.objects.values_list('user_id', flat=True))
+            ids = list(gw | fac)
+
+        cutoff = timezone.now() - timezone.timedelta(days=self.parse_int(request.GET.get('inactivity_threshold'), 7))
+        qs = (
+            User.objects.filter(id__in=ids)
+            .filter(Q(last_activity__lt=cutoff) | Q(last_activity__isnull=True))
+            .select_related(
+                'governmentworker',
+                'governmentworker__administrative_region',
+                'facilitator',
+                'facilitator__administrative_region',
+            )
+            .annotate(
+                open_issues_count=Count(
+                    'assigned_issues',
+                    filter=Q(assigned_issues__status__open_status=True, assigned_issues__confirmed=True),
+                )
+            )
+        )
+
+        region_id = request.GET.get('administrative_region')
+        if region_id:
+            try:
+                region = AdministrativeRegion.objects.get(id=region_id)
+                descendant_ids = region.get_descendant_ids(include_self=True)
+                gw_ids = GovernmentWorker.objects.filter(administrative_region_id__in=descendant_ids).values_list(
+                    'user_id', flat=True
+                )
+                fac_ids = Facilitator.objects.filter(administrative_region_id__in=descendant_ids).values_list(
+                    'user_id', flat=True
+                )
+                qs = qs.filter(id__in=list(set(list(gw_ids) + list(fac_ids))))
+            except Exception:
+                pass
+
+        has_open = request.GET.get('has_open_issues')
+        if has_open == 'true':
+            qs = qs.filter(open_issues_count__gt=0)
+        elif has_open == 'false':
+            qs = qs.filter(open_issues_count=0)
+        return qs
+
+    def get_sort_map(self):
+        return {
+            'name': 'first_name',
+            'open_issues': 'open_issues_count',
+        }
+
+    def manual_sort(self, qs_or_list, sort_by, sort_dir):
+        if sort_by not in ('role', 'last_activity', 'performance'):
+            return None
+        users = list(qs_or_list)
+        if sort_by == 'role':
+            users.sort(
+                key=lambda u: ('facilitator' if getattr(u, 'facilitator', None) else 'government_worker'),
+                reverse=(sort_dir == 'desc'),
+            )
+            return users
+        if sort_by == 'last_activity':
+            users.sort(
+                key=lambda u: (
+                    u.last_activity
+                    if u.last_activity is not None
+                    else timezone.datetime.min.replace(tzinfo=timezone.utc)
+                ),
+                reverse=(sort_dir == 'desc'),
+            )
+            return users
+        if sort_by == 'performance':
+
+            def perf_value(u):
+                last_activity_days = self._calculate_last_activity_days(u)
+                perf = self._calculate_performance_rating(last_activity_days)
+                label = perf.get('label', '')
+                if 'Active' in str(label):
+                    return 3
+                if 'Low' in str(label):
+                    return 2
+                return 1
+
+            users.sort(key=lambda u: perf_value(u), reverse=(sort_dir == 'desc'))
+            return users
+
+    def serialize_row(self, user):
+        role = None
+        role_type = None
+        if getattr(user, 'governmentworker', None):
+            role = CASE_MANAGER_DISPLAY
+            role_type = 'government_worker'
+        elif getattr(user, 'facilitator', None):
+            role = FACILITATOR_DISPLAY
+            role_type = 'facilitator'
+
+        last_activity_days = self._calculate_last_activity_days(user)
+        last_activity_display = self._format_last_activity(last_activity_days)
+        last_activity_color = self._get_last_activity_color(last_activity_days)
+
+        # Use getattr to be safe if annotation is missing
+        open_issues_count = int(getattr(user, 'open_issues_count', 0))
+        open_issues_color = self._get_open_issues_color(open_issues_count)
+
+        performance_rating = self._calculate_performance_rating(last_activity_days)
+
+        return {
+            'id': user.id,
+            'name': user.name,
+            'photo_url': user.photo.url if getattr(user, 'photo', None) else None,
+            'role': role,
+            'role_type': role_type,
+            'last_activity': last_activity_display,
+            'last_activity_color': last_activity_color,
+            'open_issues_count': open_issues_count,
+            'open_issues_color': open_issues_color,
+            'performance_rating': performance_rating.get('label'),
+            'performance_color': performance_rating.get('color'),
+            'performance_icon': performance_rating.get('icon'),
+        }
+
+    def _calculate_last_activity_days(self, user):
+        """
+        Calculate days since last activity using the dedicated last_activity field.
+        Returns the number of days since the most recent activity.
+        """
+        if not user.last_activity:
+            return None
+
+        now = timezone.now()
+        duration = now - user.last_activity
+        return duration.days
+
+    def _format_last_activity(self, days):
+        """Format last activity for display"""
+        if days is None:
+            return _("Never")
+
+        if days == 0:
+            return _("Today")
+        elif days == 1:
+            return _("1 day ago")
+        else:
+            return _("%(days)s days ago") % {'days': days}
+
+    def _get_last_activity_color(self, days):
+        """
+        Get color coding for last activity:
+        - 7-14 days: secondary
+        - 14-30 days: warning
+        - >30 days: danger
+        """
+        if days is None or days > 30:
+            return COLOR_DANGER
+        elif days >= 14:
+            return COLOR_WARNING
+        else:
+            # 7-13 days (since threshold is 7)
+            return COLOR_SECONDARY
+
+    def _get_open_issues_color(self, count):
+        """Get color coding for open issues"""
+        if count > 10:
+            return COLOR_DANGER
+        elif count >= 5:
+            return COLOR_WARNING
+        else:
+            return COLOR_PRIMARY
+
+    def _calculate_performance_rating(self, last_activity_days):
+        """
+        Calculate performance rating based on last activity days.
+        Active: < 7 days, Low Activity: 7-20 days, Inactive: > 20 days
+        """
+
+        if last_activity_days is None or last_activity_days > 20:
+            return {'label': LABEL_INACTIVE, 'color': COLOR_SECONDARY, 'icon': ICON_ALERT}
+        elif last_activity_days < 7:
+            return {'label': LABEL_ACTIVE, 'color': COLOR_PRIMARY, 'icon': ICON_CHECK}
+
+        # Low Activity: 7-20 days
+        return {'label': LABEL_LOW_ACTIVITY, 'color': COLOR_WARNING, 'icon': ICON_ALERT}
+
+
+class GetSelectedUsersInfoAPIView(UserManagementAndAJAXMixin, generic.View):
+    """
+    AJAX endpoint to get information about selected users for the modal.
+    """
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_ids = request.GET.getlist('user_ids')
+
+            if not user_ids:
+                return JsonResponse(
+                    {'success': False, 'error': _('No users selected')},
+                    status=400,
+                )
+
+            users_info = NotificationService.get_users_info(user_ids)
+
+            return JsonResponse({'success': True, 'users': users_info})
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {'success': False, 'error': _('Invalid request data')},
+                status=400,
+            )
+        except Exception as e:
+            return JsonResponse(
+                {'success': False, 'error': str(e)},
+                status=500,
+            )
+
+
+class SendBulkNotificationAPIView(UserManagementAndAJAXMixin, generic.View):
+    """
+    AJAX endpoint to send bulk notifications to selected inactive users.
+    Only accessible by GRM Managers.
+    """
+
+    def post(self, request, *args, **kwargs):
+        msg = ""
+        level = messages.ERROR
+        extra_tags = "danger"
+        status = 400
+        try:
+            data = json.loads(request.body)
+            user_ids = data.get('user_ids', [])
+            notification_type = data.get('notification_type', 'email')
+            message = data.get('message', '').strip()
+
+            # Validate inputs
+            if not user_ids:
+                msg = _('No users selected')
+
+            if notification_type not in ['email', 'sms', 'email_and_sms']:
+                msg = _('Invalid notification type')
+
+            if not message:
+                msg = _('Message cannot be empty')
+
+            if msg:
+                messages.add_message(self.request, level, msg, extra_tags=extra_tags)
+                context = {
+                    "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+                }
+                return JsonResponse(context, status=status)
+
+            # Send notifications
+            results = NotificationService.send_bulk_notifications(
+                user_ids=user_ids,
+                notification_type=notification_type,
+                message=message,
+            )
+
+            # Build response message
+            if results.get('success_email', 0) > 0 or results.get('success_sms', 0) > 0:
+                if notification_type == 'email':
+                    success_msg = _('%(count)d email(s) sent successfully') % {'count': results['success_email']}
+                elif notification_type == 'sms':
+                    success_msg = _('%(count)d SMS message(s) sent successfully') % {'count': results['success_sms']}
+                else:  # email_and_sms
+                    success_msg = _('%(email_count)d email(s) and %(count)d SMS message(s) sent successfully') % {
+                        'email_count': results['success_email'],
+                        'count': results['success_sms'],
+                    }
+
+                additional_info = []
+                if results.get('skipped', 0) > 0:
+                    additional_info.append(
+                        _('%(count)d user(s) skipped (missing contact info)') % {'count': results['skipped']}
+                    )
+                if results.get('failed', 0) > 0:
+                    additional_info.append(_('%(count)d notification(s) failed') % {'count': results['failed']})
+
+                if additional_info:
+                    success_msg += '. ' + '. '.join(additional_info)
+
+                level = messages.SUCCESS
+                extra_tags = "success"
+                status = 200
+                msg = success_msg
+
+            else:
+                error_msg = _('No notifications were sent')
+                if results.get('skipped', 0) > 0:
+                    error_msg += '. ' + _('%(count)d user(s) have no contact information') % {
+                        'count': results['skipped']
+                    }
+                if results.get('failed', 0) > 0:
+                    error_msg += '. ' + _('%(count)d notification(s) failed') % {'count': results['failed']}
+
+                msg = error_msg
+
+        except json.JSONDecodeError:
+            msg = _('Invalid request data')
+        except Exception as e:
+            msg = (str(e),)
+            status = 500
+
+        messages.add_message(self.request, level, msg, extra_tags=extra_tags)
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+        }
+        return JsonResponse(context, status=status)

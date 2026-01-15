@@ -77,4 +77,7 @@ class CustomLoginView(LoginView):
             form.add_error(None, _("Login is not allowed until the customization wizard is completed."))
             return self.form_invalid(form)
 
+        # Update last_activity for login action
+        user.update_last_activity()
+
         return super().form_valid(form)

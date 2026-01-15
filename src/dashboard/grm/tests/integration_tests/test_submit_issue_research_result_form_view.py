@@ -1,6 +1,12 @@
+from unittest.mock import patch
+
+import cryptocode
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
+from authentication.models import Cdata
+from grm.constants import ALERT_CHOICE, EMAIL_CHOICE
 from grm.tests.base import DashboardTestCase
 from issues.factories import (
     AdministrativeRegionFactory,
@@ -31,6 +37,7 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         self.url = reverse("dashboard:grm:submit_issue_research_result", kwargs={"issue": self.issue.id})
 
     def test_post_by_grm_manager_sets_final_status_and_result(self):
+        before = timezone.now()
         manager = UserFactory(grm_manager=True)
         data = {"research_result": "After review, issue resolved."}
         resp = self.post(self.url, data=data, ajax=True, user=manager)
@@ -38,6 +45,10 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         self.issue.refresh_from_db()
         assert self.issue.status == self.final_status
         assert self.issue.research_result == "After review, issue resolved."
+
+        # Check last_activity was updated
+        manager.refresh_from_db()
+        assert manager.last_activity >= before
 
     def test_post_by_assignee_piu_staff_sets_result(self):
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)
@@ -106,3 +117,37 @@ class SubmitIssueResearchResultFormViewTest(DashboardTestCase):
         # Comment creation is already tested elsewhere, but ensure at least one comment exists for completeness
         comments = Comment.objects.filter(issue=self.issue, user=manager)
         assert comments.exists()
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_post_sends_notification_with_research_result(self, mock_send_mail):
+        """
+        Submitting research result should send notification including the resolution details.
+        """
+        issue_with_contact = IssueFactory(
+            confirmed=True,
+            status=self.open_status,
+            administrative_region=self.region,
+            contact_medium=ALERT_CHOICE,
+            contact_method=EMAIL_CHOICE,
+            contact_information="citizen@example.com",
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("citizen@example.com", str(issue_with_contact.id))
+        Cdata.objects.create(key=str(issue_with_contact.id), data=encrypted_contact)
+
+        url = reverse("dashboard:grm:submit_issue_research_result", kwargs={"issue": issue_with_contact.id})
+
+        data = {"research_result": "The issue has been resolved successfully."}
+        manager = UserFactory(grm_manager=True)
+        resp = self.post(url, data=data, ajax=True, user=manager)
+        assert resp.status_code == 200
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Status Updated" in call_args[1]['subject']
+        # Verify research_result is in the message
+        assert "Resolution:" in call_args[1]['message']
+        assert "resolved successfully" in call_args[1]['message']

@@ -1,6 +1,7 @@
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from authentication.factories import FacilitatorFactory, UserFactory
 from grm.tests.base import DashboardTestCase
@@ -18,6 +19,7 @@ class CustomLoginViewTest(DashboardTestCase):
         self.url = reverse("dashboard:authentication:login")
 
     def test_grm_owner_can_login_even_if_wizard_incomplete(self):
+        before = timezone.now()
         resp = self.post(
             self.url,
             {"username": self.grm_owner_user.email, "password": "pass123"},
@@ -28,6 +30,10 @@ class CustomLoginViewTest(DashboardTestCase):
         # GRM manager should log in successfully
         assert resp.status_code == 200
         assert resp.context["user"].is_authenticated
+
+        # Check last_activity was updated
+        self.grm_owner_user.refresh_from_db()
+        assert self.grm_owner_user.last_activity >= before
 
     def test_normal_user_blocked_if_wizard_incomplete(self):
         # wizard not complete

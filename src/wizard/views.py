@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Exists, OuterRef, Q
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -14,7 +15,7 @@ from django.views.generic.edit import FormView
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
-from dashboard.mixins import JSONResponseMixin, LoginRequiredAndAJAXRequestMixin
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin
 from dashboard.models import Project
 from grm.constants import MAP_CONFIDENTIALITY_LEVEL, MAP_REDIRECTION_PROTOCOL
 from issues.models import (
@@ -262,7 +263,7 @@ class DownloadRegionsSampleView(LoginRequiredMixin, View):
 
 
 @register_wizard_step(cons.ADMINISTRATIVE_REGIONS_CHOICE)
-class AdministrativeRegionFormView(JSONResponseMixin, WizardFormView):
+class AdministrativeRegionFormView(WizardFormView):
     template_name = "wizard/regions.html"
     form_class = UploadAdministrativeRegionForm
     step_name = cons.ADMINISTRATIVE_REGIONS_CHOICE
@@ -332,10 +333,10 @@ class AdministrativeRegionFormView(JSONResponseMixin, WizardFormView):
             self.update_status(only_current_step=True, status=cons.IN_PROGRESS_CHOICE)
 
         context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
 
-class NextStepView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, View):
+class NextStepView(LoginRequiredAndAJAXRequestMixin, View):
     def post(self, request, *args, **kwargs):
         step = self.kwargs["step"]
         sections = WizardSection.objects.all()
@@ -345,7 +346,7 @@ class NextStepView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, View):
                 status=cons.IN_PROGRESS_CHOICE
             )
             step += 1
-        return self.render_to_json_response({"step": step}, safe=False)
+        return JsonResponse({"step": step}, safe=False)
 
 
 @register_wizard_step(cons.DEPARTMENTS_CHOICE)
@@ -591,7 +592,7 @@ class ComponentAndSubComponentFormView(WizardFormView):
 
 
 @register_wizard_step(cons.SUMMARY_CHOICE)
-class SummaryView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, TemplateView):
+class SummaryView(LoginRequiredAndAJAXRequestMixin, TemplateView):
     template_name = "wizard/summary.html"
     step_name = cons.SUMMARY_CHOICE
 
@@ -820,7 +821,7 @@ class SummaryView(LoginRequiredAndAJAXRequestMixin, JSONResponseMixin, TemplateV
             **message_context,
             "redirect_url": redirect_url,
         }
-        return self.render_to_json_response(context, safe=False)
+        return JsonResponse(context, safe=False)
 
     def _can_complete_setup(self):
         """Check if all required steps are completed."""

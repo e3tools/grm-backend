@@ -21,14 +21,22 @@ class IssueStatusButtonsTemplateViewTest(DashboardTestCase):
         resp = self.get(self.url, ajax=True, user=grm_manager)
         assert resp.status_code == 200
         assert resp["Content-Type"].startswith("text/html")
-        assert "button" in resp.content.decode().lower() or "status" in resp.content.decode().lower()
+        assert "button" in resp.content.decode().lower()
+        assert "status" in resp.content.decode().lower()
 
     def test_get_renders_buttons_for_assignee(self):
         GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)
         resp = self.get(self.url, ajax=True, user=self.issue.assignee)
         assert resp.status_code == 200
         html = resp.content.decode()
-        assert "button" in html.lower() or "status" in html.lower()
+        assert "button" in html.lower()
+        assert "status" in html.lower()
+
+    def test_get_context_contains_status(self):
+        """Test that context includes status."""
+        GovernmentWorkerFactory(user=self.issue.assignee, administrative_region=self.root_region)
+        response = self.get(self.url, ajax=True, user=self.issue.assignee)
+        self.assertEqual(response.context["status"], self.issue.status)
 
     def test_forbidden_for_unrelated_user(self):
         outsider = UserFactory()

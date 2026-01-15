@@ -1,3 +1,5 @@
+import logging
+
 from django.http import Http404
 from django.utils.dateparse import parse_datetime
 from drf_yasg import openapi
@@ -37,6 +39,7 @@ from grm.constants import (
     NOT_FOUND_MESSAGE,
     VALIDATION_FAILED_MESSAGE,
 )
+from grm.notifications import send_issue_notification
 from issues.models import (
     AdministrativeRegion,
     CitizenAgeGroup,
@@ -73,6 +76,8 @@ from issues.serializers import (
     SubComponentSerializer,
     SubProjectGroupSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class IssueCreateAPIView(CreateAPIView):
@@ -423,6 +428,17 @@ class IssueCreateAPIView(CreateAPIView):
 
             if serializer.is_valid():
                 issue = serializer.save()
+
+                # Update last_activity for issue creation
+                request.user.update_last_activity()
+
+                # Send number creation notification
+                try:
+                    send_issue_notification(issue, 'created')
+                except Exception as e:
+                    # Log error but don't fail the issue creation
+                    logger.error(f"Failed to send creation notification for issue {issue.id}: {str(e)}")
+
                 detail_serializer = IssueDetailSerializer(issue)
                 return Response(
                     {'message': ISSUE_CREATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},
@@ -517,6 +533,9 @@ class AssigneeIssueListAPIView(ListAPIView):
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
                                     'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'title': openapi.Schema(
+                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
+                                    ),
+                                    'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
                                     'intake_date': openapi.Schema(
@@ -657,7 +676,7 @@ class AssigneeIssueListAPIView(ListAPIView):
     def get_queryset(self):
         qs = Issue.objects.select_related(
             'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-        ).filter(assignee=self.request.user)
+        ).filter(assignee=self.request.user, confirmed=True)
         created_date = self.request.query_params.get("created_date")
         if created_date:
             dt = parse_datetime(created_date)
@@ -750,6 +769,9 @@ class ReporterIssueListAPIView(ListAPIView):
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
                                     'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'title': openapi.Schema(
+                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
+                                    ),
+                                    'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
                                     'intake_date': openapi.Schema(
@@ -890,7 +912,7 @@ class ReporterIssueListAPIView(ListAPIView):
     def get_queryset(self):
         qs = Issue.objects.select_related(
             'status', 'category', 'issue_type', 'administrative_region', 'reporter', 'assignee'
-        ).filter(reporter=self.request.user)
+        ).filter(reporter=self.request.user, confirmed=True)
         created_date = self.request.query_params.get("created_date")
         if created_date:
             dt = parse_datetime(created_date)
@@ -919,20 +941,24 @@ class IssueRetrieveAPIView(RetrieveAPIView):
         - Must be either the reporter or assignee of the issue
     """
 
-    queryset = Issue.objects.select_related(
-        'status',
-        'category',
-        'issue_type',
-        'administrative_region',
-        'reporter',
-        'assignee',
-        'category__assigned_department__department',
-        'category__assigned_department__administrative_level',
-        'category__assigned_appeal_department__department',
-        'category__assigned_appeal_department__administrative_level',
-        'category__assigned_escalation_department__department',
-        'category__assigned_escalation_department__administrative_level',
-    ).prefetch_related('category__parent')
+    queryset = (
+        Issue.objects.select_related(
+            'status',
+            'category',
+            'issue_type',
+            'administrative_region',
+            'reporter',
+            'assignee',
+            'category__assigned_department__department',
+            'category__assigned_department__administrative_level',
+            'category__assigned_appeal_department__department',
+            'category__assigned_appeal_department__administrative_level',
+            'category__assigned_escalation_department__department',
+            'category__assigned_escalation_department__administrative_level',
+        )
+        .prefetch_related('category__parent')
+        .filter(confirmed=True)
+    )
     serializer_class = IssueSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
@@ -981,6 +1007,7 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
                         'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                         'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
+                        'description': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_DATETIME,
@@ -1591,6 +1618,10 @@ class IssueCommentCreateAPIView(CreateAPIView):
         """
         issue = self.get_issue()
         instance = serializer.save(issue=issue, user=self.request.user)
+
+        # Update last_activity for comment creation
+        self.request.user.update_last_activity()
+
         return instance
 
     def create(self, request, *args, **kwargs):
@@ -1927,6 +1958,9 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
         """
         self.comment_instance.delete()
 
+        # Update last_activity for comment deletion
+        self.request.user.update_last_activity()
+
     @swagger_auto_schema(
         operation_summary="Delete a comment from a specific issue",
         operation_description="""
@@ -2008,6 +2042,10 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
     def perform_create(self, serializer):
         issue = self.get_issue()
         instance = serializer.save(issue=issue, uploaded_by=self.request.user)
+
+        # Update last_activity for attachment creation
+        self.request.user.update_last_activity()
+
         return instance
 
     def create(self, request, *args, **kwargs):
@@ -2173,12 +2211,35 @@ class IssueAttachmentsListAPIView(ListAPIView):
             ordered by created_date descending (as defined in Comment.Meta).
         """
         issue_id = self.kwargs.get("id")
-        return IssueAttachment.objects.filter(issue_id=issue_id).select_related("uploaded_by", "issue")
+        qs = IssueAttachment.objects.filter(issue_id=issue_id).select_related("uploaded_by", "issue")
+        created_date = self.request.query_params.get("created_date")
+        if created_date:
+            dt = parse_datetime(created_date)
+            if not dt:
+                raise ValidationError({"created_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(created_date__gt=dt)
+        updated_date = self.request.query_params.get("updated_date")
+        if updated_date:
+            dt = parse_datetime(updated_date)
+            if not dt:
+                raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(updated_date__gt=dt)
+        deleted_date = self.request.query_params.get("deleted_date")
+        if deleted_date:
+            dt = parse_datetime(deleted_date)
+            if not dt:
+                raise ValidationError({"deleted_date": ISSUE_LIST_ERROR_MESSAGE})
+            qs = qs.filter(deleted_date__gt=dt)
+        return qs
 
     @swagger_auto_schema(
         operation_summary="List attachments of a specific issue",
         operation_description="""
         Retrieve a paginated list of attachments associated with a specific issue.
+        Optional filters:
+        - `created_date`: Only include issues created after the given datetime.
+        - `updated_date`: Only include issues updated after the given datetime.
+        - `deleted_date`: Only include issues deleted after the given datetime.
 
         **Access Control:**
         Only users who are either the reporter or assignee of the issue can access this endpoint.
@@ -2193,7 +2254,31 @@ class IssueAttachmentsListAPIView(ListAPIView):
                 type=openapi.TYPE_INTEGER,
                 required=True,
                 example=123,
-            )
+            ),
+            openapi.Parameter(
+                'created_date',
+                openapi.IN_QUERY,
+                description="Filter attachments created after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'updated_date',
+                openapi.IN_QUERY,
+                description="Filter attachments updated after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
+            openapi.Parameter(
+                'deleted_date',
+                openapi.IN_QUERY,
+                description="Filter attachments deleted after this datetime (ISO 8601 format, e.g. 2021-03-23T10:30:45Z)",
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATETIME,
+                required=False,
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -2318,6 +2403,9 @@ class IssueAttachmentDeleteAPIView(DestroyAPIView):
         """
         self.attachment_instance.delete()
 
+        # Update last_activity for attachment deletion
+        self.request.user.update_last_activity()
+
     @swagger_auto_schema(
         operation_summary="Delete an attachment from a specific issue",
         operation_description="""
@@ -2392,7 +2480,8 @@ class IssueUpdateAPIView(UpdateAPIView):
     the reporter or assignee of the issue.
     """
 
-    queryset = Issue.objects.all()
+    # Only confirmed issues can be updated via this API
+    queryset = Issue.objects.filter(confirmed=True)
     serializer_class = IssueUpdateSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsReporterOrAssigneePermission]
@@ -2667,9 +2756,27 @@ class IssueUpdateAPIView(UpdateAPIView):
         """
         try:
             instance = self.get_object()
+            # Guardar el status anterior para detectar cambios
+            old_status_id = instance.status_id if instance.status else None
+
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 updated_issue = serializer.save()
+
+                # Update last_activity for issue modification
+                request.user.update_last_activity()
+
+                # Send notification if there was a change in status
+                new_status_id = updated_issue.status_id if updated_issue.status else None
+                if old_status_id != new_status_id:
+                    try:
+                        send_issue_notification(updated_issue, 'status_changed')
+                    except Exception as e:
+                        # Log error but don't fail the update
+                        logger.error(
+                            f"Failed to send status change notification for issue {updated_issue.id}: {str(e)}"
+                        )
+
                 detail_serializer = IssueDetailSerializer(updated_issue)
                 return Response(
                     {'message': ISSUE_UPDATE_SUCCESS_MESSAGE, 'data': detail_serializer.data},

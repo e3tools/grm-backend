@@ -93,9 +93,9 @@ class BaseLoginAPIView(APIView):
         # Get or create token for the user
         token, _ = Token.objects.get_or_create(user=user)
 
-        # Makes last_login reflect this login
-        user.last_login = timezone.now()
-        user.save(update_fields=['last_login'])
+        # Update last_login and last_activity
+        user.last_login = user.last_activity = timezone.now()
+        user.save(update_fields=['last_login', 'last_activity'])
 
         return Response(
             {

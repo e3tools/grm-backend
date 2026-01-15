@@ -17,8 +17,8 @@
 	<script src="{% static 'plugins/htmx/htmx.min.js' %}"></script>
 	<script>
 
-        // Re-enable submit buttons after any HTMX swap
-        document.body.addEventListener('htmx:afterSwap', () => {
+        // Re-enable submit buttons after any HTMX settle
+        document.body.addEventListener('htmx:afterSettle', () => {
             document.querySelectorAll('button[type="submit"]').forEach(btn => btn.disabled = false);
 
             // Reapply Select2 every time the DOM changes (due to HTML)

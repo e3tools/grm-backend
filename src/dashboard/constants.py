@@ -1,24 +1,30 @@
 from django.utils.translation import gettext_lazy as _
 
+ICON_CHECK = 'far fa-check-circle'
+ICON_ALERT = 'fa fa-exclamation-circle'
+
 STATUS_GOOD = {
     'status': 'good',
-    'icon_class': 'far fa-check-circle',
+    'icon_class': ICON_CHECK,
     'badge_class': 'badge-primary',
-    'badge_text': _('Good Performance'),
+    'badge_text': _('Good'),
+    'sort_order': 3,
 }
 
 STATUS_AT_RISK = {
     'status': 'at_risk',
-    'icon_class': 'fa fa-exclamation-circle',
+    'icon_class': ICON_ALERT,
     'badge_class': 'badge-warning',
     'badge_text': _('At Risk'),
+    'sort_order': 2,
 }
 
 STATUS_CRITICAL = {
     'status': 'critical',
-    'icon_class': 'fa fa-exclamation-circle',
+    'icon_class': ICON_ALERT,
     'badge_class': 'badge-danger',
     'badge_text': _('Critical'),
+    'sort_order': 1,
 }
 
 STATUS_UNKNOWN = {
@@ -58,3 +64,12 @@ PERIOD_CHOICES = [
     (MONTHLY_CHOICE, _('Last 30 Days')),
     (QUARTERLY_CHOICE, _('Last 90 Days')),
 ]
+
+COLOR_PRIMARY = 'primary'
+COLOR_WARNING = 'warning'
+COLOR_DANGER = 'danger'
+COLOR_SECONDARY = 'secondary'
+
+LABEL_INACTIVE = _('Inactive')
+LABEL_ACTIVE = _('Active')
+LABEL_LOW_ACTIVITY = _('Low Activity')

@@ -3,6 +3,7 @@ import os
 import cryptocode
 import shortuuid as uuid
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models, transaction
 from django.db.models import Count
@@ -301,7 +302,7 @@ class IssueStatus(models.Model):
         Determine the performance dictionary for this IssueStatus given an average time in days.
 
         Returns a dict with keys:
-          - label: human label ("Critical", "At Risk", "Good Performance", "N/A")
+          - label: human label ("Critical", "At Risk", "Good", "N/A")
           - badge_class, icon_class, label: visual metadata (from dashboard.constants)
 
         Acceptance criteria:
@@ -309,7 +310,7 @@ class IssueStatus(models.Model):
           - If threshold_days missing or <= 0 -> return N/A
           - Critical: avg_days > threshold * 1.5
           - At Risk: avg_days > threshold * 1.2
-          - Good Performance: avg_days <= threshold * 1.2
+          - Good: avg_days <= threshold * 1.2
         """
         # Terminal statuses are not evaluated
         if self.final_status or self.rejected_status:
@@ -403,9 +404,12 @@ class IssueCategory(models.Model):
     assigned_appeal_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_appeal_categories'
     )
+
+    # TODO: Remove this field
     assigned_escalation_department = models.ForeignKey(
         IssueDepartmentAdministrativeLevel, on_delete=models.CASCADE, related_name='assigned_escalation_categories'
     )
+
     parent = models.ForeignKey(IssueSubType, blank=True, null=True, on_delete=models.CASCADE, related_name='categories')
     confidentiality_level = models.SlugField(
         default=LOW_CHOICE, choices=CONFIDENTIALITY_LEVEL_CHOICES, verbose_name=_("Confidentiality level")
@@ -691,7 +695,7 @@ class Issue(models.Model):
         """
         Determine if a Case Manager (GovernmentWorker) is PIU staff for this issue.
 
-        New PIU staff criteria:
+        PIU staff criteria:
         1) User is the assignee of the issue; OR
         2) User is HEAD of their own department AND
            - Issue's category is assigned to that department AND
@@ -824,21 +828,31 @@ class Issue(models.Model):
         return assignee
 
     def get_assignee_to_escalate(self, region):
-        department = self.assignee.governmentworker.department
+        department = self.category.assigned_department.department
         parent = region.parent
-        region = parent
-        worker = GovernmentWorker.objects.filter(
-            department=int(department.id + 1), administrative_region=region
-        ).first()
+        worker = GovernmentWorker.objects.filter(department=department, administrative_region=parent).first()
         if worker:
-            facilitator = Facilitator.objects.filter(
-                user=worker.user, administrative_region=region, department=worker.department
-            ).first()
-            if facilitator:
-                return facilitator.user
-
+            return worker.user
         elif parent:
-            return self.get_assignee_to_escalate(region)
+            return self.get_assignee_to_escalate(parent)
+        else:
+            return None
+
+    def get_assignee_to_de_escalate(self, region):
+        department = self.category.assigned_department.department
+        children = region.children.all()
+        worker = GovernmentWorker.objects.filter(department=department, administrative_region_id__in=children).first()
+        if worker:
+            return worker.user
+        elif children:
+            assignee = None
+            for child in children:
+                assignee = self.get_assignee_to_de_escalate(child)
+                if assignee:
+                    break
+            return assignee
+        else:
+            return None
 
 
 class Comment(models.Model):
@@ -884,6 +898,7 @@ class IssueAttachment(models.Model):
     )
     created_date = models.DateTimeField(default=now, verbose_name=_('Created at'))
     updated_date = models.DateTimeField(auto_now=True, verbose_name=_('Updated at'))
+    deleted_date = models.DateTimeField(null=True, blank=True, verbose_name=_('Deleted at'))
 
     class Meta:
         verbose_name = _('Issue Attachment')
@@ -899,12 +914,36 @@ class IssueAttachment(models.Model):
 
     def delete(self, *args, **kwargs):
         """
-        Deletes the file when the record is deleted
+        Delete the model instance and remove the underlying file using the storage API.
+        This avoids accessing file.path which fails for storages that don't support absolute paths.
         """
-        if self.file:
-            if os.path.isfile(self.file.path):
-                os.remove(self.file.path)
+        # Capture file name before deleting the model instance
+        file_name = None
+        try:
+            if self.file:
+                file_name = self.file.name
+        except Exception:
+            file_name = None
+
+        # Delete the model instance first (so DB constraints are handled)
         super().delete(*args, **kwargs)
+
+        # Then attempt to remove the file via storage API
+        if not file_name:
+            return
+
+        storage = getattr(self.file, 'storage', default_storage)
+
+        # Prefer storage.delete; guard against storages that raise NotImplementedError
+        try:
+            if storage.exists(file_name):
+                storage.delete(file_name)
+        except NotImplementedError:
+            # Some test storages may not implement path-based operations; ignore deletion in that case
+            pass
+        except Exception:
+            # Be conservative: don't let file deletion errors bubble up and break tests/views
+            pass
 
     def save(self, *args, **kwargs):
         """

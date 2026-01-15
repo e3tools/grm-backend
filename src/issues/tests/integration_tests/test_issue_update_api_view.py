@@ -1,19 +1,25 @@
 from unittest.mock import patch
 
+import cryptocode
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 from authentication.factories import UserFactory
+from authentication.models import Cdata
 from grm.constants import (
+    ALERT_CHOICE,
+    EMAIL_CHOICE,
     ISSUE_UPDATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
     ISSUE_UPDATE_STATUS_ERROR_MESSAGE,
     ISSUE_UPDATE_SUCCESS_MESSAGE,
     NOT_FOUND_MESSAGE,
+    PHONE_CHOICE,
     VALIDATION_FAILED_MESSAGE,
 )
 from grm.utils import reset_sequences
@@ -52,7 +58,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.new_status = IssueStatusFactory()
 
         # Issue where reporter and assignee are different users
-        self.issue = IssueFactory(reporter=self.reporter_user, assignee=self.assignee_user, rating=0)
+        self.issue = IssueFactory(reporter=self.reporter_user, assignee=self.assignee_user, rating=0, confirmed=True)
 
         # Issue where user is both reporter and assignee
         self.issue_reporter_assignee = IssueFactory(
@@ -60,6 +66,7 @@ class IssueUpdateAPIViewTest(APITestCase):
             assignee=self.reporter_assignee_user,
             rating=0,
             administrative_region=self.issue.administrative_region,
+            confirmed=True,
         )
 
         self.url = reverse("issues:update-issue", kwargs={"id": self.issue.id})
@@ -72,6 +79,7 @@ class IssueUpdateAPIViewTest(APITestCase):
 
     def test_reporter_can_update_issue(self):
         """Test that the reporter can update an issue (excluding restricted fields)."""
+        before = timezone.now()
         self.authenticate_with_token()
 
         # Reporter should be able to update rating and general fields, but not status
@@ -95,6 +103,10 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.assertEqual(self.issue.rating, 4)
         self.assertEqual(self.issue.escalation_reason, 'Issue requires higher level approval')
         self.assertEqual(self.issue.research_result, 'Investigation completed. Root cause identified.')
+
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
 
     def test_assignee_can_update_issue(self):
         """Test that the assignee can update an issue (excluding restricted fields)."""
@@ -400,3 +412,77 @@ class IssueUpdateAPIViewTest(APITestCase):
         # There may be previous ISCs but none should be open for the terminal status
         open_iscs = iscs.filter(exited_at__isnull=True)
         self.assertFalse(open_iscs.exists())
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_update_issue_status_sends_notification_email(self, mock_send_mail):
+        """
+        Updating issue status via API should send a notification if contact_method exists.
+        """
+        self.authenticate_with_token(self.reporter_assignee_token)
+
+        # Create issue with contact information
+        issue = IssueFactory(
+            reporter=self.reporter_assignee_user,
+            assignee=self.reporter_assignee_user,
+            confirmed=True,
+            contact_medium=ALERT_CHOICE,
+            contact_method=EMAIL_CHOICE,
+            contact_information='citizen@example.com',
+            administrative_region=self.issue.administrative_region,
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("citizen@example.com", str(issue.id))
+        Cdata.objects.create(key=str(issue.id), data=encrypted_contact)
+
+        url = reverse('issues:update-issue', kwargs={'id': issue.id})
+
+        data = {
+            'status': self.new_status.id,
+        }
+
+        response = self.client.patch(url, data, format='json')
+        assert response.status_code == 200
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Status Updated" in call_args[1]['subject']
+
+    @patch('grm.notifications.send_sms')
+    def test_update_issue_status_sends_notification_sms(self, mock_send_sms):
+        """
+        Updating issue status via API should send a notification if contact_method exists.
+        """
+        self.authenticate_with_token(self.reporter_assignee_token)
+
+        # Create issue with contact information
+        issue = IssueFactory(
+            reporter=self.reporter_assignee_user,
+            assignee=self.reporter_assignee_user,
+            confirmed=True,
+            contact_medium=ALERT_CHOICE,
+            contact_method=PHONE_CHOICE,
+            contact_information='1234567890',
+            administrative_region=self.issue.administrative_region,
+        )
+
+        # Encrypt and save contact information to Cdata
+        encrypted_contact = cryptocode.encrypt("1234567890", str(issue.id))
+        Cdata.objects.create(key=str(issue.id), data=encrypted_contact)
+
+        url = reverse('issues:update-issue', kwargs={'id': issue.id})
+
+        data = {
+            'status': self.new_status.id,
+        }
+
+        response = self.client.patch(url, data, format='json')
+        assert response.status_code == 200
+
+        # Verify notification was sent
+        mock_send_sms.assert_called_once()
+        call_args = mock_send_sms.call_args
+        assert "1234567890" in str(call_args)
+        assert "The status of your issue has been updated" in call_args[1]['body']

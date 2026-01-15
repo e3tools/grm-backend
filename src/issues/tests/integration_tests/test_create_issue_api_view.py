@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -12,6 +13,7 @@ from grm.constants import (
     CONTACT_INFO_EMAIL_ERROR_MESSAGE,
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
+    EMAIL_CHOICE,
     FACILITATOR_CHOICE,
     ISSUE_CREATE_ERROR_MESSAGE,
     ISSUE_CREATE_SUCCESS_MESSAGE,
@@ -80,6 +82,7 @@ class IssueCreateAPIViewTest(APITestCase):
         self.citizen = CitizenFactory(age_group=self.age_group, group=self.group_one, group_2=self.group_two)
 
     def test_create_issue_with_valid_data(self):
+        before = timezone.now()
         self.client.force_authenticate(user=self.reporter_user)
 
         data = self.__get_valid_data()
@@ -94,6 +97,10 @@ class IssueCreateAPIViewTest(APITestCase):
         self.assertEqual(created_issue.reporter, self.reporter_user)
         self.assertEqual(created_issue.administrative_region, self.child_region)
 
+        # Check last_activity was updated
+        self.reporter_user.refresh_from_db()
+        assert self.reporter_user.last_activity >= before
+
     def test_create_issue_without_authentication(self):
         """
         Tests that an issue cannot be created without authentication.
@@ -101,7 +108,7 @@ class IssueCreateAPIViewTest(APITestCase):
         data = {
             "description": "This is a test issue.",
             "intake_date": "2023-01-01T10:00:00Z",
-            "contact_medium": "channel-alert",
+            "contact_medium": ALERT_CHOICE,
             "issue_type": self.issue_type.pk,
             "category": self.issue_category.pk,
             "administrative_region": self.child_region.pk,
@@ -346,3 +353,27 @@ class IssueCreateAPIViewTest(APITestCase):
 
         # No IssueStatusChange rows should exist for terminal statuses on create
         self.assertFalse(IssueStatusChange.objects.filter(issue=created_issue).exists())
+
+    @patch('grm.notifications.send_mail_notification')
+    def test_create_issue_sends_notification_when_contact_method_exists(self, mock_send_mail):
+        """
+        Creating an issue via API should send a notification if contact_method is provided.
+        """
+        self.client.force_authenticate(user=self.reporter_user)
+        data = self.__get_valid_data()
+        data.update(
+            {
+                'contact_medium': ALERT_CHOICE,
+                'contact_method': EMAIL_CHOICE,
+                'contact_information': 'citizen@example.com',
+            }
+        )
+
+        response = self.client.post(self.url, data, format='json')
+        assert response.status_code == 201
+
+        # Verify notification was sent
+        mock_send_mail.assert_called_once()
+        call_args = mock_send_mail.call_args
+        assert "citizen@example.com" in str(call_args)
+        assert "Issue Created" in call_args[1]['subject']

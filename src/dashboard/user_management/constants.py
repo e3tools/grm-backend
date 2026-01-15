@@ -4,17 +4,20 @@ from django.utils.translation import gettext_lazy as _
 GRM_MANAGER_CHOICE = "grm_manager"
 CASE_MANAGER_CHOICE = "case_manager"
 FACILITATOR_CHOICE = "facilitator"
+GRM_MANAGER_DISPLAY = _("GRM Manager")
+CASE_MANAGER_DISPLAY = _("Case Manager")
+FACILITATOR_DISPLAY = _("Facilitator")
 
 USER_TYPE_CHOICES = [
-    (GRM_MANAGER_CHOICE, _("GRM Manager")),
-    (CASE_MANAGER_CHOICE, _("Case Manager")),
-    (FACILITATOR_CHOICE, _("Facilitator")),
+    (GRM_MANAGER_CHOICE, GRM_MANAGER_DISPLAY),
+    (CASE_MANAGER_CHOICE, CASE_MANAGER_DISPLAY),
+    (FACILITATOR_CHOICE, FACILITATOR_DISPLAY),
 ]
 
 MAP_USER_TYPE = {
-    GRM_MANAGER_CHOICE: _("GRM Manager"),
-    CASE_MANAGER_CHOICE: _("Case Manager"),
-    FACILITATOR_CHOICE: _("Facilitator"),
+    GRM_MANAGER_CHOICE: GRM_MANAGER_DISPLAY,
+    CASE_MANAGER_CHOICE: CASE_MANAGER_DISPLAY,
+    FACILITATOR_CHOICE: FACILITATOR_DISPLAY,
 }
 
 # Success Messages
