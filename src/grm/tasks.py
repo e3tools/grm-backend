@@ -1,11 +1,11 @@
-from datetime import timedelta
-
 import cryptocode
 from celery import shared_task
 from celery.schedules import crontab
 from django.conf import settings
 from django.core.management import call_command
-from django.db.models import Q
+from django.db.models import F, IntegerField, OuterRef, Q, Subquery
+from django.db.models.functions import Extract, Now
+from django.db.models.functions.comparison import Cast
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from twilio.base.exceptions import TwilioRestException
@@ -22,7 +22,7 @@ from grm.constants import (
     REJECTED_CHOICE,
 )
 from grm.utils import normalize_phone_number
-from issues.models import Comment, Issue
+from issues.models import Comment, Issue, IssueStatusChange
 from mail_client import send_mail_notification
 from sms_client import send_sms
 
@@ -106,7 +106,6 @@ def check_issues():
 def escalate_issues():
     issues = Issue.objects.filter(confirmed=True, escalate_flag=True, assignee__isnull=False)
     result = {
-        "errors": [],
         "issues_updated": [],
         "scale_is_not_available": [],
     }
@@ -139,46 +138,62 @@ def escalate_issues():
 
 
 @app.task
-def escalate_old_issues():
+def mark_issues_to_be_escalated():
     """
-    Browse confirmed issues. If an issue is not closed (not status.final_status)
-    and was created or last escalated more than 3.5 days ago, it is marked for escalation
-    by adding `escalate_flag: True` and updating `escalated_date`.
-    Additionally, a comment is added to the issue history to document the escalation.
+    Identify and mark issues that have exceeded their escalation threshold.
+
+    An issue is marked for escalation when all of the following conditions are met:
+      - It is confirmed.
+      - It is not already flagged for escalation.
+      - Its current status is neither final nor rejected.
+      - Its current status defines a valid `threshold_days_to_escalate`.
+      - The issue has remained in its current status longer than that threshold.
+
+    The function performs this efficiently using SQL-level annotations:
+      - Retrieves the timestamp of the open IssueStatusChange (the moment the issue
+        entered its current status).
+      - Computes the number of days spent in the current status directly in SQL.
+      - Filters issues that exceed their escalation threshold.
+      - Marks all matching issues by setting `escalate_flag=True` in a single bulk update.
+
+    Returns:
+        dict: A dictionary with the number of issues updated:
+              {"updated_issues": <count>}
     """
 
-    issues = Issue.objects.filter(confirmed=True)
-    now = timezone.now()
-    threshold = now - timedelta(days=3, hours=12)
+    # Subquery: get the entered_at of the open status change
+    open_status_change = (
+        IssueStatusChange.objects.filter(
+            issue=OuterRef("pk"),
+            exited_at__isnull=True,
+        )
+        .order_by()
+        .values("entered_at")[:1]
+    )
 
-    updated_issues = 0
-    errors = []
+    # Annotate issues with:
+    # - entered_at of open status
+    # - days_in_status computed in SQL
+    issues = (
+        Issue.objects.filter(
+            confirmed=True,
+            escalate_flag=False,
+            status__final_status=False,
+            status__rejected_status=False,
+            status__threshold_days_to_escalate__isnull=False,
+        )
+        .annotate(
+            entered_at=Subquery(open_status_change),
+            seconds_in_status=Extract(Now() - F("entered_at"), "epoch"),
+            days_in_status=Cast(F("seconds_in_status") / 86400.0, IntegerField()),
+        )
+        .filter(days_in_status__gt=F("status__threshold_days_to_escalate"))
+    )
 
-    for issue in issues:
-        # Check if the issue is already closed
-        if not issue.status.final_status:
+    # Bulk update: no loops, no per-object save()
+    updated_count = issues.update(escalate_flag=True)
 
-            # Retrieve the issue creation date
-            created_date = issue.created_date
-
-            # Retrieve the last escalation date, if any
-            escalated_date = issue.escalated_date
-
-            # Determine if the issue should be escalated
-            should_escalate = False
-            if escalated_date:  # Issue has been escalated before
-                if escalated_date < threshold:
-                    should_escalate = True
-            else:  # First escalation
-                if created_date < threshold:
-                    should_escalate = True
-
-            if should_escalate:
-                issue.escalate_flag = True
-                issue.save()
-                updated_issues += 1
-
-    return {"updated_issues": updated_issues, "errors": errors}
+    return {"updated_issues": updated_count}
 
 
 @app.task
@@ -187,7 +202,6 @@ def reassign_issues_to_appeal():
         'category__assigned_appeal_department__department__head'
     )
     result = {
-        "errors": [],
         "issues_updated": [],
         "appeal_is_not_available": [],
     }
@@ -585,8 +599,8 @@ def setup_periodic_tasks(sender, **kwargs):
     # Calls send_mail_message() every 5 minutes.
     sender.add_periodic_task(300, send_mail_message.s(), name="send mail every 5 minutes")
 
-    # Calls escalate_old_issues() every day
-    sender.add_periodic_task(86400, escalate_old_issues.s(), name="escalate old issues every day")
+    # Calls mark_issues_to_be_escalated() every day
+    sender.add_periodic_task(86400, mark_issues_to_be_escalated.s(), name="mark issues to be escalated every day")
 
     # Calls reassign_issues_to_appeal() every hour.
     sender.add_periodic_task(3600, reassign_issues_to_appeal.s(), name="reassign issues to appeal every hour")

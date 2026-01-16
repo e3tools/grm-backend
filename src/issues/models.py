@@ -271,6 +271,12 @@ class IssueStatus(models.Model):
     threshold_days = models.PositiveIntegerField(
         default=1, help_text=_("Threshold in days for performance evaluation"), verbose_name=_('Threshold days')
     )
+    threshold_days_to_escalate = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text=_("Threshold in days to escalate an issue"),
+        verbose_name=_('Threshold days to escalate'),
+    )
     final_status = models.BooleanField(default=False)
     initial_status = models.BooleanField(default=False)
     rejected_status = models.BooleanField(default=False)
@@ -302,28 +308,26 @@ class IssueStatus(models.Model):
         Determine the performance dictionary for this IssueStatus given an average time in days.
 
         Returns a dict with keys:
-          - label: human label ("Critical", "At Risk", "Good", "N/A")
-          - badge_class, icon_class, label: visual metadata (from dashboard.constants)
+          - badge_text: human label ("Critical", "At Risk", "Good", "N/A")
+          - badge_class, icon_class: visual metadata (from dashboard.constants)
 
         Acceptance criteria:
-          - If final_status or rejected_status -> return N/A
-          - If threshold_days missing or <= 0 -> return N/A
           - Critical: avg_days > threshold * 1.5
           - At Risk: avg_days > threshold * 1.2
           - Good: avg_days <= threshold * 1.2
         """
-        # Terminal statuses are not evaluated
-        if self.final_status or self.rejected_status:
+        if avg_days is None:
+            return STATUS_NA
+        try:
+            avg = float(avg_days)
+        except Exception:
             return STATUS_NA
 
-        threshold = getattr(self, 'threshold_days', None)
-        if not threshold or threshold <= 0:
-            return STATUS_NA
-
+        threshold = self.threshold_days or 1.0
         # Compare average days to threshold
-        if avg_days > threshold * 1.5:
+        if avg > threshold * 1.5:
             return STATUS_CRITICAL
-        if avg_days > threshold * 1.2:
+        if avg > threshold * 1.2:
             return STATUS_AT_RISK
         return STATUS_GOOD
 

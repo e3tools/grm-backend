@@ -371,7 +371,7 @@
         // Iterate over each summary section
         $("#summary-area > div").each(function (sectionIndex) {
             const $section = $(this);
-            const title = $section.find("h6").first().text().trim();
+            const title = $section.find("h5").first().text().trim();
 
             // Add section title
             docDefinition.content.push({text: title, style: "header"});

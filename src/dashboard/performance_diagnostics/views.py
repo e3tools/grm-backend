@@ -29,9 +29,7 @@ from dashboard.constants import (
     LABEL_LOW_ACTIVITY,
     NOT_APPLICABLE,
     PERIOD_CHOICES,
-    STATUS_AT_RISK,
     STATUS_CRITICAL,
-    STATUS_GOOD,
     STATUS_NA,
     WEEKLY_CHOICE,
 )
@@ -202,31 +200,17 @@ class StatusBottleneckMetricsAPIView(UserManagementAndAJAXMixin, generic.View):
                 qs = qs.filter(category=category)
             return qs.count()
 
-        def _performance_bucket(avg_days, status_obj):
-            if avg_days is None:
-                return STATUS_NA
-            try:
-                avg = float(avg_days)
-            except Exception:
-                return STATUS_NA
-            threshold = getattr(status_obj, 'threshold_days', None) or 1.0
-            if avg > threshold * 1.5:
-                return STATUS_CRITICAL
-            if avg > threshold * 1.2:
-                return STATUS_AT_RISK
-            return STATUS_GOOD
-
         # Build rows: one per IssueStatus using annotated snapshot fields
         rows = []
-        for s in statuses_qs:
+        for issue_status in statuses_qs:
             # snapshot fields come from the Subquery; may be None if no snapshot exists
-            snap_count = s.snapshot_issues_count
-            snap_avg = s.snapshot_avg_days
+            snap_count = issue_status.snapshot_issues_count
+            snap_avg = issue_status.snapshot_avg_days
 
             if snap_count is not None:
                 # We have a snapshot row for this status
                 issues_count = int(snap_count) if snap_count is not None else 0
-                if s.final_status or s.rejected_status:
+                if issue_status.final_status or issue_status.rejected_status:
                     avg_display = NOT_APPLICABLE
                     perf = STATUS_NA
                 else:
@@ -236,10 +220,10 @@ class StatusBottleneckMetricsAPIView(UserManagementAndAJAXMixin, generic.View):
                     else:
                         avg_val = float(snap_avg or 0.0)
                         avg_display = f"{avg_val:.1f}"
-                        perf = _performance_bucket(avg_val, s)
+                        perf = issue_status.performance_for_status(avg_val)
                 rows.append(
                     {
-                        'issue_status': s,
+                        'issue_status': issue_status,
                         'issues_count': issues_count,
                         'average_time_in_status_days': avg_display,
                         'performance': perf,
@@ -247,11 +231,11 @@ class StatusBottleneckMetricsAPIView(UserManagementAndAJAXMixin, generic.View):
                 )
             else:
                 # No snapshot for this status for the requested filters
-                if s.final_status or s.rejected_status:
-                    issues_count = _count_confirmed_issues_for_status(s)
+                if issue_status.final_status or issue_status.rejected_status:
+                    issues_count = _count_confirmed_issues_for_status(issue_status)
                     rows.append(
                         {
-                            'issue_status': s,
+                            'issue_status': issue_status,
                             'issues_count': issues_count,
                             'average_time_in_status_days': NOT_APPLICABLE,
                             'performance': STATUS_NA,
@@ -260,7 +244,7 @@ class StatusBottleneckMetricsAPIView(UserManagementAndAJAXMixin, generic.View):
                 else:
                     rows.append(
                         {
-                            'issue_status': s,
+                            'issue_status': issue_status,
                             'issues_count': NOT_APPLICABLE,
                             'average_time_in_status_days': NOT_APPLICABLE,
                             'performance': STATUS_NA,
