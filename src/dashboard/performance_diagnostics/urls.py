@@ -12,4 +12,5 @@ urlpatterns = [
     path("api/inactive-users/", views.InactiveUsersAPIView.as_view(), name="api_inactive_users"),
     path("api/get-selected-users/", views.GetSelectedUsersInfoAPIView.as_view(), name="api_get_selected_users"),
     path("api/send-bulk-notification/", views.SendBulkNotificationAPIView.as_view(), name="api_send_bulk_notification"),
+    path("api/ai-insight/", views.TableAIInsightAPIView.as_view(), name="api_ai_insight"),
 ]

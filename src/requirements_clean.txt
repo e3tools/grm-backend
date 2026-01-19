@@ -48,6 +48,9 @@ sendgrid==6.11.0
 # Vector/Embeddings
 pinecone==7.3.0
 
+# OpenAI
+openai==2.15.0
+
 # HTTP/Requests
 requests>=2.32.3,<3.0.0
 urllib3==1.26.20

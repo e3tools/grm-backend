@@ -54,6 +54,8 @@ from dashboard.user_management.constants import (
 )
 from issues.models import AdministrativeRegion, Issue, IssueCategory, IssueStatus
 
+from common.utils.openai_connector import AIGRMDiagnosticsAnalyzer
+
 
 class PerformanceDiagnosticsView(PageMixin, UserManagementPermissionMixin, generic.TemplateView):
     """
@@ -757,3 +759,250 @@ class SendBulkNotificationAPIView(UserManagementAndAJAXMixin, generic.View):
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
         }
         return JsonResponse(context, status=status)
+
+
+class TableAIInsightAPIView(UserManagementAndAJAXMixin, generic.View):
+    """
+    AJAX endpoint to get AI-powered insights for performance diagnostics tables.
+    Returns markdown-formatted analysis from OpenAI.
+    """
+
+    VALID_TABLE_TYPES = ('status_bottlenecks', 'region_performance', 'inactive_users')
+
+    def get(self, request, *args, **kwargs):
+
+        table_type = request.GET.get('table_type')
+
+        # Validate table type
+        if table_type not in self.VALID_TABLE_TYPES:
+            return JsonResponse(
+                {'success': False, 'error': _('Invalid table type')},
+                status=400,
+            )
+
+        # Initialize analyzer
+        analyzer = AIGRMDiagnosticsAnalyzer()
+
+        if not analyzer.is_available():
+            return JsonResponse(
+                {'success': False, 'error': _('AI features are not configured')},
+                status=503,
+            )
+
+        # Get filters from request
+        period = request.GET.get('period', WEEKLY_CHOICE)
+        region = self._get_region(request.GET.get('administrative_region'))
+        category = self._get_category(request.GET.get('category'))
+
+        filters = {
+            'period': period,
+            'region_name': region.name if region else None,
+            'category_name': category.name if category else None,
+        }
+
+        try:
+            insight = None
+            if table_type == 'status_bottlenecks':
+                insight = self._get_status_bottlenecks_insight(analyzer, period, region, category, filters)
+            elif table_type == 'region_performance':
+                insight = self._get_region_performance_insight(analyzer, period, region, category, filters)
+            elif table_type == 'inactive_users':
+                filters['role_filter'] = request.GET.get('role_filter')
+                insight = self._get_inactive_users_insight(analyzer, region, filters)
+
+            if insight is None:
+                return JsonResponse(
+                    {'success': False, 'error': _('Failed to generate AI insight. Please try again.')},
+                    status=500,
+                )
+
+            return JsonResponse({
+                'success': True,
+                'insight': insight,
+                'table_type': table_type,
+            })
+
+        except Exception as e:
+            return JsonResponse(
+                {'success': False, 'error': str(e)},
+                status=500,
+            )
+
+    def _get_status_bottlenecks_insight(self, analyzer, period, region, category, filters):
+        """Gather status bottleneck data and get AI insight."""
+        from dashboard.constants import NOT_APPLICABLE, STATUS_AT_RISK, STATUS_CRITICAL, STATUS_GOOD
+
+        # Use same logic as StatusBottleneckMetricsAPIView to get data
+        base_metrics_qs = StatusBottleneckMetrics.objects.filter(
+            period=period
+        ).order_by('-calculated_at')
+
+        if region is None:
+            base_metrics_qs = base_metrics_qs.filter(administrative_region__isnull=True)
+        else:
+            base_metrics_qs = base_metrics_qs.filter(administrative_region=region)
+
+        if category is None:
+            base_metrics_qs = base_metrics_qs.filter(category__isnull=True)
+        else:
+            base_metrics_qs = base_metrics_qs.filter(category=category)
+
+        # Get all statuses with their metrics
+        statuses = IssueStatus.objects.order_by('id')
+        bottleneck_data = []
+
+        for status in statuses:
+            metric = base_metrics_qs.filter(issue_status=status).first()
+            is_terminal = status.final_status or status.rejected_status
+
+            if metric:
+                issues_count = metric.issues_count
+                avg_days = metric.average_time_in_status_days if not is_terminal else None
+
+                # Determine performance
+                if is_terminal or issues_count == 0:
+                    performance = 'n/a'
+                else:
+                    threshold = getattr(status, 'threshold_days', None) or 1.0
+                    if avg_days > threshold * 1.5:
+                        performance = 'critical'
+                    elif avg_days > threshold * 1.2:
+                        performance = 'at_risk'
+                    else:
+                        performance = 'good'
+            else:
+                issues_count = 0 if is_terminal else 'N/A'
+                avg_days = None
+                performance = 'n/a'
+
+            bottleneck_data.append({
+                'status_name': status.name,
+                'issues_count': issues_count,
+                'avg_days': avg_days,
+                'performance': performance,
+                'is_terminal': is_terminal,
+            })
+
+        return analyzer.analyze_status_bottlenecks(bottleneck_data, filters)
+
+    def _get_region_performance_insight(self, analyzer, period, region, category, filters):
+        """Gather region performance data and get AI insight."""
+        # Build queryset similar to RegionPerformanceAPIView
+        qs = RegionPerformanceMetrics.objects.filter(period=period).select_related('region', 'category')
+
+        if category:
+            qs = qs.filter(category=category)
+        else:
+            qs = qs.filter(category__isnull=True)
+
+        # Get regions to show (children of selected region, or children of root)
+        if region:
+            children = region.children.all()
+            if children.exists():
+                qs = qs.filter(region__in=children)
+            else:
+                qs = qs.filter(region=region)
+        else:
+            root_region = AdministrativeRegion.objects.filter(parent__isnull=True).first()
+            if root_region:
+                children = root_region.children.all()
+                if children.exists():
+                    qs = qs.filter(region__in=children)
+                else:
+                    qs = qs.filter(region=root_region)
+
+        region_data = []
+        for metric in qs[:20]:  # Limit to 20 regions for prompt size
+            perf_status = metric.get_performance_status()
+            region_data.append({
+                'region_name': metric.region.name,
+                'open_issues_count': metric.open_issues_count,
+                'avg_resolution_days': metric.avg_resolution_days,
+                'active_workers_count': metric.active_workers_count,
+                'total_workers': metric.total_workers_in_region,
+                'workers_percentage': metric.get_active_workers_percentage(),
+                'performance_status': perf_status.get('status') if isinstance(perf_status, dict) else perf_status,
+            })
+
+        return analyzer.analyze_region_performance(region_data, filters)
+
+    def _get_inactive_users_insight(self, analyzer, region, filters):
+        """Gather inactive users data and get AI insight."""
+        from authentication.models import Facilitator, GovernmentWorker
+
+        # Get inactive users (7+ days)
+        cutoff = timezone.now() - timezone.timedelta(days=7)
+
+        gw_ids = set(GovernmentWorker.objects.values_list('user_id', flat=True))
+        fac_ids = set(Facilitator.objects.values_list('user_id', flat=True))
+        all_ids = list(gw_ids | fac_ids)
+
+        users_qs = User.objects.filter(id__in=all_ids).filter(
+            Q(last_activity__lt=cutoff) | Q(last_activity__isnull=True)
+        ).select_related('governmentworker', 'facilitator').annotate(
+            open_issues_count=Count(
+                'assigned_issues',
+                filter=Q(assigned_issues__status__open_status=True, assigned_issues__confirmed=True),
+            )
+        )
+
+        # Apply region filter
+        if region:
+            descendant_ids = region.get_descendant_ids(include_self=True)
+            gw_in_region = GovernmentWorker.objects.filter(
+                administrative_region_id__in=descendant_ids
+            ).values_list('user_id', flat=True)
+            fac_in_region = Facilitator.objects.filter(
+                administrative_region_id__in=descendant_ids
+            ).values_list('user_id', flat=True)
+            users_qs = users_qs.filter(id__in=list(set(list(gw_in_region) + list(fac_in_region))))
+
+        # Apply role filter
+        role_filter = filters.get('role_filter')
+        if role_filter == 'government_worker':
+            users_qs = users_qs.filter(id__in=gw_ids)
+        elif role_filter == 'facilitator':
+            users_qs = users_qs.filter(id__in=fac_ids)
+
+        users_data = []
+        for user in users_qs[:30]:  # Limit to 30 users for prompt size
+            # Determine role
+            if hasattr(user, 'governmentworker') and user.governmentworker:
+                role = 'Case Manager'
+            elif hasattr(user, 'facilitator') and user.facilitator:
+                role = 'Facilitator'
+            else:
+                role = 'Unknown'
+
+            # Calculate days inactive
+            if user.last_activity:
+                days_inactive = (timezone.now() - user.last_activity).days
+            else:
+                days_inactive = None
+
+            users_data.append({
+                'name': user.name,
+                'role': role,
+                'last_activity_days': days_inactive,
+                'open_issues_count': getattr(user, 'open_issues_count', 0),
+            })
+
+        return analyzer.analyze_inactive_users(users_data, filters)
+
+    def _get_region(self, region_id):
+        """Parse and validate region ID from request."""
+        if not region_id:
+            return None
+        try:
+            return AdministrativeRegion.objects.get(id=region_id)
+        except (AdministrativeRegion.DoesNotExist, ValueError):
+            return None
+
+    def _get_category(self, category_id):
+        """Parse and validate category ID from request."""
+        if not category_id:
+            return None
+        try:
+            return IssueCategory.objects.get(id=category_id)
+        except (IssueCategory.DoesNotExist, ValueError):
+            return None
