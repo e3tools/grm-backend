@@ -14,9 +14,9 @@
 	<div id="summary-area">
 		{% for section in summary %}
 			<div class="mb-3 border-bottom border-dark">
-				<h6 class="text-bold">
+				<h5 class="text-bold">
 					{{ section.title }}
-				</h6>
+				</h5>
 				{% for item in section.data %}
 					<div class="border-bottom ">
 						{% for field in item.fields %}

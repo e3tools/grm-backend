@@ -15,6 +15,7 @@ from django.views.generic.edit import FormView
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 
+from dashboard.constants import NOT_APPLICABLE
 from dashboard.mixins import LoginRequiredAndAJAXRequestMixin
 from dashboard.models import Project
 from grm.constants import MAP_CONFIDENTIALITY_LEVEL, MAP_REDIRECTION_PROTOCOL
@@ -739,12 +740,32 @@ class SummaryView(LoginRequiredAndAJAXRequestMixin, TemplateView):
 
     def _get_issue_status_summary(self):
         """Get issue status summary."""
-        status_fields = []
-        for status in IssueStatus.objects.all():
-            label = self._get_status_label(status)
-            status_fields.append({"label": label, "value": status.name})
 
-        return {"title": cons.ISSUE_STATUS_DISPLAY, "data": [{"fields": status_fields}]}
+        data = [
+            {
+                "fields": (
+                    [
+                        {"label": self._get_status_label(status), "value": status.name},
+                        {"label": _('Threshold days'), "value": status.threshold_days},
+                        {
+                            "label": _('Threshold days to escalate'),
+                            "value": (
+                                status.threshold_days_to_escalate
+                                if status.threshold_days_to_escalate
+                                else NOT_APPLICABLE
+                            ),
+                        },
+                    ]
+                    if status.initial_status or status.open_status
+                    else [
+                        {"label": self._get_status_label(status), "value": status.name},
+                    ]
+                )
+            }
+            for status in IssueStatus.objects.all()
+        ]
+
+        return {"title": cons.ISSUE_STATUS_DISPLAY, "data": data}
 
     @staticmethod
     def _get_status_label(status):

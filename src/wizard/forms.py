@@ -401,16 +401,24 @@ class IssueStatusForm(forms.ModelForm):
 
     class Meta:
         model = IssueStatus
-        fields = ["name", "threshold_days"]
+        fields = ["name", "threshold_days", "threshold_days_to_escalate"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": _("Enter status name")}),
             "threshold_days": forms.NumberInput(attrs={"min": 1, "step": 1}),
+            "threshold_days_to_escalate": forms.NumberInput(attrs={"step": 1}),
         }
 
     def clean_threshold_days(self):
         """Reject 0."""
         value = self.cleaned_data["threshold_days"]
         if value == 0:
+            raise ValidationError(_("Threshold must be greater than zero."))
+        return value
+
+    def clean_threshold_days_to_escalate(self):
+        """Reject 0."""
+        value = self.cleaned_data["threshold_days_to_escalate"]
+        if value is not None and value == 0:
             raise ValidationError(_("Threshold must be greater than zero."))
         return value
 
@@ -467,6 +475,7 @@ class IssueStatusBaseFormSet(forms.BaseModelFormSet):
             # 3. Remove threshold_days for rejected/final
             if flag in ('rejected_status', 'final_status'):
                 form.fields.pop('threshold_days', None)
+                form.fields.pop('threshold_days_to_escalate', None)
 
 
 ExistingIssueStatusFormSet = forms.modelformset_factory(
