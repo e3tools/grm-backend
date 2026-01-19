@@ -69,6 +69,13 @@
 							<p>{% translate "User Management" %}</p>
 						</a>
 					</li>
+					<li class="nav-item">
+						<a href="{% url 'dashboard:settings:main' %}"
+						   class="nav-link {% if active_level1 == 'settings' %}active{% endif %}">
+							<i class="nav-icon fa fa-cogs"></i>
+							<p>{% translate "Settings" %}</p>
+						</a>
+					</li>
 				{% endif %}
 
 				{% comment %}

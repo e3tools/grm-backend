@@ -11,5 +11,5 @@ urlpatterns = [
     path("performance-diagnostics/", include("dashboard.performance_diagnostics.urls")),
     # path('subprojects/', include('dashboard.subprojects.urls')),
     # path("couchdb-proxy/", include("dashboard.couchdb_proxy.urls")),
-    # path("logs/", include("dashboard.logs.urls")),
+    path("settings/", include("dashboard.settings.urls")),
 ]
