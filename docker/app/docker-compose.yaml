@@ -1,0 +1,110 @@
+services:
+  django-app:
+    image: cosobenin/grm-app:v.1.0.0
+    restart: always
+    ports:
+      - '9000:9000'
+    network_mode: "host"
+    environment:
+      SECRET_KEY: '${SECRET_KEY}'
+      ALLOWED_HOSTS: '${ALLOWED_HOSTS}'
+      DATABASE_URL: '${DATABASE_URL}'
+      COUCHDB_URL: '${COUCHDB_URL}'
+      COUCHDB_USERNAME: '${COUCHDB_USERNAME}'
+      COUCHDB_PASSWORD: '${COUCHDB_PASSWORD}'
+      COUCHDB_DATABASE: '${COUCHDB_DATABASE}'
+      COUCHDB_ATTACHMENT_DATABASE: '${COUCHDB_ATTACHMENT_DATABASE}'
+      COUCHDB_GRM_DATABASE: '${COUCHDB_GRM_DATABASE}'
+      COUCHDB_GRM_ATTACHMENT_DATABASE: '${COUCHDB_GRM_ATTACHMENT_DATABASE}'
+      S3_BUCKET: '${S3_BUCKET}'
+      S3_ACCESS: '${S3_ACCESS}'
+      S3_SECRET: '${S3_SECRET}'
+      KOBO_TOKEN: '${KOBO_TOKEN}'
+      CELERY_BROKER_URL: 'redis://redis:6379/0' 
+      CELERY_RESULT_BACKEND: 'redis://redis:6379/0'
+      MAPBOX_ACCESS_TOKEN: '${MAPBOX_ACCESS_TOKEN}'
+      DIAGNOSTIC_MAP_LATITUDE: '${DIAGNOSTIC_MAP_LATITUDE}'
+      DIAGNOSTIC_MAP_LONGITUDE: '${DIAGNOSTIC_MAP_LONGITUDE}'
+      DIAGNOSTIC_MAP_ZOOM: '${DIAGNOSTIC_MAP_ZOOM}'
+      DIAGNOSTIC_MAP_WS_BOUND: '${DIAGNOSTIC_MAP_WS_BOUND}'
+      DIAGNOSTIC_MAP_EN_BOUND: '${DIAGNOSTIC_MAP_EN_BOUND}'
+      DIAGNOSTIC_MAP_ISO_CODE: '${DIAGNOSTIC_MAP_ISO_CODE}'
+      TWILIO_ACCOUNT_SID: '${TWILIO_ACCOUNT_SID}'
+      TWILIO_AUTH_TOKEN: '${TWILIO_AUTH_TOKEN}'
+      TWILIO_FROM_NUMBER: '${TWILIO_FROM_NUMBER}'
+      COUNTRY_CALLING_CODE: '${COUNTRY_CALLING_CODE}'
+      EMAIL_HOST: '${EMAIL_HOST}'
+      EMAIL_USE_TLS: '${EMAIL_USE_TLS}'
+      EMAIL_PORT: '${EMAIL_PORT}'
+      EMAIL_HOST_USER: '${EMAIL_HOST_USER}'
+      EMAIL_HOST_PASSWORD: '${EMAIL_HOST_PASSWORD}'
+    volumes:
+      - static-content:/usr/appserver/static
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:17.0
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    ports:
+      - '80:80'
+      - '443:443'
+    network_mode: "host"
+    volumes:
+      - ./data/nginx:/etc/nginx/conf.d
+      - static-content:/var/www/app/static
+    depends_on:
+      - django-app
+
+  redis:
+    image: redis:alpine
+    restart: always
+    network_mode: "host"
+    ports:
+      - '6379:6379'
+
+  celery-worker:
+    image: cosobenin/grm-app:v.1.0.0
+    restart: always
+    command: celery -A grm worker -l info
+    environment:
+      CELERY_BROKER_URL: 'redis://redis:6379/0'
+      CELERY_RESULT_BACKEND: 'redis://redis:6379/1'
+    depends_on:
+      - django-app
+      - db
+      - redis
+    volumes:
+      - static-content:/usr/appserver/static
+
+  celery-beat:
+    image: cosobenin/grm-app:v.1.0.0
+    restart: always
+    command: celery -A grm beat -l info
+    environment:
+      CELERY_BROKER_URL: 'redis://redis:6379/0'
+      CELERY_RESULT_BACKEND: 'redis://redis:6379/1'
+    depends_on:
+      - django-app
+      - db
+      - redis
+    volumes:
+      - static-content:/usr/appserver/static
+
+volumes:
+  static-content:
+  pg_data:

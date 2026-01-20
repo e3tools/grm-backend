@@ -1,0 +1,86 @@
+{
+  "docs": 
+  [
+    {
+      "type": "adl",
+      "name": "BENIN",
+      "photo": "https://via.placeholder.com/150",
+      "location": 
+        {
+          "lat": 9.6342182,
+          "long": -13.6493711
+        },
+      "representative": 
+        {
+          "id": 1,
+          "name": "Florentin ABOE",
+          "email": "aboesec@gmail.com",
+          "phone": "+229 66 39 08 06",
+          "photo": "https://via.placeholder.com/150",
+          "is_active": true,
+          "last_active": "03-01-2024",
+          "password": "pbkdf2_sha256$600000$0LO9PPoBMJBa4iE9mWRux4$9bY4dzLEKUXg3jIyZvxejoVi+vCss/cia63du+TvmNU="
+        },
+      "phases": [],
+      "administrative_level": null,
+      "administrative_region": "country",
+      "department": 3,
+      "unique_region": 0,
+      "village_secretary": 1
+    },
+
+    {
+      "type": "adl",
+      "name": "ALIBORI, KANDI",
+      "photo": "https://via.placeholder.com/150",
+      "location": 
+        {
+          "lat": 9.6342182,
+          "long": -13.6493711
+        },
+      "representative": 
+        {
+          "id": 2,
+          "name": "Head Dept",
+          "email": "depthead@gmail.com",
+          "phone": "+229 66 66 66 66",
+          "photo": "https://via.placeholder.com/150",
+          "is_active": true,
+          "last_active": "04-01-2024",
+          "password": "pbkdf2_sha256$600000$tN6KnAMvIhlwEFIHFY86vb$p9edTbOfIQEqRuPmYnXlS3hXcpD+hw+CbVpFdy2lvCg="
+        },
+      "phases": [],
+      "administrative_level": "commune",
+      "administrative_region": "6",
+      "department": 2,
+      "unique_region": 0,
+      "village_secretary": 1
+    },
+
+    {
+    "type": "adl",
+    "name": "ALIBORI, KANDI, KANDI 1, KADJÈRÈ",
+    "photo": "https://via.placeholder.com/150",
+    "location": {
+      "lat": 9.6342182,
+      "long": -13.6493711
+    },
+    "representative": {
+      "id": 3,
+      "name": "Kajèrè Respo",
+      "email": "mgp1@gmail.com",
+      "phone": "+229 97 97 97 97",
+      "photo": "https://via.placeholder.com/150",
+      "is_active": true,
+      "last_active": "04-01-2024",
+      "password": "pbkdf2_sha256$600000$cHv6qj0RHzWzlrjKSSoSrO$bJ3AGHPHU9tOcgtlcqiRSQfvZ+djIqmr3AaK/n9AJL8="
+    },
+    "phases": [],
+    "administrative_level": "village",
+    "administrative_region": "134",
+    "department": 1,
+    "unique_region": 0,
+    "village_secretary": 1
+    }
+  ]
+}

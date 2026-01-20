@@ -9,10 +9,12 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 
 def send_sms(to, from_=TWILIO_FROM_NUMBER, body=None):
-    client.messages.create(
-        to=to,
-        from_=from_,
-        body=body
-    )
+    if getattr(settings, 'TWILIO_DEBUG_MODE', False):
+        print("--- SMS SIMULATION ---")
+        print(f"To: {to}\nMessage: {body}")
+        print("-----------------------")
+        return None
+
+    client.messages.create(to=to, from_=from_, body=body)
 
     # print(message.sid)

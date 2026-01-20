@@ -1,0 +1,27 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "0-18",
+   "type": "issue_age_group"
+ },
+ {
+   "id": 2,
+   "name": "18-30",
+   "type": "issue_age_group"
+ },
+ {
+   "id": 3,
+   "name": "31-45",
+   "type": "issue_age_group"
+ },
+ {
+   "id": 4,
+   "name": "46-60",
+   "type": "issue_age_group"
+ },
+ {
+   "id": 5,
+   "name": "61 et plus",
+   "type": "issue_age_group"
+ }
+]}

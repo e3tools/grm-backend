@@ -1,0 +1,17 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "Christianisme",
+   "type": "issue_religious_affiliation"
+ },
+ {
+   "id": 2,
+   "name": "Islam",
+   "type": "issue_religious_affiliation"
+ },
+ {
+   "id": 3,
+   "name": "Religions endogènes",
+   "type": "issue_religious_affiliation"
+ }
+]}

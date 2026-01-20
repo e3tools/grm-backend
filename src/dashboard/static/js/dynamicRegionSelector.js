@@ -1,28 +1,53 @@
 let ancestors = [];
+let governmentWorkerId = null;
+let current_region_id;
+
+$("#administrative_level_label").html($("label[for='id_administrative_region']").html());
+
+function triggerRegionChange() {
+    const event = new CustomEvent("region:changed", {
+        detail: {region_id: current_region_id}
+    });
+    document.dispatchEvent(event);
+}
 
 function changeRegionTrigger(url, placeholder) {
     $(document).on("change", ".region", function () {
-        $("#id_administrative_region_value").val($("select.region:last").val());
         loadNextLevelRegions($(this), url, placeholder);
+        let current_input_value = $(this).val();
+        if (current_input_value) {
+            current_region_id = current_input_value;
+            triggerRegionChange();
+        }
     });
 }
 
+$(document).on('select2:clear', ".region", function (e) {
+    current_region_id = $(this).closest('.form-group')
+        .prev('.form-group').find('select.region').val();
+    triggerRegionChange();
+});
+
 function loadNextLevelRegions(current_level, url, placeholder) {
     let current_level_val = current_level.val();
-    console.log('current_level_val para cargar proximo selector: ' + current_level_val);
     if (current_level_val !== '') {
         let select_region = $(".region");
         select_region.attr('disabled', true);
+        let ajaxData = {
+            parent_id: current_level_val,
+        };
+        // Add government_worker parameter if available
+        if (governmentWorkerId !== null) {
+            ajaxData.government_worker = governmentWorkerId;
+        }
         $.ajax({
             type: 'GET',
             url: url,
-            data: {
-                parent_id: current_level_val,
-            },
+            data: ajaxData,
             success: function (data) {
                 if (data.length > 0) {
-                    let id_select = 'id_' + data[0].administrative_level;
-                    let label = data[0].administrative_level.replace(/^\w/, (c) => c.toUpperCase());
+                    let id_select = 'id_' + data[0].administrative_level__name;
+                    let label = data[0].administrative_level__name.replace(/^\w/, (c) => c.toUpperCase());
                     let child;
                     let new_input = document.createElement('div');
                     new_input.className = 'form-group row dynamic-select';
@@ -49,14 +74,12 @@ function loadNextLevelRegions(current_level, url, placeholder) {
                     child.select2({
                         allowClear: true,
                         placeholder: placeholder,
+                        width: '100%',
                     });
-                    $(child).next().find('b[role="presentation"]').hide();
-                    $(child).next().find('.select2-selection__arrow').append(
-                        '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
 
                     let options = '<option value></option>';
                     $.each(data, function (index, value) {
-                        let administrative_id = value.administrative_id;
+                        let administrative_id = value.id;
                         let option = '<option value="' + administrative_id;
                         if (ancestors.includes(administrative_id)) {
                             option += '" selected="selected">';
@@ -94,28 +117,4 @@ function loadNextLevelRegions(current_level, url, placeholder) {
             select.remove();
         });
     }
-}
-
-function loadRegionSelectors(url) {
-    let administrative_region_value = $("#id_administrative_region_value").val();
-    $.ajax({
-        type: 'GET',
-        url: url,
-        data: {
-            administrative_id: administrative_region_value,
-        },
-        success: function (data) {
-            if (data.length > 0) {
-                data = data.slice(1);
-                data.push(administrative_region_value);
-                ancestors = data;
-                loadNextLevelRegions($("select.region:last"), get_choices_url, choice_placeholder);
-            } else {
-                $('#next').prop('disabled', false);
-            }
-        },
-        error: function (data) {
-            alert(error_server_message + "Error " + data.status);
-        }
-    });
 }

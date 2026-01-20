@@ -1,0 +1,46 @@
+{
+  "docs": [
+    {
+      "id": 1,
+      "name": "Demande d'informations ou doléances",
+      "type": "issue_sub_type",
+      "parent_id": 1
+    },
+    {
+      "id": 2,
+      "name": "Plaintes ou réclamations liées aux mesures environnementales et sociales",
+      "type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 3,
+      "name": "Plaintes liées aux travaux et prestations",
+      "type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 4,
+      "name": "Plaintes liées à la violation du code de conduite",
+      "type": "issue_sub_type",
+	  "parent_id": 2
+    },
+    {
+      "id": 5,
+      "name": "Suggestions/commentaires",
+      "type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 6,
+      "name": "Dénonciation",
+      "type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 7,
+      "name": "Autre",
+      "type": "issue_sub_type",
+      "parent_id": 5
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+from django.utils.translation import gettext_lazy as _
+
+PROJECT_CHOICE = "project"
+PROJECT_DISPLAY = _("Project Description")
+ADMINISTRATIVE_LEVELS_CHOICE = "administrative_levels"
+ADMINISTRATIVE_LEVELS_DISPLAY = _("Administrative Level Structure Configuration")
+ADMINISTRATIVE_REGIONS_CHOICE = "administrative_regions"
+ADMINISTRATIVE_REGIONS_DISPLAY = _("Load Administrative Levels")
+DEPARTMENTS_CHOICE = "departments"
+DEPARTMENTS_DISPLAY = _("Departments")
+ISSUE_TYPES_CHOICE = "issue_types"
+ISSUE_TYPES_DISPLAY = _("Types")
+CATEGORIES_CHOICE = "categories"
+CATEGORIES_DISPLAY = _("Issues Categories")
+ISSUE_STATUS_CHOICE = "issue_status"
+ISSUE_STATUS_DISPLAY = _("Resolution Process")
+CITIZEN_AGE_GROUPS_CHOICE = "citizen_age_groups"
+CITIZEN_AGE_GROUPS_DISPLAY = _("Citizen Age Groups")
+CITIZEN_GROUPS_CHOICE = "citizen_groups"
+CITIZEN_GROUPS_DISPLAY = _("Citizen Groups")
+COMPONENTS_CHOICE = "components"
+COMPONENTS_DISPLAY = _("Project Components")
+SUMMARY_CHOICE = "summary"
+SUMMARY_DISPLAY = _("Summary")
+WIZARD_SECTION_CHOICES = [
+    (PROJECT_CHOICE, PROJECT_DISPLAY),
+    (ADMINISTRATIVE_LEVELS_CHOICE, ADMINISTRATIVE_LEVELS_DISPLAY),
+    (ADMINISTRATIVE_REGIONS_CHOICE, ADMINISTRATIVE_REGIONS_DISPLAY),
+    (DEPARTMENTS_CHOICE, DEPARTMENTS_DISPLAY),
+    (ISSUE_TYPES_CHOICE, ISSUE_TYPES_DISPLAY),
+    (CATEGORIES_CHOICE, CATEGORIES_DISPLAY),
+    (ISSUE_STATUS_CHOICE, ISSUE_STATUS_DISPLAY),
+    (CITIZEN_AGE_GROUPS_CHOICE, CITIZEN_AGE_GROUPS_DISPLAY),
+    (CITIZEN_GROUPS_CHOICE, CITIZEN_GROUPS_DISPLAY),
+    (COMPONENTS_CHOICE, COMPONENTS_DISPLAY),
+]
+MAP_WIZARD_SECTION = {
+    PROJECT_CHOICE: PROJECT_DISPLAY,
+    ADMINISTRATIVE_LEVELS_CHOICE: ADMINISTRATIVE_LEVELS_DISPLAY,
+    ADMINISTRATIVE_REGIONS_CHOICE: ADMINISTRATIVE_REGIONS_DISPLAY,
+    DEPARTMENTS_CHOICE: DEPARTMENTS_DISPLAY,
+    ISSUE_TYPES_CHOICE: ISSUE_TYPES_DISPLAY,
+    CATEGORIES_CHOICE: CATEGORIES_DISPLAY,
+    ISSUE_STATUS_CHOICE: ISSUE_STATUS_DISPLAY,
+    CITIZEN_AGE_GROUPS_CHOICE: CITIZEN_AGE_GROUPS_DISPLAY,
+    CITIZEN_GROUPS_CHOICE: CITIZEN_GROUPS_DISPLAY,
+    COMPONENTS_CHOICE: COMPONENTS_DISPLAY,
+    SUMMARY_CHOICE: SUMMARY_DISPLAY,
+}
+ITEM_DELETE_ERROR_MESSAGE = _("You cannot delete '%(name)s' because it is in use.")
+ITEM_TOAST_ERROR_MESSAGE = _('This item cannot be deleted because it is in use.')
+ADMINISTRATIVE_LEVEL_EXCEL_WORKBOOK_TITLE = _("Administrative Level Instances")
+ADMINISTRATIVE_LEVEL_UPLOAD_SUCCESS_MESSAGE = _("Successfully created %(count)d administrative level instances.")
+ADMINISTRATIVE_LEVEL_UPLOAD_DUPLICATES_MESSAGE = _("Skipped %(count)d duplicates that already existed.")
+ADMINISTRATIVE_LEVEL_UPLOAD_UNCHANGEABLE_MESSAGE = _(
+    "%(count)d administrative level instances could not be modified because they are already in use."
+)
+ADMINISTRATIVE_LEVEL_UPLOAD_DELETE_MESSAGE = _("All administrative level instances have been deleted.")
+ADMINISTRATIVE_LEVEL_UPLOAD_NOT_FOUND_MESSAGE = _("Administrative level %(level)s not found in database")
+ADMINISTRATIVE_LEVEL_UPLOAD_NO_HEADER_MESSAGE = _("The Excel file must contain a header row.")
+ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_ALREADY_EXISTS_MESSAGE = _(
+    "The first administrative level instance already exists with the name %(root)s. "
+    "The instance with the value %(new)s does not match this level in the Excel file."
+)
+ADMINISTRATIVE_LEVEL_UPLOAD_ROOT_UNIQUE_MESSAGE = _(
+    "The value of the instance of the first administrative level (first column) must be the same value for all cells "
+    "in the column. Expected %(root)s, found %(new)s."
+)
+ONLY_EXCEL_FILE_EXTENSIONS_ERROR_MESSAGE = _("Only Excel files (.xls, .xlsx) are allowed.")
+INVALID_EXCEL_FILE_ERROR_MESSAGE = _("The uploaded file is not a valid Excel file.")
+SUBCOMPONENT_REQUIRED_ERROR_MESSAGE = _('Each component must have at least one subcomponent.')
+NOT_STARTED_CHOICE = "not_started"
+NOT_STARTED_DISPLAY = _("Not Started")
+IN_PROGRESS_CHOICE = "in_progress"
+IN_PROGRESS_DISPLAY = _("In Progress")
+COMPLETED_CHOICE = "completed"
+COMPLETED_DISPLAY = _("Completed")
+WIZARD_STATUS_CHOICES = [
+    (NOT_STARTED_CHOICE, NOT_STARTED_DISPLAY),
+    (IN_PROGRESS_CHOICE, IN_PROGRESS_DISPLAY),
+    (COMPLETED_CHOICE, COMPLETED_DISPLAY),
+]
+MAP_WIZARD_STATUS = {
+    NOT_STARTED_CHOICE: NOT_STARTED_DISPLAY,
+    IN_PROGRESS_CHOICE: IN_PROGRESS_DISPLAY,
+    COMPLETED_CHOICE: COMPLETED_DISPLAY,
+}
+CITIZEN_GROUP_CHOICE = "citizen_group"
+CITIZEN_GROUP2_CHOICE = "citizen_group_2"
+CITIZEN_GROUP_DISPLAY = _('Citizen group')
+CITIZEN_GROUP2_DISPLAY = _('Citizen group 2')
+CITIZEN_GROUP_CHOICES = (
+    (CITIZEN_GROUP_CHOICE, CITIZEN_GROUP_DISPLAY),
+    (CITIZEN_GROUP2_CHOICE, CITIZEN_GROUP2_DISPLAY),
+)
+MAP_CITIZEN_GROUP = {
+    CITIZEN_GROUP_CHOICE: CITIZEN_GROUP_DISPLAY,
+    CITIZEN_GROUP2_CHOICE: CITIZEN_GROUP2_DISPLAY,
+}
+NOT_PERMITTED_TEXT = _('Action not permitted')

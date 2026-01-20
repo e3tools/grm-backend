@@ -1,0 +1,31 @@
+{% load i18n %}
+<div class="card mt-4">
+	<div class="card-header">
+		<div class="d-flex flex-column">
+			<h3 class="card-title mb-0">{% translate "Performance by Administrative Level" %}</h3>
+			<small class="text-muted">{% translate "Pinpoint geographic areas that are struggling" %}</small>
+		</div>
+	</div>
+
+	<div class="card-body">
+		<div class="table-responsive">
+			<table id="regionPerformanceTable" class="table table-hover table-striped">
+				<thead class="table-light">
+				<tr>
+					<th>{% translate "Administrative Level" %}</th>
+					<th>{% translate "Open Issues" %}</th>
+					<th>{% translate "Avg. Resolution Time" %}</th>
+					<th>{% translate "Active Workers" %}</th>
+					<th>{% translate "Performance" %}</th>
+					<th>{% translate "Actions" %}</th>
+				</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
+		<!-- Placeholder for informational message when selected region has no children.
+             The frontend will populate this element when `no_children` is true. -->
+		<div id="region-no-children-message" class="mt-3" style="display:none;"></div>
+	</div>
+</div>

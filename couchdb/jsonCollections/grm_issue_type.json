@@ -1,0 +1,27 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "Demande d'information",
+   "type": "issue_type"
+ },
+ {
+   "id": 2,
+   "name": "Plainte",
+   "type": "issue_type"
+ },
+ {
+   "id": 3,
+   "name": "Suggestions/commentaires",
+   "type": "issue_type"
+ },
+ {
+   "id": 4,
+   "name": "Dénonciation",
+   "type": "issue_type"
+ },
+ {
+  "id": 5,
+  "name": "Autre",
+  "type": "issue_type"
+}
+]}

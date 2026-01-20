@@ -1,0 +1,88 @@
+{% load bootstrap4 i18n %}
+
+{% translate "Upload Administrative Levels" as upload_regions %}
+
+<div class="card-header">
+	<h3 class="card-title">
+		{{ card_title }}
+	</h3>
+</div>
+<div class="card-body table-responsive">
+
+	<div class="label">
+		{% translate "Administrative Levels" %}
+	</div>
+
+	<div class="pull-right mt-2">
+		<a href="{% url 'wizard:download_regions_sample' %}" class="btn btn-info mb-2">
+			{% translate "Download Sample Excel" %}
+		</a>
+		<a id="upload_regions" class="btn btn-primary mb-2" data-toggle="modal" data-target="#uploadModal">
+			{{ upload_regions }}
+		</a>
+	</div>
+
+	<table class="table mt-5">
+		<thead>
+		<tr>
+			<th>{% translate "Administrative Level" %}</th>
+			<th>{% translate "Number of Instances" %}</th>
+		</tr>
+		</thead>
+		<tbody>
+		{% for level in regions_summary %}
+			<tr>
+				<td>{{ level.name }}</td>
+				<td>{{ level.region_count }}</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td colspan="2">{% translate "No administrative levels found." %}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div class="card-footer">
+	<button id="previous_step" data-step="{{ step }}" class="btn btn-secondary disabled-on-submit">
+		<i class="fa fa-chevron-left mr-2"></i>
+		{% translate "Previous" %}
+	</button>
+	<button id="next_step" class="btn btn-primary float-right
+	disabled-on-submit {% if section_status != 'completed' %}disabled{% endif %}">
+		{% translate "Next" %}
+	</button>
+</div>
+
+<div id="uploadModal" class="modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">{{ upload_regions }}</h4>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">×</span>
+				</button>
+			</div>
+			<form id='formUploadModal' method="post" action="{% url 'wizard:setup_step_3' %}"
+				  enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="modal-body">
+					<div class="overlay-wrapper">
+						{% bootstrap_form form %}
+						<div class="overlay submit-spin d-none">
+							<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						{% translate 'Close' %}
+					</button>
+					<button type="submit" class="btn btn btn-primary">
+						{% translate "Upload" %}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

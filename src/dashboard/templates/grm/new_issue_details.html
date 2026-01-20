@@ -1,103 +1,116 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=50 %}
+	{% include 'common/progress_bar.html' with percentage=50 %}
 {% endblock progress-bar %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <img src="{% static 'images/bg-left-horizontal-waves.png' %}" class="bg-left-horizontal-waves"/>
-                <form method="post">{% csrf_token %}
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="fs20 lh46 mb-1 text-regular-family">
-                                    {% translate 'Details of issue of Feedback' %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 3
-                                </div>
-                                <div class="fs35 lh35 text-bold-family ">
-                                    {% translate 'Basic Information' %}
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                {% bootstrap_form form layout='horizontal' %}
-                                <div class="overlay-wrapper">
-                                    <div id="attachments"></div>
-                                    <div class="overlay" id="load-attachments-spin">
-                                        <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right">
-                            {% translate "SAVE & NEXT" %}
-                        </button>
-                        <a href="{% url 'dashboard:grm:new_issue_step_2' doc.auto_increment_id %}"
-                           class="btn btn-primary btn-sm rounded-xl float-right mr-4 disabled-on-submit">
-                            <i class="fa fa-chevron-left mr-2"></i>
-                            {% translate "BACK" %}
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+	<h5>{% translate 'Step' %} 3</h5>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-header">
+					<h3 class="card-title">{% translate 'Details of issue of Feedback' %}</h3>
+				</div>
+				<form method="post">{% csrf_token %}
+					<div class="card-body bg-left-horizontal-waves">
+						<div class="row">
+							<div class="col-md-12">
+								{% bootstrap_form form layout='horizontal' %}
+								<div class="overlay-wrapper">
+									<div id="attachments"></div>
+									<div class="overlay" id="load-attachments-spin">
+										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-footer">
+						<a href="{% url 'dashboard:grm:new_issue_step_2' obj.id %}"
+						   class="btn btn-secondary disabled-on-submit">
+							<i class="fa fa-chevron-left mr-2"></i>
+							{% translate "BACK" %}
+						</a>
+						<button type="submit" class="btn btn-primary float-right">
+							{% translate "SAVE & NEXT" %}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block modals %}
-    <div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
+	<div id="formModal" class="modal" role="dialog" aria-hidden="true" data-backdrop="static"></div>
 {% endblock modals %}
 
 {% block select2 %}
-    <script type="text/javascript">
+	<script type="text/javascript">
         $("#id_issue_type").select2({
             placeholder: "{% translate 'Click to select the report' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_category").select2({
-            placeholder: "{% translate 'Click to select the type of grievance' %}",
-            allowClear: true
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true,
+            width: '100%'
         });
-    </script>
+        $("#id_issue_sub_type").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true,
+            width: '100%'
+        });
+        $("#id_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true,
+            width: '100%'
+        });
+        $("#id_sub_component").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true,
+            width: '100%'
+        });
+        $("#id_subproject_group").select2({
+            placeholder: "{% translate 'Click to select an item' %}",
+            allowClear: true,
+            width: '100%'
+        });
+	</script>
 {% endblock select2 %}
 
 {% block javascript %}
-    {{ block.super }}
-    <script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
-    <script src="{% static 'js/formAjaxSubmit.js' %}"></script>
-    <script type="text/javascript">
-        let load_attachments_spin = $('#load-attachments-spin');
+	{{ block.super }}
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script src="{% static 'js/formAjaxSubmit.js' %}"></script>
+	<script src="{% static 'js/dynamicOptionSelector.js' %}"></script>
+	<script type="text/javascript">
 
-        function loadAttachments() {
-            load_attachments_spin.show();
-            $('#attachments').load("{% url 'dashboard:grm:issue_attachments' doc.auto_increment_id %}", function (
-                response, status, xhr) {
-                if (status === "error") {
-                    alert(error_server_message + "Error " + response.status);
-                }
-                load_attachments_spin.hide();
-                $('#add_attachment').click(function () {
-                    let url = "{% url 'dashboard:grm:upload_issue_attachment' doc.auto_increment_id %}";
-                    file_form_ajax.load_form('#form', modal, url, false, true);
-                });
-            });
-        }
-
-        $(document).ready(function () {
-            loadAttachments();
+        let get_choices_url = '{% url 'dashboard:grm:get_options_values' %}';
+        $("#id_issue_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'IssueSubType', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_issue_sub_type');
+            }
         });
 
+        $("#id_issue_sub_type").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'IssueCategory', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_category');
+            }
+        });
+
+        $("#id_component").change(function () {
+            if ($(this).val() && $(this).val() !== '') {
+                let data = {'model_class': 'SubComponent', 'parent_id': $(this).val()};
+                loadData(get_choices_url, data, 'id_sub_component');
+            }
+        });
+
+        let load_attachments_spin = $('#load-attachments-spin');
 
         class FileFormAjaxSubmit extends FormAjaxSubmit {
             submitted_form() {
@@ -106,11 +119,28 @@
         }
 
         let file_form_ajax = new FileFormAjaxSubmit();
-        let modal = $('#formModal');
+        let file_form_modal = $('#formModal');
 
-        $('b[role="presentation"]').hide();
-        $('.select2-selection__arrow').append(
-            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
+        function loadAttachments() {
+            load_attachments_spin.show();
+            $('#attachments').load("{% url 'dashboard:grm:issue_attachments' obj.id %}", function (
+                response, status, xhr) {
+                if (status === "error") {
+                    alert(error_server_message + "Error " + response.status);
+                }
+                load_attachments_spin.hide();
+            });
+        }
+
+        $(document).on('click', '#add_attachment', function () {
+            let url = "{% url 'dashboard:grm:upload_issue_attachment' obj.id %}";
+            file_form_ajax.load_form('#form', file_form_modal, url, false, true);
+        });
+
+        $(document).ready(function () {
+            loadAttachments();
+        });
+
         let dp1 = '<div class="input-group-prepend" data-target="#{id}" data-toggle="datetimepicker">' +
             '<div class="input-group-text"><i class="fa fa-calendar text-primary"></i></div></div>';
         let dp2 = '<div class="input-group date" id="{id}" data-target-input="nearest"></div>';
@@ -130,23 +160,23 @@
         //Datemask dd/mm/yyyy
         $('.datetimepicker-input').inputmask({alias: "datetime", inputFormat: "dd/mm/yyyy"});
 
-        let defaultDate = Date.now();
-        {% if doc.intake_date %}
-            defaultDate = moment("{{ doc.intake_date }}", "YYYY-MM-DD");
+        let defaultDate = moment();
+        {% if obj.intake_date %}
+            defaultDate = moment("{{ obj.intake_date|date:"d/m/Y" }}", "DD/MM/YYYY");
         {% endif %}
         $('#intake_date').datetimepicker({
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             defaultDate: defaultDate,
             format: "DD/MM/YYYY",
         });
-        {% if doc.issue_date %}
-            defaultDate = moment("{{ doc.issue_date }}", "YYYY-MM-DD");
+        {% if obj.issue_date %}
+            defaultDate = moment("{{ obj.issue_date|date:"d/m/Y" }}", "DD/MM/YYYY");
         {% else %}
             defaultDate = false;
         {% endif %}
         $('#issue_date').datetimepicker({
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             defaultDate: defaultDate,
             format: "DD/MM/YYYY",
@@ -165,8 +195,8 @@
                 })
                 .done(function (data) {
                     loadAttachments();
-                    showPopupMessage(data.msg);
+                    showPopupMessage(data);
                 })
         });
-    </script>
+	</script>
 {% endblock javascript %}

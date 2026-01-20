@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls import include
 from django.conf.urls.static import static
@@ -23,23 +24,24 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-handler400 = 'dashboard.authentication.views.handler400'
-handler403 = 'dashboard.authentication.views.handler403'
-handler404 = 'dashboard.authentication.views.handler404'
-handler500 = 'dashboard.authentication.views.handler500'
+handler400 = "dashboard.authentication.views.handler400"
+handler403 = "dashboard.authentication.views.handler403"
+handler404 = "dashboard.authentication.views.handler404"
+handler500 = "dashboard.authentication.views.handler500"
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('attachments/', include('attachments.urls')),
-    path('authentication/', include('authentication.urls')),
-    path('i18n/', include('django.conf.urls.i18n')),
-    path('', include('dashboard.urls')),
+    path("admin/", admin.site.urls),
+    path("authentication/", include("authentication.urls")),
+    path("issues/", include("issues.urls")),
+    path("i18n/", include("django.conf.urls.i18n")),
+    path("", include("dashboard.urls")),
+    path("wizard/", include("wizard.urls")),
 ]
 
 schema_view = get_schema_view(
     openapi.Info(
         title="GRM API Documentation",
-        default_version='v1',
+        default_version="v1",
         description="Test Documentation",
     ),
     public=True,
@@ -49,7 +51,19 @@ schema_view = get_schema_view(
 urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
+
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [
-        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path(
+            "swagger/",
+            schema_view.with_ui("swagger", cache_timeout=0),
+            name="schema-swagger-ui",
+        ),
     ]
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Only include debug_toolbar if it's installed (dev dependency)
+    try:
+        import debug_toolbar
+        urlpatterns += [path("__debug__/", include("debug_toolbar.urls"))]
+    except ImportError:
+        pass

@@ -1,0 +1,621 @@
+{
+  "docs": [
+    {
+      "id": 1,
+      "label": "Demande d'informations ou doléances",
+      "name": "Demande d'informations ou doléances",
+      "abbreviation": "M&DID",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "parent_type": "issue_sub_type",
+      "parent_id": 1
+    },
+    {
+      "id": 2,
+      "label": "Le respect des mesures contenues dans les PAR, les PGES chantier",
+      "name": "Le respect des mesures contenues dans les PAR, les PGES chantier",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 2,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 3,
+      "label": "La réinstallation des populations si nécessaire",
+      "name": "La réinstallation des populations si nécessaire",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 3,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 4,
+      "label": "Le processus d'acquisition des terres",
+      "name": "Le processus d'acquisition des terres",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 4,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 5,
+      "label": "Le recensement des biens et des personnes affectées",
+      "name": "Le recensement des biens et des personnes affectées",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 5,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 6,
+      "label": "Les conflits de propriété",
+      "name": "Les conflits de propriété",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 6,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 7,
+      "label": "Les compensations des différentes pertes de biens",
+      "name": "Les compensations des différentes pertes de biens",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 7,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 8,
+      "label": "La gestion des ressources naturelles limitées (eaux)",
+      "name": "La gestion des ressources naturelles limitées (eaux)",
+      "abbreviation": "M&PRE",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 8,
+      "parent_type": "issue_sub_type",
+      "parent_id": 2
+    },
+    {
+      "id": 9,
+      "label": "Le choix et la sélection de prestataires",
+      "name": "Le choix et la sélection de prestataires",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 9,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 10,
+      "label": "La qualité des services fournis aux clients",
+      "name": "La qualité des services fournis aux clients",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 10,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 11,
+      "label": "Le paiement des contrats formels",
+      "name": "Le paiement des contrats formels",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 11,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 12,
+      "label": "La gestion ou le comportement des travailleurs des entreprises, des sous-traitants, etc.",
+      "name": "La gestion ou le comportement des travailleurs des entreprises, des sous-traitants, etc.",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 12,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 13,
+      "label": "Le choix des bénéficiaires et du traitement administratif des dossiers",
+      "name": "Le choix des bénéficiaires et du traitement administratif des dossiers",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 13,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 14,
+      "label": "Les actions des entreprises en charge des travaux en rapport avec les communautés riveraines",
+      "name": "Les actions des entreprises en charge des travaux en rapport avec les communautés riveraines",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 14,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 15,
+      "label": "Les dommages matériels sur les biens et les personnes (travailleurs et populations locales) occasionnés durant les travaux",
+      "name": "Les dommages matériels sur les biens et les personnes (travailleurs et populations locales) occasionnés durant les travaux",
+      "abbreviation": "M&PTP",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 15,
+      "parent_type": "issue_sub_type",
+      "parent_id": 3
+    },
+    {
+      "id": 16,
+      "label": "Les cas de corruption, et de fraude",
+      "name": "Les cas de corruption, et de fraude",
+      "abbreviation": "M&PVCC",
+      "confidentiality_level": "Confidential",
+      "redirection_protocol": 0,
+      "assigned_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 16,
+      "parent_type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 17,
+      "label": "Les cas de violence basée sur le genre et plus précisément d'exploitation et abus sexuels et de harcèlement sexuel",
+      "name": "Les cas de violence basée sur le genre et plus précisément d'exploitation et abus sexuels et de harcèlement sexuel",
+      "abbreviation": "M&PVCC",
+      "confidentiality_level": "Confidential",
+      "redirection_protocol": 0,
+      "assigned_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 17,
+      "parent_type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 18,
+      "label": "L'embauche de mineur-e-s sur les chantiers",
+      "name": "L'embauche de mineur-e-s sur les chantiers",
+      "abbreviation": "M&PVCC",
+      "confidentiality_level": "Confidential",
+      "redirection_protocol": 0,
+      "assigned_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 18,
+      "parent_type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 19,
+      "label": "Le non-respect des us et coutumes de la localité",
+      "name": "Le non-respect des us et coutumes de la localité",
+      "abbreviation": "M&PVCC",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 19,
+      "parent_type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 20,
+      "label": "Les cas d'incidents et accidents (hommes et animaux)",
+      "name": "Les cas d'incidents et accidents (hommes et animaux)",
+      "abbreviation": "M&PVCC",
+      "confidentiality_level": "Confidential",
+      "redirection_protocol": 0,
+      "assigned_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "value": 20,
+      "parent_type": "issue_sub_type",
+      "parent_id": 4
+    },
+    {
+      "id": 21,
+      "label": "Suggestions/commentaires",
+      "name": "Suggestions/commentaires",
+      "abbreviation": "M&SoC",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "parent_type": "issue_sub_type",
+      "parent_id": 5
+    },
+    {
+      "id": 22,
+      "label": "Dénonciation",
+      "name": "Dénonciation",
+      "abbreviation": "M&DEN",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "parent_type": "issue_sub_type",
+      "parent_id": 6
+    },
+    {
+      "id": 23,
+      "label": "Autre",
+      "name": "Autre",
+      "abbreviation": "M&Autre",
+      "confidentiality_level": "",
+      "redirection_protocol": 1,
+      "assigned_department": {
+        "name": "Comité communautaire de gestion des plaintes",
+        "id": 1,
+        "administrative_level": "village"
+      },
+      "assigned_escalation_department": {
+        "name": "Comité local de gestion des plaintes",
+        "id": 2,
+        "administrative_level": "commune"
+      },
+      "assigned_appeal_department": {
+        "name": "Secrétariat technique à la coordination",
+        "id": 3,
+        "administrative_level": "country"
+      },
+      "type": "issue_category",
+      "parent_type": "issue_sub_type",
+      "parent_id": 7
+    }
+  ]
+}
