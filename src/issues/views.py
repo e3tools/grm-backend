@@ -384,22 +384,50 @@ class IssueCreateAPIView(CreateAPIView):
             ),
             400: openapi.Response(
                 description="Bad Request - Validation Failed",
-                examples={
-                    "application/json": {
-                        "message": VALIDATION_FAILED_MESSAGE,
-                        "errors": {
-                            "category": ["This field is required."],
-                            "issue_type": ["This field is required."],
-                            "administrative_region": ["This field is required."],
-                            "contact_method": [CONTACT_MEDIUM_ERROR_MESSAGE],
-                            "contact_information": [CONTACT_INFO_EMAIL_ERROR_MESSAGE],
-                        },
-                    }
-                },
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description='Field-specific validation errors',
+                            properties={
+                                'category': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'issue_type': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'administrative_region': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'contact_method': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=[CONTACT_MEDIUM_ERROR_MESSAGE],
+                                ),
+                                'contact_information': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=[CONTACT_INFO_EMAIL_ERROR_MESSAGE],
+                                ),
+                            },
+                        ),
+                    },
+                ),
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(
                 description="Internal Server Error",
@@ -649,7 +677,10 @@ class AssigneeIssueListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -885,7 +916,10 @@ class ReporterIssueListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1112,7 +1146,10 @@ class IssueRetrieveAPIView(RetrieveAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -1240,36 +1277,14 @@ class IssueStatusListAPIView(ListAPIView):
                         ),
                     },
                 ),
-                examples={
-                    "application/json": {
-                        "count": 25,
-                        "next": "http://localhost:8000/issues/issue-statuses/?page=3",
-                        "previous": "http://localhost:8000/issues/issue-statuses/?page=1",
-                        "results": [
-                            {
-                                "id": 1,
-                                "name": "Créé",
-                                "final_status": False,
-                                "initial_status": True,
-                                "rejected_status": False,
-                                "open_status": False,
-                            },
-                            {
-                                "id": 2,
-                                "name": "Ouverte",
-                                "final_status": False,
-                                "initial_status": False,
-                                "rejected_status": False,
-                                "open_status": True,
-                            },
-                        ],
-                    }
-                },
             ),
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1370,7 +1385,10 @@ class IssueTypeListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1547,7 +1565,10 @@ class IssueCategoryListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1741,7 +1762,10 @@ class IssueCommentCreateAPIView(CreateAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -1990,7 +2014,10 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
             204: openapi.Response(description="Comment deleted successfully"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Comment with the specified ID does not exist"),
@@ -2136,7 +2163,10 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -2436,7 +2466,10 @@ class IssueAttachmentDeleteAPIView(DestroyAPIView):
             204: openapi.Response(description="Attachment deleted successfully"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Attachment with the specified ID does not exist"),
@@ -2704,27 +2737,52 @@ class IssueUpdateAPIView(UpdateAPIView):
             ),
             400: openapi.Response(
                 description="Bad Request - Validation Failed",
-                examples={
-                    "application/json": {
-                        "message": VALIDATION_FAILED_MESSAGE,
-                        "errors": {
-                            "rating": ["Ensure this value is less than or equal to 5."],
-                            "status": ["Invalid pk \"999\" - object does not exist."],
-                        },
-                    }
-                },
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'rating': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["Ensure this value is less than or equal to 5."],
+                                ),
+                                'status': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["Invalid pk \"999\" - object does not exist."],
+                                ),
+                            },
+                        ),
+                    },
+                ),
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(
                 description="Forbidden - User is not reporter or assignee",
-                examples={"application/json": {"detail": "You do not have permission to perform this action."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example="You do not have permission to perform this action."
+                        )
+                    },
+                ),
             ),
             404: openapi.Response(
                 description="Not Found - Issue does not exist",
-                examples={"application/json": {"detail": NOT_FOUND_MESSAGE}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example=NOT_FOUND_MESSAGE)},
+                ),
             ),
             500: openapi.Response(
                 description="Internal Server Error",
@@ -2756,7 +2814,7 @@ class IssueUpdateAPIView(UpdateAPIView):
         """
         try:
             instance = self.get_object()
-            # Guardar el status anterior para detectar cambios
+            # Save the previous status to detect changes
             old_status_id = instance.status_id if instance.status else None
 
             serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -2887,7 +2945,10 @@ class CitizenGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -2987,7 +3048,10 @@ class CitizenAgeGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3088,7 +3152,10 @@ class SubProjectGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3198,7 +3265,10 @@ class ComponentListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3318,7 +3388,10 @@ class SubComponentListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3438,7 +3511,10 @@ class IssueSubTypeListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
