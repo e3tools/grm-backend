@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import MethodNotAllowed
 
@@ -8,6 +9,7 @@ from grm.constants import (
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
     EMAIL_CHOICE,
+    ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
     ISSUE_UPDATE_STATUS_ERROR_MESSAGE,
 )
@@ -138,7 +140,7 @@ class IssueSerializer(serializers.ModelSerializer):
     """
 
     description = serializers.CharField(read_only=True)
-    intake_date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ', read_only=True)
+    intake_date = serializers.SerializerMethodField()
     assignee = UserBasicSerializer(read_only=True)
     reporter = UserBasicSerializer(read_only=True)
     administrative_region = AdministrativeRegionBasicSerializer(read_only=True)
@@ -147,6 +149,17 @@ class IssueSerializer(serializers.ModelSerializer):
     issue_type = IssueTypeSerializer(
         read_only=True,
     )
+
+    def get_intake_date(self, obj):
+        dt = getattr(obj, 'intake_date', None)
+        if not dt:
+            return None
+        # Ensure UTC ISO8601 with Z suffix regardless of current timezone settings
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace('+00:00', 'Z')
 
     class Meta:
         model = Issue
@@ -399,6 +412,10 @@ class IssueUpdateSerializer(serializers.ModelSerializer):
 
         if not issue:
             return attrs
+
+        # Check escalate_flag field restriction
+        if 'escalate_flag' in attrs and user.id != getattr(issue, "assignee_id", None):
+            raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE)
 
         # Check status field restriction
         if 'status' in attrs and user.id != getattr(issue, "assignee_id", None):
