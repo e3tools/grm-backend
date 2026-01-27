@@ -15,6 +15,7 @@ from grm.constants import (
     ALERT_CHOICE,
     EMAIL_CHOICE,
     ISSUE_UPDATE_ERROR_MESSAGE,
+    ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
     ISSUE_UPDATE_STATUS_ERROR_MESSAGE,
     ISSUE_UPDATE_SUCCESS_MESSAGE,
@@ -82,12 +83,10 @@ class IssueUpdateAPIViewTest(APITestCase):
         before = timezone.now()
         self.authenticate_with_token()
 
-        # Reporter should be able to update rating and general fields, but not status
+        # Reporter should be able to update rating and general fields, but not status or escalate_flag
         allowed_data = {
-            'escalate_flag': True,
             'reject_flag': False,
             'rating': 4,
-            'escalation_reason': 'Issue requires higher level approval',
             'research_result': 'Investigation completed. Root cause identified.',
         }
 
@@ -98,10 +97,8 @@ class IssueUpdateAPIViewTest(APITestCase):
 
         # Verify the issue was actually updated
         self.issue.refresh_from_db()
-        self.assertTrue(self.issue.escalate_flag)
         self.assertFalse(self.issue.reject_flag)
         self.assertEqual(self.issue.rating, 4)
-        self.assertEqual(self.issue.escalation_reason, 'Issue requires higher level approval')
         self.assertEqual(self.issue.research_result, 'Investigation completed. Root cause identified.')
 
         # Check last_activity was updated
@@ -126,6 +123,20 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
         self.assertEqual(response.data['data']['id'], self.issue.id)
+
+    def test_reporter_cannot_update_escalate_flag(self):
+        """Test that reporter cannot update escalate_flag field."""
+        self.authenticate_with_token(self.reporter_token)
+
+        restricted_data = {'escalate_flag': True}
+        response = self.client.patch(self.url, restricted_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE, response.data['message'])
+
+        # Verify the issue escalate_flag was not updated
+        self.issue.refresh_from_db()
+        self.assertFalse(self.issue.escalate_flag)
 
     def test_reporter_cannot_update_status(self):
         """Test that reporter cannot update status field."""
@@ -156,33 +167,47 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.assertEqual(self.issue.rating, 0)  # Should remain unchanged
 
     def test_reporter_assignee_can_update_both_restricted_fields(self):
-        """Test that user who is both reporter and assignee can update both status and rating."""
+        """Test that user who is both reporter and assignee can update status, rating and escalate_flag."""
         self.authenticate_with_token(self.reporter_assignee_token)
 
-        both_fields_data = {'status': self.new_status.id, 'rating': 5}
+        both_fields_data = {'status': self.new_status.id, 'rating': 5, 'escalate_flag': True}
         url_reporter_assignee = reverse("issues:update-issue", kwargs={"id": self.issue_reporter_assignee.id})
         response = self.client.patch(url_reporter_assignee, both_fields_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
 
-        # Verify both fields were updated
+        # Verify all fields were updated
         self.issue_reporter_assignee.refresh_from_db()
         self.assertEqual(self.issue_reporter_assignee.status.id, self.new_status.id)
         self.assertEqual(self.issue_reporter_assignee.rating, 5)
+        self.assertTrue(self.issue_reporter_assignee.escalate_flag)
+
+    def test_assignee_can_update_escalate_flag(self):
+        """Test that assignee can update escalate_flag field."""
+        self.authenticate_with_token(self.assignee_token)
+
+        data = {'escalate_flag': True}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
+
+        # Verify the issue escalate_flag was updated
+        self.issue.refresh_from_db()
+        self.assertTrue(self.issue.escalate_flag)
 
     def test_reporter_can_update_other_fields_with_rating(self):
         """Test that reporter can update rating along with other allowed fields."""
         self.authenticate_with_token(self.reporter_token)
 
-        mixed_data = {'rating': 3, 'escalate_flag': True, 'research_result': 'Updated by reporter'}
+        mixed_data = {'rating': 3, 'research_result': 'Updated by reporter'}
         response = self.client.patch(self.url, mixed_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.issue.refresh_from_db()
         self.assertEqual(self.issue.rating, 3)
-        self.assertTrue(self.issue.escalate_flag)
         self.assertEqual(self.issue.research_result, 'Updated by reporter')
 
     def test_assignee_can_update_other_fields_with_status(self):
@@ -244,14 +269,14 @@ class IssueUpdateAPIViewTest(APITestCase):
         """Test that partial updates work correctly."""
         self.authenticate_with_token()
 
-        partial_data = {'escalate_flag': True}
+        partial_data = {'reject_flag': True}
         response = self.client.patch(self.url, partial_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Verify only the specified field was updated
         self.issue.refresh_from_db()
-        self.assertTrue(self.issue.escalate_flag)
+        self.assertTrue(self.issue.reject_flag)
         self.assertEqual(self.issue.rating, 0)  # Should remain unchanged
 
     def test_rating_validation_below_minimum(self):
@@ -308,13 +333,12 @@ class IssueUpdateAPIViewTest(APITestCase):
         """Test that boolean fields accept valid boolean values."""
         self.authenticate_with_token()
 
-        boolean_data = {'escalate_flag': True, 'reject_flag': True}
+        boolean_data = {'reject_flag': True}
         response = self.client.patch(self.url, boolean_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.issue.refresh_from_db()
-        self.assertTrue(self.issue.escalate_flag)
         self.assertTrue(self.issue.reject_flag)
 
     def test_text_field_updates(self):
@@ -334,7 +358,7 @@ class IssueUpdateAPIViewTest(APITestCase):
         """Test that only PATCH method is allowed."""
         self.authenticate_with_token()
 
-        allowed_data = {'escalate_flag': True}  # Use non-restricted field
+        allowed_data = {'reject_flag': True}  # Use non-restricted field
 
         self.assertEqual(self.client.patch(self.url, allowed_data, format='json').status_code, status.HTTP_200_OK)
         self.assertEqual(

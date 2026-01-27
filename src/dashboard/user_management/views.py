@@ -194,7 +194,7 @@ class UserDetailView(PageMixin, UserManagementPermissionMixin, generic.DetailVie
 
     def dispatch(self, request, *args, **kwargs):
         # Check if user is GRM Manager
-        if not request.user.grm_manager:
+        if hasattr(request.user, 'grm_manager') and not request.user.grm_manager:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -384,7 +384,7 @@ class UserUpdateView(PageMixin, UserManagementPermissionMixin, generic.UpdateVie
 
     def dispatch(self, request, *args, **kwargs):
         # Check if user is GRM Manager
-        if not request.user.grm_manager:
+        if hasattr(request.user, 'grm_manager') and not request.user.grm_manager:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -437,7 +437,7 @@ class ToggleUserStatusView(UserManagementPermissionMixin, generic.View):
 
     def dispatch(self, request, *args, **kwargs):
         # Check if user is GRM Manager
-        if not request.user.grm_manager:
+        if hasattr(request.user, 'grm_manager') and not request.user.grm_manager:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -489,7 +489,7 @@ class EditUserProfileFormView(
 
     def dispatch(self, request, *args, **kwargs):
         # Check if user is GRM Manager
-        if not request.user.grm_manager:
+        if hasattr(request.user, 'grm_manager') and not request.user.grm_manager:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
