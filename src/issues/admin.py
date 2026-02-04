@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from issues.models import (
     AdministrativeRegion,
-    AdministrativeLevel
+    AdministrativeLevel,
     IssueAttachment,
     Issue,
     IssueCategory,
