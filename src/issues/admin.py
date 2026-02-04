@@ -2,11 +2,13 @@ from django.contrib import admin
 
 from issues.models import (
     AdministrativeRegion,
+    AdministrativeLevel
     IssueAttachment,
     Issue,
     IssueCategory,
     IssueDepartment,
     IssueDepartmentAdministrativeLevel,
+    CitizenGroup
 )
 
 
@@ -153,3 +155,5 @@ admin.site.register(IssueCategory, IssueCategoryAdmin)
 admin.site.register(IssueDepartmentAdministrativeLevel, IssueDepartmentAdministrativeLevelAdmin)
 admin.site.register(Issue)
 admin.site.register(IssueAttachment)
+admin.site.register(CitizenGroup)
+admin.site.register(AdministrativeLevel)
