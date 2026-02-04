@@ -22,7 +22,8 @@ class SemanticSearchView(LoginRequiredMixin, View):
     template_name = "search/semantic_search.html"
     results_partial = "search/_results.html"
     search_container_partial = "search/_search_container.html"
-    connector = PineconeConnector()
+    # connector = PineconeConnector()
+    connector = None
 
     def get(self, request: HttpRequest) -> HttpResponse:
         query = request.GET.get("q", "").strip()

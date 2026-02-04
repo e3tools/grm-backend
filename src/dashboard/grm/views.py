@@ -1095,7 +1095,7 @@ class GetRegionChoicesForSelect2View(LoginRequiredAndAJAXRequestMixin, generic.V
         if selected_id:
             qs = qs.filter(id=selected_id)
         elif query:
-            qs = qs.filter(hierarchical_name__istartswith=query)
+            qs = qs.filter(hierarchical_name__icontains=query)
 
         if base_regions:
             qs = qs.exclude(children__isnull=False)

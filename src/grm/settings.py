@@ -54,6 +54,7 @@ CREATED_APPS = [
     "etl",
     "issues",
     "wizard",
+    "integrations.apps.IntegrationsConfig",
 ]
 
 THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", 'rest_framework.authtoken', "django_celery_results"]
@@ -267,6 +268,15 @@ EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+
+# OpenAi
+OPENAI_API_KEY = env('OPENAI_API_KEY')
+
+OPENAI_MODEL = env('OPENAI_MODEL')
+
+OPENAI_TEMPERATURE = float(env('OPENAI_TEMPERATURE'))
+
+OPENAI_MAX_TOKENS = int(env('OPENAI_MAX_TOKENS'))
 
 # Django REST Framework
 REST_FRAMEWORK = {
