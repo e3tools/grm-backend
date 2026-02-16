@@ -631,10 +631,7 @@ class IssueCommentsContextMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            department = self.obj.category.assigned_department.department
-        except Exception:
-            raise Http404
+
         context["colors"] = [
             "warning",
             "mediumslateblue",
@@ -644,9 +641,6 @@ class IssueCommentsContextMixin:
             "primary",
             "danger",
         ]
-        if not department.head:
-            msg = _(f"There is no head member for '{department.name}'. Please report to IT staff.")
-            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         return context
 
@@ -691,6 +685,15 @@ class IssueDetailsFormView(
         context["confidential"] = (
             self.obj.assignee and self.obj.assignee.id != user.id and citizen_type == CONFIDENTIAL_CHOICE
         )
+
+        try:
+            department = self.obj.category.assigned_department.department
+        except Exception:
+            raise Http404
+
+        if not department.head:
+            msg = _(f"There is no head member for '{department.name}'. Please report to IT staff.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
 
         return context
 
