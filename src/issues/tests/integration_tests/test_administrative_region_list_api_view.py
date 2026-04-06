@@ -76,7 +76,15 @@ class AdministrativeRegionListAPIViewTest(APITestCase):
 
         # Check structure of first child in results
         first_child = response.data['results'][1]
-        expected_fields = ['id', 'name', 'administrative_level', 'parent', 'created_date', 'updated_date']
+        expected_fields = [
+            'id',
+            'name',
+            'hierarchical_name',
+            'administrative_level',
+            'parent',
+            'created_date',
+            'updated_date',
+        ]
 
         for field in expected_fields:
             assert field in first_child
@@ -84,6 +92,7 @@ class AdministrativeRegionListAPIViewTest(APITestCase):
         # Verify data types
         assert isinstance(first_child['id'], int)
         assert isinstance(first_child['name'], str)
+        assert isinstance(first_child['hierarchical_name'], str)
         assert isinstance(first_child['administrative_level'], int)
         assert isinstance(first_child['parent'], int)
         assert isinstance(first_child['created_date'], str)
@@ -92,6 +101,7 @@ class AdministrativeRegionListAPIViewTest(APITestCase):
         # Verify data
         assert first_child['id'] == self.region_b.id
         assert first_child['name'] == self.region_b.name
+        assert first_child['hierarchical_name'] == self.region_b.hierarchical_name
         assert first_child['administrative_level'] == self.region_b.administrative_level.id
         assert first_child['parent'] == self.region_b.parent.id
 

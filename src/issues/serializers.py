@@ -263,7 +263,7 @@ class AdministrativeRegionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdministrativeRegion
-        fields = ['id', 'name', 'administrative_level', 'parent', 'created_date', 'updated_date']
+        fields = ['id', 'name', 'hierarchical_name', 'administrative_level', 'parent', 'created_date', 'updated_date']
 
 
 class CitizenSerializer(serializers.ModelSerializer):
