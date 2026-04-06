@@ -30,10 +30,10 @@ class GetRegionChoicesForSelect2ViewTest(DashboardTestCase):
         assert data[0]["text"] == str(self.region_b)
 
     def test_get_with_query_returns_matching_regions(self):
-        resp = self.get(f"{self.url}?q=A", ajax=True)
+        resp = self.get(f"{self.url}?q=al", ajax=True)
         assert resp.status_code == 200
         data = resp.json()
-        # Only region_a should match "A"
+        # Only region_a should match "al"
         ids = [item["id"] for item in data]
         assert self.region_a.id in ids
         assert self.region_b.id not in ids
