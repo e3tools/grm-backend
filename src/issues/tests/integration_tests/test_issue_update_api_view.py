@@ -14,6 +14,7 @@ from authentication.models import Cdata
 from grm.constants import (
     ALERT_CHOICE,
     EMAIL_CHOICE,
+    ISSUE_UPDATE_APPEAL_STATUS_ERROR_MESSAGE,
     ISSUE_UPDATE_ERROR_MESSAGE,
     ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
@@ -57,6 +58,8 @@ class IssueUpdateAPIViewTest(APITestCase):
 
         # Issue status for testing
         self.new_status = IssueStatusFactory()
+        self.rejected_status = IssueStatusFactory(rejected_status=True)
+        self.final_status = IssueStatusFactory(final_status=True)
 
         # Issue where reporter and assignee are different users
         self.issue = IssueFactory(reporter=self.reporter_user, assignee=self.assignee_user, rating=0, confirmed=True)
@@ -81,25 +84,17 @@ class IssueUpdateAPIViewTest(APITestCase):
     def test_reporter_can_update_issue(self):
         """Test that the reporter can update an issue (excluding restricted fields)."""
         before = timezone.now()
-        self.authenticate_with_token()
+        self.authenticate_with_token(self.reporter_token)
 
-        # Reporter should be able to update rating and general fields, but not status or escalate_flag
-        allowed_data = {
-            'reject_flag': False,
-            'rating': 4,
-            'research_result': 'Investigation completed. Root cause identified.',
-        }
-
-        response = self.client.patch(self.url, allowed_data, format='json')
+        # Reporter should be able to update rating
+        response = self.client.patch(self.url, {'rating': 4}, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['message'], ISSUE_UPDATE_SUCCESS_MESSAGE)
 
         # Verify the issue was actually updated
         self.issue.refresh_from_db()
-        self.assertFalse(self.issue.reject_flag)
         self.assertEqual(self.issue.rating, 4)
-        self.assertEqual(self.issue.research_result, 'Investigation completed. Root cause identified.')
 
         # Check last_activity was updated
         self.reporter_user.refresh_from_db()
@@ -115,7 +110,6 @@ class IssueUpdateAPIViewTest(APITestCase):
             'reject_flag': False,
             'escalation_reason': 'Issue requires higher level approval',
             'status': self.new_status.id,
-            'research_result': 'Investigation completed. Root cause identified.',
         }
 
         response = self.client.patch(self.url, allowed_data, format='json')
@@ -197,32 +191,19 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.issue.refresh_from_db()
         self.assertTrue(self.issue.escalate_flag)
 
-    def test_reporter_can_update_other_fields_with_rating(self):
-        """Test that reporter can update rating along with other allowed fields."""
-        self.authenticate_with_token(self.reporter_token)
-
-        mixed_data = {'rating': 3, 'research_result': 'Updated by reporter'}
-        response = self.client.patch(self.url, mixed_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.issue.refresh_from_db()
-        self.assertEqual(self.issue.rating, 3)
-        self.assertEqual(self.issue.research_result, 'Updated by reporter')
-
     def test_assignee_can_update_other_fields_with_status(self):
         """Test that assignee can update status along with other allowed fields."""
         self.authenticate_with_token(self.assignee_token)
 
-        mixed_data = {'status': self.new_status.id, 'reject_flag': True, 'escalation_reason': 'Updated by assignee'}
+        mixed_data = {'status': self.rejected_status.id, 'reject_flag': True, 'reject_reason': 'Rejected by assignee'}
         response = self.client.patch(self.url, mixed_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.issue.refresh_from_db()
-        self.assertEqual(self.issue.status.id, self.new_status.id)
+        self.assertEqual(self.issue.status.id, self.rejected_status.id)
         self.assertTrue(self.issue.reject_flag)
-        self.assertEqual(self.issue.escalation_reason, 'Updated by assignee')
+        self.assertEqual(self.issue.reject_reason, 'Rejected by assignee')
 
     def test_mixed_restricted_fields_in_single_request(self):
         """Test that request with both restricted fields fails if user doesn't have both roles."""
@@ -265,11 +246,10 @@ class IssueUpdateAPIViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data['detail'], NOT_FOUND_MESSAGE)
 
-    def test_partial_update_single_field(self):
+    def test_partial_update_reject_flag(self):
         """Test that partial updates work correctly."""
-        self.authenticate_with_token()
-
-        partial_data = {'reject_flag': True}
+        self.authenticate_with_token(self.assignee_token)
+        partial_data = {'status': self.rejected_status.id, 'reject_flag': True}
         response = self.client.patch(self.url, partial_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -328,31 +308,6 @@ class IssueUpdateAPIViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['message'], ISSUE_UPDATE_ERROR_MESSAGE)
-
-    def test_boolean_field_validation(self):
-        """Test that boolean fields accept valid boolean values."""
-        self.authenticate_with_token()
-
-        boolean_data = {'reject_flag': True}
-        response = self.client.patch(self.url, boolean_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.issue.refresh_from_db()
-        self.assertTrue(self.issue.reject_flag)
-
-    def test_text_field_updates(self):
-        """Test that text fields are updated correctly."""
-        self.authenticate_with_token()
-
-        text_data = {'escalation_reason': 'Updated escalation reason', 'research_result': 'Updated research result'}
-        response = self.client.patch(self.url, text_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.issue.refresh_from_db()
-        self.assertEqual(self.issue.escalation_reason, text_data['escalation_reason'])
-        self.assertEqual(self.issue.research_result, text_data['research_result'])
 
     def test_only_patch_method_allowed(self):
         """Test that only PATCH method is allowed."""
@@ -510,3 +465,270 @@ class IssueUpdateAPIViewTest(APITestCase):
         call_args = mock_send_sms.call_args
         assert "1234567890" in str(call_args)
         assert "The status of your issue has been updated" in call_args[1]['body']
+
+    def test_patch_appeal_status_by_assignee(self):
+        """Test that assignee can update appeal_status field."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        data = {'appeal_status': True}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['data']['appeal_status'] is True
+
+        # Verify data was updated
+        self.issue.refresh_from_db()
+        assert self.issue.appeal_status is True
+
+    def test_patch_appeal_status_false_by_assignee_is_forbidden(self):
+        """Test that appeal_status cannot be set to False via IssueUpdateAPIView."""
+        # Set initial state to True
+        self.issue.appeal_status = True
+        self.issue.save()
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        data = {'appeal_status': False}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['message'] == VALIDATION_FAILED_MESSAGE
+        assert 'appeal_status' in response.data['errors']
+
+        # Verify appeal_status was NOT changed
+        self.issue.refresh_from_db()
+        assert self.issue.appeal_status is True
+
+    def test_patch_appeal_status_true_when_already_true_is_forbidden(self):
+        """Test that setting appeal_status to True when it's already True is rejected."""
+        self.issue.appeal_status = True
+        self.issue.save()
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        data = {'appeal_status': True}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'appeal_status' in response.data['errors']
+
+    def test_patch_appeal_status_by_reporter_forbidden(self):
+        """Test that reporter cannot update appeal_status field."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.reporter_token.key}')
+
+        data = {'appeal_status': True}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+        self.assertEqual(response.data['message'], ISSUE_UPDATE_APPEAL_STATUS_ERROR_MESSAGE)
+
+    def test_patch_appeal_status_by_other_user_forbidden(self):
+        """Test that other users cannot update appeal_status field."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.other_token.key}')
+
+        data = {'appeal_status': True}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_patch_status_and_appeal_status_by_assignee(self):
+        """Test that assignee can update both status and appeal_status."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        data = {'status': self.new_status.id, 'appeal_status': True}
+
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['data']['status']['id'] == self.new_status.id
+        assert response.data['data']['appeal_status'] is True
+
+        # Verify data was updated
+        self.issue.refresh_from_db()
+        assert self.issue.status_id == self.new_status.id
+        assert self.issue.appeal_status is True
+
+    def test_patch_appeal_status_triggers_notification(self):
+        """Test that appeal_status change triggers notification."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        with patch('issues.views.send_issue_notification') as mock_notify:
+            data = {'appeal_status': True}
+
+            response = self.client.patch(self.url, data, format='json')
+
+            assert response.status_code == status.HTTP_200_OK
+            # Verify notification was called for appealed
+            calls = [call for call in mock_notify.call_args_list if 'appealed' in str(call)]
+            assert len(calls) > 0
+
+    def test_patch_no_appeal_status_change_no_notification(self):
+        """Test that no notification is sent if appeal_status doesn't change."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        # Set initial state to True
+        self.issue.appeal_status = True
+        self.issue.save()
+
+        with patch('issues.views.send_issue_notification') as mock_notify:
+            data = {'appeal_status': True}  # Same as current
+
+            response = self.client.patch(self.url, data, format='json')
+
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            # Verify notification was NOT called for appealed
+            calls = [call for call in mock_notify.call_args_list if 'appealed' in str(call)]
+            assert len(calls) == 0
+
+    def test_patch_response_includes_all_issue_fields(self):
+        """Test that response includes all issue detail fields."""
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.assignee_token.key}')
+
+        data = {'appeal_status': True}
+        response = self.client.patch(self.url, data, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # Verify response structure
+        assert 'message' in response.data
+        assert 'data' in response.data
+
+        issue_data = response.data['data']
+        assert 'id' in issue_data
+        assert 'status' in issue_data
+        assert 'appeal_status' in issue_data
+        assert 'category' in issue_data
+        assert 'issue_type' in issue_data
+        assert 'administrative_region' in issue_data
+        assert 'intake_date' in issue_data
+        assert 'created_date' in issue_data
+        assert 'updated_date' in issue_data
+
+    def test_reject_flag_true_clears_research_result(self):
+        """When reject_flag is set to True, research_result must be cleared."""
+        self.authenticate_with_token(self.assignee_token)
+        self.issue.research_result = 'Some prior research'
+        self.issue.save()
+        partial_data = {'status': self.rejected_status.id, 'reject_flag': True}
+        response = self.client.patch(self.url, partial_data, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        self.issue.refresh_from_db()
+        assert self.issue.reject_flag is True
+        assert self.issue.research_result is None
+
+    def test_reject_flag_false_does_not_clear_research_result(self):
+        """When reject_flag is set to False, research_result is preserved."""
+        self.authenticate_with_token(self.reporter_token)
+
+        self.issue.research_result = 'Some prior research'
+        self.issue.reject_flag = False
+        self.issue.save()
+
+        response = self.client.patch(self.url, {'reject_flag': False}, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        self.issue.refresh_from_db()
+        assert self.issue.reject_flag is False
+        assert self.issue.research_result == 'Some prior research'
+
+    def test_non_rejected_status_clears_reject_reason_and_reject_flag(self):
+        """Changing to a non-rejected status clears reject_reason and reject_flag."""
+        self.authenticate_with_token(self.assignee_token)
+
+        # Pre-populate rejection fields
+        self.issue.reject_reason = 'Invalid report'
+        self.issue.reject_flag = True
+        self.issue.save()
+
+        # new_status is created by IssueStatusFactory with rejected_status=False by default
+        assert self.new_status.rejected_status is False
+
+        response = self.client.patch(self.url, {'status': self.new_status.id}, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        self.issue.refresh_from_db()
+        assert self.issue.status_id == self.new_status.id
+        assert self.issue.reject_reason is None
+        assert self.issue.reject_flag is False
+
+    def test_rejected_status_preserves_reject_reason_and_reject_flag(self):
+        """Changing to a rejected status does NOT clear reject_reason or reject_flag."""
+        self.authenticate_with_token(self.assignee_token)
+
+        rejected_status = IssueStatusFactory(rejected_status=True)
+
+        self.issue.reject_reason = 'Invalid report'
+        self.issue.reject_flag = True
+        self.issue.save()
+
+        response = self.client.patch(self.url, {'status': rejected_status.id}, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        self.issue.refresh_from_db()
+        assert self.issue.status_id == rejected_status.id
+        assert self.issue.reject_reason == 'Invalid report'
+        assert self.issue.reject_flag is True
+
+    def test_research_result_and_reject_reason_mutually_exclusive(self):
+        """It is not possible to send the value in research_result and reject_reason to the view at the same time."""
+        self.authenticate_with_token(self.assignee_token)
+        final_status = IssueStatusFactory(final_status=True)
+
+        data = {'status': final_status.id, 'research_result': 'Some prior research', 'reject_reason': 'Reject reason'}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors_str = str(response.data.get('errors', ''))
+        self.assertIn('research_result and reject_reason', errors_str)
+
+    def test_research_result_requires_final_status(self):
+        """You cannot send research_result with a value if the new status is not final_status."""
+        self.authenticate_with_token(self.assignee_token)
+        non_final_status = IssueStatusFactory(final_status=False)
+
+        data = {'status': non_final_status.id, 'research_result': 'Some prior research'}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('research_result', response.data.get('errors', {}))
+
+    def test_research_result_accepted_with_final_status(self):
+        """You can only send research_result with a value if the new status.final_status is True."""
+        self.authenticate_with_token(self.assignee_token)
+        final_status = IssueStatusFactory(final_status=True)
+
+        data = {'status': final_status.id, 'research_result': 'Detalles de la investigación'}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.issue.refresh_from_db()
+        self.assertEqual(self.issue.research_result, 'Detalles de la investigación')
+
+    def test_reject_reason_with_flag_requires_final_status(self):
+        """You can only send reject_reason with value and reject_flag True if the new status.rejected_status is True."""
+        self.authenticate_with_token(self.assignee_token)
+
+        data = {'status': self.new_status.id, 'reject_flag': True, 'reject_reason': 'Reject reason'}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('reject_reason', response.data.get('errors', {}))
+
+    def test_reject_reason_with_flag_accepted_with_final_status(self):
+        """Success sending reject_reason with reject_flag True if final_status is True."""
+        self.authenticate_with_token(self.assignee_token)
+        final_rejected_status = IssueStatusFactory(final_status=True, rejected_status=True)
+
+        data = {'status': final_rejected_status.id, 'reject_flag': True, 'reject_reason': 'Reject reason'}
+        response = self.client.patch(self.url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.issue.refresh_from_db()
+        self.assertEqual(self.issue.reject_reason, 'Reject reason')
+        self.assertTrue(self.issue.reject_flag)

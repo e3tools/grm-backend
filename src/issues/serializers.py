@@ -9,6 +9,7 @@ from grm.constants import (
     CONTACT_INFO_NO_EMAIL_ERROR_MESSAGE,
     CONTACT_MEDIUM_ERROR_MESSAGE,
     EMAIL_CHOICE,
+    ISSUE_UPDATE_APPEAL_STATUS_ERROR_MESSAGE,
     ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE,
     ISSUE_UPDATE_RATING_ERROR_MESSAGE,
     ISSUE_UPDATE_STATUS_ERROR_MESSAGE,
@@ -289,6 +290,7 @@ class IssueDetailSerializer(serializers.ModelSerializer):
             'id',
             'intake_date',
             'status',
+            'appeal_status',
             'category',
             'issue_type',
             'administrative_region',
@@ -385,18 +387,25 @@ class IssueUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for updating specific fields of an Issue.
 
-    Only allows updating the fields that are permitted for modification:
-    escalate_flag, reject_flag, rating, escalation_reason, status, research_result
-
     Includes role-based field restrictions:
-    - Only assignees can edit 'status'
+    - Only assignees can edit 'status' and 'appeal_status'
     - Only reporters can edit 'rating'
-    - Both can edit if user is both reporter and assignee
+    - Both can edit other fields if user is both reporter and assignee
     """
 
     class Meta:
         model = Issue
-        fields = ['escalate_flag', 'reject_flag', 'rating', 'escalation_reason', 'status', 'research_result']
+        fields = [
+            'appeal_reason',
+            'appeal_status',
+            'escalate_flag',
+            'escalation_reason',
+            'rating',
+            'reject_flag',
+            'reject_reason',
+            'research_result',
+            'status',
+        ]
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('context', {}).get('request')
@@ -421,9 +430,59 @@ class IssueUpdateSerializer(serializers.ModelSerializer):
         if 'status' in attrs and user.id != getattr(issue, "assignee_id", None):
             raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_STATUS_ERROR_MESSAGE)
 
+        # Check appeal_status field restriction
+        if 'appeal_status' in attrs and user.id != getattr(issue, "assignee_id", None):
+            raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_APPEAL_STATUS_ERROR_MESSAGE)
+
         # Check rating field restriction
         if 'rating' in attrs and user.id != issue.reporter.id:
             raise MethodNotAllowed(method='PATCH', detail=ISSUE_UPDATE_RATING_ERROR_MESSAGE)
+
+        # appeal_status validations
+        if 'appeal_status' in attrs:
+            new_appeal_status = attrs['appeal_status']
+            if new_appeal_status is False:
+                raise serializers.ValidationError({"appeal_status": "It can only be changed from False to True."})
+            if new_appeal_status is True and issue.appeal_status is True:
+                raise serializers.ValidationError({"appeal_status": "It already has the value True."})
+
+        # Get the new status (or the current one if it wasn't sent in the request)
+        new_status = attrs.get('status', issue.status)
+        is_final_status = getattr(new_status, 'final_status', False)
+        is_rejected_status = getattr(new_status, 'rejected_status', False)
+
+        # It retrieves the values sent in the request
+        req_research = attrs.get('research_result')
+        req_reject_reason = attrs.get('reject_reason')
+        is_reject_flag = attrs.get('reject_flag', issue.reject_flag)
+
+        # research_result and reject_reason restrictions
+        if req_research and req_reject_reason:
+            raise serializers.ValidationError(
+                "You cannot send a value to research_result and reject_reason at the same time."
+            )
+
+        if req_research and not is_final_status:
+            raise serializers.ValidationError(
+                {"research_result": "You can only send research_result if the new status is final (final_status=True)."}
+            )
+
+        if req_reject_reason and is_reject_flag and not is_rejected_status:
+            raise serializers.ValidationError(
+                {
+                    "reject_reason": "You can only send reject_reason with reject_flag set to True if the new status is final (final_status=True)."
+                }
+            )
+
+        # Field cleaning according to condition
+        # If reject_flag is True, we clear research_result
+        if is_reject_flag:
+            attrs['research_result'] = None
+
+        # If the status is not rejected, we clear reject_reason and reject_flag.
+        if new_status and not is_rejected_status:
+            attrs['reject_reason'] = None
+            attrs['reject_flag'] = False
 
         return attrs
 

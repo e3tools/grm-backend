@@ -212,6 +212,7 @@ def reassign_issues_to_appeal():
             issue.assignee = assignee
             if assignee:
                 issue.appeal_status = False
+                issue.appeal_reason = ''
                 result["issues_updated"].append(issue.id)
                 issue.save()
                 updated_issues += 1
