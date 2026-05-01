@@ -35,6 +35,7 @@ from authentication.serializers import (
     PasswordResetSerializer,
 )
 from authentication.services import PasswordResetService
+from authentication.utils import get_validation_code
 from grm.constants import (
     CITIZEN_SUCCESS_MESSAGE,
     EMAIL_ERROR_MESSAGE,
@@ -163,6 +164,9 @@ class LoginAPIView(BaseLoginAPIView):
                         ),
                         'username': openapi.Schema(
                             type=openapi.TYPE_STRING, description="Username of the authenticated user"
+                        ),
+                        'user_email': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Email of the authenticated user"
                         ),
                         'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
                     },
@@ -920,5 +924,145 @@ class FacilitatorProfileAPIView(APIView):
 
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class FacilitatorLoginAPIView(APIView):
+    """
+    API endpoint to retrieve the validate facilitator's code.
+    """
+
+    authentication_classes = []
+
+    @swagger_auto_schema(
+        operation_summary="Validates Facilitator Code",
+        operation_description="""
+        Validates the facilitator code
+        """,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['username', 'code', 'password'],
+            properties={
+                'username': openapi.Schema(
+                    type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
+                ),
+                'password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Account password (must meet security requirements)',
+                    example='SecurePassword123!',
+                ),
+                'code': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Facilitator code',
+                    example='123456',
+                ),
+            },
+        ),
+        responses={
+            204: openapi.Response(
+                description="Facilitator's code validation successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'code': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Code of the facilitator', example=123456
+                        ),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing code",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Error message', example='Invalid code.'
+                        ),
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Not Found - User does not have a facilitator profile",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Error message',
+                            example=FACILITATOR_NOT_FOUND_ERROR_MESSAGE,
+                        ),
+                    },
+                ),
+            ),
+        },
+        tags=['Facilitator'],
+    )
+    def post(self, request):
+        """
+        Handle POST request to validate facilitator's code.
+
+        Args:
+            request: HTTP request object with code
+
+        Returns:
+            Response: 204 - OK
+        """
+        response_data = request.data
+        try:
+            user = User.objects.get(username=response_data['username'])
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None and not user.is_active:
+            return Response(
+                {"error": INACTIVE_USER_ERROR_MESSAGE},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if user is None:
+            return Response(
+                {"error": LOGIN_ERROR_MESSAGE},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        print(response_data)
+        if not hasattr(user, 'facilitator'):
+            return Response(
+                {'error': 'Incorrect authentication credentials.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        facilitator = user.facilitator
+
+        print(facilitator)
+
+        # Check if user has an associated Facilitator
+        if facilitator is None:
+            return Response(
+                {'error': FACILITATOR_NOT_FOUND_ERROR_MESSAGE},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user_code = get_validation_code(user.email)
+        if response_data['code'] != user_code:
+            return Response(
+                {'error': ('Incorrect authentication credentials.')},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        user = authenticate(username=response_data['username'], password=response_data['password'])
+
+        # Get or create token for the user
+        token, _ = Token.objects.get_or_create(user=user)
+        # Update last_login and last_activity
+        user.last_login = user.last_activity = timezone.now()
+        user.save(update_fields=['last_login', 'last_activity'])
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.id,
+                "username": user.username,
+                "message": LOGIN_SUCCESS_MESSAGE,
+            },
             status=status.HTTP_200_OK,
         )
