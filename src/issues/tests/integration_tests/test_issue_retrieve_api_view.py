@@ -114,6 +114,7 @@ class IssueRetrieveAPIViewTest(APITestCase):
             'assignee',
             'description',
             'research_result',
+            'rating',
         ]
 
         for field in expected_fields:

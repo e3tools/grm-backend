@@ -142,6 +142,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
     description = serializers.CharField(read_only=True)
     research_result = serializers.CharField(read_only=True)
+    rating = serializers.IntegerField(read_only=True)
     intake_date = serializers.SerializerMethodField()
     assignee = UserBasicSerializer(read_only=True)
     reporter = UserBasicSerializer(read_only=True)
@@ -169,6 +170,7 @@ class IssueSerializer(serializers.ModelSerializer):
             'id',
             'description',
             'research_result',
+            'rating',
             'tracking_code',
             'intake_date',
             'administrative_region',

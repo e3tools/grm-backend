@@ -1052,6 +1052,11 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                             example="Final resolution applied.",
                             description="Resolution text entered when closing the issue (may be empty).",
                         ),
+                        'rating': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            example=4,
+                            description="Citizen rating for the issue resolution (1-5).",
+                        ),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_DATETIME,
