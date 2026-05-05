@@ -1,4 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "python manage.py migrate --noinput && python manage.py set_benin_demo"
+  "buildCommand": "python manage.py migrate --noinput && python manage.py set_benin_demo",
+  "crons": [
+    {
+      "path": "/_cron/check-issues",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

@@ -42,6 +42,7 @@ from issues.models import (
     CitizenAgeGroup,
     CitizenGroup,
     Component,
+    SubComponent,
     Issue,
     IssueAttachment,
     IssueCategory,
@@ -429,10 +430,70 @@ class Command(BaseCommand):
                 redirection_protocol=FEWER_ISSUES_CHOICE,
             )
 
-        Component.objects.create(
-            name="Démonstration",
-            description="Composante factice pour environnement de démonstration.",
-        )
+        component_specs = [
+            {
+                "name": "Infrastructure and Socio-economic Development (Investing in Resilience)",
+                "description": (
+                    "Investing in resilience through community-driven development, infrastructure, and economic support."
+                ),
+                "subs": [
+                    (
+                        "Community-Driven Development (CDD)",
+                        "Empowers communities through bottom-up planning to prioritize and manage sub-projects.",
+                    ),
+                    (
+                        "Infrastructure Support",
+                        "Construction of socio-economic facilities, including schools, water boreholes (forages), and community centers.",
+                    ),
+                    (
+                        "Economic Support",
+                        "Funding for economic interest groups (GIE) to stimulate local economies and generate income, particularly for women and youth.",
+                    ),
+                ],
+            },
+            {
+                "name": "Building Capacity and Social Cohesion",
+                "description": "Strengthening local capacity, inclusion, dialogue, and conflict management.",
+                "subs": [
+                    (
+                        "Inclusion Mechanisms",
+                        "Strengthening the capacity of Village Development Committees (VDCs) and ensuring the inclusion of marginalized groups and refugees in local planning.",
+                    ),
+                    (
+                        "Social Cohesion Activities",
+                        "Strengthening social ties, dialogue, and conflict management mechanisms between host communities and displaced populations.",
+                    ),
+                    (
+                        "Conflict Management Mechanisms",
+                        "Supporting local conflict prevention and management mechanisms between host communities and displaced populations.",
+                    ),
+                ],
+            },
+            {
+                "name": "Regional Coordination and Management",
+                "description": "Facilitating regional coordination and strengthening institutions for cross-border resilience.",
+                "subs": [
+                    (
+                        "Regional Collaboration",
+                        "Facilitating dialogue and coordination across northern Benin and with neighboring countries (Côte d'Ivoire, Ghana, Togo).",
+                    ),
+                    (
+                        "Institutional Support",
+                        "Strengthening local authorities (Prefectures and Communes) and supporting the Agence Béninoise de Gestion Intégrée des Espaces Frontaliers (ABGEF).",
+                    ),
+                    (
+                        "Support to ABGEF (Agence Béninoise de Gestion Intégrée des Espaces Frontaliers)",
+                        "Institutional support for ABGEF and integrated management of border areas.",
+                    ),
+                ],
+            },
+        ]
+
+        for spec in component_specs:
+            comp = Component.objects.create(name=spec["name"], description=spec["description"])
+            for sub_name, sub_desc in spec["subs"]:
+                SubComponent.objects.create(name=sub_name, description=sub_desc, parent=comp)
+
         CitizenAgeGroup.objects.create(name="18–35 ans")
         CitizenAgeGroup.objects.create(name="36–50 ans")
         CitizenAgeGroup.objects.create(name="51 ans et plus")
@@ -448,7 +509,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.NOTICE(
-                "Created issue statuses, departments, 3 issue types, 7 subtypes/categories, component, "
+                "Created issue statuses, departments, 3 issue types, 7 subtypes/categories, components/subcomponents, "
                 "age groups, and demo citizen groups."
             )
         )
@@ -494,7 +555,22 @@ class Command(BaseCommand):
         d1_dept = IssueDepartment.objects.get(name="Comité communautaire de gestion des plaintes")
         communes = list(AdministrativeRegion.objects.filter(administrative_level__name="village"))
         categories = list(IssueCategory.objects.order_by("id"))
-        component = Component.objects.first()
+        components = list(Component.objects.order_by("id"))
+        components_by_name = {c.name: c for c in components}
+        # Map the existing 7 demo categories to realistic project components.
+        component_name_by_abbrev = {
+            "DEMO1": "Building Capacity and Social Cohesion",
+            "DEMO2": "Building Capacity and Social Cohesion",
+            "DEMO3": "Building Capacity and Social Cohesion",
+            "DEMO4": "Infrastructure and Socio-economic Development (Investing in Resilience)",
+            "DEMO5": "Infrastructure and Socio-economic Development (Investing in Resilience)",
+            "DEMO6": "Regional Coordination and Management",
+            "DEMO7": "Regional Coordination and Management",
+        }
+        subcomponents_by_component_id = {}
+        if components:
+            for sc in SubComponent.objects.filter(parent__in=components).order_by("id"):
+                subcomponents_by_component_id.setdefault(sc.parent_id, []).append(sc)
         st_created = IssueStatus.objects.filter(initial_status=True).first()
         st_open = IssueStatus.objects.filter(open_status=True).first()
         st_rejected = IssueStatus.objects.filter(rejected_status=True).first()
@@ -504,7 +580,7 @@ class Command(BaseCommand):
         if (
             not communes
             or len(categories) < 7
-            or not component
+            or len(components) < 1
             or not all([st_created, st_open, st_rejected, st_done, age_groups])
             or any(c.parent is None or c.parent.parent is None for c in categories)
         ):
@@ -586,12 +662,22 @@ class Command(BaseCommand):
             issue_sub = category.parent
             issue_type = issue_sub.parent
 
+            desired_component_name = component_name_by_abbrev.get(getattr(category, "abbreviation", "") or "")
+            component = (
+                components_by_name.get(desired_component_name)
+                if desired_component_name
+                else (random.choice(components) if components else None)
+            )
+            sub_components = subcomponents_by_component_id.get(getattr(component, "id", None), [])
+            sub_component = random.choice(sub_components) if sub_components else None
+
             issue = Issue.objects.create(
                 administrative_region=region,
                 category=category,
                 issue_type=issue_type,
                 issue_sub_type=issue_sub,
                 component=component,
+                sub_component=sub_component,
                 reporter=fac_user,
                 assignee=assignee_user,
                 citizen=citizen,

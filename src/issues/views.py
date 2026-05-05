@@ -1047,6 +1047,11 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                         'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
                         'description': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
+                        'research_result': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            example="Final resolution applied.",
+                            description="Resolution text entered when closing the issue (may be empty).",
+                        ),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_DATETIME,

@@ -38,6 +38,9 @@ if os.environ.get("VERCEL"):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
+# Vercel Cron Jobs (used to secure internal cron endpoints)
+CRON_SECRET = env("CRON_SECRET", default="")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", False)
 
