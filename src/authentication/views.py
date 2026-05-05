@@ -165,9 +165,6 @@ class LoginAPIView(BaseLoginAPIView):
                         'username': openapi.Schema(
                             type=openapi.TYPE_STRING, description="Username of the authenticated user"
                         ),
-                        'user_email': openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Email of the authenticated user"
-                        ),
                         'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
                     },
                 ),
@@ -928,17 +925,17 @@ class FacilitatorProfileAPIView(APIView):
         )
 
 
-class FacilitatorLoginAPIView(APIView):
+class FacilitatorCredentialUpdateAPIView(APIView):
     """
-    API endpoint to retrieve the validate facilitator's code.
+    API endpoint to update password after facilitator's code validation.
     """
 
     authentication_classes = []
 
     @swagger_auto_schema(
-        operation_summary="Validates Facilitator Code",
+        operation_summary="Update the user password after the facilitator's code validation",
         operation_description="""
-        Validates the facilitator code
+        Update the user password after the facilitator's code validation
         """,
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -962,13 +959,20 @@ class FacilitatorLoginAPIView(APIView):
         ),
         responses={
             204: openapi.Response(
-                description="Facilitator's code validation successfully",
+                description="Facilitator password updated successfully",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'code': openapi.Schema(
-                            type=openapi.TYPE_STRING, description='Code of the facilitator', example=123456
+                        'token': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Authentication token for API requests"
                         ),
+                        'user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="Unique identifier for the authenticated user"
+                        ),
+                        'username': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Username of the authenticated user"
+                        ),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
                     },
                 ),
             ),
@@ -1001,13 +1005,10 @@ class FacilitatorLoginAPIView(APIView):
     )
     def post(self, request):
         """
-        Handle POST request to validate facilitator's code.
+        Handle POST request to update password after facilitator's code is validated and returns
+        an authentication token for subsequent API requests.
 
-        Args:
-            request: HTTP request object with code
-
-        Returns:
-            Response: 204 - OK
+        Authentication is not required for this endpoint as it's used to obtain tokens.
         """
         response_data = request.data
         try:
@@ -1027,7 +1028,6 @@ class FacilitatorLoginAPIView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        print(response_data)
         if not hasattr(user, 'facilitator'):
             return Response(
                 {'error': 'Incorrect authentication credentials.'},
@@ -1035,13 +1035,16 @@ class FacilitatorLoginAPIView(APIView):
             )
         facilitator = user.facilitator
 
-        print(facilitator)
-
-        # Check if user has an associated Facilitator
         if facilitator is None:
             return Response(
                 {'error': FACILITATOR_NOT_FOUND_ERROR_MESSAGE},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.last_login is not None:
+            return Response(
+                {'error': 'User already registered.'},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         user_code = get_validation_code(user.email)
@@ -1050,13 +1053,14 @@ class FacilitatorLoginAPIView(APIView):
                 {'error': ('Incorrect authentication credentials.')},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        user = authenticate(username=response_data['username'], password=response_data['password'])
 
-        # Get or create token for the user
-        token, _ = Token.objects.get_or_create(user=user)
-        # Update last_login and last_activity
+        user.password = response_data['password']
         user.last_login = user.last_activity = timezone.now()
         user.save(update_fields=['last_login', 'last_activity'])
+
+        user = authenticate(username=response_data['username'], password=response_data['password'])
+        token, _ = Token.objects.get_or_create(user=user)
+
         return Response(
             {
                 "token": token.key,
