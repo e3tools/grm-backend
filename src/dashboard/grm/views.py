@@ -5,7 +5,7 @@ import cryptocode
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -52,6 +52,39 @@ from issues.models import (
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 COUCHDB_GRM_ATTACHMENT_DATABASE = settings.COUCHDB_GRM_ATTACHMENT_DATABASE
+
+
+def escalation_anchor_region(issue):
+    """
+    Region used to resolve escalation / de-escalation targets.
+
+    Prefer the assignee's GovernmentWorker region; if the assignee is not a case worker
+    (e.g. GRM owner/manager without a worker profile), fall back to the issue region.
+    """
+    assignee = issue.assignee
+    if assignee is not None:
+        try:
+            return assignee.governmentworker.administrative_region
+        except ObjectDoesNotExist:
+            pass
+    return issue.administrative_region
+
+
+def assignee_worker_admin_context(assignee):
+    """
+    Administrative level (of the worker's region) and department for the assignee user.
+    Used on issue detail and in AJAX responses to keep the sidebar in sync.
+    """
+    if assignee is None:
+        return {"administrative_level": None, "department": None}
+    try:
+        gw = assignee.governmentworker
+    except ObjectDoesNotExist:
+        return {"administrative_level": None, "department": None}
+    return {
+        "administrative_level": gw.administrative_region.administrative_level.name,
+        "department": gw.department.name,
+    }
 
 
 class StartNewIssueView(LoginRequiredMixin, generic.View):
@@ -670,7 +703,10 @@ class IssueDetailsFormView(
         return kwargs
 
     def get_query_result(self, **kwargs):
-        return Issue.objects.filter(id=kwargs["issue"], confirmed=True)
+        return Issue.objects.filter(id=kwargs["issue"], confirmed=True).select_related(
+            "assignee__governmentworker__department",
+            "assignee__governmentworker__administrative_region__administrative_level",
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -719,7 +755,10 @@ class EditIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.View):
 
         msg = _("The issue was successfully edited.")
         messages.add_message(self.request, messages.SUCCESS, msg, extra_tags="success")
-        context = {"msg": render(self.request, "common/messages.html").content.decode("utf-8")}
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            **assignee_worker_admin_context(self.obj.assignee),
+        }
         return JsonResponse(context, safe=False)
 
 
@@ -779,11 +818,20 @@ class IssueEscalateButtonsTemplateView(IssueMixin, LoginRequiredAndAJAXRequestMi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        region = self.obj.assignee.governmentworker.administrative_region
+        region = escalation_anchor_region(self.obj)
+        if region is None:
+            context["non_scalable"] = True
+            context["non_descalable"] = True
+            return context
+
         assignee_to_escalate = self.obj.get_assignee_to_escalate(region)
         assignee_to_de_escalate = self.obj.get_assignee_to_de_escalate(region)
         context["non_scalable"] = not assignee_to_escalate
         context["non_descalable"] = not assignee_to_de_escalate
+
+        if self.obj.status.final_status:
+            context["non_scalable"] = True
+            context["non_descalable"] = True
 
         return context
 
@@ -1038,7 +1086,19 @@ class EscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.Vi
     """
 
     def post(self, request, *args, **kwargs):
-        assignee = self.obj.get_assignee_to_escalate(self.obj.assignee.governmentworker.administrative_region)
+        if self.obj.status.final_status:
+            msg = _("This issue is resolved; it cannot be escalated.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+            context = {
+                "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+                "assignee": None,
+                "access_denied": not user_can_access_issue(self.request.user, self.obj),
+                **assignee_worker_admin_context(self.obj.assignee),
+            }
+            return JsonResponse(context, safe=False)
+
+        region = escalation_anchor_region(self.obj)
+        assignee = self.obj.get_assignee_to_escalate(region) if region is not None else None
 
         if assignee:
             self.obj.assignee = assignee
@@ -1055,6 +1115,7 @@ class EscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.Vi
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
             "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
             "access_denied": not user_can_access_issue(self.request.user, self.obj),
+            **assignee_worker_admin_context(self.obj.assignee),
         }
 
         return JsonResponse(context, safe=False)
@@ -1066,7 +1127,19 @@ class DeEscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.
     """
 
     def post(self, request, *args, **kwargs):
-        assignee = self.obj.get_assignee_to_de_escalate(self.obj.assignee.governmentworker.administrative_region)
+        if self.obj.status.final_status:
+            msg = _("This issue is resolved; it cannot be de-escalated.")
+            messages.add_message(self.request, messages.ERROR, msg, extra_tags="danger")
+            context = {
+                "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+                "assignee": None,
+                "access_denied": not user_can_access_issue(self.request.user, self.obj),
+                **assignee_worker_admin_context(self.obj.assignee),
+            }
+            return JsonResponse(context, safe=False)
+
+        region = escalation_anchor_region(self.obj)
+        assignee = self.obj.get_assignee_to_de_escalate(region) if region is not None else None
 
         if assignee:
             self.obj.assignee = assignee
@@ -1081,6 +1154,7 @@ class DeEscalateIssueView(IssueMixin, LoginRequiredAndAJAXRequestMixin, generic.
             "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
             "assignee": {"id": assignee.id, "text": assignee.get_full_name()} if assignee else None,
             "access_denied": not user_can_access_issue(self.request.user, self.obj),
+            **assignee_worker_admin_context(self.obj.assignee),
         }
 
         return JsonResponse(context, safe=False)

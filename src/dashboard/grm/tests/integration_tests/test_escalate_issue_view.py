@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
-from issues.factories import AdministrativeRegionFactory, IssueFactory
+from issues.factories import AdministrativeRegionFactory, IssueFactory, IssueStatusFactory
 
 
 class EscalateIssueViewTest(DashboardTestCase):
@@ -38,6 +38,8 @@ class EscalateIssueViewTest(DashboardTestCase):
         assert "msg" in data
         assert data.get("assignee", {}).get("id") == parent_worker.id
         assert data.get("access_denied") is False
+        assert data["administrative_level"] == parent_worker.governmentworker.administrative_region.administrative_level.name
+        assert data["department"] == parent_worker.governmentworker.department.name
 
         # DB assertions
         self.issue.refresh_from_db()
@@ -94,3 +96,38 @@ class EscalateIssueViewTest(DashboardTestCase):
         url = reverse("dashboard:grm:escalate_issue", kwargs={"issue": 999999})
         resp = self.post(url, data={}, ajax=True, user=manager)
         assert resp.status_code == 404
+
+    def test_post_resolved_issue_does_not_escalate(self):
+        resolved_status = IssueStatusFactory(
+            final_status=True,
+            open_status=False,
+            initial_status=False,
+            rejected_status=False,
+        )
+        issue = IssueFactory(
+            confirmed=True,
+            administrative_region=self.region,
+            status=resolved_status,
+        )
+        GovernmentWorkerFactory(
+            user=issue.assignee,
+            administrative_region=self.region,
+            department=issue.category.assigned_department.department,
+        )
+        GovernmentWorkerFactory(
+            administrative_region=self.root_region,
+            department=issue.category.assigned_department.department,
+        )
+
+        original_assignee_id = issue.assignee_id
+        url = reverse("dashboard:grm:escalate_issue", kwargs={"issue": issue.id})
+        manager = UserFactory(grm_manager=True)
+        resp = self.post(url, data={}, ajax=True, user=manager)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data.get("assignee") is None
+        assert "msg" in data
+
+        issue.refresh_from_db()
+        assert issue.assignee_id == original_assignee_id
+        assert issue.escalated_date is None

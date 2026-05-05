@@ -1,5 +1,9 @@
 {% load i18n custom_tags %}
 
+{% if semantic_search_notice %}
+	<div class="alert alert-info" role="alert">{{ semantic_search_notice }}</div>
+{% endif %}
+
 {% if total_results %}
 	<p class="mb-4">{% translate 'Found results' %}: {{ total_results }}</p>
 	{% for r in page_obj %}

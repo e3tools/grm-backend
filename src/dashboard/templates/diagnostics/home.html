@@ -245,13 +245,13 @@
         ];
         let colors_length = colors.length;
 
-        mapboxgl.accessToken = '{{ access_token }}';
+        mapboxgl.accessToken = '{{ access_token|escapejs }}';
         if (!mapboxgl.supported()) {
             alert('Your browser does not support Mapbox GL');
         }
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
+            style: 'mapbox://styles/mapbox/streets-v12',
             center: [{{ lng }}, {{ lat }}],
             zoom: {{ zoom }}
         });
@@ -264,27 +264,43 @@
         map.setMaxBounds(bounds);
 
         map.on('load', function () {
-            map.addLayer(
-                {
-                    'id': 'country-boundaries',
-                    'source': {
-                        'type': 'vector',
-                        'url': 'mapbox://mapbox.country-boundaries-v1',
-                    },
-                    'source-layer': 'country_boundaries',
-                    'type': 'fill',
-                    'paint': {
-                        'fill-color': '#d2361e',
-                        'fill-opacity': 0.2,
-                    },
+            const countryBoundaryLayer = {
+                'id': 'country-boundaries',
+                'source': {
+                    'type': 'vector',
+                    'url': 'mapbox://mapbox.country-boundaries-v1',
                 },
-                'country-label'
-            );
+                'source-layer': 'country_boundaries',
+                'type': 'fill',
+                'paint': {
+                    'fill-color': '#d2361e',
+                    'fill-opacity': 0.2,
+                },
+            };
+            let beforeId = map.getLayer('country-label') ? 'country-label' : undefined;
+            if (!beforeId) {
+                const layers = map.getStyle().layers || [];
+                for (let i = layers.length - 1; i >= 0; i--) {
+                    if (layers[i].type === 'symbol') {
+                        beforeId = layers[i].id;
+                        break;
+                    }
+                }
+            }
+            try {
+                if (beforeId) {
+                    map.addLayer(countryBoundaryLayer, beforeId);
+                } else {
+                    map.addLayer(countryBoundaryLayer);
+                }
+            } catch (err) {
+                map.addLayer(countryBoundaryLayer);
+            }
 
             map.setFilter('country-boundaries', [
                 "in",
                 "iso_3166_1_alpha_3",
-                '{{ country_iso_code }}',
+                '{{ country_iso_code|escapejs }}',
             ]);
 
             setTimeout(function () {
@@ -296,10 +312,8 @@
             statistics_spin.show();
         });
 
-        map.on('idle', (e) => {
-            setTimeout(function () {
-                statistics_spin.hide();
-            }, 96000);
+        map.on('idle', function () {
+            statistics_spin.hide();
         });
 
         loadStatistics();

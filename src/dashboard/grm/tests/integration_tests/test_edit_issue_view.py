@@ -64,6 +64,9 @@ class EditIssueViewTest(DashboardTestCase):
         }
         resp = self.post(self.url, data=data, ajax=True, user=grm_manager)
         assert resp.status_code == 200
+        payload = resp.json()
+        assert payload["administrative_level"] == new_assignee.governmentworker.administrative_region.administrative_level.name
+        assert payload["department"] == new_assignee.governmentworker.department.name
 
         self.issue.refresh_from_db()
         assert self.issue.assignee == new_assignee

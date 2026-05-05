@@ -11,19 +11,26 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 # ruff: noqa: F405
+import os
+import sys
 from pathlib import Path
 
 import django.conf.locale
 import environ
 from django.conf import global_settings
-from django.utils.translation import gettext_lazy as _
-
 # https://django-environ.readthedocs.io/en/latest/
 env = environ.Env()
 env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Serverless builds must not use a developer machine DATABASE_URL pointing at localhost.
+# Without a real remote URL, django-environ falls back to SQLite (see DATABASES below).
+if os.environ.get("VERCEL"):
+    _db_url = os.environ.get("DATABASE_URL", "").strip()
+    if _db_url and ("127.0.0.1" in _db_url or "localhost" in _db_url):
+        del os.environ["DATABASE_URL"]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -128,11 +135,13 @@ USE_TZ = True
 
 OTHER_LANGUAGES = env("OTHER_LANGUAGES", list, default=[])
 
+# Plain strings (not gettext_lazy): Vercel's Django build introspects settings with JSON and
+# lazy translation proxies trigger AppRegistryNotReady during serialization.
 LANGUAGES = (
-    ("en-us", _("English")),
-    ("fr", _("French")),
-    ("rw", _("Kinyarwanda")),
-    ("et", _("Ethiopia")),
+    ("en-us", "English"),
+    ("fr", "French"),
+    ("rw", "Kinyarwanda"),
+    ("et", "Ethiopia"),
 )
 LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
 
@@ -308,6 +317,10 @@ HUGGINGFACE_API_TIMEOUT = env('HUGGINGFACE_API_TIMEOUT', default=30)
 HUGGINGFACE_MAX_RETRIES = env('HUGGINGFACE_MAX_RETRIES', default=3)
 
 # Logging configuration for Hugging Face connector
+_huggingface_log_path = (
+    "/tmp/huggingface.log" if os.environ.get("VERCEL") else str(BASE_DIR / "huggingface.log")
+)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -325,7 +338,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'huggingface.log',
+            'filename': _huggingface_log_path,
             'formatter': 'verbose',
         },
         'console': {
@@ -353,7 +366,8 @@ try:
 except ImportError:
     from .local_settings_template import *  # noqa: F403
 
-    print("No local_settings.py, using .local_settings_template")
+    # Must not write to stdout: Vercel's Django builder parses manage.py stdout as JSON.
+    print("No local_settings.py, using .local_settings_template", file=sys.stderr)
 
 INSTALLED_APPS += LOCAL_INSTALLED_APPS
 

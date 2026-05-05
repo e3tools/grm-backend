@@ -1,8 +1,8 @@
 from django.urls import reverse
 
-from authentication.factories import UserFactory
+from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
-from issues.factories import IssueFactory
+from issues.factories import AdministrativeLevelFactory, AdministrativeRegionFactory, IssueFactory
 
 
 class IssueDetailsFormViewTest(DashboardTestCase):
@@ -20,3 +20,20 @@ class IssueDetailsFormViewTest(DashboardTestCase):
     def test_get_denied_for_normal_user(self):
         resp = self.get(self.url, user=self.normal_user)
         assert resp.status_code == 403
+
+    def test_get_shows_assignee_administrative_level_and_department(self):
+        dept = self.issue.category.assigned_department.department
+        dept.head = UserFactory()
+        dept.save(update_fields=["head"])
+        level = AdministrativeLevelFactory(name="DetailViewLevelUnique")
+        worker_region = AdministrativeRegionFactory(administrative_level=level, parent=self.root_region)
+        GovernmentWorkerFactory(
+            user=self.issue.assignee,
+            department=dept,
+            administrative_region=worker_region,
+        )
+        resp = self.get(self.url, user=self.manager)
+        assert resp.status_code == 200
+        body = resp.content.decode()
+        assert "DetailViewLevelUnique" in body
+        assert dept.name in body
