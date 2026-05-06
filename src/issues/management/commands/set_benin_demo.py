@@ -43,6 +43,7 @@ from issues.models import (
     CitizenGroup,
     Component,
     SubComponent,
+    SubProjectGroup,
     Issue,
     IssueAttachment,
     IssueCategory,
@@ -494,6 +495,20 @@ class Command(BaseCommand):
             for sub_name, sub_desc in spec["subs"]:
                 SubComponent.objects.create(name=sub_name, description=sub_desc, parent=comp)
 
+        subproject_group_names = [
+            "Développement mené par les communautés (DMC)",
+            "Infrastructures socio-économiques",
+            "Appui économique (GIE)",
+            "Inclusion (CDV / groupes marginalisés / réfugiés)",
+            "Cohésion sociale et dialogue",
+            "Prévention et gestion des conflits",
+            "Collaboration régionale",
+            "Appui institutionnel (préfectures / communes)",
+            "Appui à l’ABGEF",
+        ]
+        for name in subproject_group_names:
+            SubProjectGroup.objects.create(name=name)
+
         CitizenAgeGroup.objects.create(name="18–35 ans")
         CitizenAgeGroup.objects.create(name="36–50 ans")
         CitizenAgeGroup.objects.create(name="51 ans et plus")
@@ -571,6 +586,26 @@ class Command(BaseCommand):
         if components:
             for sc in SubComponent.objects.filter(parent__in=components).order_by("id"):
                 subcomponents_by_component_id.setdefault(sc.parent_id, []).append(sc)
+
+        subproject_groups = list(SubProjectGroup.objects.order_by("id"))
+        subproject_groups_by_name = {g.name: g for g in subproject_groups}
+        subproject_group_names_by_component = {
+            "Infrastructures et développement socio-économique (Investir dans la résilience)": [
+                "Sous-projet — Développement mené par les communautés (DMC)",
+                "Sous-projet — Infrastructures socio-économiques",
+                "Sous-projet — Appui économique (GIE)",
+            ],
+            "Renforcement des capacités et cohésion sociale": [
+                "Sous-projet — Inclusion (CDV / groupes marginalisés / réfugiés)",
+                "Sous-projet — Cohésion sociale et dialogue",
+                "Sous-projet — Prévention et gestion des conflits",
+            ],
+            "Coordination régionale et gestion": [
+                "Sous-projet — Collaboration régionale",
+                "Sous-projet — Appui institutionnel (préfectures / communes)",
+                "Sous-projet — Appui à l’ABGEF",
+            ],
+        }
         st_created = IssueStatus.objects.filter(initial_status=True).first()
         st_open = IssueStatus.objects.filter(open_status=True).first()
         st_rejected = IssueStatus.objects.filter(rejected_status=True).first()
@@ -581,6 +616,7 @@ class Command(BaseCommand):
             not communes
             or len(categories) < 7
             or len(components) < 1
+            or len(subproject_groups) < 1
             or not all([st_created, st_open, st_rejected, st_done, age_groups])
             or any(c.parent is None or c.parent.parent is None for c in categories)
         ):
@@ -671,6 +707,12 @@ class Command(BaseCommand):
             sub_components = subcomponents_by_component_id.get(getattr(component, "id", None), [])
             sub_component = random.choice(sub_components) if sub_components else None
 
+            group_names = subproject_group_names_by_component.get(getattr(component, "name", ""), [])
+            if group_names:
+                subproject_group = subproject_groups_by_name.get(random.choice(group_names))
+            else:
+                subproject_group = random.choice(subproject_groups) if subproject_groups else None
+
             issue = Issue.objects.create(
                 administrative_region=region,
                 category=category,
@@ -678,6 +720,7 @@ class Command(BaseCommand):
                 issue_sub_type=issue_sub,
                 component=component,
                 sub_component=sub_component,
+                subproject_group=subproject_group,
                 reporter=fac_user,
                 assignee=assignee_user,
                 citizen=citizen,
