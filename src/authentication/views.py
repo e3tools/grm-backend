@@ -314,7 +314,10 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
             required=['username', 'phone_number', 'password', 'confirm_password'],
             properties={
                 'username': openapi.Schema(
-                    type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Unique username for the account',
+                    example='john.doe@example.com',
                 ),
                 'first_name': openapi.Schema(
                     type=openapi.TYPE_STRING, description='First name of the citizen', example='John', max_length=150
@@ -363,7 +366,7 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                                     type=openapi.TYPE_STRING,
                                     format=openapi.FORMAT_EMAIL,
                                     description='Username',
-                                    example='john.doe',
+                                    example='john.doe@example.com',
                                 ),
                                 'email': openapi.Schema(
                                     type=openapi.TYPE_STRING,
@@ -942,7 +945,10 @@ class FacilitatorCredentialUpdateAPIView(APIView):
             required=['username', 'code', 'password'],
             properties={
                 'username': openapi.Schema(
-                    type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Unique username for the account',
+                    example='john.doe@example.com',
                 ),
                 'password': openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -1054,9 +1060,9 @@ class FacilitatorCredentialUpdateAPIView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        user.password = response_data['password']
+        user.set_password(response_data['password'])
         user.last_login = user.last_activity = timezone.now()
-        user.save(update_fields=['last_login', 'last_activity'])
+        user.save(update_fields=['password', 'last_login', 'last_activity'])
 
         user = authenticate(username=response_data['username'], password=response_data['password'])
         token, _ = Token.objects.get_or_create(user=user)
