@@ -432,58 +432,58 @@ class Command(BaseCommand):
 
         component_specs = [
             {
-                "name": "Infrastructure and Socio-economic Development (Investing in Resilience)",
+                "name": "Infrastructures et développement socio-économique (Investir dans la résilience)",
                 "description": (
-                    "Investing in resilience through community-driven development, infrastructure, and economic support."
+                    "Investir dans la résilience via le développement mené par les communautés, les infrastructures et l’appui économique."
                 ),
                 "subs": [
                     (
-                        "Community-Driven Development (CDD)",
-                        "Empowers communities through bottom-up planning to prioritize and manage sub-projects.",
+                        "Développement mené par les communautés (DMC)",
+                        "Renforcer l’autonomisation des communautés via une planification ascendante afin de prioriser et gérer les sous-projets.",
                     ),
                     (
-                        "Infrastructure Support",
-                        "Construction of socio-economic facilities, including schools, water boreholes (forages), and community centers.",
+                        "Appui aux infrastructures",
+                        "Construction d’infrastructures socio-économiques, notamment des écoles, des forages d’eau et des centres communautaires.",
                     ),
                     (
-                        "Economic Support",
-                        "Funding for economic interest groups (GIE) to stimulate local economies and generate income, particularly for women and youth.",
-                    ),
-                ],
-            },
-            {
-                "name": "Building Capacity and Social Cohesion",
-                "description": "Strengthening local capacity, inclusion, dialogue, and conflict management.",
-                "subs": [
-                    (
-                        "Inclusion Mechanisms",
-                        "Strengthening the capacity of Village Development Committees (VDCs) and ensuring the inclusion of marginalized groups and refugees in local planning.",
-                    ),
-                    (
-                        "Social Cohesion Activities",
-                        "Strengthening social ties, dialogue, and conflict management mechanisms between host communities and displaced populations.",
-                    ),
-                    (
-                        "Conflict Management Mechanisms",
-                        "Supporting local conflict prevention and management mechanisms between host communities and displaced populations.",
+                        "Appui économique",
+                        "Financement des groupements d’intérêt économique (GIE) pour stimuler les économies locales et générer des revenus, en particulier pour les femmes et les jeunes.",
                     ),
                 ],
             },
             {
-                "name": "Regional Coordination and Management",
-                "description": "Facilitating regional coordination and strengthening institutions for cross-border resilience.",
+                "name": "Renforcement des capacités et cohésion sociale",
+                "description": "Renforcer les capacités locales, l’inclusion, le dialogue et les mécanismes de gestion des conflits.",
                 "subs": [
                     (
-                        "Regional Collaboration",
-                        "Facilitating dialogue and coordination across northern Benin and with neighboring countries (Côte d'Ivoire, Ghana, Togo).",
+                        "Mécanismes d’inclusion",
+                        "Renforcer les capacités des Comités de développement villageois (CDV) et assurer l’inclusion des groupes marginalisés et des réfugiés dans la planification locale.",
                     ),
                     (
-                        "Institutional Support",
-                        "Strengthening local authorities (Prefectures and Communes) and supporting the Agence Béninoise de Gestion Intégrée des Espaces Frontaliers (ABGEF).",
+                        "Activités de cohésion sociale",
+                        "Renforcer les liens sociaux, le dialogue et les mécanismes de gestion des conflits entre communautés hôtes et populations déplacées.",
                     ),
                     (
-                        "Support to ABGEF (Agence Béninoise de Gestion Intégrée des Espaces Frontaliers)",
-                        "Institutional support for ABGEF and integrated management of border areas.",
+                        "Mécanismes de gestion des conflits",
+                        "Appuyer les mécanismes locaux de prévention et de gestion des conflits entre communautés hôtes et populations déplacées.",
+                    ),
+                ],
+            },
+            {
+                "name": "Coordination régionale et gestion",
+                "description": "Faciliter la coordination régionale et renforcer les institutions pour la résilience transfrontalière.",
+                "subs": [
+                    (
+                        "Collaboration régionale",
+                        "Faciliter le dialogue et la coordination dans le nord du Bénin et avec les pays voisins (Côte d’Ivoire, Ghana, Togo).",
+                    ),
+                    (
+                        "Appui institutionnel",
+                        "Renforcer les autorités locales (préfectures et communes) et appuyer l’Agence béninoise de gestion intégrée des espaces frontaliers (ABGEF).",
+                    ),
+                    (
+                        "Appui à l’ABGEF (Agence béninoise de gestion intégrée des espaces frontaliers)",
+                        "Appui institutionnel à l’ABGEF et à la gestion intégrée des espaces frontaliers.",
                     ),
                 ],
             },
@@ -559,13 +559,13 @@ class Command(BaseCommand):
         components_by_name = {c.name: c for c in components}
         # Map the existing 7 demo categories to realistic project components.
         component_name_by_abbrev = {
-            "DEMO1": "Building Capacity and Social Cohesion",
-            "DEMO2": "Building Capacity and Social Cohesion",
-            "DEMO3": "Building Capacity and Social Cohesion",
-            "DEMO4": "Infrastructure and Socio-economic Development (Investing in Resilience)",
-            "DEMO5": "Infrastructure and Socio-economic Development (Investing in Resilience)",
-            "DEMO6": "Regional Coordination and Management",
-            "DEMO7": "Regional Coordination and Management",
+            "DEMO1": "Renforcement des capacités et cohésion sociale",
+            "DEMO2": "Renforcement des capacités et cohésion sociale",
+            "DEMO3": "Renforcement des capacités et cohésion sociale",
+            "DEMO4": "Infrastructures et développement socio-économique (Investir dans la résilience)",
+            "DEMO5": "Infrastructures et développement socio-économique (Investir dans la résilience)",
+            "DEMO6": "Coordination régionale et gestion",
+            "DEMO7": "Coordination régionale et gestion",
         }
         subcomponents_by_component_id = {}
         if components:
