@@ -5,6 +5,7 @@ from authentication.views import (
     CitizenLoginAPIView,
     CitizenRegistrationCreateAPIView,
     CitizenUpdateAPIView,
+    FacilitatorCredentialUpdateAPIView,
     FacilitatorProfileAPIView,
     LoginAPIView,
     PasswordResetAPIView,
@@ -28,4 +29,5 @@ urlpatterns = [
         name="password_reset_confirm",
     ),
     path('facilitator-profile/', FacilitatorProfileAPIView.as_view(), name='facilitator-profile'),
+    path('facilitator-credentials/update/', FacilitatorCredentialUpdateAPIView.as_view(), name='facilitator-login'),
 ]
