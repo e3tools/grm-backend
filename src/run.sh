@@ -55,7 +55,7 @@ case "$1" in
 
     test )
         echo "Running tests..."
-        pytest --cov=app --cov-report=xml
+        pytest --cov=. --cov-report=xml
     ;;
 
     * )
