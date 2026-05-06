@@ -1,5 +1,9 @@
+import importlib
+import sys
+
+from django.conf import settings
 from django.test import RequestFactory, TestCase, override_settings
-from django.urls import reverse
+from django.urls import clear_url_caches, reverse
 
 from dashboard.authentication.views import handler500
 
@@ -21,6 +25,11 @@ class RootUrlsTest(TestCase):
 
     @override_settings(DEBUG=True)
     def test_swagger_route_is_exposed_in_debug_mode(self):
+        clear_url_caches()
+        urlconf = settings.ROOT_URLCONF
+        if urlconf in sys.modules:
+            importlib.reload(sys.modules[urlconf])
+
         response = self.client.get("/swagger/")
 
         assert response.status_code == 200
