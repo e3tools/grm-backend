@@ -41,6 +41,7 @@ from issues.models import (
     Citizen,
     CitizenAgeGroup,
     CitizenGroup,
+    Comment,
     Component,
     SubComponent,
     SubProjectGroup,
@@ -65,9 +66,11 @@ DEMO_PASSWORD = "demo"
 FACILITATOR_PASSWORD = DEMO_PASSWORD
 CASE_MANAGER_PASSWORD = DEMO_PASSWORD
 NUM_FACILITATORS = 5
-NUM_DEMO_ISSUES = 75
+NUM_DEMO_ISSUES = 120
 ATTACHMENT_PROBABILITY = 0.45
 MIN_ATTACHMENTS_PER_ISSUE = 0
+# Facilitators flagged as village secretaries (used by Issue.get_assignee redirection logic)
+VILLAGE_SECRETARY_RATIO = 0.4  # 40% of facilitators
 # Minimal valid 1×1 PNG (for IssueAttachment demo files)
 DEMO_TINY_PNG = bytes.fromhex(
     "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
@@ -137,10 +140,24 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Benin demo data loaded (empty database)."))
 
     def _patch_user_last_activity_demo(self, user: User) -> None:
-        """Varied last_activity so performance / user tables do not show 'Never' for demo users."""
+        """
+        Varied last_activity so user/performance tables show a mix of:
+        - high activity (0–2 days ago)
+        - medium activity (3–7 days ago)
+        - low activity (8–20 days ago)
+        """
         idx = getattr(self, "_demo_last_activity_i", 0)
         self._demo_last_activity_i = idx + 1
-        days = DEMO_LAST_ACTIVITY_DAYS_CYCLE[idx % len(DEMO_LAST_ACTIVITY_DAYS_CYCLE)]
+
+        # Deterministic-ish distribution (no reliance on creation order quirks)
+        mod = idx % 10
+        if mod in (0, 1, 2):  # ~30% very recent
+            days = random.randint(0, 2)
+        elif mod in (3, 4, 5, 6):  # ~40% medium
+            days = random.randint(3, 7)
+        else:  # ~30% low activity
+            days = random.randint(8, 20)
+
         when = timezone.now() - timedelta(
             days=int(days),
             hours=random.randint(0, 23),
@@ -176,7 +193,7 @@ class Command(BaseCommand):
 
     def _seed_org_structure(self, facilitator_rows: List[Tuple[User, AdministrativeRegion]]) -> None:
         """
-        Department heads, GovernmentWorkers at commune + department + country tiers
+        Department heads, GovernmentWorkers at commune+ tiers (NOT village)
         so assignee, escalation/de-escalation, and appeal reassignment all have targets.
         """
         d1 = IssueDepartment.objects.get(name="Comité communautaire de gestion des plaintes")
@@ -219,38 +236,20 @@ class Command(BaseCommand):
         d2.save(update_fields=["head"])
         d3.save(update_fields=["head"])
 
-        demo_communes = {r[1].id: r[1] for r in facilitator_rows}
-        parent_regions = {c.parent for c in demo_communes.values() if c.parent_id}
-        first_commune = facilitator_rows[0][1]
-        first_parent = first_commune.parent
+        demo_villages = {r[1].id: r[1] for r in facilitator_rows}
+        parent_regions = {v.parent for v in demo_villages.values() if v.parent_id}
+        first_village = facilitator_rows[0][1]
+        first_parent = first_village.parent
         if not first_parent:
-            self.stdout.write(self.style.ERROR("Facilitator commune has no parent department; skipping org structure."))
+            self.stdout.write(self.style.ERROR("Facilitator village has no parent commune; skipping org structure."))
             return
 
         GovernmentWorker.objects.create(user=head_d1, department=d1, administrative_region=first_parent)
         GovernmentWorker.objects.create(user=head_d2, department=d2, administrative_region=first_parent)
         GovernmentWorker.objects.create(user=head_d3, department=d3, administrative_region=root)
 
-        for commune in sorted(demo_communes.values(), key=lambda r: r.id):
-            u = self._create_demo_staff_user(
-                f"cm_d1_c{commune.id}",
-                f"case-mgr-d1-c{commune.id}@grm-benin.local",
-                f"+2298101{commune.id % 10000:04d}",
-                "Gestionnaire",
-                f"Plaintes {commune.name[:20]}",
-                CASE_MANAGER_PASSWORD,
-            )
-            GovernmentWorker.objects.create(user=u, department=d1, administrative_region=commune)
-
-        u_hot = self._create_demo_staff_user(
-            "cm_d1_hot_b",
-            f"case-mgr-d1-c{first_commune.id}-b@grm-benin.local",
-            f"+2298103{first_commune.id % 10000:04d}",
-            "Gestionnaire",
-            "Adjoint démo",
-            CASE_MANAGER_PASSWORD,
-        )
-        GovernmentWorker.objects.create(user=u_hot, department=d1, administrative_region=first_commune)
+        # IMPORTANT: no GovernmentWorkers at village level (facilitators are village-level).
+        # We only place GovernmentWorkers on the parent commune / department / country tiers.
 
         for parent in sorted(parent_regions, key=lambda r: r.id):
             if GovernmentWorker.objects.filter(department=d1, administrative_region=parent).exists():
@@ -278,8 +277,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.NOTICE(
-                "Org structure: department heads (d1/d2/d3), commune + department d1 workers, "
-                "dual case manager on first demo commune, d2 line worker, d3 appeal worker at country."
+                "Org structure: department heads (d1/d2/d3), commune+ d1 workers, "
+                "d2 line worker, d3 appeal worker at country (no village-level GovernmentWorkers)."
             )
         )
 
@@ -612,6 +611,11 @@ class Command(BaseCommand):
         st_done = IssueStatus.objects.filter(final_status=True).first()
         age_groups = list(CitizenAgeGroup.objects.all())
         citizen_groups = list(CitizenGroup.objects.all())
+        # Village secretaries (Facilitators) used as assignees for a subset of demo issues.
+        secretary_by_region_id = {
+            f.administrative_region_id: f.user
+            for f in Facilitator.objects.filter(village_secretary=True).select_related("user")
+        }
         if (
             not communes
             or len(categories) < 7
@@ -632,13 +636,40 @@ class Command(BaseCommand):
             "Information sur les dates d'audience publique et les documents à fournir.",
             "Réclamation relative aux indemnisations : montants perçus différents des engagements annoncés.",
         ]
+        resolution_texts = [
+            "La plainte a été traitée : vérification effectuée sur le terrain, la situation a été corrigée et le plaignant a été informé.",
+            "Résolution confirmée : les parties ont été contactées, une solution a été mise en œuvre et la plainte est clôturée.",
+            "Le service concerné a exécuté l’action corrective. Un retour a été fait au plaignant et le dossier est classé.",
+        ]
+        rejection_texts = [
+            "Plainte rejetée : informations insuffisantes pour procéder au traitement (données de contact / localisation incomplètes).",
+            "Plainte rejetée : la demande ne relève pas du mandat du mécanisme de gestion des plaintes (hors périmètre).",
+            "Plainte rejetée : doublon d’un dossier déjà enregistré et traité.",
+        ]
+        worker_followup_comments = [
+            "Mise à jour : visite de terrain planifiée et parties prenantes informées.",
+            "Mise à jour : éléments collectés, analyse en cours.",
+            "Mise à jour : coordination avec l’autorité locale et retour prévu.",
+        ]
 
         group_a = citizen_groups[0] if len(citizen_groups) > 0 else None
         group_b = citizen_groups[1] if len(citizen_groups) > 1 else None
 
         created_issues: List[Issue] = []
         now = timezone.now()
-        status_cycle = [st_open, st_done, st_rejected, st_open, st_created, st_open]
+        # Target proportions to match the mobile action-button matrix:
+        # - initial (Créé): Accept/Reject enabled (when assigned to session user)
+        # - open (Ouverte): Record steps/resolution + Escalate enabled (when assigned, and not escalated)
+        # - final (Terminée) + rejected (Rejetée): Rate/Appeal & rejected lock-down cases
+        status_target = {
+            "created": 0.18,
+            "open": 0.32,
+            "done": 0.30,
+            "rejected": 0.20,
+        }
+        created_cutoff = int(NUM_DEMO_ISSUES * status_target["created"])
+        open_cutoff = created_cutoff + int(NUM_DEMO_ISSUES * status_target["open"])
+        done_cutoff = open_cutoff + int(NUM_DEMO_ISSUES * status_target["done"])
         appeal_indices = {i for i in (7, 22, 37, 52, 67) if i < NUM_DEMO_ISSUES}
         escalation_indices = set()
         if NUM_DEMO_ISSUES >= 6:
@@ -650,7 +681,28 @@ class Command(BaseCommand):
 
         for i in range(NUM_DEMO_ISSUES):
             fac_user, region = facilitator_rows[i % len(facilitator_rows)]
-            intake = now - timedelta(days=random.randint(5, 150))
+            # Distribute intake dates across 7/30/90-day windows for diagnostics dashboards.
+            if i < int(NUM_DEMO_ISSUES * 0.35):
+                days_ago = random.randint(0, 6)  # last 7 days
+            elif i < int(NUM_DEMO_ISSUES * 0.70):
+                days_ago = random.randint(7, 29)  # 8–30 days
+            elif i < int(NUM_DEMO_ISSUES * 0.92):
+                days_ago = random.randint(30, 89)  # 31–90 days
+            else:
+                days_ago = random.randint(90, 180)  # older tail
+            intake = now - timedelta(days=days_ago, hours=random.randint(0, 23), minutes=random.randint(0, 59))
+
+            secretary_user = secretary_by_region_id.get(region.id)
+            # For village secretaries, force a visible mix of open/resolved/rejected on their assigned issues
+            # so the user profile "Issue Statistics" card is not all zeros.
+            secretary_forced_status = None
+            if secretary_user and (i % 4 == 0):
+                if i % 12 == 0:
+                    secretary_forced_status = st_open
+                elif i % 12 == 4:
+                    secretary_forced_status = st_done
+                elif i % 12 == 8:
+                    secretary_forced_status = st_rejected
 
             if i in appeal_indices:
                 status = st_open
@@ -659,10 +711,61 @@ class Command(BaseCommand):
                 status = st_open
                 resolution_date = None
             else:
-                status = status_cycle[i % len(status_cycle)]
+                if i < created_cutoff:
+                    status = st_created
+                elif i < open_cutoff:
+                    status = st_open
+                elif i < done_cutoff:
+                    status = st_done
+                else:
+                    status = st_rejected
                 resolution_date = None
                 if getattr(status, "final_status", False) or getattr(status, "rejected_status", False):
-                    resolution_date = intake + timedelta(days=random.randint(3, 25))
+                    # Make performance metrics more varied: some departments resolve quickly, others slower.
+                    dept_name = region.parent.name if getattr(region, "parent", None) else ""
+                    fast_depts = {"Atlantique", "Ouémé"}
+                    medium_depts = {"Plateau", "Zou"}
+                    if dept_name in fast_depts:
+                        delay = random.randint(1, 5)
+                    elif dept_name in medium_depts:
+                        delay = random.randint(4, 12)
+                    else:
+                        delay = random.randint(10, 35)
+                    resolution_date = intake + timedelta(days=delay)
+
+            if secretary_forced_status is not None:
+                status = secretary_forced_status
+                resolution_date = None
+                if getattr(status, "final_status", False) or getattr(status, "rejected_status", False):
+                    dept_name = region.parent.name if getattr(region, "parent", None) else ""
+                    fast_depts = {"Atlantique", "Ouémé"}
+                    delay = random.randint(1, 6) if dept_name in fast_depts else random.randint(4, 16)
+                    resolution_date = intake + timedelta(days=delay)
+
+            # Avoid very old "open" issues dominating average resolution metrics.
+            # Keep escalations/appeals open, and keep secretary-forced mix as-is.
+            if (
+                secretary_forced_status is None
+                and (i not in appeal_indices)
+                and (i not in escalation_indices)
+                and status == st_open
+                and resolution_date is None
+            ):
+                if days_ago > 90 or (30 <= days_ago <= 89 and (i % 3 == 0)):
+                    status = st_done
+                    dept_name = region.parent.name if getattr(region, "parent", None) else ""
+                    fast_depts = {"Atlantique", "Ouémé"}
+                    medium_depts = {"Plateau", "Zou"}
+                    if dept_name in fast_depts:
+                        delay = random.randint(1, 4)
+                    elif dept_name in medium_depts:
+                        delay = random.randint(3, 9)
+                    else:
+                        delay = random.randint(6, 18)
+                    resolution_date = intake + timedelta(days=delay)
+
+            # Keep a small slice in initial status (for mobile "Accept/Reject" flow).
+            # Status history/comments below handle st_created specially.
 
             appeal_status = i in appeal_indices
             appeal_reason = (
@@ -687,12 +790,17 @@ class Command(BaseCommand):
                     group_2=group_b if i % 6 == 0 else None,
                 )
 
-            gw = (
-                GovernmentWorker.objects.filter(department=d1_dept, administrative_region=region)
-                .order_by("id")
-                .first()
-            )
-            assignee_user = gw.user if gw else None
+            # Prefer village secretary assignment for some issues in that village.
+            assignee_user = None
+            if secretary_user and (i % 4 == 0):
+                assignee_user = secretary_user
+            else:
+                gw = (
+                    GovernmentWorker.objects.filter(department=d1_dept, administrative_region=region)
+                    .order_by("id")
+                    .first()
+                )
+                assignee_user = gw.user if gw else None
 
             category = random.choice(categories)
             issue_sub = category.parent
@@ -743,14 +851,141 @@ class Command(BaseCommand):
             # Same pattern as post-confirm flow: list views show internal_code, not tracking_code.
             Issue.objects.filter(pk=issue.pk).update(internal_code=issue.get_internal_code())
 
-            IssueStatusChange.objects.filter(issue=issue, exited_at__isnull=True).update(entered_at=intake)
+            # --- Credible resolution/rejection fields + lifecycle history + comments ---
+            # For initial ("Créé") issues, keep them pending acceptance (mobile Accept/Reject enabled).
+            if status == st_created:
+                Issue.objects.filter(pk=issue.pk).update(
+                    status=status,
+                    resolution_date=None,
+                    research_result="",
+                    reject_reason="",
+                    reject_flag=False,
+                    escalate_flag=False,
+                    escalated_date=None,
+                    escalation_reason="",
+                    appeal_status=False,
+                    appeal_reason="",
+                )
 
-            if status == st_open and st_created and i % 3 == 0:
+                IssueStatusChange.objects.filter(issue=issue).delete()
+                created_entered_at = intake - timedelta(days=random.randint(0, 3))
                 IssueStatusChange.objects.create(
                     issue=issue,
                     status=st_created,
-                    entered_at=intake - timedelta(days=random.randint(4, 10)),
-                    exited_at=intake - timedelta(days=1),
+                    entered_at=created_entered_at,
+                    exited_at=None,
+                )
+
+                Comment.objects.create(
+                    user=None,
+                    issue=issue,
+                    comment="Plainte créée (en attente d’acceptation) — données fictives.",
+                    due_date=intake,
+                )
+                if assignee_user:
+                    Comment.objects.create(
+                        user=None,
+                        issue=issue,
+                        comment=f"Plainte assignée à {assignee_user.name} (en attente d’acceptation).",
+                        due_date=intake + timedelta(hours=2),
+                    )
+            else:
+                accepted_at = intake + timedelta(days=1)
+                assigned_at = accepted_at + timedelta(hours=6)
+                closed_at = resolution_date
+
+                research_result = ""
+                reject_reason = ""
+                if getattr(status, "final_status", False):
+                    research_result = random.choice(resolution_texts)
+                elif getattr(status, "rejected_status", False):
+                    reject_reason = random.choice(rejection_texts)
+
+                # Update fields without triggering additional IssueStatusChange side effects.
+                Issue.objects.filter(pk=issue.pk).update(
+                    status=status,
+                    resolution_date=closed_at,
+                    research_result=research_result,
+                    reject_reason=reject_reason,
+                )
+
+                # Replace auto-generated status history with a realistic timeline.
+                IssueStatusChange.objects.filter(issue=issue).delete()
+
+                created_entered_at = intake - timedelta(days=random.randint(2, 8))
+                IssueStatusChange.objects.create(
+                    issue=issue,
+                    status=st_created,
+                    entered_at=created_entered_at,
+                    exited_at=accepted_at,
+                )
+                IssueStatusChange.objects.create(
+                    issue=issue,
+                    status=st_open,
+                    entered_at=accepted_at,
+                    exited_at=closed_at if closed_at else None,
+                )
+                if closed_at and (getattr(status, "final_status", False) or getattr(status, "rejected_status", False)):
+                    IssueStatusChange.objects.create(
+                        issue=issue,
+                        status=status,
+                        entered_at=closed_at,
+                        exited_at=None,
+                    )
+
+                Comment.objects.create(
+                    user=None,
+                    issue=issue,
+                    comment="Plainte enregistrée et acceptée dans le système (données fictives).",
+                    due_date=accepted_at,
+                )
+                if assignee_user:
+                    Comment.objects.create(
+                        user=None,
+                        issue=issue,
+                        comment=f"Plainte assignée à {assignee_user.name}.",
+                        due_date=assigned_at,
+                    )
+
+            # Optional reassignment for realism (keeps assignee stats interesting)
+            if status != st_created and assignee_user and (i % 10 == 0):
+                alt_worker = (
+                    GovernmentWorker.objects.filter(department=d1_dept, administrative_region=region)
+                    .exclude(user=assignee_user)
+                    .select_related("user")
+                    .order_by("id")
+                    .first()
+                )
+                if alt_worker and alt_worker.user:
+                    Issue.objects.filter(pk=issue.pk).update(assignee=alt_worker.user)
+                    Comment.objects.create(
+                        user=None,
+                        issue=issue,
+                        comment=f"Réaffectation : la plainte a été réassignée à {alt_worker.user.name} (données fictives).",
+                        due_date=assigned_at + timedelta(hours=2),
+                    )
+
+            # Follow-up notes and closure notes
+            if status == st_open:
+                Comment.objects.create(
+                    user=assignee_user,
+                    issue=issue,
+                    comment=random.choice(worker_followup_comments),
+                    due_date=accepted_at + timedelta(days=random.randint(1, 7)),
+                )
+            elif getattr(status, "final_status", False):
+                Comment.objects.create(
+                    user=assignee_user,
+                    issue=issue,
+                    comment=f"Clôture : {research_result}",
+                    due_date=closed_at or accepted_at + timedelta(days=7),
+                )
+            elif getattr(status, "rejected_status", False):
+                Comment.objects.create(
+                    user=assignee_user,
+                    issue=issue,
+                    comment=f"Rejet : {reject_reason}",
+                    due_date=closed_at or accepted_at + timedelta(days=3),
                 )
 
             want_attachment = (i < max(1, MIN_ATTACHMENTS_PER_ISSUE)) or (random.random() < ATTACHMENT_PROBABILITY)
@@ -807,11 +1042,13 @@ class Command(BaseCommand):
 
         n = min(NUM_FACILITATORS, len(communes))
         rows: List[Tuple[User, AdministrativeRegion]] = []
+        secretary_every = max(1, int(round(1 / max(VILLAGE_SECRETARY_RATIO, 0.01))))
         for i in range(n):
             email = f"facilitator-{i + 1}@grm-benin.local"
             region = communes[i % len(communes)]
             user = User(
-                username=f"facilitator_demo_{i + 1}",
+                # Keep identity consistent across admin/API views: username == email
+                username=email,
                 email=email,
                 phone_number=f"+229600{i + 1:05d}",
                 first_name="Facilitateur",
@@ -825,8 +1062,20 @@ class Command(BaseCommand):
             user.set_password(FACILITATOR_PASSWORD)
             user.save()
             self._patch_user_last_activity_demo(user)
-            Facilitator.objects.create(user=user, administrative_region=region)
+            is_secretary = (i % secretary_every) == 0
+            Facilitator.objects.create(
+                user=user,
+                administrative_region=region,
+                unique_region=True,
+                village_secretary=is_secretary,
+            )
             rows.append((user, region))
 
-        self.stdout.write(self.style.NOTICE(f"Created {len(rows)} facilitator account(s) (not for dashboard login)."))
+        n_secretaries = sum(1 for i in range(n) if (i % secretary_every) == 0)
+        self.stdout.write(
+            self.style.NOTICE(
+                f"Created {len(rows)} facilitator account(s) (not for dashboard login); "
+                f"{n_secretaries} marked as village_secretary for assignment routing."
+            )
+        )
         return rows
