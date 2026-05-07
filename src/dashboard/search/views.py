@@ -107,7 +107,11 @@ class SemanticSearchView(LoginRequiredMixin, View):
 
         confirmed_issues = Issue.objects.filter(confirmed=True)
         if hasattr(results, 'object_list'):
-            filtered_issues = [int(item.get('_id')) for item in results.object_list]
+            def _parse_issue_id(value) -> int:
+                # Pinecone ids sometimes arrive as floats / "43.0" strings; normalize to int.
+                return int(str(value).replace(".0", ""))
+
+            filtered_issues = [_parse_issue_id(item.get('_id')) for item in results.object_list]
             issues_status = confirmed_issues.filter(id__in=filtered_issues).values_list(
                 'id', 'status_id', 'status__name'
             )
@@ -115,8 +119,9 @@ class SemanticSearchView(LoginRequiredMixin, View):
                 issue_id: {"id": status_id, "name": status_name} for issue_id, status_id, status_name in issues_status
             }
             for item in results.object_list:
-                issue_id = int(item.get('_id'))
+                issue_id = _parse_issue_id(item.get('_id'))
                 item['id'] = issue_id
+                item['id_str'] = str(issue_id)
                 item['status'] = issues_status.get(issue_id)
 
         context = {
