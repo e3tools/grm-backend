@@ -115,7 +115,9 @@ class SemanticSearchView(LoginRequiredMixin, View):
                 issue_id: {"id": status_id, "name": status_name} for issue_id, status_id, status_name in issues_status
             }
             for item in results.object_list:
-                item['status'] = issues_status.get(int(item.get('_id')))
+                issue_id = int(item.get('_id'))
+                item['id'] = issue_id
+                item['status'] = issues_status.get(issue_id)
 
         context = {
             "title": _("Search Issues"),
