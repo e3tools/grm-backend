@@ -29,6 +29,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from authentication.models import Facilitator, GovernmentWorker, User
+from common.utils.pinecone_connector import PineconeConnector
 from grm.constants import ANONYMOUS_CHOICE, FEWER_ISSUES_CHOICE, LOW_CHOICE
 from issues.management.data.benin_communes import (
     COMMUNES,
@@ -795,12 +796,39 @@ class Command(BaseCommand):
             if secretary_user and (i % 4 == 0):
                 assignee_user = secretary_user
             else:
-                gw = (
-                    GovernmentWorker.objects.filter(department=d1_dept, administrative_region=region)
-                    .order_by("id")
-                    .first()
+                # GovernmentWorkers are intentionally NOT village-level.
+                # Assign to the parent commune worker for the village.
+                assign_region = region.parent if getattr(region, "parent_id", None) else None
+                gw = None
+                if assign_region:
+                    gw = (
+                        GovernmentWorker.objects.filter(department=d1_dept, administrative_region=assign_region)
+                        .select_related("user")
+                        .order_by("id")
+                        .first()
+                    )
+                assignee_user = gw.user if (gw and gw.user) else None
+
+            # Hard guarantee: every issue must have an assignee (Gov worker or village secretary).
+            if not assignee_user:
+                # Fallback to any available GovernmentWorker at the commune tier.
+                fallback_region = region.parent if getattr(region, "parent_id", None) else None
+                gw_fallback = None
+                if fallback_region:
+                    gw_fallback = (
+                        GovernmentWorker.objects.filter(administrative_region=fallback_region)
+                        .select_related("user")
+                        .order_by("id")
+                        .first()
+                    )
+                assignee_user = gw_fallback.user if (gw_fallback and gw_fallback.user) else None
+
+            if not assignee_user:
+                raise RuntimeError(
+                    f"Demo seeding invariant failed: Issue {i} in region {getattr(region, 'id', None)} "
+                    f"({getattr(region, 'name', '')}) has no assignee. Ensure GovernmentWorkers exist at commune tier "
+                    "or facilitators are flagged as village secretaries."
                 )
-                assignee_user = gw.user if gw else None
 
             category = random.choice(categories)
             issue_sub = category.parent
@@ -1021,6 +1049,12 @@ class Command(BaseCommand):
         pinecone_key = str(getattr(settings, "PINECONE_API_KEY", "") or "").strip()
         if pinecone_key:
             try:
+                # Keep Pinecone search consistent across re-seeds:
+                # 1) clear existing vectors in the demo namespace
+                # 2) ensure issues are marked non-vectorized so uploader re-sends them
+                namespace = "default"
+                PineconeConnector().delete_all_vectors(namespace=namespace)
+                Issue.objects.filter(confirmed=True).update(vectorized=False)
                 call_command("etl_upload_issues_to_pinecone")
                 self.stdout.write(self.style.SUCCESS("Pinecone upload finished (confirmed, non-vectorized issues)."))
             except Exception as exc:

@@ -93,6 +93,22 @@ class PineconeConnector:
             logger.error(f"Error deleting vectors from Pinecone: {str(e)}")
             raise
 
+    def delete_all_vectors(self, namespace: str = "default"):
+        """Delete all vectors in a namespace (demo resets / re-seeds)."""
+        try:
+            ns = namespace or "default"
+            logger.warning(f"Deleting ALL vectors from namespace '{ns}'...")
+            try:
+                # pinecone==7.x supports delete_all on Index.delete
+                self._index.delete(delete_all=True, namespace=ns)
+            except TypeError:
+                # Fallback for older signature ordering
+                self._index.delete(namespace=ns, delete_all=True)
+            logger.info("Delete-all completed successfully.")
+        except Exception as e:
+            logger.error(f"Error deleting all vectors from Pinecone: {str(e)}")
+            raise
+
     def query_text(self, query_text: str, top_k: int = 5, namespace: str = "default"):
         """Perform semantic search using Pinecone’s built-in embeddings."""
         try:
