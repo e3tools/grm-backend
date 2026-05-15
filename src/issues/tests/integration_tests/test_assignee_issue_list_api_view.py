@@ -507,3 +507,27 @@ class AssigneeIssueListAPIViewTest(APITestCase):
         assert response.status_code == status.HTTP_200_OK
         # No crash, normal count
         assert response.data["count"] == 2
+
+    def test_filter_by_code_returns_tracking_code_issues(self):
+        """Test filtering issues by code only returns those that have that tracking code"""
+        self.authenticate_with_token()
+
+        # Filter by date after issue1
+        response = self.client.get(self.url, {"code": 'TRK'})
+
+        assert response.status_code == status.HTTP_200_OK
+        issue_ids = {i["id"] for i in response.data["results"]}
+        assert self.issue2.id in issue_ids
+        assert self.issue1.id in issue_ids
+
+    def test_filter_by_code_returns_no_issues(self):
+        """Test filtering issues by code only returns those that have that tracking code"""
+        self.authenticate_with_token()
+
+        # Filter by date after issue1
+        response = self.client.get(self.url, {"code": 'RANDOM'})
+
+        assert response.status_code == status.HTTP_200_OK
+        issue_ids = {i["id"] for i in response.data["results"]}
+        assert self.issue2.id not in issue_ids
+        assert self.issue1.id not in issue_ids
