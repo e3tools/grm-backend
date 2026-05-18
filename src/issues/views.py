@@ -538,6 +538,13 @@ class AssigneeIssueListAPIView(ListAPIView):
                 format=openapi.FORMAT_DATETIME,
                 required=False,
             ),
+            openapi.Parameter(
+                'code',
+                openapi.IN_QUERY,
+                description="Tracking code of the issue",
+                type=openapi.TYPE_STRING,
+                default=None,
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -725,6 +732,9 @@ class AssigneeIssueListAPIView(ListAPIView):
             if not dt:
                 raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
             qs = qs.filter(updated_date__gt=dt)
+        code = self.request.query_params.get("code")
+        if code:
+            qs = qs.filter(tracking_code__icontains=code)
         return qs.order_by("-intake_date")
 
 
@@ -776,6 +786,13 @@ class ReporterIssueListAPIView(ListAPIView):
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATETIME,
                 required=False,
+            ),
+            openapi.Parameter(
+                'code',
+                openapi.IN_QUERY,
+                description="Tracking code of the issue",
+                type=openapi.TYPE_STRING,
+                default=None,
             ),
         ],
         responses={
@@ -964,6 +981,9 @@ class ReporterIssueListAPIView(ListAPIView):
             if not dt:
                 raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
             qs = qs.filter(updated_date__gt=dt)
+        code = self.request.query_params.get("code")
+        if code:
+            qs = qs.filter(tracking_code__icontains=code)
         return qs.order_by("-intake_date")
 
 
