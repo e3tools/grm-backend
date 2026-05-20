@@ -571,13 +571,52 @@ class AssigneeIssueListAPIView(ListAPIView):
                                 type=openapi.TYPE_OBJECT,
                                 properties={
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
-                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
-                                    'title': openapi.Schema(
-                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
-                                    ),
                                     'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'appeal_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for appeal',
+                                        example='The issue occurred in another village.',
+                                    ),
+                                    'appeal_status': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is under appeal',
+                                        example=False,
+                                    ),
+                                    'escalate_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue should be escalated',
+                                        example=True,
+                                    ),
+                                    'escalation_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for escalating the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'rating': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description='Rating for the issue resolution (1-5)',
+                                        minimum=1,
+                                        maximum=5,
+                                        example=4,
+                                    ),
+                                    'reject_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is rejected',
+                                        example=False,
+                                    ),
+                                    'reject_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for rejecting the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'research_result': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Results of research conducted on the issue',
+                                        example='Investigation completed. Root cause identified.',
+                                    ),
+                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -820,13 +859,52 @@ class ReporterIssueListAPIView(ListAPIView):
                                 type=openapi.TYPE_OBJECT,
                                 properties={
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
-                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
-                                    'title': openapi.Schema(
-                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
-                                    ),
                                     'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'appeal_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for appeal',
+                                        example='The issue occurred in another village.',
+                                    ),
+                                    'appeal_status': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is under appeal',
+                                        example=False,
+                                    ),
+                                    'escalate_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue should be escalated',
+                                        example=True,
+                                    ),
+                                    'escalation_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for escalating the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'rating': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description='Rating for the issue resolution (1-5)',
+                                        minimum=1,
+                                        maximum=5,
+                                        example=4,
+                                    ),
+                                    'reject_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is rejected',
+                                        example=False,
+                                    ),
+                                    'reject_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for rejecting the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'research_result': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Results of research conducted on the issue',
+                                        example='Investigation completed. Root cause identified.',
+                                    ),
+                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -1067,15 +1145,47 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                         'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
                         'description': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
-                        'research_result': openapi.Schema(
+                        'appeal_reason': openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            example="Final resolution applied.",
-                            description="Resolution text entered when closing the issue (may be empty).",
+                            description='Reason for appeal',
+                            example='The issue occurred in another village.',
+                        ),
+                        'appeal_status': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue is under appeal',
+                            example=False,
+                        ),
+                        'escalate_flag': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue should be escalated',
+                            example=True,
+                        ),
+                        'escalation_reason': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Reason for escalating the issue',
+                            example='Issue requires higher level approval',
                         ),
                         'rating': openapi.Schema(
                             type=openapi.TYPE_INTEGER,
+                            description='Rating for the issue resolution (1-5)',
+                            minimum=1,
+                            maximum=5,
                             example=4,
-                            description="Citizen rating for the issue resolution (1-5).",
+                        ),
+                        'reject_flag': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue is rejected',
+                            example=False,
+                        ),
+                        'reject_reason': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Reason for rejecting the issue',
+                            example='Issue requires higher level approval',
+                        ),
+                        'research_result': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Results of research conducted on the issue',
+                            example='Investigation completed. Root cause identified.',
                         ),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,

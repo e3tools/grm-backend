@@ -166,15 +166,25 @@ class AssigneeIssueListAPIViewTest(APITestCase):
         first_issue = response_data['results'][0]
         expected_fields = [
             'id',
+            'description',
+            'appeal_reason',
+            'appeal_status',
+            'escalate_flag',
+            'escalation_reason',
+            'rating',
+            'reject_flag',
+            'reject_reason',
+            'research_result',
             'tracking_code',
             'intake_date',
-            'status',
-            'category',
-            'issue_type',
             'administrative_region',
             'reporter',
             'assignee',
-            'description',
+            'status',
+            'category',
+            'issue_type',
+            'created_date',
+            'updated_date',
         ]
 
         for field in expected_fields:
