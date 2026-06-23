@@ -115,6 +115,27 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if self._database_has_app_data():
+            # If the demo was seeded previously (DB not empty), we still sometimes want to refresh
+            # Pinecone vectors after enabling env vars on Vercel.
+            demo_resync = str(getattr(settings, "DEMO_PINECONE_RESYNC", "") or "").strip().lower() in (
+                "1",
+                "true",
+                "yes",
+                "on",
+            )
+            pinecone_key = str(getattr(settings, "PINECONE_API_KEY", "") or "").strip()
+            if demo_resync and pinecone_key:
+                try:
+                    namespace = "benin-demo"
+                    self.stdout.write(self.style.NOTICE("DB has data; DEMO_PINECONE_RESYNC is enabled. Resyncing Pinecone…"))
+                    PineconeConnector().delete_all_vectors(namespace=namespace)
+                    Issue.objects.filter(confirmed=True).update(vectorized=False)
+                    call_command("etl_upload_issues_to_pinecone", namespace=namespace)
+                    self.stdout.write(self.style.SUCCESS("Pinecone resync finished."))
+                except Exception as exc:
+                    self.stdout.write(self.style.ERROR(f"Pinecone resync failed: {exc}"))
+                    logger.exception("Pinecone resync from set_benin_demo")
+
             self.stdout.write(
                 self.style.WARNING(
                     "Database already contains data (users, regions, issues, statuses, or levels); "
@@ -1052,10 +1073,10 @@ class Command(BaseCommand):
                 # Keep Pinecone search consistent across re-seeds:
                 # 1) clear existing vectors in the demo namespace
                 # 2) ensure issues are marked non-vectorized so uploader re-sends them
-                namespace = "default"
+                namespace = "benin-demo"
                 PineconeConnector().delete_all_vectors(namespace=namespace)
                 Issue.objects.filter(confirmed=True).update(vectorized=False)
-                call_command("etl_upload_issues_to_pinecone")
+                call_command("etl_upload_issues_to_pinecone", namespace=namespace)
                 self.stdout.write(self.style.SUCCESS("Pinecone upload finished (confirmed, non-vectorized issues)."))
             except Exception as exc:
                 self.stdout.write(self.style.ERROR(f"Pinecone upload failed (search may stay empty): {exc}"))
