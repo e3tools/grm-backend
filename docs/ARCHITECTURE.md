@@ -211,7 +211,7 @@ Handled by scheduled jobs in [grm/tasks.py](../src/grm/tasks.py):
 - **Manual escalation / de-escalation** — from the dashboard, for GRM Managers and PIU staff. De-escalation exists **only** manually.
 - **Appeals** — an hourly job reassigns appealed issues to the head of the category's `assigned_appeal_department`. This is a **jump to a fixed department**, not a climb up the hierarchy.
 
-> Full detail, including the fact that there is **no cap on appeals** and that citizens are **never notified of an escalation**, is in [sistema-apelacion-escalado.md](sistema-apelacion-escalado.md).
+> Full detail, including the fact that there is **no cap on appeals** and that citizens are **never notified of an escalation**, is in [appeal-escalation-system.md](appeal-escalation-system.md).
 
 ### 7.3 Notifications
 
@@ -295,5 +295,5 @@ The README documents this path, and the architecture supports it:
 | Who can see what | [dashboard/grm/permissions.py](../src/dashboard/grm/permissions.py), [issues/permissions.py](../src/issues/permissions.py) |
 | Case management UI | [dashboard/grm/views.py](../src/dashboard/grm/views.py) |
 | Scheduled behaviour | [grm/tasks.py](../src/grm/tasks.py) |
-| Appeals and escalation in depth | [sistema-apelacion-escalado.md](sistema-apelacion-escalado.md) |
+| Appeals and escalation in depth | [appeal-escalation-system.md](appeal-escalation-system.md) |
 | Configuration surface | [wizard/forms.py](../src/wizard/forms.py), [grm/settings.py](../src/grm/settings.py) |
