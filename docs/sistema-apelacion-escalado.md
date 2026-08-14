@@ -1,151 +1,151 @@
-# Cómo funcionan hoy la Apelación y el Escalado de casos
+# How Appeals and Escalation Work Today
 
-Este documento describe el comportamiento **actual del código** (no el ideal ni el planeado) de dos mecanismos del GRM: la apelación de un caso y el escalado (manual y automático) entre niveles administrativos.
+This document describes the **current behaviour of the code** — not the intended or planned design — for two GRM mechanisms: appealing a case, and escalating it (manually and automatically) across administrative levels.
 
 ---
 
-## 1. Sistema de Apelación
+## 1. The Appeal System
 
-**¿Qué es?** Una bandera (sí/no) que marca un caso como "en apelación" y lo reasigna a un departamento fijo encargado de revisar apelaciones.
+**What is it?** A yes/no flag that marks a case as "under appeal" and reassigns it to a fixed department responsible for reviewing appeals.
 
-**¿Quién puede apelar un caso?**
-Solo la persona actualmente **asignada** al caso (el gestor/funcionario que lo está manejando) puede activar la apelación, a través de la API de actualización de casos. **No existe un botón de apelación para el ciudadano**, ni en la app ni en el panel interno de GRM. En la práctica, si un ciudadano quiere apelar, debe pedírselo al funcionario asignado (por teléfono, en persona, etc.) para que este active la marca en el sistema.
+**Who can appeal a case?**
+Only the person currently **assigned** to the case (the case manager handling it) can raise an appeal, through the case-update API. **There is no appeal button for the citizen**, neither in the app nor in the internal GRM dashboard. In practice, if a citizen wants to appeal, they have to ask the assigned officer (by phone, in person, and so on) to set the flag on their behalf.
 
-**¿Cómo se activa?**
-- La apelación solo puede pasar de "No" a "Sí" (no se puede desactivar manualmente, ni volver a apelar un caso que ya está marcado como apelado).
-- No hay ninguna validación que exija que el caso esté "resuelto" o "cerrado" antes de apelar — técnicamente se puede marcar en cualquier estado del caso.
-- Al activarse, se envía automáticamente una notificación al ciudadano (correo o SMS, según su método de contacto).
+**How is it raised?**
+- The appeal flag can only go from "No" to "Yes". It cannot be cleared manually, and a case already marked as appealed cannot be appealed again while that appeal is pending.
+- Nothing requires the case to be "resolved" or "closed" before appealing — technically it can be flagged in any status.
+- Raising it automatically sends a notification to the citizen (email or SMS, depending on their contact method).
 
-**¿Qué pasa después?**
-Una tarea automática que corre **cada hora** revisa todos los casos marcados como "en apelación" y los reasigna al **jefe del departamento de apelación configurado para esa categoría de caso** (esto se configura una sola vez por categoría, durante el asistente/wizard de configuración). Importante:
+**What happens next?**
+An automatic job runs **every hour**, picks up every case flagged as under appeal, and reassigns it to the **head of the appeal department configured for that issue category** (configured once per category, in the setup wizard). Three things are worth noting:
 
-- Esta reasignación **no sigue la jerarquía de niveles administrativos** (país → departamento → comuna). Salta directamente a un departamento fijo, sin importar en qué nivel territorial esté el caso.
-- El lugar donde ocurrió el caso (su ubicación/región) **nunca cambia** — solo cambia la persona responsable de atenderlo.
-- Una vez reasignado, la bandera de apelación se apaga automáticamente (vuelve a "No"), quedando el caso listo para que, si se quisiera, se vuelva a apelar en el futuro.
-- Si la categoría del caso no tiene un jefe de departamento de apelación configurado, el caso simplemente se queda esperando y se reintenta cada hora.
+- This reassignment **does not follow the administrative hierarchy** (country → department → commune). It jumps straight to a fixed department, regardless of the case's territorial level.
+- The place where the issue occurred (its location/region) **never changes** — only the person responsible for handling it does.
+- Once reassigned, the appeal flag switches itself off (back to "No"), leaving the case free to be appealed again later.
+- If the case's category has no appeal-department head configured, the case simply waits and is retried every hour.
 
-**¿Cuántas veces se puede apelar un caso? ¿Hay un límite?**
-**No existe ningún límite ni contador de apelaciones en el sistema actual.** No hay un campo que registre cuántas veces se ha apelado un caso, ni un tope máximo. La única regla es que no se puede apelar "de nuevo" mientras ya hay una apelación pendiente de procesar (porque la bandera solo puede pasar de No→Sí); pero como se resetea sola después de cada reasignación, en teoría un caso podría apelarse repetidamente sin restricción.
+**How many times can a case be appealed? Is there a limit?**
+**There is no limit and no appeal counter in the current system.** No field records how many times a case has been appealed, and there is no maximum. The only rule is that a case cannot be appealed again while an appeal is still pending (the flag can only go No→Yes) — but since the flag resets itself after each reassignment, a case could in principle be appealed repeatedly without restriction.
 
-### 1.1 Diagrama del flujo de apelación
+### 1.1 Appeal flow diagram
 
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 320, "nodeSpacing": 40, "rankSpacing": 45, "curve": "basis"}} }%%
 flowchart TD
-    A["Ciudadano pide apelar<br/>(fuera del sistema)"]
-    A --> B["El funcionario asignado<br/>marca el caso como apelado"]
-    B --> C{"¿Ya estaba apelado?"}
-    C -->|Sí| D["Rechazado"]
-    C -->|No| E["Caso en apelación<br/>Se notifica al ciudadano"]
-    E -->|"tarea automática, cada hora"| F{"¿Hay jefe de dpto.<br/>de apelación?"}
-    F -->|No| G["Sigue esperando<br/>Reintenta en 1 hora"]
+    A["Citizen asks to appeal<br/>(outside the system)"]
+    A --> B["The assigned officer<br/>flags the case as appealed"]
+    B --> C{"Already under appeal?"}
+    C -->|Yes| D["Rejected"]
+    C -->|No| E["Case under appeal<br/>Citizen is notified"]
+    E -->|"automatic job, hourly"| F{"Is there an appeal<br/>department head?"}
+    F -->|No| G["Keeps waiting<br/>Retries in 1 hour"]
     G --> F
-    F -->|Sí| H["Reasignado al jefe de ese dpto.<br/>sin importar la región del caso"]
-    H --> I["Se apaga la marca de apelación<br/>Puede volver a apelarse sin límite"]
+    F -->|Yes| H["Reassigned to that department head<br/>regardless of the case's region"]
+    H --> I["Appeal flag switches off<br/>Can be appealed again, without limit"]
 
     classDef default fill:#eceff4,stroke:#7d8896,color:#1c2622
-    classDef bloqueado fill:#f6dedb,stroke:#b3423a,color:#3a1613
-    classDef exito fill:#dcecdf,stroke:#2e7d4f,color:#12291b
-    classDef espera fill:#f7ead6,stroke:#b8791f,color:#3a2d17
-    class D bloqueado
-    class H exito
-    class G,I espera
+    classDef blocked fill:#f6dedb,stroke:#b3423a,color:#3a1613
+    classDef success fill:#dcecdf,stroke:#2e7d4f,color:#12291b
+    classDef waiting fill:#f7ead6,stroke:#b8791f,color:#3a2d17
+    class D blocked
+    class H success
+    class G,I waiting
 ```
 
-**Cómo leer el diagrama:** el único que puede iniciar el círculo es el funcionario asignado (no el ciudadano). Una vez activada la apelación, todo lo demás lo hace el sistema solo, en la siguiente pasada de la tarea horaria — y si no hay un jefe de apelación configurado para esa categoría, el caso queda dando vueltas en el mismo paso hasta que alguien lo configure.
+**How to read it:** the only person who can start the cycle is the assigned officer, not the citizen. Once the appeal is raised, everything else happens on its own at the next hourly pass — and if no appeal department head is configured for that category, the case loops on the same step until someone configures one.
 
 ---
 
-## 2. Sistema de Escalado
+## 2. The Escalation System
 
-**¿Qué es?** El proceso por el cual un caso se reasigna a un funcionario de un **nivel administrativo superior** (o inferior, si se "des-escala"), dentro del mismo departamento temático (por ejemplo, Salud, Educación), cuando no se está resolviendo a tiempo.
+**What is it?** The process by which a case is reassigned to an officer at a **higher administrative level** (or a lower one, when de-escalated), within the same thematic department (Health, Education, and so on), when it is not being resolved in time.
 
-Existen dos formas de escalar: **automática** y **manual**. Ambas usan el mismo mecanismo de fondo (buscar al funcionario correspondiente subiendo o bajando por el árbol de regiones administrativas), pero se disparan de forma distinta.
+There are two ways to escalate: **automatic** and **manual**. Both use the same underlying mechanism — walking up or down the tree of administrative regions to find the right officer — but they are triggered differently.
 
-### 2.1 Escalado automático
+### 2.1 Automatic escalation
 
-Funciona con dos procesos programados que corren en segundo plano:
+Two scheduled background jobs do the work:
 
-1. **Marcado (una vez al día):** revisa todos los casos abiertos (que no estén en un estado final ni rechazado) y calcula cuántos días lleva cada caso en su estado actual. Si ese número supera el "umbral de días para escalar" configurado para ese estado (un valor configurable por estado, en el asistente de configuración), el caso se marca como "listo para escalar".
+1. **Flagging (once a day):** reviews every open case (not in a final or rejected status) and computes how many days it has spent in its current status. If that exceeds the "days to escalate" threshold configured for that status (set per status in the setup wizard), the case is flagged as ready to escalate.
 
-2. **Ejecución (cada 5 minutos):** toma todos los casos marcados como "listos para escalar" y busca un funcionario en el **nivel administrativo inmediatamente superior**, dentro del mismo departamento. Si lo encuentra, le reasigna el caso, registra la fecha de escalado y deja un comentario automático en el caso explicando que fue escalado por exceso de tiempo. Si no encuentra a nadie en ese nivel, sigue subiendo nivel por nivel hasta llegar a la raíz (nivel país); si aun así no encuentra a nadie, el caso queda pendiente y se reintenta en la siguiente corrida.
+2. **Execution (every 5 minutes):** takes every flagged case and looks for an officer at the **next administrative level up**, within the same department. If it finds one, it reassigns the case, records the escalation date, and leaves an automatic comment explaining that the case was escalated for exceeding its processing time. If nobody is found at that level, it keeps climbing level by level up to the root (country level); if still nobody is found, the case stays pending and is retried on the next run.
 
-**Importante:** al igual que con la apelación, la ubicación original del caso nunca cambia — solo cambia quién es el responsable de atenderlo. Y **el ciudadano no recibe ninguna notificación cuando su caso es escalado**, ni de forma automática ni manual.
+**Important:** as with appeals, the case's original location never changes — only who is responsible for it. And **the citizen receives no notification when their case is escalated**, whether automatically or manually.
 
-### 2.2 Escalado manual
+### 2.2 Manual escalation
 
-Un gestor de GRM o personal autorizado (PIU) puede escalar o des-escalar un caso manualmente desde el panel interno, con un botón para cada acción:
+A GRM Manager or authorised PIU staff member can escalate or de-escalate a case by hand from the internal dashboard, with a button for each action:
 
-- **Escalar:** busca al funcionario del nivel superior siguiente (mismo departamento) y reasigna el caso. Está bloqueado si el caso ya está en un estado final/resuelto.
-- **Des-escalar:** hace lo contrario — busca un funcionario en el nivel inferior (dentro del árbol de regiones) y reasigna el caso hacia abajo.
+- **Escalate:** finds the officer at the next level up (same department) and reassigns the case. Blocked if the case is already in a final/resolved status.
+- **De-escalate:** the reverse — finds an officer at a lower level in the region tree and reassigns the case downwards.
 
-**Nota:** el des-escalado **solo existe de forma manual**. No hay ningún proceso automático que baje un caso de nivel.
+**Note:** de-escalation exists **only** as a manual action. No automatic process ever moves a case back down a level.
 
-### 2.3 Diagrama del flujo de escalado
+### 2.3 Escalation flow diagram
 
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 340, "nodeSpacing": 40, "rankSpacing": 45, "curve": "basis"}} }%%
 flowchart TD
-    subgraph AUTO["Vía automática · por tiempo vencido"]
-        A1["Caso abierto sin resolver"] --> A2{"¿Superó el umbral<br/>de días?"}
-        A2 -->|No| A9(["Nada cambia"])
-        A2 -->|Sí| A3["Se marca para escalar<br/>(revisión diaria)"]
-        A3 --> A4["Ejecución cada 5 minutos"]
+    subgraph AUTO["Automatic path · overdue by time"]
+        A1["Open, unresolved case"] --> A2{"Past the day<br/>threshold?"}
+        A2 -->|No| A9(["Nothing changes"])
+        A2 -->|Yes| A3["Flagged to escalate<br/>(daily review)"]
+        A3 --> A4["Runs every 5 minutes"]
     end
 
-    subgraph MAN["Vía manual · panel interno GRM"]
-        B1["Gestor GRM o PIU<br/>pulsa Escalar"] --> B2{"¿El caso ya<br/>está resuelto?"}
-        B2 -->|Sí| B3["Bloqueado"]
-        B2 -->|No| B4["Escalado inmediato"]
+    subgraph MAN["Manual path · internal GRM dashboard"]
+        B1["GRM Manager or PIU<br/>clicks Escalate"] --> B2{"Is the case<br/>already resolved?"}
+        B2 -->|Yes| B3["Blocked"]
+        B2 -->|No| B4["Immediate escalation"]
     end
 
-    A4 --> C1["Buscar funcionario del mismo dpto.<br/>un nivel administrativo más arriba"]
+    A4 --> C1["Find an officer of the same department<br/>one administrative level up"]
     B4 --> C1
-    C1 --> C2{"¿Existe?"}
-    C2 -->|No: sube otro nivel| C1
-    C2 -->|Se acabaron los niveles| C8["Queda pendiente<br/>y se reintenta"]
-    C2 -->|Sí| C4["Reasignar el caso<br/>y registrar la fecha de escalado"]
-    C4 --> C6["Si fue automático, se agrega<br/>un comentario explicando el motivo"]
+    C1 --> C2{"Found?"}
+    C2 -->|No: climb another level| C1
+    C2 -->|No levels left| C8["Stays pending<br/>and is retried"]
+    C2 -->|Yes| C4["Reassign the case<br/>and record the escalation date"]
+    C4 --> C6["If automatic, an explanatory<br/>comment is added"]
 
     classDef default fill:#eceff4,stroke:#7d8896,color:#1c2622
-    classDef bloqueado fill:#f6dedb,stroke:#b3423a,color:#3a1613
-    classDef exito fill:#dcecdf,stroke:#2e7d4f,color:#12291b
-    classDef espera fill:#f7ead6,stroke:#b8791f,color:#3a2d17
-    class B3,C8 bloqueado
-    class C4 exito
-    class C6 espera
+    classDef blocked fill:#f6dedb,stroke:#b3423a,color:#3a1613
+    classDef success fill:#dcecdf,stroke:#2e7d4f,color:#12291b
+    classDef waiting fill:#f7ead6,stroke:#b8791f,color:#3a2d17
+    class B3,C8 blocked
+    class C4 success
+    class C6 waiting
     style AUTO fill:#f7f8f6,stroke:#c2cac4,color:#3f4a44
     style MAN fill:#f7f8f6,stroke:#c2cac4,color:#3f4a44
 ```
 
-**Cómo leer el diagrama:** hay dos "entradas" al mismo mecanismo — el reloj (automático) o un clic humano (manual) — pero ambas terminan en el mismo paso: buscar, dentro del mismo departamento temático, al funcionario del nivel administrativo inmediatamente superior. La única diferencia visible después de reasignar es que el escalado automático deja un comentario explicando por qué ocurrió; el manual no. El des-escalado (bajar de nivel) sigue la misma lógica pero hacia abajo en el árbol, y solo existe en la vía manual.
+**How to read it:** there are two entry points into the same machinery — the clock (automatic) or a human click (manual) — but both end at the same step: finding, within the same thematic department, the officer one administrative level up. The only visible difference after reassignment is that automatic escalation leaves a comment explaining why it happened, while manual escalation leaves none. De-escalation follows the same logic in the opposite direction and exists only on the manual path.
 
-### 2.4 Diferencia clave entre Apelación y Escalado
+### 2.4 Appeals vs. Escalation, side by side
 
-| | Apelación | Escalado |
+| | Appeal | Escalation |
 |---|---|---|
-| Quién lo activa | Solo el funcionario asignado al caso | Sistema automático (por tiempo) o un gestor/PIU manualmente |
-| A dónde se reasigna | Un departamento fijo configurado por categoría de caso | El siguiente nivel administrativo (arriba o abajo), dentro del mismo departamento |
-| ¿Sigue la jerarquía territorial? | No — salta directo a un punto fijo | Sí — sube o baja un nivel a la vez |
-| ¿Hay límite? | No hay contador ni tope | No hay tope de "veces", pero se topa naturalmente con el nivel más alto (país) |
-| ¿Notifica al ciudadano? | Sí, al activarse | No, en ningún caso |
-| ¿Queda registro/historial? | Solo el último estado (sí/no) y el motivo en texto libre | Solo la fecha del último escalado y un comentario (si fue automático) |
+| Who triggers it | Only the officer assigned to the case | The clock (automatic) or a GRM Manager / PIU (manual) |
+| Where it reassigns to | A fixed department, configured per issue category | The next administrative level (up or down), same department |
+| Does it follow the territory? | No — jumps straight to a fixed point | Yes — one level at a time |
+| Is there a limit? | No counter, no cap | No cap on the number of times, but it runs out at the top level (country) |
+| Is the citizen notified? | Yes, when it is raised | No, in neither case |
+| What audit trail is left? | Only the current state (yes/no) and a free-text reason | Only the date of the last escalation, plus a comment if it was automatic |
 
 ---
 
-## 3. Los niveles administrativos y cómo se mueve un caso entre ellos
+## 3. Administrative levels and how a case moves between them
 
-Las regiones administrativas están organizadas como un árbol (por ejemplo, para Benín: **País → Departamentos → Comunas**), con un único nivel raíz (el país).
+Administrative regions are organised as a tree — for Benin, **Country → Departments → Communes** — with a single root level (the country).
 
-Cuando un caso "sube" o "baja" de nivel (por escalado), lo que realmente cambia es **quién es el funcionario responsable**, no la ubicación del caso. El sistema busca, dentro del mismo departamento temático (ej. Salud), al funcionario asignado al nivel administrativo padre (para subir) o a un nivel hijo (para bajar) de la región donde está actualmente el responsable del caso.
+When a case moves "up" or "down" a level through escalation, what actually changes is **who the responsible officer is**, not where the case is. The system looks, within the same thematic department (Health, say), for the officer assigned to the parent administrative level (to move up) or to a child level (to move down) of the region where the current handler sits.
 
-La ubicación real donde ocurrió el problema (la región del caso) se define una sola vez, al crear el caso, y **nunca se modifica** por apelación ni por escalado — es un dato histórico fijo del caso.
+The real location where the problem occurred — the case's region — is set once, when the case is created, and is **never modified** by an appeal or an escalation. It is a fixed historical fact about the case.
 
 ---
 
-## 4. Puntos a tener en cuenta
+## 4. Things to be aware of
 
-- **La apelación depende del funcionario asignado, no del ciudadano.** Si se espera que el ciudadano pueda apelar directamente, esa función todavía no existe en el sistema.
-- **No hay límite de apelaciones.** Si se necesita un tope (por ejemplo, "máximo 2 apelaciones por caso" o "solo se puede apelar hasta el nivel país"), hay que construirlo — hoy no existe.
-- **Los procesos automáticos (escalado y reasignación de apelaciones) dependen de un proceso en segundo plano (Celery) que debe estar corriendo por separado del sitio web.** Si ese proceso no está activo en un entorno determinado, el escalado automático y la reasignación de apelaciones simplemente no ocurren, aunque el código exista.
-- **No se notifica al ciudadano cuando su caso es escalado** (solo cuando se crea, cambia de estado, se asigna, o se apela).
+- **Appeals depend on the assigned officer, not the citizen.** If the expectation is that citizens can appeal directly, that capability does not exist in the system today.
+- **There is no appeal limit.** If a cap is needed (for example "at most 2 appeals per case", or "appeals only go up to country level"), it has to be built — it does not exist today.
+- **The automatic jobs (escalation and appeal reassignment) depend on a background process (Celery) that must run separately from the website.** If that process is not running in a given environment, automatic escalation and appeal reassignment simply do not happen, even though the code is there.
+- **The citizen is never notified when their case is escalated** — only when it is created, changes status, is assigned, or is appealed.
