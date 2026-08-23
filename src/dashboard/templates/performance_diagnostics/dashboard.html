@@ -1,0 +1,1151 @@
+{% extends "layouts/base.html" %}{% load bootstrap4 static i18n %}
+
+{% block content %}
+
+	<!-- Filter Card -->
+	<div class="row">
+		<div class="col-12">
+			<div class="card filter-card">
+				<div class="card-header">
+					<h3 class="card-title">
+						{% translate 'Filter by' %}
+					</h3>
+				</div>
+				<div class="card-body">
+					<div class="issues-filter">
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group row">
+									<label for="period" class="col-md-3 form-label">
+										{% translate "Date Range" %}
+									</label>
+									<div class="col-md-9">
+										<select name="period" id="period" class="form-control">
+											{% for value, label in period_choices %}
+												<option value="{{ value }}" {% if forloop.first %}selected{% endif %}>
+													{{ label }}
+												</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<label for="category" class="col-md-3 form-label">
+										{% translate "Category" %}
+									</label>
+									<div class="col-md-9">
+										<select name="category" id="category" class="form-control">
+											<option value="">{% translate "All Categories" %}</option>
+											{% for cat in available_categories %}
+												<option value="{{ cat.id }}">{{ cat.name }}</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								{% bootstrap_field form.administrative_region layout='horizontal' %}
+							</div>
+						</div>
+						<a class="btn text-bold text-primary pull-right" id="clear_all_filters">
+							{% translate "Clear all filters" %}
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- KPI Cards Container -->
+	<div id="kpi-container"></div>
+	<div class="text-center" id="kpi-spin">
+		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+	</div>
+
+	<!-- Status Bottlenecks Container -->
+	<div id="status-bottlenecks-container"></div>
+	<div class="text-center mt-3" id="status-bottlenecks-spin">
+		<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+	</div>
+
+	{% include 'performance_diagnostics/region_performance_table.html' %}
+
+	<!-- Inactive Users Table -->
+	{% include 'performance_diagnostics/inactive_users_table.html' %}
+{% endblock %}
+
+{% block modals %}
+	<div class="modal fade" id="comingSoonModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="comingSoonTitle">
+						{% translate "Coming Soon" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-info">
+						<i class="fas fa-info-circle"></i>
+						<span id="comingSoonMessage">{% translate "This feature is coming soon." %}</span>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">
+						{% translate 'Close' %}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Notification Modal -->
+	<div class="modal fade" id="notificationModal" data-backdrop="static">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">
+						{% translate "Send Reminder Notification" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<form id="notification-form">
+						<div class="form-group">
+							<label for="notification-type">
+								{% translate "Notification Method" %}
+								<span class="text-danger">*</span>
+							</label>
+							<select id="notification-type" class="form-control" required>
+								<option value="email">{% translate "Email" %}</option>
+								<option value="sms">{% translate "SMS" %}</option>
+								<option value="email_and_sms">{% translate "Email & SMS" %}</option>
+							</select>
+							<small class="form-text text-muted">
+								{% translate "Choose how you want to notify the selected users" %}
+							</small>
+						</div>
+
+						<div class="form-group">
+							<label for="reminder-message">
+								{% translate "Message" %}
+								<span class="text-danger">*</span>
+							</label>
+							<textarea id="reminder-message" class="form-control" rows="6" maxlength="500" required
+									  placeholder="{% translate 'Enter your reminder message here...' %}"></textarea>
+							<small class="form-text text-muted">
+								<span id="char-count">0</span> / 500 {% translate "characters" %}
+								<span id="sms-warning" class="text-warning ml-2" style="display: none;">
+								<i class="fas fa-exclamation-triangle"></i>
+								{% translate "SMS messages will be truncated to 160 characters" %}
+							</span>
+							</small>
+						</div>
+
+						<!-- Collapsible Selected Users List -->
+						<div class="card">
+							<div class="card-header bg-light" id="selectedUsersHeader">
+								<h5 class="mb-0">
+									<button class="btn btn-link collapsed text-left w-100 d-flex justify-content-between align-items-center"
+											type="button" data-toggle="collapse" data-target="#selectedUsersList"
+											aria-expanded="false" aria-controls="selectedUsersList">
+									<span>
+										<i class="fas fa-users mr-2"></i>
+										{% translate "Selected Users" %}
+										(<span id="modal-selected-count">0</span>)
+									</span>
+										<i class="fas fa-chevron-down"></i>
+									</button>
+								</h5>
+							</div>
+							<div id="selectedUsersList" class="collapse" aria-labelledby="selectedUsersHeader">
+								<div class="card-body" style="max-height: 250px; overflow-y: auto;">
+									<div id="users-list-content">
+										<div class="text-center text-muted">
+											<i class="fas fa-spinner fa-spin"></i>
+											{% translate "Loading users..." %}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="alert alert-warning mt-3">
+							<i class="fas fa-exclamation-triangle mr-1"></i>
+							<strong>{% translate "Note:" %}</strong>
+							{% translate "Users without phone number will be skipped for the respective notification type." %}
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">
+						<i class="fas fa-times mr-1"></i>
+						{% translate "Cancel" %}
+					</button>
+					<button type="button" class="btn btn-primary" id="send-notification-btn">
+						<i class="fas fa-paper-plane mr-1"></i>
+						{% translate "Send" %}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Confirmation Modal -->
+	<div class="modal fade" id="confirmationModal"  data-backdrop="static">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title">
+						{% translate "Confirm Send" %}
+					</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">×</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p class="mb-2">
+						<strong>{% translate "Are you sure you want to send this notification?" %}</strong>
+					</p>
+					<p class="mb-1">
+						{% translate "Method:" %} <span id="confirm-method"></span>
+					</p>
+					<p class="mb-1">
+						{% translate "Recipients:" %} <span id="confirm-count"></span>
+					</p>
+					<div class="alert alert-info mt-3 mb-0">
+						<small>{% translate "This action cannot be undone." %}</small>
+					</div>
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">
+						<i class="fas fa-times mr-1"></i>
+						{% translate "Cancel" %}
+					</button>
+					<button type="button" class="btn btn-primary" id="confirm-send-btn">
+						<i class="fas fa-check mr-1"></i>
+						{% translate "Confirm & Send" %}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'js/dynamicRegionSelector.js' %}"></script>
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script>
+        let kpi_spin = $('#kpi-spin');
+        let get_choices_url = '{% url 'dashboard:grm:get_choices_for_next_administrative_level' %}';
+        let choice_placeholder = "{% translate 'Click to select location' %}";
+
+        function loadKPIs() {
+            kpi_spin.show();
+            $.ajax({
+                type: 'GET',
+                url: '{% url 'dashboard:performance_diagnostics:api_metrics' %}',
+                data: {
+                    period: $('#period').val(),
+                    category: $('#category').val(),
+                    administrative_region: current_region_id,
+                },
+                success: function (data) {
+                    $('#kpi-container').html(data);
+                    kpi_spin.hide();
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                    kpi_spin.hide();
+                }
+            });
+        }
+
+        function reloadAllMetrics() {
+            loadKPIs();
+            loadStatusBottlenecks();
+            if ($.fn.dataTable && $.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().page(0).draw(false);
+            }
+        }
+
+        $(document).ready(function () {
+            reloadAllMetrics();
+        });
+
+        document.addEventListener("region:changed", function (event) {
+            reloadAllMetrics();
+            window.reloadInactiveUsersTable();
+        });
+
+        changeRegionTrigger(get_choices_url, choice_placeholder);
+
+        $("#clear_all_filters").on("click", function () {
+            $('.issues-filter select:not(#period)').val(null).trigger('change.select2');
+            $('#period').val('7d').trigger('change.select2');
+            current_region_id = null;
+            loadNextLevelRegions($("#id_administrative_region"), '', '');
+            reloadAllMetrics();
+            window.reloadInactiveUsersTable();
+        });
+
+        $('.issues-filter select').on('change', function () {
+            reloadAllMetrics();
+        });
+
+        let sb_spin = $('#status-bottlenecks-spin');
+
+        function loadStatusBottlenecks() {
+            sb_spin.show();
+            $.ajax({
+                type: 'GET',
+                url: '{% url "dashboard:performance_diagnostics:api_status_bottlenecks" %}',
+                data: {
+                    period: $('#period').val(),
+                    category: $('#category').val(),
+                    administrative_region: current_region_id,
+                },
+                success: function (data) {
+                    $('#status-bottlenecks-container').html(data);
+                    sb_spin.hide();
+                },
+                error: function (data) {
+                    alert(error_server_message + "Error " + data.status);
+                    sb_spin.hide();
+                }
+            });
+        }
+
+        // Update last updated time every minute
+        function updateLastUpdatedTime() {
+            const lastUpdatedElement = document.getElementById('last-updated-time');
+            if (lastUpdatedElement) {
+                const timestamp = lastUpdatedElement.getAttribute('data-timestamp');
+                if (timestamp) {
+                    const lastUpdated = new Date(timestamp);
+                    const now = new Date();
+                    const diffMinutes = Math.floor((now - lastUpdated) / 60000);
+
+                    let timeText;
+                    if (diffMinutes < 1) {
+                        timeText = "{% translate "Just now" %}";
+                    } else if (diffMinutes === 1) {
+                        timeText = "{% translate "1 minute ago" %}";
+                    } else if (diffMinutes < 60) {
+                        timeText = `${diffMinutes} {% translate "minutes ago" %}`;
+                    } else if (diffMinutes < 120) {
+                        timeText = "{% translate "1 hour ago" %}";
+                    } else {
+                        const hours = Math.floor(diffMinutes / 60);
+                        timeText = `${hours} {% translate "hours ago" %}`;
+                    }
+
+                    lastUpdatedElement.textContent = timeText;
+                }
+            }
+        }
+
+        // Update every minute
+        setInterval(updateLastUpdatedTime, 60000);
+
+        // Initial update
+        setTimeout(updateLastUpdatedTime, 1000);
+
+        // Initialize or reinitialize the table
+        function initRegionPerformanceTable() {
+            // destroy previous instance if it exists
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().destroy();
+                $('#regionPerformanceTable tbody').empty();
+            }
+
+            const defaultPerPage = 10;
+            const days = '{% translate "days" %}';
+            const issues = '{% translate "issues" %}';
+
+            const table = $('#regionPerformanceTable').DataTable({
+                dom: 'ltipr',
+                processing: true,
+                serverSide: true,
+                paging: true,
+                lengthChange: true,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: defaultPerPage,
+                searching: false,
+                ordering: true,
+                ajax: function (data, callback) {
+                    const perPage = parseInt(data.length || (table ? table.page.len() : defaultPerPage), 10);
+                    const page = Math.floor((data.start || 0) / perPage) + 1;
+
+                    // Map column index to API sort keys
+                    const map = {0: 'region', 1: 'open_issues', 2: 'resolution', 3: 'workers', 4: 'performance'};
+                    let sort_by = 'performance';
+                    let sort_dir = 'desc';
+                    if (data.order && data.order.length > 0) {
+                        const colIdx = data.order[0].column;
+                        sort_by = map[colIdx] || 'performance';
+                        sort_dir = data.order[0].dir || 'asc';
+                    }
+
+                    const params = {
+                        period: $('#period').val(),
+                        category: $('#category').val(),
+                        administrative_region: current_region_id,
+                        per_page: perPage,
+                        page: page,
+                        sort_by: sort_by,
+                        sort_dir: sort_dir,
+                    };
+
+                    $.ajax({
+                        url: "{% url 'dashboard:performance_diagnostics:api_region_performance' %}" + '?' + $.param(params),
+                        method: 'GET',
+                        dataType: 'json',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    }).done(function (json) {
+                        // Remove previous message
+                        $('#region-no-children-message').hide().empty();
+
+                        // If API indicates no_children, show the informational message below the table
+                        if (json.no_children) {
+                            const msg = json.message;
+                            const alertHtml = `
+                        <div class="alert alert-info mt-3" id="no-children-alert">
+                            <i class="fas fa-info-circle"></i> ${msg}
+                        </div>
+                    `;
+                            $('#region-no-children-message').html(alertHtml).show();
+                        }
+
+                        const rows = json.data || [];
+
+                        callback({
+                            data: rows,
+                            recordsTotal: json.recordsTotal || 0,
+                            recordsFiltered: json.recordsFiltered || json.recordsTotal || 0,
+                        });
+                    }).fail(function (xhr, status, err) {
+                        alert(error_server_message + "Error " + err);
+                        callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+                    });
+                },
+                columns: [
+                    {data: 'region_name', name: 'region'},
+                    {
+                        data: 'open_issues_count',
+                        name: 'open_issues',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.open_issues_color || 'secondary';
+                            return `<span class="badge bg-${color}">${data} ${issues}</span>`;
+                        }
+                    },
+                    {
+                        data: 'avg_resolution_days',
+                        name: 'resolution',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.resolution_color || 'secondary';
+                            return `<span class="badge bg-${color}">${parseFloat(data || 0).toFixed(1)} ${days}</span>`;
+                        }
+                    },
+                    {
+                        data: 'active_workers_count',
+                        name: 'workers',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.workers_color || 'secondary';
+                            const total = row.total_workers_in_region || '-';
+                            const pct = (row.workers_percentage != null) ? `${row.workers_percentage}%` : '';
+                            return `<span class="badge bg-${color}">${data} / ${total} (${pct})</span>`;
+                        }
+                    },
+                    {
+                        data: 'performance_status',
+                        name: 'performance',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const badge = row.performance_badge_class || 'badge-secondary';
+                            const icon = row.performance_icon || '';
+                            const text = row.performance_badge_text || data || '';
+                            return `<span class="badge ${badge}"><i class="${icon} mr-2"></i>${text}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const regionId = row.id;
+                            const regionName = row.region_name;
+                            const isGood = row.performance_status === 'good';
+                            let html = '<div class="btn-group btn-group-sm" role="group">';
+                            if (!isGood) {
+                                html += `<button class="btn btn-warning investigate-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-search"></i> {% translate "Investigate" %}</button>`;
+                            }
+                            html += `<button class="btn btn-primary view-details-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-chart-line"></i> {% translate "View Details" %}</button>`;
+                            if (isGood) {
+                                html += `<button class="btn btn-info learn-practices-btn" data-region-id="${regionId}" data-region-name="${regionName}"><i class="fas fa-lightbulb"></i> {% translate "Best Practices" %}</button>`;
+                            }
+                            html += '</div>';
+                            return html;
+                        }
+                    }
+                ],
+                order: [[4, 'desc']],
+                drawCallback: function () {
+                    // rebind action handlers
+                    $('#regionPerformanceTable .investigate-btn').off('click').on('click', function () {
+                        const name = $(this).data('region-name');
+                        $('#comingSoonTitle').text('{% translate "Investigate Administrative Level" %}');
+                        const comingSoonMessage = '{% translate "Deep dive analysis for x will be available soon." %}';
+                        $('#comingSoonMessage').text(comingSoonMessage.replace('x', name));
+                        $('#comingSoonModal').modal('show');
+                    });
+                    $('#regionPerformanceTable .view-details-btn').off('click').on('click', function () {
+                        $('#comingSoonTitle').text('{% translate "View Details" %}');
+                        $('#comingSoonMessage').text('{% translate "Detailed region dashboard will be available soon." %}');
+                        $('#comingSoonModal').modal('show');
+                    });
+                    $('#regionPerformanceTable .learn-practices-btn').off('click').on('click', function () {
+                        const name = $(this).data('region-name');
+                        const comingSoonMessage = '{% translate "Best practices from x will be available soon." %}';
+                        $('#comingSoonTitle').text('{% translate "Learn Best Practices" %}');
+                        $('#comingSoonMessage').text(comingSoonMessage.replace('x', name));
+                        $('#comingSoonModal').modal('show');
+                    });
+                }
+            });
+
+            return table;
+        } // end initRegionPerformanceTable
+
+        // initializes the table if it is already in the DOM
+        let rpTableInstance = null;
+        if ($('#regionPerformanceTable').length) {
+            rpTableInstance = initRegionPerformanceTable();
+        }
+
+        // per-page local control
+        $('#rp-per-page').on('change', function () {
+            const val = parseInt($(this).val(), 10) || 10;
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().page.len(val).draw();
+            } else {
+                rpTableInstance = initRegionPerformanceTable();
+            }
+        });
+
+        // Expose global function to reload from other scripts
+        window.reloadRegionPerformanceTable = function () {
+            if ($.fn.dataTable.isDataTable('#regionPerformanceTable')) {
+                $('#regionPerformanceTable').DataTable().ajax.reload(null, false);
+            } else {
+                rpTableInstance = initRegionPerformanceTable();
+            }
+        };
+
+        // Global variable to track selected users
+        let selectedUserIds = new Set();
+
+        // Initialize Inactive Users Table
+        function initInactiveUsersTable() {
+            // destroy previous instance if it exists
+            if ($.fn.dataTable.isDataTable('#inactiveUsersTable')) {
+                $('#inactiveUsersTable').DataTable().destroy();
+                $('#inactiveUsersTable tbody').empty();
+            }
+
+            const defaultPerPage = 10;
+
+            const table = $('#inactiveUsersTable').DataTable({
+                dom: 'ltipr',
+                processing: true,
+                serverSide: true,
+                paging: true,
+                lengthChange: true,
+                lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                pageLength: defaultPerPage,
+                searching: false,
+                ordering: true,
+                ajax: function (data, callback) {
+                    const perPage = parseInt(data.length || (table ? table.page.len() : defaultPerPage), 10);
+                    const page = Math.floor((data.start || 0) / perPage) + 1;
+
+                    const map = {
+                        0: 'checkbox',
+                        1: 'name',
+                        2: 'role',
+                        3: 'last_activity',
+                        4: 'open_issues',
+                        5: 'performance'
+                    };
+                    let sort_by = 'last_activity';
+                    let sort_dir = 'asc';
+                    if (data.order && data.order.length > 0) {
+                        const colIdx = data.order[0].column;
+                        sort_by = map[colIdx] || 'last_activity';
+                        sort_dir = data.order[0].dir || 'asc';
+                    }
+
+                    const params = {
+                        inactivity_threshold: 7,
+                        per_page: perPage,
+                        page: page,
+                        sort_by: sort_by,
+                        sort_dir: sort_dir,
+                        administrative_region: current_region_id,
+                        role_filter: $('#inactive_users_role_filter').val(),
+                        has_open_issues: $('#inactive_users_open_issues_filter').val(),
+                    };
+
+                    $.ajax({
+                        url: "{% url 'dashboard:performance_diagnostics:api_inactive_users' %}" + '?' + $.param(params),
+                        method: 'GET',
+                        dataType: 'json',
+                        headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    }).done(function (json) {
+                        const rows = json.data || [];
+                        callback({
+                            data: rows,
+                            recordsTotal: json.recordsTotal || 0,
+                            recordsFiltered: json.recordsFiltered || json.recordsTotal || 0,
+                        });
+                    }).fail(function (xhr, status, err) {
+                        alert(error_server_message + "Error " + err);
+                        callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+                    });
+                },
+                columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        className: 'text-center',
+                        render: function (data, type, row) {
+                            const checked = selectedUserIds.has(data) ? 'checked' : '';
+                            return `
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input user-checkbox"
+                                   id="user-${data}" value="${data}" ${checked}>
+                            <label class="custom-control-label" for="user-${data}"></label>
+                        </div>
+                    `;
+                        }
+                    },
+                    {
+                        data: 'name',
+                        render: function (data, type, row) {
+                            let html = '<div class="d-flex align-items-center">';
+                            if (row.photo_url) {
+                                html += `<img src="${row.photo_url}" class="rounded-circle center-32 mr-2" alt="${data}">`;
+                            } else {
+                                html += `<img src="{% static 'images/default-avatar.jpg' %}" class="rounded-circle center-32 mr-2"/>`;
+                            }
+                            html += `<span>${data}</span>`;
+                            html += '</div>';
+                            return html;
+                        }
+                    },
+                    {
+                        data: 'role',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const badgeClass = row.role_type === 'government_worker' ? 'badge-blue' : 'badge-purple';
+                            return `<span class="badge ${badgeClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'last_activity',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.last_activity_color || 'secondary';
+                            return `<span class="badge bg-${color}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'open_issues_count',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.open_issues_color || 'primary';
+                            return `<span class="badge bg-${color}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'performance_rating',
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const color = row.performance_color || 'secondary';
+                            const icon = row.performance_icon || '';
+                            return `<span class="badge badge-${color}"><i class="${icon} mr-1"></i>${data}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'text-right',
+                        render: function (data, type, row) {
+                            const userId = row.id;
+                            let html = '<div class="btn-group btn-group-sm" role="group">';
+                            html += `<a href="{% url 'dashboard:user_management:detail' 0 %}"  target="_blank"
+                            class="btn btn-primary">
+								{% translate 'View Profile' %}
+							</a>`.replace("0", userId);
+                            html += '</div>';
+                            return html;
+                        }
+                    }
+                ],
+                order: [[3, 'asc']],
+                drawCallback: function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    $('.user-checkbox').off('change').on('change', handleUserCheckboxChange);
+                    updateSelectAllCheckbox();
+                }
+            });
+
+            return table;
+        }
+
+        // Handle individual checkbox change
+        function handleUserCheckboxChange(e) {
+            const userId = parseInt($(this).val());
+            if ($(this).is(':checked')) {
+                selectedUserIds.add(userId);
+            } else {
+                selectedUserIds.delete(userId);
+            }
+            updateBulkActionsBar();
+            updateSelectAllCheckbox();
+        }
+
+        // Handle select all checkbox
+        $('#select-all-users').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('.user-checkbox:visible').each(function () {
+                const userId = parseInt($(this).val());
+                $(this).prop('checked', isChecked);
+                if (isChecked) {
+                    selectedUserIds.add(userId);
+                } else {
+                    selectedUserIds.delete(userId);
+                }
+            });
+            updateBulkActionsBar();
+        });
+
+        // Update select-all checkbox state
+        function updateSelectAllCheckbox() {
+            const visibleCheckboxes = $('.user-checkbox:visible');
+            const checkedCheckboxes = $('.user-checkbox:visible:checked');
+
+            if (visibleCheckboxes.length === 0) {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', false);
+            } else if (checkedCheckboxes.length === visibleCheckboxes.length) {
+                $('#select-all-users').prop('checked', true);
+                $('#select-all-users').prop('indeterminate', false);
+            } else if (checkedCheckboxes.length > 0) {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', true);
+            } else {
+                $('#select-all-users').prop('checked', false);
+                $('#select-all-users').prop('indeterminate', false);
+            }
+        }
+
+        // Update bulk actions bar
+        function updateBulkActionsBar() {
+            const count = selectedUserIds.size;
+            $('#selected-count').text(count);
+
+            if (count > 0) {
+                $('#bulk-actions-bar').slideDown();
+                $('#send-reminder-btn').prop('disabled', false);
+            } else {
+                $('#bulk-actions-bar').slideUp();
+                $('#send-reminder-btn').prop('disabled', true);
+            }
+        }
+
+        // Clear selection
+        $('#clear-selection-btn').on('click', function () {
+            selectedUserIds.clear();
+            $('.user-checkbox').prop('checked', false);
+            $('#select-all-users').prop('checked', false);
+            updateBulkActionsBar();
+        });
+
+        // Open notification modal
+        $('#send-reminder-btn').on('click', function () {
+            if (selectedUserIds.size === 0) {
+                alert('{% translate "Please select at least one user" %}');
+                return;
+            }
+
+            $('#modal-selected-count').text(selectedUserIds.size);
+
+            // Load selected users info
+            loadSelectedUsersInfo();
+
+            $('#notificationModal').modal('show');
+        });
+
+        // Load selected users info for the collapsible list
+        function loadSelectedUsersInfo() {
+            $('#users-list-content').html(
+                `<div class="text-center text-muted">
+                <i class="fas fa-spinner fa-spin"></i>
+                {% translate "Loading users..." %}</div>`
+            );
+
+            $.ajax({
+                url: '{% url "dashboard:performance_diagnostics:api_get_selected_users" %}',
+                method: 'GET',
+                data: {
+                    user_ids: Array.from(selectedUserIds)
+                },
+    			traditional: true,
+                success: function (response) {
+                    if (response.success) {
+                        renderUsersList(response.users);
+                    } else {
+                        $('#users-list-content').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${response.error}
+                    </div>
+                `);
+                    }
+                },
+                error: function (xhr) {
+                    $('#users-list-content').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {% translate "Failed to load users information" %}
+                </div>
+            `);
+                }
+            });
+        }
+
+        // Render users list in modal
+        function renderUsersList(users) {
+            const notificationType = $('#notification-type').val();
+            let html = '<ul class="list-group list-group-flush">';
+
+            users.forEach(function (user) {
+                let hasContact = user.has_email;
+                if (notificationType === 'sms' || notificationType === 'email_and_sms') {
+                    hasContact = user.has_phone;
+                }
+                let contactInfo = user.email;
+                let noPhoneText = '{% translate "No contact phone" %}';
+                if (notificationType === 'sms') {
+                    contactInfo = hasContact ? user.phone : noPhoneText;
+                } else if (notificationType === 'email_and_sms') {
+                    let contactPhone = hasContact ? user.phone : noPhoneText;
+                    contactInfo = `<p>${user.email}</p><p>${contactPhone}</p>`;
+                }
+                const iconClass = hasContact ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-warning';
+
+                html += `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas ${iconClass} mr-2"></i>
+                    ${user.name}
+                </span>
+                <small class="text-muted">${contactInfo}</small>
+            </li>
+        `;
+            });
+
+            html += '</ul>';
+            $('#users-list-content').html(html);
+        }
+
+        // Update notification type
+        $('#notification-type').on('change', function () {
+            const type = $(this).val();
+
+            // Show SMS warning if SMS is selected
+            if (type === 'sms' || type === 'email_and_sms') {
+                $('#sms-warning').show();
+            } else {
+                $('#sms-warning').hide();
+            }
+
+            // Reload users list
+            loadSelectedUsersInfo();
+        });
+
+        // Character count
+        $('#reminder-message').on('input', function () {
+            const length = $(this).val().length;
+            $('#char-count').text(length);
+        });
+
+        function validateForm(event, form) {
+            let isValid = true;
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                $(form).addClass('was-validated');
+                isValid = false;
+            }
+            return isValid;
+        }
+
+        // Send notification button (opens confirmation modal)
+        $('#send-notification-btn').on('click', function (event) {
+            let form = $("#notification-form")[0];
+            let isValid = validateForm(event, form);
+            if (!isValid) {
+                return
+            }
+
+            const notificationType = $('#notification-type').val();
+            let typeLabel = '{% translate "Email" %}'
+            if (notificationType === 'sms') {
+                typeLabel = '{% translate "SMS" %}';
+            } else if (notificationType === 'email_and_sms') {
+                typeLabel = '{% translate "Email & SMS" %}';
+            }
+
+            $('#confirm-method').text(typeLabel);
+            $('#confirm-count').text(selectedUserIds.size);
+
+            // Hide notification modal and show confirmation
+            $('#notificationModal').modal('hide');
+            $('#confirmationModal').modal('show');
+        });
+
+        // Confirm and send
+        $('#confirm-send-btn').on('click', function () {
+            const notificationType = $('#notification-type').val();
+            const message = $('#reminder-message').val().trim();
+            const userIdsArray = Array.from(selectedUserIds);
+
+            // Disable button and show loading
+            const $btn = $(this);
+            const originalText = $btn.html();
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> {% translate "Sending..." %}');
+
+            $.ajax({
+                url: '{% url "dashboard:performance_diagnostics:api_send_bulk_notification" %}',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    user_ids: userIdsArray,
+                    notification_type: notificationType,
+                    message: message
+                }),
+                success: function (response) {
+                    $('#confirmationModal').modal('hide');
+                    showPopupMessage(response);
+                    // Clear selection
+                    selectedUserIds.clear();
+                    $('.user-checkbox').prop('checked', false);
+                    updateBulkActionsBar();
+                },
+                error: function (xhr) {
+                    $('#confirmationModal').modal('hide');
+                    if (xhr.responseJSON && xhr.responseJSON.msg) {
+                        showPopupMessage(responseJSON)
+                    } else {
+                        let errorMessage = '{% translate "Failed to send notifications" %}';
+                        showPopupMessage({'msg': createHtmlAlert(errorMessage)});
+                    }
+
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html(originalText);
+
+                    $('#notification-form')[0].reset();
+                    $('#char-count').text('0');
+                    $('#sms-warning').hide();
+                    $('#selectedUsersList').collapse('hide');
+                    $('#notification-type').val('email').trigger('change');
+                }
+            });
+        });
+
+        // Reset selections when filters change
+        $('#inactive_users_role_filter, #inactive_users_open_issues_filter').on('change', function () {
+            selectedUserIds.clear();
+            $('#select-all-users').prop('checked', false);
+            updateBulkActionsBar();
+            window.reloadInactiveUsersTable();
+        });
+
+        $('#confirmationModal').on('hidden.bs.modal', function () {
+            // Re-show notification modal if it was previously shown
+            if ($('#reminder-message').val().trim()) {
+                $('#notificationModal').modal('show');
+            }
+        });
+
+        // Initialize table
+        let inactiveUsersTableInstance = null;
+        if ($('#inactiveUsersTable').length) {
+            inactiveUsersTableInstance = initInactiveUsersTable();
+        }
+
+        // Expose reload function
+        window.reloadInactiveUsersTable = function () {
+            if ($.fn.dataTable.isDataTable('#inactiveUsersTable')) {
+                $('#inactiveUsersTable').DataTable().ajax.reload(null, false);
+            } else {
+                inactiveUsersTableInstance = initInactiveUsersTable();
+            }
+        };
+
+        // =====================================================
+        // AI INSIGHT HANDLERS
+        // =====================================================
+
+        // Simple markdown to HTML converter
+        function markdownToHtml(markdown) {
+            if (!markdown) return '';
+
+            let html = markdown
+                // Headers
+                .replace(/^### (.*$)/gim, '<h5>$1</h5>')
+                .replace(/^## (.*$)/gim, '<h4>$1</h4>')
+                .replace(/^# (.*$)/gim, '<h3>$1</h3>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                // Unordered lists
+                .replace(/^\s*[-*]\s+(.*)$/gim, '<li>$1</li>')
+                // Ordered lists
+                .replace(/^\s*\d+\.\s+(.*)$/gim, '<li>$1</li>')
+                // Line breaks
+                .replace(/\n\n/gim, '</p><p>')
+                .replace(/\n/gim, '<br>');
+
+            // Wrap consecutive li elements in ul
+            html = html.replace(/(<li>.*?<\/li>)+/gim, function(match) {
+                return '<ul>' + match + '</ul>';
+            });
+
+            // Clean up double ul tags
+            html = html.replace(/<\/ul>\s*<ul>/gim, '');
+
+            return '<p>' + html + '</p>';
+        }
+
+        // Handle AI Insight button clicks
+        $(document).on('click', '.ai-insight-btn', function() {
+            const $btn = $(this);
+            const tableType = $btn.data('table-type');
+            const collapseId = '#ai-insight-' + tableType.replace(/_/g, '-');
+            const $collapse = $(collapseId);
+            const $content = $collapse.find('.ai-insight-content');
+
+            // If already open and has content, just toggle
+            if ($collapse.hasClass('show') && $content.html().trim() !== '') {
+                $collapse.collapse('hide');
+                return;
+            }
+
+            // Show loading state
+            const originalHtml = $btn.html();
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> {% translate "Analyzing..." %}');
+
+            // Build request params
+            const params = {
+                table_type: tableType,
+                period: $('#period').val(),
+                category: $('#category').val(),
+                administrative_region: current_region_id,
+            };
+
+            // Add role filter for inactive users
+            if (tableType === 'inactive_users') {
+                params.role_filter = $('#inactive_users_role_filter').val();
+            }
+
+            // Make API request
+            $.ajax({
+                url: '{% url "dashboard:performance_diagnostics:api_ai_insight" %}',
+                method: 'GET',
+                data: params,
+                success: function(response) {
+                    if (response.success) {
+                        // Convert markdown to HTML and display
+                        const htmlContent = markdownToHtml(response.insight);
+                        $content.html(htmlContent);
+
+                        // Show the collapsible section
+                        $collapse.collapse('show');
+                    } else {
+                        // Show error in the collapsible
+                        $content.html(
+                            '<div class="alert alert-warning mb-0">' +
+                            '<i class="fas fa-exclamation-triangle mr-2"></i>' +
+                            (response.error || '{% translate "Failed to generate insight" %}') +
+                            '</div>'
+                        );
+                        $collapse.collapse('show');
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = '{% translate "Failed to generate AI insight. Please try again." %}';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    $content.html(
+                        '<div class="alert alert-danger mb-0">' +
+                        '<i class="fas fa-exclamation-circle mr-2"></i>' +
+                        errorMsg +
+                        '</div>'
+                    );
+                    $collapse.collapse('show');
+                },
+                complete: function() {
+                    // Restore button state
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        });
+
+        // Clear AI insights when filters change
+        function clearAIInsights() {
+            $('.ai-insight-content').html('');
+            $('.collapse[id^="ai-insight-"]').collapse('hide');
+        }
+
+        // Attach to filter changes
+        $('.issues-filter select').on('change', function() {
+            clearAIInsights();
+        });
+
+        document.addEventListener("region:changed", function(event) {
+            clearAIInsights();
+        });
+	</script>
+
+{% endblock %}
+
+{% block select2 %}
+	<script type="text/javascript">
+        $('.issues-filter select:not(#period)').select2({
+            width: '100%',
+            placeholder: "{% translate 'All' %}",
+            allowClear: true,
+        });
+        $('#period').select2({
+            width: '100%',
+        });
+        $('select').not('.issues-filter select').select2({
+            width: '100%',
+        });
+	</script>
+{% endblock %}
+

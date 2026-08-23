@@ -10,13 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+# ruff: noqa: F405
+import os
+import sys
 from pathlib import Path
 
 import django.conf.locale
 import environ
 from django.conf import global_settings
-from django.utils.translation import gettext_lazy as _
-
 # https://django-environ.readthedocs.io/en/latest/
 env = environ.Env()
 env.read_env()
@@ -24,100 +25,110 @@ env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Serverless builds must not use a developer machine DATABASE_URL pointing at localhost.
+# Without a real remote URL, django-environ falls back to SQLite (see DATABASES below).
+if os.environ.get("VERCEL"):
+    _db_url = os.environ.get("DATABASE_URL", "").strip()
+    if _db_url and ("127.0.0.1" in _db_url or "localhost" in _db_url):
+        del os.environ["DATABASE_URL"]
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env("SECRET_KEY")
+
+# Vercel Cron Jobs (used to secure internal cron endpoints)
+CRON_SECRET = env("CRON_SECRET", default="")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', False)
+DEBUG = env.bool("DEBUG", False)
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS', list, ['localhost'])
+ALLOWED_HOSTS = env("ALLOWED_HOSTS", list, ["localhost"])
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django_celery_beat",
 ]
 
 CREATED_APPS = [
-    'attachments',
-    'authentication',
-    'dashboard',
+    "authentication",
+    "dashboard",
+    "etl",
+    "issues",
+    "wizard",
+    "integrations.apps.IntegrationsConfig",
 ]
 
-THIRD_PARTY_APPS = [
-    'bootstrap4',
-    'drf_yasg',
-    'rest_framework',
-    'django_celery_results'
-]
+THIRD_PARTY_APPS = ["bootstrap4", "drf_yasg", "rest_framework", 'rest_framework.authtoken', "django_celery_results"]
 
 INSTALLED_APPS += CREATED_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "grm.middleware.locale.CustomLocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "wizard.middleware.DisableWizardCacheMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "wizard.middleware.WizardRedirectMiddleware",
 ]
 
-ROOT_URLCONF = 'grm.urls'
+ROOT_URLCONF = "grm.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'dashboard.context_processors.settings_vars',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "dashboard.context_processors.settings_vars",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'grm.wsgi.application'
+WSGI_APPLICATION = "grm.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-DATABASES = {
-    'default': env.db(default='sqlite:///grm.db')
-}
+DATABASES = {"default": env.db(default="sqlite:///grm.db")}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 8,
-        }
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
-LANGUAGE_CODE = env('LANGUAGE_CODE', default='en-us')
+LANGUAGE_CODE = env("LANGUAGE_CODE", default="en-us")
+LANGUAGE_COOKIE_NAME = "django_language"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = env("TIME_ZONE", default="UTC")
 
 USE_I18N = True
 
@@ -125,29 +136,31 @@ USE_L10N = True
 
 USE_TZ = True
 
-OTHER_LANGUAGES = env('OTHER_LANGUAGES', list, default=[])
+OTHER_LANGUAGES = env("OTHER_LANGUAGES", list, default=[])
 
+# Plain strings (not gettext_lazy): Vercel's Django build introspects settings with JSON and
+# lazy translation proxies trigger AppRegistryNotReady during serialization.
 LANGUAGES = (
-    ('en-us', _('English')),
-    ('fr', _('French')),
-    ('rw', _('Kinyarwanda')),
-    ('et', _('Ethiopia')),
+    ("en-us", "English"),
+    ("fr", "French"),
+    ("rw", "Kinyarwanda"),
+    ("et", "Ethiopia"),
 )
 LANGUAGES = [lang for lang in LANGUAGES if lang[0] in OTHER_LANGUAGES or lang[0] == LANGUAGE_CODE]
 
 # Add custom languages not provided by Django
 EXTRA_LANG_INFO = {
-    'rw': {
-        'bidi': True,
-        'code': 'rw',
-        'name': 'Kinyarwanda',
-        'name_local': 'Kinyarwanda',
+    "rw": {
+        "bidi": True,
+        "code": "rw",
+        "name": "Kinyarwanda",
+        "name_local": "Kinyarwanda",
     },
-    'et': {
-        'bidi': True,
-        'code': 'et',
-        'name': 'Ethiopia',
-        'name_local': 'Ethiopia',
+    "et": {
+        "bidi": True,
+        "code": "et",
+        "name": "Ethiopia",
+        "name_local": "Ethiopia",
     },
 }
 
@@ -164,83 +177,199 @@ LOCALE_PATHS = [
 # Format localization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/formatting/#format-localization
 DATE_INPUT_FORMATS = [
-    '%d-%m-%Y', '%d/%m/%Y', '%d/%m/%y',  # '25-10-2006', '25/10/2006', '25/10/06'
-    '%d %b %Y', '%d %b, %Y',  # '25 Oct 2006', '25 Oct, 2006'
-    '%d %B %Y', '%d %B, %Y',  # '25 October 2006', '25 October, 2006'
+    "%d-%m-%Y",
+    "%d/%m/%Y",
+    "%d/%m/%y",  # '25-10-2006', '25/10/2006', '25/10/06'
+    "%d %b %Y",
+    "%d %b, %Y",  # '25 Oct 2006', '25 Oct, 2006'
+    "%d %B %Y",
+    "%d %B, %Y",  # '25 October 2006', '25 October, 2006'
 ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_ROOT = BASE_DIR / 'media/'
+MEDIA_ROOT = BASE_DIR / "media/"
 
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 
-MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
-
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = "authentication.User"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # AUTHENTICATION_BACKENDS = ('grm.backends.EmailModelBackend',)
 
-LOGIN_URL = '/'
+LOGIN_URL = "/"
 
-LOGIN_REDIRECT_URL = 'dashboard:diagnostics:home'
+LOGIN_REDIRECT_URL = "dashboard:diagnostics:home"
 
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = "/"
 
 # CouchDB
-COUCHDB_DATABASE = env('COUCHDB_DATABASE')
+COUCHDB_DATABASE = env("COUCHDB_DATABASE")
 
-COUCHDB_ATTACHMENT_DATABASE = env('COUCHDB_ATTACHMENT_DATABASE')
+COUCHDB_ATTACHMENT_DATABASE = env("COUCHDB_ATTACHMENT_DATABASE")
 
-COUCHDB_GRM_DATABASE = env('COUCHDB_GRM_DATABASE')
+COUCHDB_GRM_DATABASE = env("COUCHDB_GRM_DATABASE")
 
-COUCHDB_GRM_ATTACHMENT_DATABASE = env('COUCHDB_GRM_ATTACHMENT_DATABASE')
+COUCHDB_GRM_ATTACHMENT_DATABASE = env("COUCHDB_GRM_ATTACHMENT_DATABASE")
 
-COUCHDB_URL = env('COUCHDB_URL')
+COUCHDB_URL = env("COUCHDB_URL")
 
-COUCHDB_USERNAME = env('COUCHDB_USERNAME')
+COUCHDB_USERNAME = env("COUCHDB_USERNAME")
 
-COUCHDB_PASSWORD = env('COUCHDB_PASSWORD')
+COUCHDB_PASSWORD = env("COUCHDB_PASSWORD")
 
 # Celery settings
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
 
-CELERY_ACCEPT_CONTENT = ['json']
+CELERY_ACCEPT_CONTENT = ["json"]
 
-CELERY_RESULT_BACKEND = 'django-db'
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = "json"
 
 # Mapbox
-MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
+MAPBOX_ACCESS_TOKEN = env("MAPBOX_ACCESS_TOKEN")
 
-DIAGNOSTIC_MAP_LATITUDE = env('DIAGNOSTIC_MAP_LATITUDE')
+DIAGNOSTIC_MAP_LATITUDE = env("DIAGNOSTIC_MAP_LATITUDE")
 
-DIAGNOSTIC_MAP_LONGITUDE = env('DIAGNOSTIC_MAP_LONGITUDE')
+DIAGNOSTIC_MAP_LONGITUDE = env("DIAGNOSTIC_MAP_LONGITUDE")
 
-DIAGNOSTIC_MAP_ZOOM = env('DIAGNOSTIC_MAP_ZOOM')
+DIAGNOSTIC_MAP_ZOOM = env("DIAGNOSTIC_MAP_ZOOM")
 
-DIAGNOSTIC_MAP_WS_BOUND = env('DIAGNOSTIC_MAP_WS_BOUND')
+DIAGNOSTIC_MAP_WS_BOUND = env("DIAGNOSTIC_MAP_WS_BOUND")
 
-DIAGNOSTIC_MAP_EN_BOUND = env('DIAGNOSTIC_MAP_EN_BOUND')
+DIAGNOSTIC_MAP_EN_BOUND = env("DIAGNOSTIC_MAP_EN_BOUND")
 
-DIAGNOSTIC_MAP_ISO_CODE = env('DIAGNOSTIC_MAP_ISO_CODE')
+DIAGNOSTIC_MAP_ISO_CODE = env("DIAGNOSTIC_MAP_ISO_CODE")
 
 # Twilio
 # https://www.twilio.com/docs
-TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID")
 
-TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN")
 
-TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER')
+TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER")
+
+COUNTRY_CALLING_CODE = env("COUNTRY_CALLING_CODE")
+
+# Mail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = env("EMAIL_HOST")
+
+EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+
+EMAIL_PORT = env("EMAIL_PORT")
+
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+
+# OpenAi
+OPENAI_API_KEY = env('OPENAI_API_KEY')
+
+OPENAI_MODEL = env('OPENAI_MODEL')
+
+OPENAI_TEMPERATURE = float(env('OPENAI_TEMPERATURE'))
+
+OPENAI_MAX_TOKENS = int(env('OPENAI_MAX_TOKENS'))
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
+
+# drf-yasg
+SWAGGER_SETTINGS = {'SECURITY_DEFINITIONS': {'Token': {'type': 'apiKey', 'name': 'Authorization', 'in': 'header'}}}
+
+# HUGGING FACE API CONFIGURATION
+
+# Hugging Face API Key - Get this from https://huggingface.co/settings/tokens
+HUGGINGFACE_API_KEY = env('HUGGINGFACE_API_KEY', default='')
+
+# Base URL for Hugging Face Inference API
+HUGGINGFACE_API_BASE_URL = env(
+    'HUGGINGFACE_API_BASE_URL', default='https://api-inference.huggingface.co/pipeline/feature-extraction'
+)
+
+# Default embedding model to use
+HUGGINGFACE_EMBEDDING_MODEL = env('HUGGINGFACE_EMBEDDING_MODEL', default='sentence-transformers/all-MiniLM-L6-v2')
+
+# Optional: Additional Hugging Face settings
+HUGGINGFACE_API_TIMEOUT = env('HUGGINGFACE_API_TIMEOUT', default=30)
+HUGGINGFACE_MAX_RETRIES = env('HUGGINGFACE_MAX_RETRIES', default=3)
+
+# Logging configuration for Hugging Face connector
+_huggingface_log_path = (
+    "/tmp/huggingface.log" if os.environ.get("VERCEL") else str(BASE_DIR / "huggingface.log")
+)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': _huggingface_log_path,
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'common.utils.huggingface_connector': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Pinecone Configuration
+PINECONE_API_KEY = env('PINECONE_API_KEY', default='')
+PINECONE_ENVIRONMENT = env('PINECONE_ENVIRONMENT', default='')
+PINECONE_INDEX_NAME = env('PINECONE_INDEX_NAME', default='grm-grievances')
+
+try:
+    from .local_settings import *  # noqa: F403
+except ImportError:
+    from .local_settings_template import *  # noqa: F403
+
+    # Must not write to stdout: Vercel's Django builder parses manage.py stdout as JSON.
+    print("No local_settings.py, using .local_settings_template", file=sys.stderr)
+
+INSTALLED_APPS += LOCAL_INSTALLED_APPS
+
+MIDDLEWARE += LOCAL_MIDDLEWARE

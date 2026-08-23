@@ -1,0 +1,52 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta name="description" content=""/>
+	<meta name="author" content=""/>
+	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+	<meta name="msapplication-TileColor" content="#da532c">
+	<title>{{ title }}</title>
+
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/all.min.css' %}"/>
+	<!-- icheck bootstrap -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}"/>
+	<!-- Theme style -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/dist/css/adminlte.css' %}"/>
+	<link rel="stylesheet" href="{% static 'css/grm.css' %}"/>
+</head>
+
+<body class="hold-transition login-page">
+{% block language %}
+	{% if OTHER_LANGUAGES %}
+		<nav class="main-header navbar navbar-expand" style="border-bottom: none">
+			<ul class="navbar-nav ml-auto">
+				{% include 'layouts/language_dropdown.html' %}
+			</ul>
+		</nav>
+	{% endif %}
+{% endblock %}
+
+<div class="login-logo">
+	<img src="{% static 'images/logo.png' %}" width="80" alt="COSO">
+</div>
+
+{% block content %}{% endblock %}
+
+<!-- jQuery -->
+<script src="{% static 'AdminLTE/plugins/jquery/jquery.min.js' %}"></script>
+<!-- Bootstrap 4 -->
+<script src="{% static 'AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'AdminLTE/dist/js/adminlte.js' %}"></script>
+<!-- Django Translation -->
+<script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
+</body>
+</html>

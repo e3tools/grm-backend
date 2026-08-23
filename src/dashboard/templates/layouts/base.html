@@ -66,7 +66,7 @@
     </div>
     <!-- /.content-wrapper -->
 
-    {#    {% include 'layouts/footer.html' %}#}
+    {% comment %}{% include 'layouts/footer.html' %}{% endcomment %}
 
     <!-- Control Sidebar -->
     <aside class="control-sidebar control-sidebar-dark">
@@ -78,10 +78,17 @@
 
 {% block javascript %}
     {% include 'layouts/foot.html' %}
+
+	<script type="text/javascript">
+        $('#enter-issue').on("click", function () {
+            $("#enter-issue-form").submit();
+        });
+	</script>
+
     {% block select2 %}
         <script type="text/javascript">
             $(document).ready(function () {
-                $("select").select2()
+                $("select").select2({ width: '100%' })
             });
         </script>
     {% endblock select2 %}

@@ -1,0 +1,524 @@
+{% load bootstrap4 static i18n %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<meta name="description" content=""/>
+	<meta name="author" content=""/>
+	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+	<meta name="msapplication-TileColor" content="#da532c">
+	<title>{% translate 'GRM Customization' %}</title>
+
+	<!-- Font Awesome Free 5.13.0 -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/all.min.css' %}"/>
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/fontawesome-free/css/v4-shims.min.css' %}"/>
+	<!-- Select2 -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/plugins/select2/css/select2.min.css' %}"/>
+	<!-- Theme style -->
+	<link rel="stylesheet" href="{% static 'AdminLTE/dist/css/adminlte.css' %}"/>
+	<link rel="stylesheet" href="{% static 'css/grm.css' %}"/>
+</head>
+
+<body class="hold-transition layout-fixed">
+<div class="wrapper">
+	{% include 'wizard/navbar.html' %}
+
+	<!-- Content Wrapper. Contains page content -->
+	<div class="no-sidebar-content-wrapper">
+		<!-- Content Header (Page header) -->
+		<div class="content-header">
+			<div class="container-fluid">
+				<div class="alert-div-content">
+                    <span id="popup-messages-content">
+                        {% include 'common/messages.html' %}
+                    </span>
+				</div>
+				<div class="row mb-2">
+					<div class="col-sm-6">
+						<div class="m-0 main-title">
+							{% translate 'GRM Customization' %}
+						</div>
+					</div>
+					<!-- /.col -->
+				</div>
+				<!-- /.row -->
+			</div>
+			<!-- /.container-fluid -->
+		</div>
+		<!-- /.content-header -->
+
+		<!-- Main content -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-md-5">
+						<div class="card position-sticky" style="top: 1rem;">
+							<div class="card-header">
+								<h3 class="card-title">
+									{% translate "Setup Progress" %}
+								</h3>
+							</div>
+							<div class="card-body">
+								<div class="overlay-wrapper">
+									<div id="wizard-sections"></div>
+									<div class="overlay" id="wizard-sections-spin">
+										<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-7 d-flex flex-column">
+						<div class="card h-100 d-flex flex-column">
+							<div class="overlay-wrapper flex-grow-1 d-flex flex-column">
+								<div id="formAjax" class="d-flex flex-column flex-grow-1"></div>
+								<div class="overlay" id="wizard-form-spin">
+									<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+								</div>
+							</div>
+						</div>
+					</div>
+					{% comment %}
+						<div class="col-md-4 display-flex flex-flow-column">
+							<div class="card h-100 direct-chat direct-chat-primary">
+								<div class="card-body">
+									<div class="direct-chat-messages">
+										<div class="direct-chat-msg">
+											<div class="direct-chat-img bg-primary-light fs20">
+												<div class="center-42">
+													<i class="fas fa-robot text-primary"></i>
+												</div>
+											</div>
+											<div class="direct-chat-text">
+												Welcome to the GRM Configuration Wizard. I'll guide you through setting
+												up your Grievance Redress Mechanism system. Let's start by defining the
+												project description.
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="input-group">
+										<input type="text" name="message" placeholder="Type your message..."
+											   class="form-control">
+										<span class="input-group-append">
+											<button type="submit" class="btn btn-primary">
+												{% translate "Send" %}
+											</button>
+										</span>
+									</div>
+								</div>
+								<!-- /.card-footer-->
+							</div>
+						</div>
+					{% endcomment %}
+				</div>
+			</div>
+			<!-- /.container-fluid -->
+		</section>
+		<!-- /.content -->
+	</div>
+	<!-- /.content-wrapper -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="{% static 'AdminLTE/plugins/jquery/jquery.min.js' %}"></script>
+<!-- Bootstrap 4 -->
+<script src="{% static 'AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'AdminLTE/dist/js/adminlte.js' %}"></script>
+<!-- Select2 -->
+<script src="{% static 'AdminLTE/plugins/select2/js/select2.full.min.js' %}"></script>
+<!-- Django Translation -->
+<script src="{% static 'js/setLanguajeDjangoTranslation.js' %}"></script>
+<!-- Libraries to export to PDF -->
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+<!-- Custom javascript -->
+<script src="{% static 'js/grm.js' %}"></script>
+<script src="{% static 'js/disableOnSubmit.js' %}"></script>
+<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+<script src="{% static 'js/customToast.js' %}"></script>
+<script src="{% static 'js/wizard.js' %}"></script>
+
+<script type="text/javascript">
+    let wizard_sections_spin = $('#wizard-sections-spin');
+    let wizard_sections = $('#wizard-sections');
+
+    function loadWizardSections(step) {
+        wizard_sections_spin.show();
+        $.ajax({
+            type: "GET",
+            url: "{% url 'wizard:wizard_section_list' %}?step=" + step,
+            complete: function () {
+                wizard_sections_spin.hide();
+                loadWizardSectionForm($('#formAjax'));
+            },
+            success: function (response) {
+                wizard_sections.html(response);
+
+            },
+            error: function (data) {
+                alert(error_server_message + "Error " + data.status);
+            }
+        });
+    }
+
+    <!-- wizard_sections_spin disable button on submit -->
+    $(document).on("submit", "form", function () {
+        wizard_sections_spin.show();
+    });
+
+    // For handling formset
+    let formIndex;
+    let maxForms;
+    let wizard_form_spin = $('#wizard-form-spin');
+
+    function loadWizardSectionForm($formAjax) {
+        wizard_form_spin.show();
+        let section_id = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:setup_step_1' %}".replace("1", section_id);
+        $formAjax.load(url, function (response, status) {
+            if (status === "error") {
+                alert(error_server_message);
+                $(".disabled-on-submit").removeClass('disabled').removeAttr('disabled');
+                enableButton($("form"));
+            } else {
+                formIndex = parseInt($('#id_form-TOTAL_FORMS').val());
+                maxForms = parseInt($('#id_form-MAX_NUM_FORMS').val());
+                updateStepParam(section_id);
+                initSkipSubmitToggle();
+            }
+            wizard_form_spin.hide();
+            wizard_sections_spin.hide();
+        });
+    }
+
+    $(document).on("submit", "#form", function (e) {
+        e.preventDefault();
+        let step = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
+        let data = new FormData(this)
+        submitForm($(this), url, step, data)
+    });
+
+    loadWizardSections({{ current_step }});
+
+    // Formset management ---------------------------------------------------
+
+    // Mark for deletion (for existing forms with instance.pk)
+    function toggleDeleteState($container, $button, forceState = null) {
+        const $deleteCheckbox = $container.find('input[name$="-DELETE"]');
+        const isChecked = forceState !== null ? forceState : !$deleteCheckbox.prop('checked');
+
+        $deleteCheckbox.prop('checked', isChecked);
+        $container.toggleClass('marked-for-deletion', isChecked);
+        $button.find('i').toggleClass('fa-times-circle', !isChecked)
+            .toggleClass('fa-undo', isChecked);
+
+        const newTitle = isChecked ? '{% translate "Undo deletion" %}' : '{% translate "Delete" %}';
+        $button.attr('title', newTitle);
+    }
+
+    // Update form indices after removal
+    function updateFormIndices() {
+        let currentIndex = 0;
+
+        let $formsetRow = $('#formset-container .formset-row');
+
+        // 1) Destroy select2 for all selects that we're going to rename
+        $('.formset-row, .subcomponent-row').find('select').each(function () {
+            let $select = $(this);
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+        });
+
+        // 2) Reindex DOM attributes (names, ids, labels)
+        $formsetRow.each(function () {
+            let $row = $(this);
+
+            // Update all input/select/textarea names and ids
+            $row.find('input, select, textarea').each(function () {
+                let $input = $(this);
+                let name = $input.attr('name');
+                let id = $input.attr('id');
+
+                if (name) {
+                    name = name.replace(/form-\d+-/, 'form-' + currentIndex + '-');
+                    $input.attr('name', name);
+                }
+
+                if (id) {
+                    id = id.replace(/id_form-\d+-/, 'id_form-' + currentIndex + '-');
+                    $input.attr('id', id);
+                }
+
+                $row.find('.subcomponent-row').find('input, select, textarea').each(function () {
+                    $input = $(this);
+                    id = $input.attr('id').replace(
+                        /id_subcomponent_form-\d+-/, 'id_subcomponent_form-' + currentIndex + '-');
+                    $input.attr('id', id);
+                });
+
+                $row.find('.subcomponent-container, .add-subcomponent, .remove-subcomponent').each(function () {
+                    $(this).attr('data-form-index', currentIndex);
+                });
+            });
+
+            // Update labels' for attributes
+            $row.find('label').each(function () {
+                let $label = $(this);
+                let forAttr = $label.attr('for');
+
+                if (forAttr) {
+                    forAttr = forAttr.replace(/id_form-\d+-/, 'id_form-' + currentIndex + '-');
+                    $label.attr('for', forAttr);
+                }
+            });
+
+            // Update data-form-index and any display counters
+            $row.attr('data-form-index', currentIndex);
+
+            currentIndex++;
+
+            $row.find('.component-number').text(currentIndex);
+        });
+
+        // 3) Update total forms count
+        $('#id_form-TOTAL_FORMS').val(currentIndex);
+        formIndex = currentIndex;
+
+        // 4) Re-initialize select2 for all selects that need it
+        $formsetRow.find('select').each(function () {
+            initSelect2($(this));
+        });
+    }
+
+    // Next Step ---------------------------------------------
+
+    $(document).on("click", "#next_step", function (e) {
+        e.preventDefault();
+        let step = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:next_step' 0 %}".replace("0", step);
+        submitNexStep($(this), url)
+    });
+
+    // Component formset ---------------------------------------------------
+
+    // Add new component
+    $(document).on('click', '#add-component', function () {
+        if (formIndex >= maxForms) {
+            $('#max-forms-alert').removeClass('d-none');
+            return;
+        }
+
+        let template = $('#empty-form-template').html();
+        template = template.replace(/__prefix__/g, formIndex);
+
+        formIndex++;
+
+        let $newComponent = $(template);
+        $newComponent.find('.component-number').text(formIndex);
+
+        $('#formset-container').append($newComponent);
+        $('#id_form-TOTAL_FORMS').val(formIndex);
+
+        // Focus on the new input
+        $newComponent.find('input[type="text"]').focus();
+    });
+
+    // Final Step ---------------------------------------------
+
+    $(document).on("click", "#final_step", function (e) {
+        e.preventDefault();
+        let step = $(".timeline-item.active").attr("id");
+        let url = "{% url 'wizard:setup_step_1' %}".replace("1", step);
+        submitFinalStep($(this), url)
+    });
+
+    // Export Summary to PDF ---------------------------------------------
+
+    let summary_title = "{% translate 'GRM Customization Summary' %}";
+
+    $(document).on("click", "#export-summary-btn", function () {
+        const docDefinition = {
+            info: {
+                title: summary_title,
+                author: "{% translate 'GRM system' %}",
+            },
+            pageMargins: [40, 60, 40, 60],
+            content: [],
+            styles: {
+                mainTitle: {fontSize: 18, bold: true, alignment: "center", margin: [0, 0, 0, 15]},
+                header: {fontSize: 16, bold: true, margin: [0, 10, 0, 5]},
+                subheader: {fontSize: 12, bold: true, margin: [0, 6, 0, 4]},
+                normal: {fontSize: 10, margin: [0, 2, 0, 2]},
+                label: {fontSize: 10, bold: true, margin: [0, 2, 0, 2]},
+                tableHeader: {bold: true, fillColor: "#eeeeee"},
+            },
+        };
+
+        // Add main centered title
+        docDefinition.content.push({text: summary_title, style: "mainTitle"});
+
+        // Iterate over each summary section
+        $("#summary-area > div").each(function (sectionIndex) {
+            const $section = $(this);
+            const title = $section.find("h5").first().text().trim();
+
+            // Add section title
+            docDefinition.content.push({text: title, style: "header"});
+
+            // Get all section items
+            const $items = $section.find("> .border-bottom");
+
+            $items.each(function (itemIndex) {
+                const $item = $(this);
+                let itemAdded = false;
+
+                // Simple fields (label + value)
+                $item.find("> div.mt-2").each(function () {
+                    const $div = $(this);
+                    const $labelEl = $div.find("label").first();
+
+                    // Remove trailing ":" from label if present
+                    let labelText = $labelEl.text().trim().replace(/:$/, "");
+
+                    // Extract value (excluding label)
+                    const value = $div.clone()
+                        .children("label").remove().end()
+                        .text().trim();
+
+                    // Add row with two aligned columns: label (bold) + value
+                    docDefinition.content.push({
+                        columns: [
+                            {text: labelText + ":", style: "label", width: "auto", alignment: "left"},
+                            {text: value, style: "normal", width: "*", alignment: "left"},
+                        ],
+                        columnGap: 5, // space between label and value
+                    });
+
+                    itemAdded = true;
+                });
+
+                // Subcomponents (if any)
+                const $subcomponents = $item.find(".border-left > .border-bottom");
+                if ($subcomponents.length > 0) {
+                    docDefinition.content.push({
+                        text: "{% translate 'Subcomponents' %}:",
+                        style: "subheader",
+                        margin: [10, 4, 0, 2],
+                    });
+
+                    $subcomponents.each(function (subIndex) {
+                        const $sub = $(this);
+
+                        $sub.find("div.mt-2").each(function () {
+                            const $div = $(this);
+                            const $labelEl = $div.find("label").first();
+                            let labelText = $labelEl.text().trim().replace(/:$/, "");
+                            const value = $div.clone().children("label").remove().end().text().trim();
+
+                            docDefinition.content.push({
+                                columns: [
+                                    {
+                                        text: "• " + labelText + ":",
+                                        style: "label",
+                                        width: "auto",
+                                        margin: [15, 0, 0, 0]
+                                    },
+                                    {text: value, style: "normal", width: "*", alignment: "left"},
+                                ],
+                                columnGap: 5, // spacing between label and value
+                            });
+                        });
+
+                        // Add a gray line between subcomponents (except last one)
+                        if (subIndex < $subcomponents.length - 1) {
+                            docDefinition.content.push({
+                                canvas: [
+                                    {type: "line", x1: 10, y1: 0, x2: 505, y2: 0, lineWidth: 0.5, lineColor: "#cccccc"},
+                                ],
+                                margin: [10, 4, 0, 4],
+                            });
+                        }
+                    });
+
+                    itemAdded = true;
+                }
+
+                // Add a gray separator line between main items (except the last)
+                if (itemAdded && itemIndex < $items.length - 1) {
+                    docDefinition.content.push({
+                        canvas: [
+                            {type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: "#cccccc"},
+                        ],
+                        margin: [0, 5, 0, 5],
+                    });
+                }
+            });
+
+            // Region tables (if any)
+            const $table = $section.find("table");
+            if ($table.length) {
+                const headers = [];
+                $table.find("thead th").each(function () {
+                    headers.push({text: $(this).text().trim(), style: "tableHeader"});
+                });
+
+                const body = [$table.find("thead th").map(function () {
+                    return {text: $(this).text().trim(), style: "tableHeader"};
+                }).get()];
+
+                $table.find("tbody tr").each(function () {
+                    const row = [];
+                    $(this).find("td").each(function () {
+                        row.push($(this).text().trim());
+                    });
+                    body.push(row);
+                });
+
+                // Add table to PDF
+                docDefinition.content.push({
+                    table: {
+                        headerRows: 1,
+                        widths: Array(headers.length).fill("*"),
+                        body: body,
+                    },
+                    margin: [0, 5, 0, 10],
+                });
+            }
+
+            // Add a thick black line between sections (except the last one)
+            if (sectionIndex < $("#summary-area > div").length - 1) {
+                docDefinition.content.push({
+                    canvas: [
+                        {type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: "#000000"},
+                    ],
+                    margin: [0, 10, 0, 10],
+                });
+            }
+        });
+
+        // Generate file name
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const fileName = `wizard_summary_${y}_${m}_${d}.pdf`;
+
+        // Generate and download the PDF file
+        pdfMake.createPdf(docDefinition).download(fileName);
+    });
+
+</script>
+</body>
+</html>
+

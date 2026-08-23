@@ -1,0 +1,37 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "Agriculteurs",
+   "type": "issue_citizen_group"
+ },
+ {
+   "id": 2,
+   "name": "Éleveurs",
+   "type": "issue_citizen_group"
+ },
+ {
+   "id": 3,
+   "name": "Pécheurs",
+   "type": "issue_citizen_group"
+ },
+ {
+   "id": 4,
+   "name": "Artisans",
+   "type": "issue_citizen_group"
+ },
+ {
+   "id": 5,
+   "name": "Commerçants",
+   "type": "issue_citizen_group"
+ },
+ {
+   "id": 6,
+   "name": "Salariés",
+   "type": "issue_citizen_group"
+ },
+ {
+  "id": 7,
+  "name": "Autre",
+  "type": "issue_citizen_group"
+}
+]}

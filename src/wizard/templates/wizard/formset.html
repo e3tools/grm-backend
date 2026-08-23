@@ -1,0 +1,144 @@
+{% load bootstrap4 i18n %}
+
+{% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
+
+<div class="card-header">
+	<h3 class="card-title">
+		{{ card_title }}
+	</h3>
+</div>
+<form id="form" enctype="multipart/form-data" class="d-flex flex-column h-100">
+	{% csrf_token %}
+	<div class="card-body flex-grow-1">
+		<div class="overlay-wrapper">
+			{{ formset.management_form }}
+
+			<!-- Error messages -->
+			{% if formset.non_form_errors %}
+				<div class="alert alert-danger">
+					{{ formset.non_form_errors }}
+				</div>
+			{% endif %}
+
+			<div class="label">
+				{{ formset_label }}
+			</div>
+
+			<div id="formset-container">
+				{% for form in formset %}
+					<div class="form-row formset-row pt-3 border-bottom" data-form-index="{{ forloop.counter0 }}">
+						<div class="col-md-10">
+							<!-- Hidden fields (like id and DELETE) -->
+							{% for hidden in form.hidden_fields %}
+								{{ hidden }}
+							{% endfor %}
+
+							<!-- Visible form fields, without label -->
+							<div class="row">
+								{% for field in form.visible_fields %}
+									{% if field.name != "DELETE" %}
+										<div class="col-md-{% if two_fields_by_row %}6{% else %}12{% endif %}">
+											{% bootstrap_field field %}
+										</div>
+									{% endif %}
+								{% endfor %}
+							</div>
+
+							<!-- Delete checkbox (hidden, controlled by JS) -->
+							{% if form.DELETE %}
+								<div class="d-none">
+									{{ form.DELETE }}
+								</div>
+							{% endif %}
+						</div>
+
+						<div class="col-md-2 d-flex align-items-start">
+							{% if form.instance.pk %}
+								<button type="button"
+										class="btn text-secondary {% if form.instance.restricted_deletion %}
+										restricted-deletion disabled{% else %}delete-row{% endif %}"
+										title="{% translate 'Delete' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% else %}
+								<button type="button" class="btn text-secondary remove-row"
+										title="{% translate 'Remove this row' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% endif %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+
+			<!-- Alert text -->
+			<div id="max-forms-alert" class="d-none text-danger mt-1">
+				{% translate "Maximum number of forms reached." %}
+			</div>
+
+			<!-- Add more button -->
+			<button type="button" id="add-more" class="btn btn-link-primary pl-0">
+				<i class="fas fa-plus"></i> {% translate "Add row" %}
+			</button>
+
+			<div class="overlay submit-spin d-none">
+				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+			</div>
+		</div>
+	</div>
+
+	<div class="card-footer">
+		{% if step != 1 %}
+			<button id="previous_step" data-step="{{ step }}"
+					class="btn btn-secondary disabled-on-submit">
+				<i class="fa fa-chevron-left mr-2"></i>
+				{% translate "Previous" %}
+			</button>
+		{% endif %}
+		<button id="normal_submit" type="submit" class="btn btn-primary float-right {% if skip %}d-none{% endif %}">
+			{% translate "Next" %}
+		</button>
+		{% if skip %}
+			<button id="skip_submit" type="submit"
+					class="btn btn-primary float-right {% if not skip %}d-none{% endif %}">
+				{% translate "Skip" %}
+			</button>
+		{% endif %}
+	</div>
+</form>
+
+<!-- Empty form template for JavaScript -->
+<div id="empty-form-template" style="display: none;">
+	<div class="form-row formset-row pt-3 border-bottom" data-form-index="__prefix__">
+		<div class="col-md-10">
+			{% with form=formset.empty_form %}
+				<!-- Hidden fields -->
+				{% for hidden in form.hidden_fields %}
+					{{ hidden }}
+				{% endfor %}
+
+				<!-- Visible form fields, without label -->
+				<div class="row">
+					{% for field in form.visible_fields %}
+						{% if field.name != "DELETE" %}
+							<div class="col-md-{% if two_fields_by_row %}6{% else %}12{% endif %}">
+								{% bootstrap_field field %}
+							</div>
+						{% endif %}
+					{% endfor %}
+				</div>
+
+				<!-- Delete checkbox (hidden) -->
+				{% if form.DELETE %}
+					{{ form.DELETE.as_hidden }}
+				{% endif %}
+			{% endwith %}
+		</div>
+
+		<div class="col-md-2 d-flex align-items-start">
+			<button type="button" class="btn text-secondary remove-row" title="{% translate 'Remove this row' %}">
+				<i class="fas fa-times-circle"></i>
+			</button>
+		</div>
+	</div>
+</div>

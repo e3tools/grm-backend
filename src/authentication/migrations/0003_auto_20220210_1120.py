@@ -4,25 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('authentication', '0002_governmentworker'),
+        ("authentication", "0002_governmentworker"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='governmentworker',
-            name='administrative_level',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='administrative level'),
+            model_name="governmentworker",
+            name="administrative_level",
+            field=models.CharField(
+                blank=True,
+                max_length=255,
+                null=True,
+                verbose_name="administrative level",
+            ),
         ),
         migrations.AlterField(
-            model_name='governmentworker',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="governmentworker",
+            name="id",
+            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="user",
+            name="id",
+            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID"),
         ),
     ]

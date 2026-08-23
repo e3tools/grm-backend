@@ -1,0 +1,45 @@
+{
+  "docs":
+  [
+    {
+      "id": 1,
+      "label": "Composante 1",
+      "name": "Composante 1",
+      "description": "Investir dans la résilience et l'inclusion des communautés.",
+      "type": "issue_component",
+      "value": 1,
+      "parent_type": "",
+      "parent_id": null
+    },
+    {
+      "id": 2,
+      "label": "Composante 2",
+      "name": "Composante 2",
+      "description": "Renforcement des fondations et des capacités pour des communautés inclusives et résilientes.",
+      "type": "issue_component",
+      "value": 2,
+      "parent_type": "",
+      "parent_id": null
+    },
+    {
+      "id": 3,
+      "label": "Composante 3",
+      "name": "Composante 3",
+      "description": "Plateforme de coordination régionale et dialogue.",
+      "type": "issue_component",
+      "value": 3,
+      "parent_type": "",
+      "parent_id": null
+    },
+    {
+      "id": 4,
+      "label": "Composante 4",
+      "name": "Composante 4",
+      "description": "Gestion de projet.",
+      "type": "issue_component",
+      "value": 4,
+      "parent_type": "",
+      "parent_id": null
+    }
+  ]
+}

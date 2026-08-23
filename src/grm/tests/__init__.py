@@ -4,13 +4,13 @@ import tempfile
 import pytest
 from rest_framework.test import APITestCase
 
-from authentication.tests import UserFactory
-from client import get_db, bulk_delete
+from authentication.factories import UserFactory
+from client import bulk_delete, get_db
 
-JSON_TYPE = 'application/json'
-URLENCODED_TYPE = 'application/x-www-form-urlencoded'
-AJAX_HEADER = 'HTTP_X_REQUESTED_WITH'
-AJAX_HEADER_VALUE = 'XMLHttpRequest'
+JSON_TYPE = "application/json"
+URLENCODED_TYPE = "application/x-www-form-urlencoded"
+AJAX_HEADER = "HTTP_X_REQUESTED_WITH"
+AJAX_HEADER_VALUE = "XMLHttpRequest"
 
 
 @pytest.mark.django_db
@@ -22,7 +22,7 @@ class BaseTestCase(APITestCase):
 
     def tearDown(self):
         super().tearDown()
-        docs_to_delete = [d for d in self.eadl_db if 'type' in d and d['type'] != 'administrative_level']
+        docs_to_delete = [d for d in self.eadl_db if "type" in d and d["type"] != "administrative_level"]
         bulk_delete(self.eadl_db, docs_to_delete)
 
     @staticmethod
@@ -59,7 +59,7 @@ class BaseTestCase(APITestCase):
             self.authenticate(user)
         if self.content_type == JSON_TYPE:
             data = json.dumps(data)
-            kwargs['content_type'] = self.content_type
+            kwargs["content_type"] = self.content_type
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.put(uri, data, **kwargs)
@@ -70,7 +70,7 @@ class BaseTestCase(APITestCase):
             self.authenticate(user)
         if self.content_type == JSON_TYPE:
             data = json.dumps(data)
-            kwargs['content_type'] = self.content_type
+            kwargs["content_type"] = self.content_type
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.patch(uri, data, **kwargs)
@@ -80,9 +80,9 @@ class BaseTestCase(APITestCase):
         if authorized:
             self.authenticate(user)
         if self.content_type == JSON_TYPE:
-            if 'format' not in kwargs:
+            if "format" not in kwargs:
                 data = json.dumps(data)
-                kwargs['content_type'] = self.content_type
+                kwargs["content_type"] = self.content_type
         if ajax:
             kwargs[AJAX_HEADER] = AJAX_HEADER_VALUE
         return self.client.post(uri, data, **kwargs)

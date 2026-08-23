@@ -1,78 +1,62 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=16 %}
+	{% include 'common/progress_bar.html' with percentage=16 %}
 {% endblock progress-bar %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <img src="{% static 'images/bg-left-horizontal-waves.png' %}" class="bg-left-horizontal-waves"/>
-                <form method="post">{% csrf_token %}
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="fs20 lh46 mb-1 text-regular-family">
-                                    {% translate 'Enter New Issue' %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 1
-                                </div>
-                                <div class="fs35 lh35 text-bold-family ">
-                                    {% translate 'Preferred Method of Contact' %}
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <span class="fs17 lh18">
+	<h5>{% translate 'Step' %} 1</h5>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-header">
+					<h3 class="card-title">{% translate 'Preferred Method of Contact' %}</h3>
+				</div>
+				<form method="post">{% csrf_token %}
+					<div class="card-body bg-left-horizontal-waves">
+						<div class="row">
+							<div class="col-md-12">
+                                <span class="fs17">
                                     {{ form.contact_medium.label_tag }}
                                 </span>
-                                {% bootstrap_field form.contact_medium show_label=False %}
-                                <div class="ml-4">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            {% bootstrap_field form.contact_type %}
-                                        </div>
-                                        <div class="col-6">
-                                            {% bootstrap_field form.contact %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer mb-2">
-                        <button type="submit" class="btn btn-primary btn-sm rounded-xl float-right mt-4">
-                            {% translate "SAVE & NEXT" %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+								{% bootstrap_field form.contact_medium show_label=False %}
+								<div class="ml-4">
+									<div class="row">
+										<div class="col-md-6">
+											{% bootstrap_field form.contact_type %}
+										</div>
+										<div class="col-md-6">
+											{% bootstrap_field form.contact %}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-footer">
+						<button type="submit" class="btn btn-primary float-right">
+							{% translate "SAVE & NEXT" %}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block select2 %}
-    <script type="text/javascript">
+	<script type="text/javascript">
         $("#id_contact_type").select2({
             placeholder: "{% translate 'Click to select contact method' %}",
             allowClear: true,
-            disabled: {% if doc.contact_information %}false{% else %}true{% endif %}
+            disabled: {% if obj.contact_information %}false{% else %}true{% endif %}
         });
-    </script>
+	</script>
 {% endblock select2 %}
 
 {% block javascript %}
-    {{ block.super }}
-    <script type="text/javascript">
-        $('b[role="presentation"]').hide();
-        $('.select2-selection__arrow').append(
-            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
+	{{ block.super }}
+	<script type="text/javascript">
 
         let contact_type = $('#id_contact_type');
         let contact = $('#id_contact');
@@ -102,5 +86,5 @@
         contact_type.on('select2:clear', function (e) {
             contact.prop("disabled", true).prop("required", false).val('');
         });
-    </script>
+	</script>
 {% endblock javascript %}

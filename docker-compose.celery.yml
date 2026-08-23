@@ -1,0 +1,27 @@
+# Long-running Celery worker and beat (Vercel only runs the Django web function).
+# Create a repo-root `.env.celery` file with the same variables as your Vercel project
+# (DATABASE_URL, SECRET_KEY, CouchDB, CELERY_BROKER_URL, CELERY_RESULT_BACKEND, etc.).
+#
+#   docker compose -f docker-compose.celery.yml up -d --build
+
+x-celery-common: &celery-common
+  build:
+    context: ./src
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  env_file:
+    - path: .env.celery
+      required: false
+  environment:
+    DJANGO_SETTINGS_MODULE: grm.settings
+
+services:
+  celery-worker:
+    <<: *celery-common
+    entrypoint: ["./run.sh"]
+    command: ["celery-worker"]
+
+  celery-beat:
+    <<: *celery-common
+    entrypoint: ["./run.sh"]
+    command: ["celery-beat"]

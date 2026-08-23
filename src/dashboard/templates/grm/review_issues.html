@@ -1,80 +1,84 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row issues-filter">
-                        <div class="col-4 text-left">
-                            <div class="fs28 lh35 text-primary text-bold-family mb-4">
-                                {% translate 'Search Results' %}<br>
-                            </div>
-                            <div class="row mr-5">
-                                <div class="col-12">
-                                    {% bootstrap_field form.start_date layout='horizontal' %}
-                                    {% bootstrap_field form.end_date layout='horizontal' %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-8 border-left">
-                            <div class="row">
-                                <div class="col-2">
-                                    <label class="label-align">{% translate 'Filter by' %}</label>
-                                </div>
-                                <div class="col-5">
-                                    {% bootstrap_field form.code show_label=False %}
-                                    {% if not user.governmentworker %}
-                                        {% bootstrap_field form.assigned_to show_label=False %}
-                                    {% endif %}
-                                    {% bootstrap_field form.category show_label=False %}
-                                </div>
-                                <div class="col-5">
-                                    {% bootstrap_field form.type show_label=False %}
-                                    {% bootstrap_field form.status show_label=False %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <a class="btn fs12 text-bold-family text-primary pull-right p-0"
-                       id="clear_all_filters">
-                        {% translate "Clear all filters" %}
-                    </a>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body table-responsive">
-                    <div id="issue-list"></div>
-                    <div class="text-right">
-                        <a id="previous" class="btn text-primary hidden">
-                            <i class="fa fa-chevron-left fs20 align-middle"></i>
-                        </a>
-                        <div id="current-page" class="d-inline-block fs14 text-regular-family ml-4 mr-4"></div>
-                        <a id="next" class="btn text-primary hidden">
-                            <i class="fa fa-chevron-right fs20 align-middle"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="overlay" id="spin">
-                    <i class="fas fa-2x fa-sync-alt fa-spin"></i>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-header">
+					<h3 class="card-title">
+						{% translate 'Search Results' %}
+					</h3>
+				</div>
+				<div class="card-body">
+					<label class="label-align">{% translate 'Filter by' %}</label>
+					<div class="row issues-filter">
+						<div class="col-md-6">
+							{% bootstrap_field form.code show_label=False %}
+							{% if not user.governmentworker %}
+								{% bootstrap_field form.assigned_to show_label=False %}
+							{% endif %}
+							{% bootstrap_field form.category show_label=False %}
+						</div>
+						<div class="col-md-6">
+							{% bootstrap_field form.type show_label=False %}
+							{% bootstrap_field form.status show_label=False %}
+						</div>
+						<div class="col-md-6">
+							{% bootstrap_field form.start_date show_label=False %}
+						</div>
+						<div class="col-md-6">
+							{% bootstrap_field form.end_date show_label=False %}
+						</div>
+					</div>
+					<a class="btn text-bold text-primary pull-right" id="clear_all_filters">
+						{% translate "Clear all filters" %}
+					</a>
+				</div>
+				<div class="card-body table-responsive">
+					<table id="table" class="table">
+						<thead>
+						<tr>
+							<th>{% translate 'ID Number' %}</th>
+							<th>{% translate 'Access Code' %}</th>
+							<th>{% translate 'Summary' %}</th>
+							<th>{% translate 'Assigned to' %}</th>
+							<th>{% translate 'Days Open' %}</th>
+							<th>{% translate 'Category' %}</th>
+							<th>{% translate 'Type' %}</th>
+							<th>{% translate 'Status' %}</th>
+						</tr>
+						</thead>
+						<tbody id="issue-list"></tbody>
+					</table>
+					<div class="text-right">
+						<a id="previous" class="btn text-primary hidden">
+							<i class="fa fa-chevron-left fs20 align-middle"></i>
+						</a>
+						<div id="current-page" class="d-inline-block fs14 ml-4 mr-4"></div>
+						<a id="next" class="btn text-primary hidden">
+							<i class="fa fa-chevron-right fs20 align-middle"></i>
+						</a>
+					</div>
+				</div>
+				<div class="overlay" id="spin">
+					<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascript %}
-    {{ block.super }}
+	{{ block.super }}
 
-    <script type="text/javascript">
+	<script type="text/javascript">
         let spin = $('#spin');
-        let index = 0;
         const offset = 10;
         let previous = $('#previous');
         let next = $('#next');
+        let page_number = 1;
+
         let issues = $('#issue-list');
-        let total_issues = 0;
         let current_page = $('#current-page');
         let start_date = $('#id_start_date');
         let end_date = $('#id_end_date');
@@ -84,40 +88,77 @@
         let type = $('#id_type');
         let status = $('#id_status');
 
-        function loadIssues() {
+        let nextCursorDate = null;
+        let nextCursorId = null;
+        let prevCursorDate = null;
+        let prevCursorId = null;
+
+        function loadIssues(reset = false, direction = 'next') {
             spin.show();
+
+            let data = {
+                offset: offset,
+                start_date: start_date.val(),
+                end_date: end_date.val(),
+                code: code.val(),
+                assigned_to: assigned_to.val(),
+                category: category.val(),
+                type: type.val(),
+                status: status.val(),
+                direction: direction
+            };
+
+            if (!reset) {
+                if (direction === 'next' && nextCursorDate && nextCursorId) {
+                    data.cursor_date = nextCursorDate;
+                    data.cursor_id = nextCursorId;
+                }
+                if (direction === 'previous' && prevCursorDate && prevCursorId) {
+                    data.cursor_date = prevCursorDate;
+                    data.cursor_id = prevCursorId;
+                }
+            } else {
+                page_number = 1;
+                nextCursorDate = null;
+                nextCursorId = null;
+                prevCursorDate = null;
+                prevCursorId = null;
+            }
+
             $.ajax({
                 type: "GET",
                 url: "{% url 'dashboard:grm:issue_list' %}",
-                data: {
-                    index: index,
-                    offset: offset,
-                    start_date: start_date.val(),
-                    end_date: end_date.val(),
-                    code: code.val(),
-                    assigned_to: assigned_to.val(),
-                    category: category.val(),
-                    type: type.val(),
-                    status: status.val(),
-                },
+                data: data,
                 success: function (response) {
                     spin.hide();
-                    if (index - offset >= 0) {
-                        previous.show();
+
+                    issues.html(response.html);
+
+                    nextCursorDate = response.next_cursor_date || null;
+                    nextCursorId = response.next_cursor_id || null;
+                    prevCursorDate = response.prev_cursor_date || null;
+                    prevCursorId = response.prev_cursor_id || null;
+
+                    if (reset) {
+                        page_number = 1;
                     } else {
-                        previous.hide();
+                        if (direction === 'next') page_number += 1;
+                        if (direction === 'previous' && page_number > 1) page_number -= 1;
                     }
-                    if (index + offset < total_issues) {
+
+                    if (page_number === 1) {
+                        previous.hide();
+                    } else {
+                        previous.show();
+                    }
+
+                    if (response.has_more_forward) {
                         next.show();
                     } else {
                         next.hide();
                     }
-                    issues.html(response);
-                    if (response.trim()) {
-                        current_page.html(Math.floor(index / offset) + 1 + " / " + Math.ceil(total_issues / offset));
-                    } else {
-                        current_page.html("")
-                    }
+
+                    current_page.html(page_number);
                 },
                 error: function (data) {
                     spin.hide();
@@ -127,31 +168,16 @@
             });
         }
 
-        function setTotalIssues() {
-            $.ajax({
-                type: "GET",
-                url: "{% url 'dashboard:couchdb_proxy:issues_statistics' %}",
-                success: function (response) {
-                    total_issues = response['count'];
-                    loadIssues();
-                },
-                error: function (data) {
-                    alert(error_server_message + "Error " + data.status);
-                }
-            });
-        }
-
-        previous.click(function () {
-            index -= offset;
-            loadIssues();
-        });
-
         next.click(function () {
-            index += offset;
-            loadIssues();
+            loadIssues(false, 'next');
+        });
+        previous.click(function () {
+            loadIssues(false, 'previous');
         });
 
-        setTotalIssues();
+        $(document).ready(function () {
+            loadIssues(true);
+        });
 
         let dp1 = '<div class="input-group-prepend" data-target="#{id}" data-toggle="datetimepicker">' +
             '<div class="input-group-text"><i class="fa fa-calendar text-primary"></i></div></div>';
@@ -165,7 +191,7 @@
         $('.datetimepicker-input').inputmask({alias: "datetime", inputFormat: "dd/mm/yyyy"});
 
         let options = {
-            maxDate: Date.now(),
+            maxDate: moment(),
             useCurrent: false,
             format: "DD/MM/YYYY",
             widgetPositioning: {
@@ -185,49 +211,49 @@
         $('#end_date').on("change.datetimepicker", dateChanged);
         $('.issues-filter input').on('change keyup', function () {
             if (!$(this).val()) {
-                loadIssues();
+                loadIssues(true);
             }
         });
         code.on('change keyup', delay(function () {
             if ($(this).val()) {
-                loadIssues();
+                loadIssues(true);
             }
         }, 500));
         $('.issues-filter select').on('change', function () {
-            loadIssues();
+            loadIssues(true);
         });
 
         $("#clear_all_filters").on("click", function () {
             $('.issues-filter input').val('');
             $('.issues-filter select').val(null).trigger('change.select2');
-            loadIssues();
+            loadIssues(true);
         });
 
-    </script>
+	</script>
 {% endblock %}
 
 {% block select2 %}
-    <script type="text/javascript">
+	<script type="text/javascript">
         $("#id_assigned_to").select2({
             placeholder: "{% translate 'Assigned to' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_category").select2({
             placeholder: "{% translate 'Category' %}",
-            allowClear: true
+            allowClear: true,
+            width: '100%'
         });
         $("#id_type").select2({
             placeholder: "{% translate 'Type' %}",
             allowClear: true,
+            width: '100%'
         });
         $("#id_status").select2({
             placeholder: "{% translate 'Status' %}",
             allowClear: true,
+            width: '100%'
         });
 
-        $('b[role="presentation"]').hide();
-        $('.select2-selection__arrow').append(
-            '<i class="fas fa-chevron-circle-down text-primary" style="margin-top:12px;"></i>');
-
-    </script>
+	</script>
 {% endblock select2 %}
