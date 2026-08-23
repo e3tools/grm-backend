@@ -14,17 +14,19 @@ class Command(TranslatedBaseCommand):
     help = "Upload confirmed Issue objects to Pinecone using server-side embeddings (SDK 7.3.0)."
 
     def add_arguments(self, parser):
-        parser.add_argument("--batch-size", type=int, default=100, help="Batch size (default: 100)")
+        # Pinecone integrated-inference upserts cap batch size at 96.
+        parser.add_argument("--batch-size", type=int, default=90, help="Batch size (max 96, default: 90)")
         parser.add_argument("--limit", type=int, help="Optional: limit number of issues")
         parser.add_argument("--dry-run", action="store_true", help="Simulate upload without sending to Pinecone")
-        parser.add_argument("--namespace", type=str, default="default", help="Target Pinecone namespace")
+        # Demo data lives in the "benin-demo" namespace; the connector enforces this when empty.
+        parser.add_argument("--namespace", type=str, default="benin-demo", help="Target Pinecone namespace")
 
     @transaction.atomic
     def handle_translated(self, *args, **options):
-        batch_size = options["batch_size"]
+        batch_size = min(int(options["batch_size"]), 96)
         limit = options.get("limit")
         dry_run = options["dry_run"]
-        namespace = options["namespace"]
+        namespace = options["namespace"] or None
 
         self.stdout.write(self.style.NOTICE("Initializing Pinecone connector..."))
         connector = PineconeConnector()

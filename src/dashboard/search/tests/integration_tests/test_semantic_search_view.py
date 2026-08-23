@@ -80,9 +80,10 @@ class SemanticSearchViewTest(DashboardTestCase):
             },
         ]
 
-    @patch.object(SemanticSearchView, "connector")
-    def test_semantic_search_with_filters_applied(self, mock_connector):
+    @patch("dashboard.search.views._get_pinecone_connector")
+    def test_semantic_search_with_filters_applied(self, mock_get_connector):
         """Should correctly apply query and filters, returning only matching items."""
+        mock_connector = mock_get_connector.return_value
         mock_connector.query_text.return_value = self.mock_results
 
         filters = {

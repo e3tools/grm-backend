@@ -24,12 +24,15 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
+from grm.cron_views import cron_check_issues
+
 handler400 = "dashboard.authentication.views.handler400"
 handler403 = "dashboard.authentication.views.handler403"
 handler404 = "dashboard.authentication.views.handler404"
 handler500 = "dashboard.authentication.views.handler500"
 
 urlpatterns = [
+    path("_cron/check-issues", cron_check_issues, name="cron_check_issues"),
     path("admin/", admin.site.urls),
     path("authentication/", include("authentication.urls")),
     path("issues/", include("issues.urls")),

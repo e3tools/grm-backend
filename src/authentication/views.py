@@ -35,6 +35,7 @@ from authentication.serializers import (
     PasswordResetSerializer,
 )
 from authentication.services import PasswordResetService
+from authentication.utils import get_validation_code
 from grm.constants import (
     CITIZEN_SUCCESS_MESSAGE,
     EMAIL_ERROR_MESSAGE,
@@ -313,7 +314,10 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
             required=['username', 'phone_number', 'password', 'confirm_password'],
             properties={
                 'username': openapi.Schema(
-                    type=openapi.TYPE_STRING, description='Unique username for the account', example='john.doe'
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Unique username for the account',
+                    example='john.doe@example.com',
                 ),
                 'first_name': openapi.Schema(
                     type=openapi.TYPE_STRING, description='First name of the citizen', example='John', max_length=150
@@ -362,7 +366,7 @@ class CitizenRegistrationCreateAPIView(CreateAPIView):
                                     type=openapi.TYPE_STRING,
                                     format=openapi.FORMAT_EMAIL,
                                     description='Username',
-                                    example='john.doe',
+                                    example='john.doe@example.com',
                                 ),
                                 'email': openapi.Schema(
                                     type=openapi.TYPE_STRING,
@@ -920,5 +924,155 @@ class FacilitatorProfileAPIView(APIView):
 
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class FacilitatorCredentialUpdateAPIView(APIView):
+    """
+    API endpoint to update password after facilitator's code validation.
+    """
+
+    authentication_classes = []
+
+    @swagger_auto_schema(
+        operation_summary="Update the user password after the facilitator's code validation",
+        operation_description="""
+        Update the user password after the facilitator's code validation
+        """,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['username', 'code', 'password'],
+            properties={
+                'username': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Unique username for the account',
+                    example='john.doe@example.com',
+                ),
+                'password': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_PASSWORD,
+                    description='Account password (must meet security requirements)',
+                    example='SecurePassword123!',
+                ),
+                'code': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Facilitator code',
+                    example='123456',
+                ),
+            },
+        ),
+        responses={
+            204: openapi.Response(
+                description="Facilitator password updated successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'token': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Authentication token for API requests"
+                        ),
+                        'user_id': openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="Unique identifier for the authenticated user"
+                        ),
+                        'username': openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Username of the authenticated user"
+                        ),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description="Success message"),
+                    },
+                ),
+            ),
+            401: openapi.Response(
+                description="Unauthorized - Invalid or missing code",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, description='Error message', example='Invalid code.'
+                        ),
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Not Found - User does not have a facilitator profile",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Error message',
+                            example=FACILITATOR_NOT_FOUND_ERROR_MESSAGE,
+                        ),
+                    },
+                ),
+            ),
+        },
+        tags=['Facilitator'],
+    )
+    def post(self, request):
+        """
+        Handle POST request to update password after facilitator's code is validated and returns
+        an authentication token for subsequent API requests.
+
+        Authentication is not required for this endpoint as it's used to obtain tokens.
+        """
+        response_data = request.data
+        try:
+            user = User.objects.get(username=response_data['username'])
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None and not user.is_active:
+            return Response(
+                {"error": INACTIVE_USER_ERROR_MESSAGE},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if user is None:
+            return Response(
+                {"error": LOGIN_ERROR_MESSAGE},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not hasattr(user, 'facilitator'):
+            return Response(
+                {'error': 'Incorrect authentication credentials.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        facilitator = user.facilitator
+
+        if facilitator is None:
+            return Response(
+                {'error': FACILITATOR_NOT_FOUND_ERROR_MESSAGE},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.last_login is not None:
+            return Response(
+                {'error': 'User already registered.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        user_code = get_validation_code(user.email)
+        if response_data['code'] != user_code:
+            return Response(
+                {'error': ('Incorrect authentication credentials.')},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        user.set_password(response_data['password'])
+        user.last_login = user.last_activity = timezone.now()
+        user.save(update_fields=['password', 'last_login', 'last_activity'])
+
+        user = authenticate(username=response_data['username'], password=response_data['password'])
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {
+                "token": token.key,
+                "user_id": user.id,
+                "username": user.username,
+                "message": LOGIN_SUCCESS_MESSAGE,
+            },
             status=status.HTTP_200_OK,
         )

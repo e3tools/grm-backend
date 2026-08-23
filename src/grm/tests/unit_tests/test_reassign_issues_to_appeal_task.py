@@ -39,6 +39,7 @@ class ReassignIssuesToAppealTaskTest(TestCase):
         self.assertEqual(result["updated_issues"], 1)
         self.assertEqual(issue.assignee, head)
         self.assertFalse(issue.appeal_status)
+        self.assertEqual('', issue.appeal_reason)
         self.assertIn(issue.id, result["issues_updated"])
 
     def test_reassign_multiple_issues_with_one_not_applicable(self):

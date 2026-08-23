@@ -1,8 +1,10 @@
+import re
+
 from django.urls import reverse
 
 from authentication.factories import GovernmentWorkerFactory, UserFactory
 from grm.tests.base import DashboardTestCase
-from issues.factories import AdministrativeRegionFactory, IssueFactory
+from issues.factories import AdministrativeRegionFactory, IssueFactory, IssueStatusFactory
 
 
 class IssueEscalateButtonsTemplateViewTest(DashboardTestCase):
@@ -53,3 +55,40 @@ class IssueEscalateButtonsTemplateViewTest(DashboardTestCase):
         url = reverse("dashboard:grm:issue_escalate_buttons", kwargs={"issue": 999999})
         resp = self.get(url, ajax=True, user=grm_manager)
         assert resp.status_code == 404
+
+    def test_resolved_issue_disables_escalate_and_deescalate_buttons(self):
+        """Resolved (final_status) issues must not offer escalation or de-escalation."""
+        region_a = AdministrativeRegionFactory(parent=self.root_region)
+        region_b = AdministrativeRegionFactory(parent=region_a)
+        resolved_status = IssueStatusFactory(
+            final_status=True,
+            open_status=False,
+            initial_status=False,
+            rejected_status=False,
+        )
+        issue = IssueFactory(
+            confirmed=True,
+            administrative_region=region_a,
+            status=resolved_status,
+        )
+        GovernmentWorkerFactory(
+            user=issue.assignee,
+            administrative_region=region_a,
+            department=issue.category.assigned_department.department,
+        )
+        GovernmentWorkerFactory(
+            administrative_region=self.root_region,
+            department=issue.category.assigned_department.department,
+        )
+        GovernmentWorkerFactory(
+            administrative_region=region_b,
+            department=issue.category.assigned_department.department,
+        )
+
+        url = reverse("dashboard:grm:issue_escalate_buttons", kwargs={"issue": issue.id})
+        grm_manager = UserFactory(grm_manager=True)
+        resp = self.get(url, ajax=True, user=grm_manager)
+        assert resp.status_code == 200
+        html = resp.content.decode()
+        assert re.search(r'<button[^>]*id="escalate"[^>]*\bdisabled\b', html, re.IGNORECASE)
+        assert re.search(r'<button[^>]*id="de-escalate"[^>]*\bdisabled\b', html, re.IGNORECASE)

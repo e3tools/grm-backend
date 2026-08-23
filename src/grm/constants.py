@@ -11,6 +11,13 @@ MEDIUM_CHOICES = [
     (ALERT_CHOICE, _("Receive updates directly")),
 ]
 
+NOTIFICATION_TYPES = {
+    'created',
+    'status_changed',
+    'appealed',
+    'assigned',
+}
+
 EMAIL_CHOICE = "email"
 PHONE_CHOICE = "phone_number"
 WHATSAPP_CHOICE = "whatsapp"
@@ -111,7 +118,9 @@ ISSUE_CREATE_ERROR_MESSAGE = _('An error occurred while creating the issue.')
 ISSUE_UPDATE_SUCCESS_MESSAGE = _('Issue updated successfully.')
 ISSUE_UPDATE_ERROR_MESSAGE = _('An error occurred while updating the issue.')
 ISSUE_UPDATE_STATUS_ERROR_MESSAGE = _('Only assignees can update the status field.')
+ISSUE_UPDATE_APPEAL_STATUS_ERROR_MESSAGE = _('Only assignees can update the appeal_status field.')
 ISSUE_UPDATE_RATING_ERROR_MESSAGE = _('Only reporters can update the rating field.')
+ISSUE_UPDATE_ESCALATE_ERROR_MESSAGE = _('Only assignees can update the escalate_flag field.')
 ISSUE_RETRIEVE_ERROR_MESSAGE = _('An error occurred while retrieving the issue.')
 ISSUE_LIST_ERROR_MESSAGE = _("Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z).")
 COMMENT_CREATE_SUCCESS_MESSAGE = _('Comment added successfully.')

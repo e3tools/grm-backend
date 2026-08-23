@@ -10,12 +10,18 @@ Compatible with pinecone==7.3.0
 """
 
 import logging
-from typing import Any
+from typing import Any, Optional
 
 from django.conf import settings
 from pinecone import Pinecone
+from pinecone.exceptions import NotFoundException
 
 logger = logging.getLogger(__name__)
+
+# Hardcoded namespace used everywhere (uploader, search, delete) so vectors are isolated
+# and Pinecone's "default namespace" quirks don't bite us. Pinecone creates a namespace
+# implicitly on the first upsert, so we don't need a "create namespace" call.
+DEMO_NAMESPACE = "benin-demo"
 
 
 class PineconeConnector:
@@ -71,21 +77,28 @@ class PineconeConnector:
         )
         logger.info(f"Index '{index_name}' created successfully with integrated inference.")
 
-    def upsert_texts(self, namespace: str, records: list[dict[str, Any]]):
+    @staticmethod
+    def _resolve_namespace(namespace: Optional[str]) -> str:
+        if not namespace or namespace == "__default__":
+            return DEMO_NAMESPACE
+        return namespace
+
+    def upsert_texts(self, namespace: Optional[str], records: list[dict[str, Any]]):
         """Upsert text documents into Pinecone (server-side embeddings)."""
         try:
-            logger.info(f"Upserting {len(records)} records into namespace '{namespace}'...")
-            result = self._index.upsert_records(namespace=namespace, records=records)
+            ns = self._resolve_namespace(namespace)
+            logger.info(f"Upserting {len(records)} records into namespace '{ns}'...")
+            result = self._index.upsert_records(namespace=ns, records=records)
             logger.info("Upsert completed successfully.")
             return result
         except Exception as e:
             logger.error(f"Error during Pinecone upsert: {str(e)}")
             raise
 
-    def delete_vectors(self, ids: list[str], namespace: str = None):
+    def delete_vectors(self, ids: list[str], namespace: Optional[str] = None):
         """Delete vectors from Pinecone by their IDs."""
         try:
-            ns = namespace or "default"
+            ns = self._resolve_namespace(namespace)
             logger.info(f"Deleting {len(ids)} vectors from namespace '{ns}'...")
             self._index.delete(ids=ids, namespace=ns)
             logger.info("Deletion completed successfully.")
@@ -93,12 +106,31 @@ class PineconeConnector:
             logger.error(f"Error deleting vectors from Pinecone: {str(e)}")
             raise
 
-    def query_text(self, query_text: str, top_k: int = 5, namespace: str = "default"):
-        """Perform semantic search using Pinecone’s built-in embeddings."""
+    def delete_all_vectors(self, namespace: Optional[str] = None):
+        """Delete all vectors in a namespace (demo resets / re-seeds)."""
         try:
-            logger.info(f"Performing semantic search for query: '{query_text[:50]}...'")
+            ns = self._resolve_namespace(namespace)
+            logger.warning(f"Deleting ALL vectors from namespace '{ns}'...")
+            try:
+                self._index.delete(delete_all=True, namespace=ns)
+            except TypeError:
+                self._index.delete(namespace=ns, delete_all=True)
+            logger.info("Delete-all completed successfully.")
+        except NotFoundException:
+            # Pinecone returns 404 "Namespace not found" when the namespace has no vectors yet.
+            # Treat it as already-empty so demo seeds can continue.
+            logger.info("Namespace not found on delete-all; treating as already empty.")
+        except Exception as e:
+            logger.error(f"Error deleting all vectors from Pinecone: {str(e)}")
+            raise
+
+    def query_text(self, query_text: str, top_k: int = 5, namespace: Optional[str] = None):
+        """Perform semantic search using Pinecone's built-in embeddings."""
+        try:
+            ns = self._resolve_namespace(namespace)
+            logger.info(f"Performing semantic search for query: '{query_text[:50]}...' in namespace '{ns}'")
             response = self._index.search(
-                namespace=namespace,
+                namespace=ns,
                 query={"inputs": {"text": query_text}, "top_k": top_k},
             )
             result = response.get("result", {}) or {}

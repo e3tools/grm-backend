@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-19 18:55+0000\n"
+"POT-Creation-Date: 2026-05-01 17:33+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,7 +55,7 @@ msgstr "L'utilisateur n'a pas de profil de facilitateur associé."
 msgid "email address"
 msgstr "adresse mail"
 
-#: authentication/models.py:19 grm/constants.py:20
+#: authentication/models.py:19 grm/constants.py:27
 msgid "phone number"
 msgstr "numéro de téléphone"
 
@@ -96,8 +96,8 @@ msgstr "Travailleurs du Gouvernement"
 #: issues/models.py:235 issues/models.py:254 issues/models.py:284
 #: issues/models.py:338 issues/models.py:353 issues/models.py:365
 #: issues/models.py:384 issues/models.py:424 issues/models.py:443
-#: issues/models.py:461 issues/models.py:489 issues/models.py:869
-#: issues/models.py:903
+#: issues/models.py:461 issues/models.py:489 issues/models.py:870
+#: issues/models.py:904
 msgid "Created at"
 msgstr "Créé à"
 
@@ -107,7 +107,7 @@ msgstr "Créé à"
 #: issues/models.py:339 issues/models.py:354 issues/models.py:366
 #: issues/models.py:385 issues/models.py:425 issues/models.py:444
 #: issues/models.py:462 issues/models.py:490 issues/models.py:593
-#: issues/models.py:870 issues/models.py:904
+#: issues/models.py:871 issues/models.py:905
 msgid "Updated at"
 msgstr "Mis à jour à"
 
@@ -355,7 +355,7 @@ msgid "Current event or multiple occurrences"
 msgstr "Evénement en cours ou occurrences multiples"
 
 #: dashboard/grm/forms.py:236
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:15
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:40
 #: dashboard/templates/search/_filters.html:4
 #: dashboard/templates/user_management/list.html:27
 #: dashboard/user_management/forms.py:164
@@ -455,33 +455,33 @@ msgstr ""
 "Aucun membre du personnel n'a été trouvé pour attribuer le problème. Le "
 "problème sera créé sans responsable."
 
-#: dashboard/grm/views.py:513 dashboard/grm/views.py:668
+#: dashboard/grm/views.py:513 dashboard/grm/views.py:662
 #: dashboard/templates/layouts/sidebar.html:47
 msgid "Review Issues"
 msgstr "Examiner les Problèmes"
 
-#: dashboard/grm/views.py:663
+#: dashboard/grm/views.py:657
 msgid "Issue Detail"
 msgstr "Détails du Problème"
 
-#: dashboard/grm/views.py:717
+#: dashboard/grm/views.py:720
 msgid "The issue was successfully edited."
 msgstr "Le problème a été modifié avec succès."
 
-#: dashboard/grm/views.py:736
+#: dashboard/grm/views.py:739
 msgid "The comment was sent successfully."
 msgstr "Le commentaire a été envoyé avec succès."
 
-#: dashboard/grm/views.py:817 dashboard/grm/views.py:869
-#: dashboard/grm/views.py:915
+#: dashboard/grm/views.py:820 dashboard/grm/views.py:872
+#: dashboard/grm/views.py:918
 msgid "The issue status was successfully updated."
 msgstr "L'état du problème a été mis à jour avec succès."
 
-#: dashboard/grm/views.py:837
+#: dashboard/grm/views.py:840
 msgid "Please enter the resolution reached for this issue"
 msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 
-#: dashboard/grm/views.py:838 dashboard/grm/views.py:884
+#: dashboard/grm/views.py:841 dashboard/grm/views.py:887
 #: dashboard/templates/grm/issue_detail.html:194
 #: dashboard/templates/settings/static_formset.html:49
 #: dashboard/templates/user_management/update.html:98
@@ -489,36 +489,36 @@ msgstr "Veuillez saisir la résolution atteinte pour ce problème"
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: dashboard/grm/views.py:854
+#: dashboard/grm/views.py:857
 msgid "The complaint has been resolved"
 msgstr "La réclamation a été résolue"
 
-#: dashboard/grm/views.py:883
+#: dashboard/grm/views.py:886
 msgid "Enter the reason for rejecting this issue"
 msgstr "Entrez la raison du rejet de ce problème"
 
-#: dashboard/grm/views.py:900
+#: dashboard/grm/views.py:903
 msgid "The complaint has been rejected"
 msgstr "La réclamation a été réjetée"
 
-#: dashboard/grm/views.py:1025 dashboard/user_management/views.py:468
+#: dashboard/grm/views.py:1028 dashboard/user_management/views.py:468
 msgid "The password was not correct, we could not proceed with action."
 msgstr ""
 "Le mot de passe étant incorrecte, nous ne pouvons effectuer cette opération."
 
-#: dashboard/grm/views.py:1045
+#: dashboard/grm/views.py:1048
 msgid "The issue was successfully escalated."
 msgstr "Le problème a été remonté avec succès."
 
-#: dashboard/grm/views.py:1048
+#: dashboard/grm/views.py:1051
 msgid "There are no users to escalate the issue."
 msgstr "Aucun utilisateur n'est disponible pour faire remonter le problème."
 
-#: dashboard/grm/views.py:1071
+#: dashboard/grm/views.py:1074
 msgid "The issue was successfully de-escalated."
 msgstr "Le problème a été désamorcée avec succès."
 
-#: dashboard/grm/views.py:1074
+#: dashboard/grm/views.py:1077
 msgid "There are no users to de-escalate the issue."
 msgstr "Il n'y a aucun utilisateur pour désamorcer le problème."
 
@@ -558,15 +558,15 @@ msgstr "Indicateur de goulot d'étranglement d'état"
 msgid "Status Bottleneck Metrics"
 msgstr "Métriques de goulot d'étranglement de l'état"
 
-#: dashboard/performance_diagnostics/views.py:63
+#: dashboard/performance_diagnostics/views.py:65
 msgid "Performance Diagnostics"
 msgstr "Diagnostic de performance"
 
-#: dashboard/performance_diagnostics/views.py:108
+#: dashboard/performance_diagnostics/views.py:110
 msgid "No metrics available for the selected filters."
 msgstr "Aucune donnée disponible pour les filtres sélectionnés."
 
-#: dashboard/performance_diagnostics/views.py:265
+#: dashboard/performance_diagnostics/views.py:267
 #, python-format
 msgid ""
 "The red flag on '%(status)s' immediately tells the admin that this status is "
@@ -576,7 +576,7 @@ msgstr ""
 "que ce statut représente un goulot d'étranglement majeur. Les problèmes sont "
 "en attente de %(days).1f jours en moyenne."
 
-#: dashboard/performance_diagnostics/views.py:356
+#: dashboard/performance_diagnostics/views.py:358
 msgid ""
 "No administrative sublevel is available. Showing current selected "
 "administrative level."
@@ -584,83 +584,96 @@ msgstr ""
 "Aucun sous-niveau administratif n'est disponible. Affichage du niveau "
 "administratif actuellement sélectionné."
 
-#: dashboard/performance_diagnostics/views.py:574
+#: dashboard/performance_diagnostics/views.py:576
 #: dashboard/templates/user_management/list.html:35
 #: dashboard/user_management/views.py:340
 msgid "Never"
 msgstr "Jamais"
 
-#: dashboard/performance_diagnostics/views.py:577
+#: dashboard/performance_diagnostics/views.py:579
 #: dashboard/user_management/views.py:343
 msgid "Today"
 msgstr "Aujourd'hui"
 
-#: dashboard/performance_diagnostics/views.py:579
+#: dashboard/performance_diagnostics/views.py:581
 #: dashboard/user_management/views.py:345
 msgid "1 day ago"
 msgstr "il y a 1 jour"
 
-#: dashboard/performance_diagnostics/views.py:581
+#: dashboard/performance_diagnostics/views.py:583
 #: dashboard/user_management/views.py:347
 #, python-format
 msgid "%(days)s days ago"
 msgstr "%(days)s jours il y a"
 
-#: dashboard/performance_diagnostics/views.py:633
-#: dashboard/performance_diagnostics/views.py:672
+#: dashboard/performance_diagnostics/views.py:635
+#: dashboard/performance_diagnostics/views.py:674
 msgid "No users selected"
 msgstr "Aucun utilisateur sélectionné"
 
-#: dashboard/performance_diagnostics/views.py:643
-#: dashboard/performance_diagnostics/views.py:734
+#: dashboard/performance_diagnostics/views.py:645
+#: dashboard/performance_diagnostics/views.py:736
 msgid "Invalid request data"
 msgstr "Données de requête invalides"
 
-#: dashboard/performance_diagnostics/views.py:675
+#: dashboard/performance_diagnostics/views.py:677
 msgid "Invalid notification type"
 msgstr "Type de notification invalide"
 
-#: dashboard/performance_diagnostics/views.py:678
+#: dashboard/performance_diagnostics/views.py:680
 msgid "Message cannot be empty"
 msgstr "Le message ne peut pas être vide."
 
-#: dashboard/performance_diagnostics/views.py:697
+#: dashboard/performance_diagnostics/views.py:699
 #, python-format
 msgid "%(count)d email(s) sent successfully"
 msgstr "%(count)d courriel(s) envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:699
+#: dashboard/performance_diagnostics/views.py:701
 #, python-format
 msgid "%(count)d SMS message(s) sent successfully"
 msgstr "%(count)d SMS envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:701
+#: dashboard/performance_diagnostics/views.py:703
 #, python-format
 msgid "%(email_count)d email(s) and %(count)d SMS message(s) sent successfully"
 msgstr "%(email_count)d courriels et %(count)d SMS ont été envoyés avec succès"
 
-#: dashboard/performance_diagnostics/views.py:709
+#: dashboard/performance_diagnostics/views.py:711
 #, python-format
 msgid "%(count)d user(s) skipped (missing contact info)"
 msgstr ""
 "%(count)d utilisateur(s) ignoré(s) (informations de contact manquantes)"
 
-#: dashboard/performance_diagnostics/views.py:712
-#: dashboard/performance_diagnostics/views.py:729
+#: dashboard/performance_diagnostics/views.py:714
+#: dashboard/performance_diagnostics/views.py:731
 #, python-format
 msgid "%(count)d notification(s) failed"
 msgstr "%(count)d notification(s) a/ont échoué"
 
-#: dashboard/performance_diagnostics/views.py:723
+#: dashboard/performance_diagnostics/views.py:725
 msgid "No notifications were sent"
 msgstr "Aucune notification n'a été envoyée"
 
-#: dashboard/performance_diagnostics/views.py:725
+#: dashboard/performance_diagnostics/views.py:727
 #, python-format
 msgid "%(count)d user(s) have no contact information"
 msgstr "%(count)d utilisateurs n'ont pas d'informations de contact"
 
-#: dashboard/search/views.py:93 dashboard/templates/layouts/sidebar.html:54
+#: dashboard/performance_diagnostics/views.py:763
+msgid "Invalid table type"
+msgstr "Type de table invalide"
+
+#: dashboard/performance_diagnostics/views.py:772
+msgid "AI features are not configured"
+msgstr "Les fonctionnalités d’IA ne sont pas configurées"
+
+#: dashboard/performance_diagnostics/views.py:799
+#: dashboard/templates/performance_diagnostics/dashboard.html:1099
+msgid "Failed to generate AI insight. Please try again."
+msgstr "Échec de la génération de l’analyse par l’IA. Veuillez réessayer."
+
+#: dashboard/search/views.py:94 dashboard/templates/layouts/sidebar.html:54
 msgid "Search Issues"
 msgstr "Problèmes de recherche"
 
@@ -677,15 +690,15 @@ msgstr "Pas d'email"
 msgid "No phone"
 msgstr "Pas de téléphone"
 
-#: dashboard/settings/views.py:22 dashboard/templates/layouts/sidebar.html:76
+#: dashboard/settings/views.py:20 dashboard/templates/layouts/sidebar.html:76
 msgid "Settings"
 msgstr "Paramètres"
 
-#: dashboard/settings/views.py:49
+#: dashboard/settings/views.py:47
 msgid "The status settings was successfully updated."
 msgstr "Les paramètres d'état ont été mis à jour avec succès."
 
-#: dashboard/settings/views.py:60
+#: dashboard/settings/views.py:58
 msgid "Settings by Issue Status"
 msgstr "Paramètres par statut du problème"
 
@@ -785,7 +798,7 @@ msgstr "Pourcentage"
 #: dashboard/templates/grm/issue_status_buttons.html:5
 #: dashboard/templates/grm/review_issues.html:48
 #: dashboard/templates/grm/review_issues.html:253
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:20
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:45
 msgid "Status"
 msgstr "Statut"
 
@@ -853,7 +866,7 @@ msgstr "Cliquez pour sélectionner l'emplacement"
 
 #: dashboard/templates/grm/issue_attachments.html:6
 #: dashboard/templates/grm/issue_attachments_column1.html:6
-#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:909
+#: dashboard/templates/grm/new_issue_confirmation.html:167 issues/models.py:910
 msgid "Attachments"
 msgstr "Pièces jointes"
 
@@ -1329,95 +1342,115 @@ msgstr "Envoi..."
 msgid "Failed to send notifications"
 msgstr "Échec de l'envoi des notifications"
 
-#: dashboard/templates/performance_diagnostics/dashboard.html:1014
+#: dashboard/templates/performance_diagnostics/dashboard.html:1059
+msgid "Analyzing..."
+msgstr "Analyse en cours..."
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:1092
+msgid "Failed to generate insight"
+msgstr "Échec de la génération de l’analyse"
+
+#: dashboard/templates/performance_diagnostics/dashboard.html:1140
 #: dashboard/templates/search/semantic_search.html:50
 #: dashboard/templates/search/semantic_search.html:67
 msgid "All"
 msgstr "Toutes"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:5
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:6
 msgid "Inactive Case Managers / Facilitators"
 msgstr "Gestionnaires de Cas / Facilitateurs inactifs"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:6
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:7
 msgid "Highlights specific users who are not engaging with the platform"
 msgstr ""
 "Met en évidence certains utilisateurs qui n'interagissent pas avec la "
 "plateforme"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:15
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:14
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:14
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:20
+msgid "AI Insight"
+msgstr "Analyse de l’IA"
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:24
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:24
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:30
+msgid "AI Analysis"
+msgstr "Analyse par l’IA"
+
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:40
 msgid "Role Filter"
 msgstr "Filtre de rôle"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:17
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:42
 msgid "All Roles"
 msgstr "Tous les rôles"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:18
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:43
 msgid "Case Managers Only"
 msgstr "Gestionnaires de cas seulement"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:19
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:44
 msgid "Facilitators Only"
 msgstr "Facilitateurs seulement"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:25
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:50
 msgid "Open Issues Filter"
 msgstr "Filtre des problèmes ouverts"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:27
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:52
 msgid "All Users"
 msgstr "Tous les utilisateurs"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:28
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:53
 msgid "Users with Open Issues Only"
 msgstr "Utilisateurs ayant des problèmes ouverts uniquement"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:29
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:54
 msgid "Users without Open Issues Only"
 msgstr "Utilisateurs sans problème ouvert uniquement"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:42
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:67
 msgid "user(s) selected"
 msgstr "utilisateur(s) sélectionné(s)"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:47
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:72
 msgid "Send Reminder"
 msgstr "Envoyer un rappel"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:51
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:76
 msgid "Clear Selection"
 msgstr "Sélection claire"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:69
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:94
 msgid "User Name"
 msgstr "Nom d'utilisateur"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:70
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:95
 msgid "Role"
 msgstr "Rôle"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:71
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:96
 #: dashboard/templates/user_management/list.html:29
 #: dashboard/templates/user_management/profile.html:147
 msgid "Last Activity"
 msgstr "Dernière Activité"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:72
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:97
 msgid "Open Issues Assigned"
 msgstr "Problèmes ouverts attribués"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:73
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:98
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:62
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:112
 #: dashboard/templates/performance_diagnostics/kpi_cards.html:167
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:19
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:23
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:44
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:48
 msgid "Performance"
 msgstr "Performance"
 
-#: dashboard/templates/performance_diagnostics/inactive_users_table.html:74
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:20
+#: dashboard/templates/performance_diagnostics/inactive_users_table.html:99
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:45
 msgid "Actions"
 msgstr "Actes"
 
@@ -1458,47 +1491,47 @@ msgstr "Taux d'appel"
 msgid "No Data Available"
 msgstr "Aucune donnée disponible"
 
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:5
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:6
 msgid "Performance by Administrative Level"
 msgstr "Performance par niveau administratif"
 
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:6
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:7
 msgid "Pinpoint geographic areas that are struggling"
 msgstr "Identifier les zones géographiques en difficulté"
 
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:16
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:41
 msgid "Open Issues"
 msgstr "Questions ouvertes"
 
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:17
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:42
 msgid "Avg. Resolution Time"
 msgstr "Temps de résolution moyen"
 
-#: dashboard/templates/performance_diagnostics/region_performance_table.html:18
+#: dashboard/templates/performance_diagnostics/region_performance_table.html:43
 msgid "Active Workers"
 msgstr "Travailleurs actifs"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:10
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:11
 msgid "Issue Lifecycle Bottlenecks (by Status)"
 msgstr "Points de blocage du cycle de vie des problèmes (par statut)"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:11
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:12
 msgid "Identify where issues are getting stuck in the workflow"
 msgstr "Identifiez les points de blocage dans le flux de travail"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:21
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:46
 msgid "Issues in Status"
 msgstr "Problèmes liés au statut"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:22
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:47
 msgid "Avg. Time in Status (days)"
 msgstr "Durée moyenne de séjour dans ce statut (jours)"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:40
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:65
 msgid "No data available"
 msgstr "Aucune donnée disponible"
 
-#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:50
+#: dashboard/templates/performance_diagnostics/status_bottlenecks.html:75
 msgid "Insight"
 msgstr "Aperçu"
 
@@ -1904,15 +1937,15 @@ msgstr "Recevoir les mises à jour du comité de gestion des plaintes"
 msgid "Receive updates directly"
 msgstr "Recevez directement les mises à jour"
 
-#: grm/constants.py:19
+#: grm/constants.py:26
 msgid "email"
 msgstr "email"
 
-#: grm/constants.py:21
+#: grm/constants.py:28
 msgid "whatsapp"
 msgstr "sms/whatsapp"
 
-#: grm/constants.py:30
+#: grm/constants.py:37
 msgid ""
 "Keep name confidential. Only the person resolving the issue will see the "
 "name."
@@ -1920,56 +1953,56 @@ msgstr ""
 "Gardez le nom confidentiel. Seule la personne résolvant le problème verra le "
 "nom."
 
-#: grm/constants.py:32
+#: grm/constants.py:39
 msgid "This is an individual filing on behalf of someone else."
 msgstr "Il s'agit d'un dépôt individuel au nom de quelqu'un d'autre."
 
-#: grm/constants.py:33
+#: grm/constants.py:40
 msgid "This is an organization filing on behalf of someone else."
 msgstr "Il s'agit d'une organisation qui dépose au nom de quelqu'un d'autre."
 
-#: grm/constants.py:36
+#: grm/constants.py:43
 msgid "Complainant"
 msgstr "Plaignant"
 
-#: grm/constants.py:40
+#: grm/constants.py:47
 msgid "Citizen on behalf of others"
 msgstr "Citoyen au nom d'autrui"
 
-#: grm/constants.py:41
+#: grm/constants.py:48
 msgid "Organization on behalf of others"
 msgstr "Organisation pour le compte d'autrui"
 
-#: grm/constants.py:50
+#: grm/constants.py:57
 msgid "Male"
 msgstr "Masculin"
 
-#: grm/constants.py:51
+#: grm/constants.py:58
 msgid "Female"
 msgstr "Féminin"
 
-#: grm/constants.py:75
+#: grm/constants.py:82
 msgid "Department head"
 msgstr "Chef de département"
 
-#: grm/constants.py:76
+#: grm/constants.py:83
 msgid "Person with fewer issues"
 msgstr "Personne avec moins de problèmes"
 
-#: grm/constants.py:87
+#: grm/constants.py:94
 msgid "Low"
 msgstr "Faible"
 
-#: grm/constants.py:88
+#: grm/constants.py:95
 msgid "Anonymous"
 msgstr "Anonyme"
 
-#: grm/constants.py:102
+#: grm/constants.py:109
 #, python-format
 msgid "Allowed file size less than or equal to %s"
 msgstr "Taille de fichier autorisée inférieure ou égale à %s"
 
-#: grm/constants.py:103
+#: grm/constants.py:110
 #, python-format
 msgid ""
 "Select a file with a size less than or equal to %s. The selected file is %s "
@@ -1978,146 +2011,156 @@ msgstr ""
 "Sélectionnez un fichier dont la taille est inférieure ou égale à %s. La "
 "taille du fichier sélectionné est de %s."
 
-#: grm/constants.py:104
+#: grm/constants.py:111
 msgid "Validation failed."
 msgstr "La validation a échoué."
 
-#: grm/constants.py:105
+#: grm/constants.py:112
 msgid "Not found."
 msgstr "Non trouvé"
 
-#: grm/constants.py:106
+#: grm/constants.py:113
 msgid ""
 "You must define the contact method is your contact medium is channel alert"
 msgstr ""
 "Vous devez définir la méthode de contact si votre moyen de contact est le "
 "canal d'alerte"
 
-#: grm/constants.py:107
+#: grm/constants.py:114
 msgid "If email contact method is selected, provide a valid email"
 msgstr ""
 "Si la méthode de contact par e-mail est sélectionnée, fournissez une adresse "
 "e-mail valide"
 
-#: grm/constants.py:108
+#: grm/constants.py:115
 msgid ""
 "If phone or whatsapp contact method is selected, provide a valid phone number"
 msgstr ""
 "Si la méthode de contact par téléphone ou WhatsApp est sélectionnée, "
 "indiquez un numéro de téléphone valide"
 
-#: grm/constants.py:109
+#: grm/constants.py:116
 msgid "Issue created successfully."
 msgstr "Problème créé avec succès."
 
-#: grm/constants.py:110
+#: grm/constants.py:117
 msgid "An error occurred while creating the issue."
 msgstr "Une erreur s'est produite lors de la création du problème."
 
-#: grm/constants.py:111
+#: grm/constants.py:118
 msgid "Issue updated successfully."
 msgstr "Problème mis à jour avec succès."
 
-#: grm/constants.py:112
+#: grm/constants.py:119
 msgid "An error occurred while updating the issue."
 msgstr "Une erreur s'est produite lors de la mise à jour du problème."
 
-#: grm/constants.py:113
+#: grm/constants.py:120
 msgid "Only assignees can update the status field."
-msgstr "Seuls les cessionnaires peuvent mettre à jour le champ de statut."
+msgstr "Seuls les responsables assignés peuvent mettre à jour le champ status."
 
-#: grm/constants.py:114
+#: grm/constants.py:121
+msgid "Only assignees can update the appeal_status field."
+msgstr ""
+"Seuls les responsables assignés peuvent mettre à jour le champ appeal_status."
+
+#: grm/constants.py:122
 msgid "Only reporters can update the rating field."
-msgstr "Seuls les journalistes peuvent mettre à jour le champ de notation."
+msgstr "Seuls les rapporteurs peuvent mettre à jour le champ rating"
 
-#: grm/constants.py:115
+#: grm/constants.py:123
+msgid "Only assignees can update the escalate_flag field."
+msgstr ""
+" Seuls les responsables assignés peuvent mettre à jour le champ escalate_flag"
+
+#: grm/constants.py:124
 msgid "An error occurred while retrieving the issue."
 msgstr "Une erreur s'est produite lors de la récupération du problème."
 
-#: grm/constants.py:116
+#: grm/constants.py:125
 msgid "Invalid datetime format. Use ISO 8601 (e.g. 2021-03-23T10:30:45Z)."
 msgstr ""
 "Format de date/heure non valide. Utiliser la norme ISO 8601 (par exemple: "
 "2021-03-23T10:30:45Z)."
 
-#: grm/constants.py:117
+#: grm/constants.py:126
 msgid "Comment added successfully."
 msgstr "Commentaire ajouté avec succès."
 
-#: grm/constants.py:118
+#: grm/constants.py:127
 msgid "An error occurred while creating the comment."
 msgstr "Une erreur s'est produite lors de la création du commentaire."
 
-#: grm/constants.py:119
+#: grm/constants.py:128
 msgid "An error occurred while retrieving issue comments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des commentaires sur le "
 "problème."
 
-#: grm/constants.py:120
+#: grm/constants.py:129
 msgid "An error occurred while deleting the comment."
 msgstr "Une erreur s'est produite lors de la suppression du commentaire."
 
-#: grm/constants.py:121
+#: grm/constants.py:130
 msgid "Comment cannot be empty."
 msgstr "Le commentaire ne peut pas être vide"
 
-#: grm/constants.py:122
+#: grm/constants.py:131
 msgid "Attachment uploaded successfully."
 msgstr "Pièce jointe téléchargée avec succès."
 
-#: grm/constants.py:123
+#: grm/constants.py:132
 msgid "An error occurred during file upload."
 msgstr "Une erreur s'est produite lors du téléchargement du fichier."
 
-#: grm/constants.py:124
+#: grm/constants.py:133
 msgid "An error occurred while retrieving issue attachments."
 msgstr ""
 "Une erreur s'est produite lors de la récupération des pièces jointes du "
 "problème."
 
-#: grm/constants.py:125
+#: grm/constants.py:134
 msgid "Citizen registered successfully."
 msgstr "Citoyen enregistré avec succès."
 
-#: grm/constants.py:126
+#: grm/constants.py:135
 msgid "A user with that username already exists."
 msgstr "Un utilisateur avec ce nom d'utilisateur existe déjà."
 
-#: grm/constants.py:127
+#: grm/constants.py:136
 msgid "user with this email address already exists."
 msgstr "un utilisateur avec cette adresse email existe déjà."
 
-#: grm/constants.py:128
+#: grm/constants.py:137
 msgid "Password confirmation does not match."
 msgstr "La confirmation du mot de passe ne correspond pas."
 
-#: grm/notifications.py:117
+#: grm/notifications.py:169
 #, python-brace-format
 msgid "Issue Created - Tracking Code: {tracking_code}"
 msgstr "Problème créé - Code de suivi: {tracking_code}"
 
-#: grm/notifications.py:118
+#: grm/notifications.py:170
 #, python-brace-format
 msgid "Issue Status Updated - Tracking Code: {tracking_code}"
 msgstr "Statut du problème mis à jour - Code de suivi: {tracking_code}"
 
-#: grm/notifications.py:119
+#: grm/notifications.py:171
+#, python-brace-format
+msgid "Issue Appealed - Tracking Code: {tracking_code}"
+msgstr "Appel déposé - Code de suivi: {tracking_code}"
+
+#: grm/notifications.py:172
 #, python-brace-format
 msgid "Issue Assigned - Tracking Code: {tracking_code}"
 msgstr "Problème attribué - Code de suivi: {tracking_code}"
 
-#: grm/notifications.py:120
-#, python-brace-format
-msgid "Issue Updated - Tracking Code: {tracking_code}"
-msgstr "Problème mis à jour - Code de suivi: {tracking_code}"
-
-#: grm/notifications.py:123
+#: grm/notifications.py:175
 #, python-brace-format
 msgid "Issue Notification - Tracking Code: {tracking_code}"
 msgstr "Notification de problème - Code de suivi: {tracking_code}"
 
-#: grm/notifications.py:134
+#: grm/notifications.py:198
 #, python-brace-format
 msgid ""
 "Dear citizen,\n"
@@ -2136,7 +2179,7 @@ msgstr ""
 "\n"
 "Merci pour votre signalement."
 
-#: grm/notifications.py:141
+#: grm/notifications.py:205
 #, python-brace-format
 msgid ""
 "Dear citizen,\n"
@@ -2155,7 +2198,26 @@ msgstr ""
 "{additional_info}\n"
 "Merci de votre patience."
 
-#: grm/notifications.py:149
+#: grm/notifications.py:213
+msgid ""
+"Dear citizen,\n"
+"\n"
+"Your appeal has been sent.\n"
+"Tracking Code: {tracking_code}\n"
+"Current Status: {status}\n"
+"Appeal Status: {appeal_status}\n"
+"{additional_info}\n"
+"Thank you for your patience."
+msgstr ""
+"Cher citoyen,\n"
+"\n"
+"Votre appel a été envoyé.\n"
+"Code de suivi: {tracking_code}\n"
+"Statut actuel: {status}\n"
+"{additional_info}\n"
+"Merci de votre patience."
+
+#: grm/notifications.py:222
 #, python-brace-format
 msgid ""
 "Dear citizen,\n"
@@ -2174,26 +2236,7 @@ msgstr ""
 "\n"
 "Nous travaillons à la résolution de votre problème."
 
-#: grm/notifications.py:156
-#, python-brace-format
-msgid ""
-"Dear citizen,\n"
-"\n"
-"Your issue has been updated.\n"
-"Tracking Code: {tracking_code}\n"
-"Status: {status}\n"
-"\n"
-"Thank you for your patience."
-msgstr ""
-"Cher citoyen,\n"
-"\n"
-"Votre dossier a été mis à jour.\n"
-"Code de suivi: {tracking_code}\n"
-"Statut: {status}\n"
-"\n"
-"Merci de votre patience."
-
-#: grm/notifications.py:166
+#: grm/notifications.py:232
 #, python-brace-format
 msgid ""
 "Dear citizen,\n"
@@ -2210,33 +2253,38 @@ msgstr ""
 "\n"
 "Merci."
 
-#: grm/notifications.py:173
+#: grm/notifications.py:239
 #, python-brace-format
 msgid "Resolution: {research_result}\n"
 msgstr "Résolution: {research_result}\n"
 
-#: grm/notifications.py:175
+#: grm/notifications.py:241
 #, python-brace-format
 msgid "Reject Reason: {reject_reason}\n"
 msgstr "Motif du refus: {reject_reason}\n"
 
-#: grm/notifications.py:179
+#: grm/notifications.py:243
+#, python-brace-format
+msgid "Appeal Reason: {appeal_reason}\n"
+msgstr "Motif de l’appel: {appeal_reason}\n"
+
+#: grm/notifications.py:247
 msgid "Unknown"
 msgstr "Inconnu"
 
-#: grm/settings.py:131
+#: grm/settings.py:132
 msgid "English"
 msgstr "Anglais"
 
-#: grm/settings.py:132
+#: grm/settings.py:133
 msgid "French"
 msgstr "Français"
 
-#: grm/settings.py:133
+#: grm/settings.py:134
 msgid "Kinyarwanda"
 msgstr "Kinyarwanda"
 
-#: grm/settings.py:134
+#: grm/settings.py:135
 msgid "Ethiopia"
 msgstr "Ethiopie"
 
@@ -2253,7 +2301,7 @@ msgstr ""
 "La plainte a été escaladée/remontée automatiquement car le délai de "
 "traitement est dépassé."
 
-#: grm/tasks.py:230 grm/tasks.py:296
+#: grm/tasks.py:231 grm/tasks.py:297
 #, python-format
 msgid ""
 "Your issue submitted has been accepted into the system with the tracking "
@@ -2262,7 +2310,7 @@ msgstr ""
 "Votre problème soumis a été accepté dans le système avec le code "
 "%s(tracking_code)s"
 
-#: grm/tasks.py:231
+#: grm/tasks.py:232
 #, python-format
 msgid ""
 "Your issue %s(tracking_code)s has been rejected with the following response: "
@@ -2271,14 +2319,14 @@ msgstr ""
 "Votre problème %s(tracking_code)s a été rejeté avec la réponse suivante: "
 "%s(reason)s"
 
-#: grm/tasks.py:232 grm/tasks.py:298
+#: grm/tasks.py:233 grm/tasks.py:299
 #, python-format
 msgid "Your issue %s has been resolved with the following response: %s"
 msgstr ""
 "Votre problème %s(tracking_code)s a été résolu avec la réponse suivante: "
 "%s(resolution)s"
 
-#: grm/tasks.py:297
+#: grm/tasks.py:298
 #, python-format
 msgid "Your issue %s has been rejected with the following response: %s"
 msgstr ""
@@ -2412,35 +2460,35 @@ msgstr "Changement de statut du problème"
 msgid "Issue Status Changes"
 msgstr "Changements d'état du problème"
 
-#: issues/models.py:606 issues/models.py:891
+#: issues/models.py:607 issues/models.py:892
 msgid "Issue"
 msgstr "Problème"
 
-#: issues/models.py:607
+#: issues/models.py:608
 msgid "Issues"
 msgstr "Problèmes"
 
-#: issues/models.py:873
+#: issues/models.py:874
 msgid "Comment"
 msgstr "Commentaire"
 
-#: issues/models.py:874
+#: issues/models.py:875
 msgid "Comments"
 msgstr "Commentaires"
 
-#: issues/models.py:893
+#: issues/models.py:894
 msgid "File attached to the issue"
 msgstr "Fichier joint au numéro"
 
-#: issues/models.py:901
+#: issues/models.py:902
 msgid "Uploaded by"
 msgstr "Téléchargé par"
 
-#: issues/models.py:905
+#: issues/models.py:906
 msgid "Deleted at"
 msgstr "Supprimé à"
 
-#: issues/models.py:908
+#: issues/models.py:909
 msgid "Issue Attachment"
 msgstr "Pièce jointe au problème"
 

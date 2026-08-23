@@ -240,6 +240,11 @@ class IssueCreateAPIView(CreateAPIView):
                                     },
                                     description="Status information",
                                 ),
+                                'appeal_status': openapi.Schema(
+                                    type=openapi.TYPE_BOOLEAN,
+                                    description='Flag indicating if the issue is under appeal',
+                                    example=False,
+                                ),
                                 'category': openapi.Schema(
                                     type=openapi.TYPE_OBJECT,
                                     properties={
@@ -384,22 +389,50 @@ class IssueCreateAPIView(CreateAPIView):
             ),
             400: openapi.Response(
                 description="Bad Request - Validation Failed",
-                examples={
-                    "application/json": {
-                        "message": VALIDATION_FAILED_MESSAGE,
-                        "errors": {
-                            "category": ["This field is required."],
-                            "issue_type": ["This field is required."],
-                            "administrative_region": ["This field is required."],
-                            "contact_method": [CONTACT_MEDIUM_ERROR_MESSAGE],
-                            "contact_information": [CONTACT_INFO_EMAIL_ERROR_MESSAGE],
-                        },
-                    }
-                },
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            description='Field-specific validation errors',
+                            properties={
+                                'category': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'issue_type': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'administrative_region': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["This field is required."],
+                                ),
+                                'contact_method': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=[CONTACT_MEDIUM_ERROR_MESSAGE],
+                                ),
+                                'contact_information': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=[CONTACT_INFO_EMAIL_ERROR_MESSAGE],
+                                ),
+                            },
+                        ),
+                    },
+                ),
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(
                 description="Internal Server Error",
@@ -505,6 +538,13 @@ class AssigneeIssueListAPIView(ListAPIView):
                 format=openapi.FORMAT_DATETIME,
                 required=False,
             ),
+            openapi.Parameter(
+                'code',
+                openapi.IN_QUERY,
+                description="Tracking code of the issue",
+                type=openapi.TYPE_STRING,
+                default=None,
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -531,13 +571,52 @@ class AssigneeIssueListAPIView(ListAPIView):
                                 type=openapi.TYPE_OBJECT,
                                 properties={
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
-                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
-                                    'title': openapi.Schema(
-                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
-                                    ),
                                     'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'appeal_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for appeal',
+                                        example='The issue occurred in another village.',
+                                    ),
+                                    'appeal_status': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is under appeal',
+                                        example=False,
+                                    ),
+                                    'escalate_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue should be escalated',
+                                        example=True,
+                                    ),
+                                    'escalation_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for escalating the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'rating': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description='Rating for the issue resolution (1-5)',
+                                        minimum=1,
+                                        maximum=5,
+                                        example=4,
+                                    ),
+                                    'reject_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is rejected',
+                                        example=False,
+                                    ),
+                                    'reject_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for rejecting the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'research_result': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Results of research conducted on the issue',
+                                        example='Investigation completed. Root cause identified.',
+                                    ),
+                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -649,7 +728,10 @@ class AssigneeIssueListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -689,6 +771,9 @@ class AssigneeIssueListAPIView(ListAPIView):
             if not dt:
                 raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
             qs = qs.filter(updated_date__gt=dt)
+        code = self.request.query_params.get("code")
+        if code:
+            qs = qs.filter(tracking_code__icontains=code)
         return qs.order_by("-intake_date")
 
 
@@ -741,6 +826,13 @@ class ReporterIssueListAPIView(ListAPIView):
                 format=openapi.FORMAT_DATETIME,
                 required=False,
             ),
+            openapi.Parameter(
+                'code',
+                openapi.IN_QUERY,
+                description="Tracking code of the issue",
+                type=openapi.TYPE_STRING,
+                default=None,
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -767,13 +859,52 @@ class ReporterIssueListAPIView(ListAPIView):
                                 type=openapi.TYPE_OBJECT,
                                 properties={
                                     'id': openapi.Schema(type=openapi.TYPE_INTEGER, example=1),
-                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
-                                    'title': openapi.Schema(
-                                        type=openapi.TYPE_STRING, example="Network connectivity issue"
-                                    ),
                                     'description': openapi.Schema(
                                         type=openapi.TYPE_STRING, example="Network connectivity issue"
                                     ),
+                                    'appeal_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for appeal',
+                                        example='The issue occurred in another village.',
+                                    ),
+                                    'appeal_status': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is under appeal',
+                                        example=False,
+                                    ),
+                                    'escalate_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue should be escalated',
+                                        example=True,
+                                    ),
+                                    'escalation_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for escalating the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'rating': openapi.Schema(
+                                        type=openapi.TYPE_INTEGER,
+                                        description='Rating for the issue resolution (1-5)',
+                                        minimum=1,
+                                        maximum=5,
+                                        example=4,
+                                    ),
+                                    'reject_flag': openapi.Schema(
+                                        type=openapi.TYPE_BOOLEAN,
+                                        description='Flag indicating if the issue is rejected',
+                                        example=False,
+                                    ),
+                                    'reject_reason': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Reason for rejecting the issue',
+                                        example='Issue requires higher level approval',
+                                    ),
+                                    'research_result': openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description='Results of research conducted on the issue',
+                                        example='Investigation completed. Root cause identified.',
+                                    ),
+                                    'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                                     'intake_date': openapi.Schema(
                                         type=openapi.TYPE_STRING,
                                         format=openapi.FORMAT_DATETIME,
@@ -885,7 +1016,10 @@ class ReporterIssueListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -925,6 +1059,9 @@ class ReporterIssueListAPIView(ListAPIView):
             if not dt:
                 raise ValidationError({"updated_date": ISSUE_LIST_ERROR_MESSAGE})
             qs = qs.filter(updated_date__gt=dt)
+        code = self.request.query_params.get("code")
+        if code:
+            qs = qs.filter(tracking_code__icontains=code)
         return qs.order_by("-intake_date")
 
 
@@ -1008,6 +1145,48 @@ class IssueRetrieveAPIView(RetrieveAPIView):
                         'tracking_code': openapi.Schema(type=openapi.TYPE_STRING, example="Tree254"),
                         'title': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
                         'description': openapi.Schema(type=openapi.TYPE_STRING, example="Network connectivity issue"),
+                        'appeal_reason': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Reason for appeal',
+                            example='The issue occurred in another village.',
+                        ),
+                        'appeal_status': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue is under appeal',
+                            example=False,
+                        ),
+                        'escalate_flag': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue should be escalated',
+                            example=True,
+                        ),
+                        'escalation_reason': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Reason for escalating the issue',
+                            example='Issue requires higher level approval',
+                        ),
+                        'rating': openapi.Schema(
+                            type=openapi.TYPE_INTEGER,
+                            description='Rating for the issue resolution (1-5)',
+                            minimum=1,
+                            maximum=5,
+                            example=4,
+                        ),
+                        'reject_flag': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description='Flag indicating if the issue is rejected',
+                            example=False,
+                        ),
+                        'reject_reason': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Reason for rejecting the issue',
+                            example='Issue requires higher level approval',
+                        ),
+                        'research_result': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description='Results of research conducted on the issue',
+                            example='Investigation completed. Root cause identified.',
+                        ),
                         'intake_date': openapi.Schema(
                             type=openapi.TYPE_STRING,
                             format=openapi.FORMAT_DATETIME,
@@ -1112,7 +1291,10 @@ class IssueRetrieveAPIView(RetrieveAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -1240,36 +1422,14 @@ class IssueStatusListAPIView(ListAPIView):
                         ),
                     },
                 ),
-                examples={
-                    "application/json": {
-                        "count": 25,
-                        "next": "http://localhost:8000/issues/issue-statuses/?page=3",
-                        "previous": "http://localhost:8000/issues/issue-statuses/?page=1",
-                        "results": [
-                            {
-                                "id": 1,
-                                "name": "Créé",
-                                "final_status": False,
-                                "initial_status": True,
-                                "rejected_status": False,
-                                "open_status": False,
-                            },
-                            {
-                                "id": 2,
-                                "name": "Ouverte",
-                                "final_status": False,
-                                "initial_status": False,
-                                "rejected_status": False,
-                                "open_status": True,
-                            },
-                        ],
-                    }
-                },
             ),
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1370,7 +1530,10 @@ class IssueTypeListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1547,7 +1710,10 @@ class IssueCategoryListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -1741,7 +1907,10 @@ class IssueCommentCreateAPIView(CreateAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -1990,7 +2159,10 @@ class IssueCommentDeleteAPIView(DestroyAPIView):
             204: openapi.Response(description="Comment deleted successfully"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Comment with the specified ID does not exist"),
@@ -2136,7 +2308,10 @@ class IssueAttachmentCreateAPIView(CreateAPIView):
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Issue with the specified ID does not exist"),
@@ -2436,7 +2611,10 @@ class IssueAttachmentDeleteAPIView(DestroyAPIView):
             204: openapi.Response(description="Attachment deleted successfully"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(description="Forbidden - User is not the reporter or assignee of this issue"),
             404: openapi.Response(description="Not Found - Attachment with the specified ID does not exist"),
@@ -2473,8 +2651,7 @@ class IssueUpdateAPIView(UpdateAPIView):
     API View for updating specific fields of Issue objects.
 
     This view handles partial updates (PATCH) of Issue instances allowing only
-    specific fields to be modified: escalate_flag, reject_flag, rating,
-    escalation_reason, status, and research_result.
+    specific fields to be modified.
 
     Requires Token authentication and validates that the user is either
     the reporter or assignee of the issue.
@@ -2495,21 +2672,36 @@ class IssueUpdateAPIView(UpdateAPIView):
 
         **Access Control:**
         Only users who are either the reporter or assignee of the issue can access this endpoint.
+
+        **Field-specific restrictions:**
+        - `status` and `appeal_status`: Only assignees can modify
+        - `rating`: Only reporters can modify
+        - Other fields: Both reporters and assignees can modify
         """,
         tags=['Issues'],
         security=[{'Token': []}],
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
+                'appeal_reason': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Reason for appeal',
+                    example='The issue occurred in another village.',
+                ),
+                'appeal_status': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Flag indicating if the issue is under appeal',
+                    example=False,
+                ),
                 'escalate_flag': openapi.Schema(
                     type=openapi.TYPE_BOOLEAN,
                     description='Flag indicating if the issue should be escalated',
                     example=True,
                 ),
-                'reject_flag': openapi.Schema(
-                    type=openapi.TYPE_BOOLEAN,
-                    description='Flag indicating if the issue is rejected',
-                    example=False,
+                'escalation_reason': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Reason for escalating the issue',
+                    example='Issue requires higher level approval',
                 ),
                 'rating': openapi.Schema(
                     type=openapi.TYPE_INTEGER,
@@ -2518,20 +2710,25 @@ class IssueUpdateAPIView(UpdateAPIView):
                     maximum=5,
                     example=4,
                 ),
-                'escalation_reason': openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description='Reason for escalating the issue',
-                    example='Issue requires higher level approval',
+                'reject_flag': openapi.Schema(
+                    type=openapi.TYPE_BOOLEAN,
+                    description='Flag indicating if the issue is rejected',
+                    example=False,
                 ),
-                'status': openapi.Schema(
-                    type=openapi.TYPE_INTEGER,
-                    description='ID of the new issue status',
-                    example=2,
+                'reject_reason': openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description='Reason for rejecting the issue',
+                    example='Issue requires higher level approval',
                 ),
                 'research_result': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description='Results of research conducted on the issue',
                     example='Investigation completed. Root cause identified.',
+                ),
+                'status': openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description='ID of the new issue status',
+                    example=2,
                 ),
             },
         ),
@@ -2569,6 +2766,11 @@ class IssueUpdateAPIView(UpdateAPIView):
                                         'open_status': openapi.Schema(type=openapi.TYPE_BOOLEAN, example=True),
                                     },
                                     description="Status information",
+                                ),
+                                'appeal_status': openapi.Schema(
+                                    type=openapi.TYPE_BOOLEAN,
+                                    example=False,
+                                    description="Flag indicating if the issue is under appeal",
                                 ),
                                 'category': openapi.Schema(
                                     type=openapi.TYPE_OBJECT,
@@ -2704,27 +2906,52 @@ class IssueUpdateAPIView(UpdateAPIView):
             ),
             400: openapi.Response(
                 description="Bad Request - Validation Failed",
-                examples={
-                    "application/json": {
-                        "message": VALIDATION_FAILED_MESSAGE,
-                        "errors": {
-                            "rating": ["Ensure this value is less than or equal to 5."],
-                            "status": ["Invalid pk \"999\" - object does not exist."],
-                        },
-                    }
-                },
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, example=VALIDATION_FAILED_MESSAGE),
+                        'errors': openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                'rating': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["Ensure this value is less than or equal to 5."],
+                                ),
+                                'status': openapi.Schema(
+                                    type=openapi.TYPE_ARRAY,
+                                    items=openapi.Schema(type=openapi.TYPE_STRING),
+                                    example=["Invalid pk \"999\" - object does not exist."],
+                                ),
+                            },
+                        ),
+                    },
+                ),
             ),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             403: openapi.Response(
-                description="Forbidden - User is not reporter or assignee",
-                examples={"application/json": {"detail": "You do not have permission to perform this action."}},
+                description="Forbidden - User is not reporter or assignee, or lacks permission for specific field",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING, example="You do not have permission to perform this action."
+                        )
+                    },
+                ),
             ),
             404: openapi.Response(
                 description="Not Found - Issue does not exist",
-                examples={"application/json": {"detail": NOT_FOUND_MESSAGE}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example=NOT_FOUND_MESSAGE)},
+                ),
             ),
             500: openapi.Response(
                 description="Internal Server Error",
@@ -2743,8 +2970,9 @@ class IssueUpdateAPIView(UpdateAPIView):
         and error handling. Only allows updating specific permitted fields.
 
         Role-based restrictions:
-        - Only assignees can edit 'status'
+        - Only assignees can edit 'status' and 'appeal_status'
         - Only reporters can edit 'rating'
+        - Both reporters and assignees can edit other fields
 
         Args:
             request: HTTP request object containing updated issue data
@@ -2756,8 +2984,9 @@ class IssueUpdateAPIView(UpdateAPIView):
         """
         try:
             instance = self.get_object()
-            # Guardar el status anterior para detectar cambios
+            # Save the previous status and appeal_status to detect changes
             old_status_id = instance.status_id if instance.status else None
+            old_appeal_status = instance.appeal_status
 
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
@@ -2775,6 +3004,16 @@ class IssueUpdateAPIView(UpdateAPIView):
                         # Log error but don't fail the update
                         logger.error(
                             f"Failed to send status change notification for issue {updated_issue.id}: {str(e)}"
+                        )
+
+                # Send notification if change appeal_status to True
+                if not old_appeal_status and updated_issue.appeal_status:
+                    try:
+                        send_issue_notification(updated_issue, 'appealed')
+                    except Exception as e:
+                        # Log error but don't fail the update
+                        logger.error(
+                            f"Failed to send appeal status change notification for issue {updated_issue.id}: {str(e)}"
                         )
 
                 detail_serializer = IssueDetailSerializer(updated_issue)
@@ -2887,7 +3126,10 @@ class CitizenGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -2987,7 +3229,10 @@ class CitizenAgeGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3088,7 +3333,10 @@ class SubProjectGroupListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3198,7 +3446,10 @@ class ComponentListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3318,7 +3569,10 @@ class SubComponentListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },
@@ -3438,7 +3692,10 @@ class IssueSubTypeListAPIView(ListAPIView):
             400: openapi.Response(description="Bad request - Invalid query parameters"),
             401: openapi.Response(
                 description="Unauthorized - Invalid or missing token",
-                examples={"application/json": {"detail": "Invalid token."}},
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={'detail': openapi.Schema(type=openapi.TYPE_STRING, example="Invalid token.")},
+                ),
             ),
             500: openapi.Response(description="Internal server error"),
         },

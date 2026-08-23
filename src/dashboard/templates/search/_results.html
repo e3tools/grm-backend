@@ -1,5 +1,9 @@
 {% load i18n custom_tags %}
 
+{% if semantic_search_notice %}
+	<div class="alert alert-info" role="alert">{{ semantic_search_notice }}</div>
+{% endif %}
+
 {% if total_results %}
 	<p class="mb-4">{% translate 'Found results' %}: {{ total_results }}</p>
 	{% for r in page_obj %}
@@ -45,8 +49,17 @@
 					{% endif %}
 				</div>
 				{% translate "No case date" as no_date %}
-				<div class="float-right text-sm">
-					{{ r.fields.issue_date|default:no_date }}
+				<div class="d-flex justify-content-between align-items-center mt-2">
+					<a href="{% url 'dashboard:grm:issue_detail' r.id_str %}"
+					   target="_blank"
+					   rel="noopener noreferrer"
+					   class="btn btn-sm btn-primary">
+						<i class="fa fa-external-link-alt mr-1"></i>
+						{% translate 'View details' %}
+					</a>
+					<div class="text-sm">
+						{{ r.fields.issue_date|default:no_date }}
+					</div>
 				</div>
 			</div>
 		</div>

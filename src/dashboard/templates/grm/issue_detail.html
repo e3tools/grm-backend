@@ -45,6 +45,34 @@
 					<div class="row mr-2 mb-2">
 						<div class="col-md-3">
 							<label class="label-align">
+								{% translate 'Assigned administrative level' %}
+							</label>
+						</div>
+						<div class="col-md-9" id="assignee-administrative-level">
+							{% if obj.assignee and obj.assignee.governmentworker %}
+								{{ obj.assignee.governmentworker.administrative_region.administrative_level.name }}
+							{% else %}
+								—
+							{% endif %}
+						</div>
+					</div>
+					<div class="row mr-2 mb-2">
+						<div class="col-md-3">
+							<label class="label-align">
+								{% translate 'Assigned department' %}
+							</label>
+						</div>
+						<div class="col-md-9" id="assignee-assigned-department">
+							{% if obj.assignee and obj.assignee.governmentworker %}
+								{{ obj.assignee.governmentworker.department.name }}
+							{% else %}
+								—
+							{% endif %}
+						</div>
+					</div>
+					<div class="row mr-2 mb-2">
+						<div class="col-md-3">
+							<label class="label-align">
 								{% translate 'Reporter' %}
 							</label>
 						</div>
@@ -261,6 +289,14 @@
         let status_change_modal = $('#statusChangeModalForm');
         let assignee = $('#id_assignee');
 
+        function setAssigneeWorkerContext(data) {
+            const dash = '—';
+            const level = (data && data.administrative_level) ? data.administrative_level : dash;
+            const dept = (data && data.department) ? data.department : dash;
+            $('#assignee-administrative-level').text(level);
+            $('#assignee-assigned-department').text(dept);
+        }
+
         assignee.on('change', function () {
             $.ajax({
                 type: "POST",
@@ -270,6 +306,7 @@
                 },
                 success: function (response) {
                     showPopupMessage(response);
+                    setAssigneeWorkerContext(response);
                 },
                 error: function (data) {
                     alert(error_server_message + "Error " + data.status);
@@ -281,6 +318,7 @@
             submitted_form() {
                 loadStatusButtons();
                 loadComments();
+                loadEscalateButtons();
                 $("#research-result .value").html($("#id_research_result").val());
                 $("#research-result").removeClass('d-none');
                 $("#reject-reason").addClass('d-none');
@@ -489,6 +527,7 @@
                         const option = new Option(response.assignee.text, response.assignee.id, true, true);
                         assignee.append(option).trigger('change');
                     }
+                    setAssigneeWorkerContext(response);
                     loadEscalateButtons();
                 },
                 error: function (data) {
@@ -512,6 +551,7 @@
                         const option = new Option(response.assignee.text, response.assignee.id, true, true);
                         assignee.append(option).trigger('change');
                     }
+                    setAssigneeWorkerContext(response);
                     loadEscalateButtons();
                 },
                 error: function (data) {

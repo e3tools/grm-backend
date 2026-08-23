@@ -1,5 +1,7 @@
 import logging
+from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
@@ -13,6 +15,20 @@ from issues.models import CitizenAgeGroup, CitizenGroup, Issue, IssueType
 logger = logging.getLogger(__name__)
 
 
+def _get_pinecone_connector() -> Optional[PineconeConnector]:
+    """
+    Build a Pinecone client only when configured. Used for lazy init on real search queries.
+    """
+    key = getattr(settings, "PINECONE_API_KEY", "") or ""
+    if not str(key).strip():
+        return None
+    try:
+        return PineconeConnector()
+    except Exception as e:
+        logger.warning("Pinecone connector could not be initialized: %s", e)
+        return None
+
+
 class SemanticSearchView(LoginRequiredMixin, View):
     """
     Semantic search view powered by Pinecone (SDK 7.3.0).
@@ -22,7 +38,6 @@ class SemanticSearchView(LoginRequiredMixin, View):
     template_name = "search/semantic_search.html"
     results_partial = "search/_results.html"
     search_container_partial = "search/_search_container.html"
-    connector = PineconeConnector()
 
     def get(self, request: HttpRequest) -> HttpResponse:
         query = request.GET.get("q", "").strip()
@@ -38,11 +53,24 @@ class SemanticSearchView(LoginRequiredMixin, View):
 
         search_active = bool(query)
         results, total_results = [], 0
+        semantic_search_notice = ""
+
+        pinecone_results: list = []
+        if search_active:
+            connector = _get_pinecone_connector()
+            if connector is None:
+                semantic_search_notice = str(
+                    _("Semantic search is not configured (add a valid PINECONE_API_KEY to your environment).")
+                )
+            else:
+                try:
+                    pinecone_results = connector.query_text(query_text=query, top_k=100)
+                except Exception as e:
+                    logger.error("Error during semantic search query: %s", e)
+                    semantic_search_notice = str(_("Semantic search is temporarily unavailable."))
 
         try:
-            if search_active:
-                pinecone_results = self.connector.query_text(query_text=query, top_k=100)
-
+            if search_active and pinecone_results:
                 filtered = []
                 for item in pinecone_results:
                     # In SDK 7.3.0, metadata is expanded as flat keys
@@ -75,11 +103,15 @@ class SemanticSearchView(LoginRequiredMixin, View):
                 total_results = len(filtered)
 
         except Exception as e:
-            logger.error(f"Error during semantic search: {e}")
+            logger.error("Error while filtering semantic search results: %s", e)
 
         confirmed_issues = Issue.objects.filter(confirmed=True)
         if hasattr(results, 'object_list'):
-            filtered_issues = [int(item.get('_id')) for item in results.object_list]
+            def _parse_issue_id(value) -> int:
+                # Pinecone ids sometimes arrive as floats / "43.0" strings; normalize to int.
+                return int(str(value).replace(".0", ""))
+
+            filtered_issues = [_parse_issue_id(item.get('_id')) for item in results.object_list]
             issues_status = confirmed_issues.filter(id__in=filtered_issues).values_list(
                 'id', 'status_id', 'status__name'
             )
@@ -87,7 +119,10 @@ class SemanticSearchView(LoginRequiredMixin, View):
                 issue_id: {"id": status_id, "name": status_name} for issue_id, status_id, status_name in issues_status
             }
             for item in results.object_list:
-                item['status'] = issues_status.get(int(item.get('_id')))
+                issue_id = _parse_issue_id(item.get('_id'))
+                item['id'] = issue_id
+                item['id_str'] = str(issue_id)
+                item['status'] = issues_status.get(issue_id)
 
         context = {
             "title": _("Search Issues"),
@@ -96,6 +131,7 @@ class SemanticSearchView(LoginRequiredMixin, View):
             "total_results": total_results,
             "page_obj": results,
             "search_active": search_active,
+            "semantic_search_notice": semantic_search_notice,
             "filters": {
                 "administrative_region": administrative_region,
                 "issue_type": issue_type,

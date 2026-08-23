@@ -600,6 +600,7 @@ class Issue(models.Model):
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], default=0)
     escalation_reason = models.TextField(null=True, blank=True)
     appeal_status = models.BooleanField(default=False)
+    appeal_reason = models.TextField(null=True, blank=True, default="")
     vectorized = models.BooleanField(default=False)
 
     class Meta:
