@@ -1,6 +1,6 @@
 ---
 title: "Addendum: Agentic Customization Wizard"
-status: draft
+status: final
 created: 2026-08-29
 updated: 2026-08-29
 ---
@@ -15,7 +15,7 @@ Depth for the PRD and architecture work, not the brief.
 |---|---|---|---|---|
 | `GRMOpenSourceDjangoBackend` (target) | `github.com/e3tools/grm-backend` | 2023-05-26 | No | CouchDB |
 | `grm-backend` | `gitlab.com/ecube3/grm-backend` | 2023-04-19 | No | CouchDB |
-| `GRM-Web-App-Benin` (reference) | `github.com/Corasec/GRM-Web-App-Benin` | 2026-08-19 | Yes | Postgres |
+| upstream client fork (reference) | private | 2026-08-19 | Yes | Postgres |
 
 The two grm-backend checkouts are the same 2023 open-source original. Neither has a `wizard/`
 or `issues/` app. `grm-backend` carries `masterTogo`, `masterAws` and `develop_rwanda_mod`
@@ -23,11 +23,11 @@ branches, so it is the codebase that actually reached multiple countries — wor
 what those deployments needed, since it is the only evidence of the multi-country case.
 
 Everything the brief describes about wizard mechanics, routing and assignment is read from the
-Benin fork. It is reference material, not the target.
+upstream fork. It is reference material, not the target.
 
 ## Porting checklist — defects not to carry across
 
-The re-base is a filter. These are known-bad in the Benin fork:
+The re-base is a filter. These are known-bad in the upstream fork:
 
 - **`check_issues` ORM lookups.** `grm/tasks.py:42,43,45` use single underscores
   (`internal_code_in`, `citizen_in`, `assignee_in`) where Django needs `__in`. Line 44 is
@@ -52,7 +52,7 @@ The re-base is a filter. These are known-bad in the Benin fork:
 - **`COUCHDB_*` settings** are read with no defaults, so Django will not boot without them even
   on installs that never touch CouchDB. The re-base should drop this outright.
 
-Ask the stopped Benin session for its sweep of other single-underscore `_in=` / `_isnull=` /
+Ask the stopped porting session for its sweep of other single-underscore `_in=` / `_isnull=` /
 `_gte=` instances; that list belongs here.
 
 ## Wizard mechanics the PRD will need
@@ -82,7 +82,7 @@ region granularity is a later refinement if it earns itself.
 
 | Code | Category | Region | Age | Why |
 |---|---|---|---|---|
-| GRM-1042 | Water access | Commune de Zè | 43d | No worker in Water dept at Zè or any ancestor |
+| GRM-1042 | Water access | Commune X | 43d | No worker in Water dept at Commune X or any ancestor |
 | GRM-1108 | Land dispute | Cotonou | 12d | Category has no redirection protocol set |
 | GRM-0997 | Health | Abomey | 61d | Under appeal — Health dept has no head |
 
@@ -103,7 +103,7 @@ hosts issue statistics.
 
 ## Rejected alternatives — rationale
 
-**Configuration presets / import-export.** Listed as idea #2 in the Benin strategy doc. Three
+**Configuration presets / import-export.** Listed as idea #2 in the upstream strategy doc. Three
 curated presets would ship in about a week. Rejected as *sufficient* because the failure is
 comprehension, not blank-page paralysis: a PIU that cannot explain the difference between a type
 and a category cannot judge whether a preset fits their programme. Worth building alongside.
@@ -115,13 +115,13 @@ the wizard replaced them. Neither was understood by the PIU, including by their 
 grievance matters even when nothing can route it. An unassigned issue is recorded, not lost, and
 drains automatically once someone is assigned to that cell.
 
-**Forward-porting the wizard into the 2023 base.** Rejected in favour of re-basing on Benin.
+**Forward-porting the wizard into the 2023 base.** Rejected in favour of re-basing on the upstream fork.
 Porting means re-implementing the Postgres domain, the issues app and the API across a
 three-year gap; extraction means deleting client-specific content from code that already works.
 
 ## Adjacent workstreams, out of scope
 
-The Benin strategy docs cover live interactive flow diagrams generated from real config, and
+The upstream strategy docs cover live interactive flow diagrams generated from real config, and
 role impersonation ("view as citizen / facilitator / case manager"), with Stitch mockup prompts
 for both. The ideas doc argues diagrams are a technical dependency of both the wizard preview
 and the impersonation launcher; if that holds, sequencing matters and the agent may want the
