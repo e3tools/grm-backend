@@ -1,0 +1,411 @@
+{% extends 'layouts/base.html' %}{% load bootstrap4 custom_tags static i18n %}
+
+{% block content %}
+	{% translate 'Add User' as add_user %}
+	<div class="row">
+		<div class="col-md-12">
+
+			<div class="card mb-4">
+				<div class="card-header">
+					<h3 class="card-title">{% translate 'Add New User' %}</h3>
+				</div>
+				<div class="card-body">
+					<!-- Tabs Navigation -->
+					<ul class="nav nav-tabs" id="userTypeTabs" role="tablist">
+						<li class="nav-item">
+							<a class="nav-link {% if active_tab == 'grm_manager' %}active{% endif %}"
+							   id="grm-manager-tab" data-toggle="tab" href="#grm-manager" role="tab"
+							   data-user-type="grm_manager">
+								<i class="fas fa-user-shield"></i> {% translate 'GRM Manager' %}
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link {% if active_tab == 'case_manager' %}active{% endif %}"
+							   id="case-manager-tab" data-toggle="tab" href="#case-manager" role="tab"
+							   data-user-type="case_manager">
+								<i class="fas fa-user-tie"></i> {% translate 'Case Manager' %}
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link {% if active_tab == 'facilitator' %}active{% endif %}"
+							   id="facilitator-tab" data-toggle="tab" href="#facilitator" role="tab"
+							   data-user-type="facilitator">
+								<i class="fas fa-users"></i> {% translate 'Facilitator' %}
+							</a>
+						</li>
+					</ul>
+
+					<!-- Tab Content -->
+					<div class="tab-content" id="userTypeTabContent">
+						<!-- GRM Manager Tab -->
+						<div class="tab-pane fade {% if active_tab == 'grm_manager' %}show active{% endif %}"
+							 id="grm-manager" role="tabpanel">
+							<form id="grm-manager-form" class="user-creation-form" data-user-type="grm_manager">
+								{% csrf_token %}
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.first_name %}</div>
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.last_name %}</div>
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.username %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.email %}</div>
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.phone_number %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.password %}</div>
+									<div class="col-md-4">{% bootstrap_field grm_manager_form.confirm_password %}</div>
+									<div class="col-auto">
+										<button type="button" class="btn text-secondary toggle-passwords mt-4"
+												data-form-id="#grm-manager-form"
+												title={% translate "Show/hide password" %}>
+											<i class="fas fa-eye"></i>
+										</button>
+									</div>
+								</div>
+								<div class="alert alert-info mt-3">
+									<i class="fas fa-info-circle"></i>
+									{% translate 'GRM Managers have full access to view and create issues across all departments, and can manage users.' %}
+								</div>
+								<button type="submit" class="btn btn-primary">
+									{{ add_user }}
+								</button>
+							</form>
+						</div>
+
+						<!-- Case Manager Tab -->
+						<div class="tab-pane fade {% if active_tab == 'case_manager' %}show active{% endif %}"
+							 id="case-manager" role="tabpanel">
+							<form id="case-manager-form" class="user-creation-form" data-user-type="case_manager">
+								{% csrf_token %}
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field case_manager_form.first_name %}</div>
+									<div class="col-md-4">{% bootstrap_field case_manager_form.last_name %}</div>
+									<div class="col-md-4">{% bootstrap_field case_manager_form.username %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field case_manager_form.email %}</div>
+									<div class="col-md-4">{% bootstrap_field case_manager_form.phone_number %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field case_manager_form.password %}</div>
+									<div class="col-md-4">{% bootstrap_field case_manager_form.confirm_password %}</div>
+									<div class="col-auto">
+										<button type="button" class="btn text-secondary toggle-passwords mt-4"
+												data-form-id="#case-manager-form"
+												title={% translate "Show/hide password" %}>
+											<i class="fas fa-eye"></i>
+										</button>
+									</div>
+								</div>
+								<hr class="my-3">
+								<h6 class="text-muted">{% translate 'Role Assignment' %}</h6>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field case_manager_form.case_manager_administrative_region %}</div>
+									<div class="col-md-4">{% bootstrap_field case_manager_form.department %}</div>
+									<div class="col-md-4">
+										<div class="form-group">
+											<div class="form-check">
+												{{ case_manager_form.is_department_head }}
+												<label class="form-check-label"
+													   for="{{ case_manager_form.is_department_head.id_for_label }}">
+													{{ case_manager_form.is_department_head.label }}
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="alert alert-info mt-3">
+									<i class="fas fa-info-circle"></i>
+									{% translate 'Case Managers can create issues and view issues assigned to their department.' %}
+								</div>
+								<button type="submit" class="btn btn-primary">
+									{{ add_user }}
+								</button>
+							</form>
+						</div>
+
+						<!-- Facilitator Tab -->
+						<div class="tab-pane fade {% if active_tab == 'facilitator' %}show active{% endif %}"
+							 id="facilitator" role="tabpanel">
+							<form id="facilitator-form" class="user-creation-form" data-user-type="facilitator">
+								{% csrf_token %}
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field facilitator_form.first_name %}</div>
+									<div class="col-md-4">{% bootstrap_field facilitator_form.last_name %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field facilitator_form.email %}</div>
+									<div class="col-md-4">{% bootstrap_field facilitator_form.phone_number %}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-4">{% bootstrap_field facilitator_form.password %}</div>
+									<div class="col-md-4">{% bootstrap_field facilitator_form.confirm_password %}</div>
+									<div class="col-auto">
+										<button type="button" class="btn text-secondary toggle-passwords mt-4"
+												data-form-id="#facilitator-form"
+												title={% translate "Show/hide password" %}>
+											<i class="fas fa-eye"></i>
+										</button>
+									</div>
+								</div>
+								<hr class="my-3">
+								<h6 class="text-muted">{% translate 'Role Assignment' %}</h6>
+								<div class="row">
+									<div class="col-md-8">{% bootstrap_field facilitator_form.administrative_region %}</div>
+									<div class="col-md-4">
+										<div class="form-group">
+											<div class="form-check">
+												{{ facilitator_form.village_secretary }}
+												<label class="form-check-label"
+													   for="{{ facilitator_form.village_secretary.id_for_label }}">
+													{{ facilitator_form.village_secretary.label }}
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="alert alert-info mt-3">
+									<i class="fas fa-info-circle"></i>
+									{% translate 'Facilitators are community representatives for a specific region.' %}
+								</div>
+								<button type="submit" class="btn btn-primary">
+									{{ add_user }}
+								</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="user-list" class="user-list-container">
+				<!-- User list will be loaded here via AJAX -->
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascript %}
+	{{ block.super }}
+
+	<!-- DataTables export files -->
+	<script src="{% static 'AdminLTE/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+	<script src="{% static 'AdminLTE/plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script type="text/javascript">
+        let userType = "{{ active_tab }}";
+        let newUrl = new URL(window.location);
+        newUrl.searchParams.set('tab', userType);
+        window.history.pushState({}, '', newUrl);
+
+        $(document).ready(function () {
+
+            // Load Select2
+            $('.region').select2({
+                ajax: {
+                    url: "{% url 'dashboard:grm:get_region_choices_for_select2' %}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {q: params.term};
+                    },
+                    processResults: function (data) {
+                        return {results: data};
+                    },
+                },
+                width: '100%',
+                minimumInputLength: 1,
+                placeholder: "Search and select an administrative level",
+                allowClear: true,
+                cache: true
+            });
+
+            // Load user list for active tab on page load
+            loadUserList();
+
+            // Load user list when tab changes
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                userType = $(e.target).data('user-type');
+                loadUserList();
+
+                // Update URL with tab parameter
+                let newUrl = new URL(window.location);
+                newUrl.searchParams.set('tab', userType);
+                window.history.pushState({}, '', newUrl);
+            });
+
+            // Handle form submission
+            $('.user-creation-form').on('submit', function (e) {
+                e.preventDefault();
+                let form = $(this);
+                let formData = form.serialize();
+                formData += '&user_type=' + userType;
+
+                // Clear previous errors
+                form.find('.is-invalid').removeClass('is-invalid');
+                form.find('.invalid-feedback').remove();
+
+                $.ajax({
+                    url: "{% url 'dashboard:user_management:create' %}",
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            // Show success message
+                            showPopupMessage(response);
+
+                            // Clear form
+                            form[0].reset();
+
+                            // Reset all select2 fields inside this form
+                            form.find('.select2-hidden-accessible').each(function () {
+                                $(this).val(null).trigger('change');
+                            });
+
+                            // Reload user list
+                            loadUserList();
+                        } else {
+                            // Show validation errors
+                            displayFormErrors(form, response.errors);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Error creating user:', xhr);
+                        alert('{% translate "An error occurred while creating the user." %}');
+                    },
+                    complete: function () {
+                        enableButton(form);
+                    }
+                });
+            });
+
+            function loadUserList() {
+                let container = $('#user-list');
+                container.html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-3x"></i></div>');
+
+                $.ajax({
+                    url: "{% url 'dashboard:user_management:list' %}",
+                    type: 'GET',
+                    data: {user_type: userType},
+                    success: function (html) {
+                        container.html(html);
+
+                        // Inicializar DataTable después de insertar la tabla
+                        initDataTable(userType);
+                    },
+                    error: function (xhr) {
+                        console.error('Error loading user list:', xhr);
+                        container.html('<div class="alert alert-danger">{% translate "Error loading user list." %}</div>');
+                    }
+                });
+            }
+
+            function displayFormErrors(form, errors) {
+                $.each(errors, function (field, messages) {
+                    let fieldElement = form.find('[name="' + field + '"]');
+                    if (fieldElement.length) {
+                        fieldElement.addClass('is-invalid');
+                        let errorHtml = '<div class="invalid-feedback d-block">';
+                        $.each(messages, function (index, message) {
+                            errorHtml += message + '<br>';
+                        });
+                        errorHtml += '</div>';
+                        fieldElement.closest('.form-group').append(errorHtml);
+                    } else if (field === '__all__') {
+                        // Non-field errors
+                        let errorHtml = '<div class="alert alert-danger">';
+                        $.each(messages, function (index, message) {
+                            errorHtml += message + '<br>';
+                        });
+                        errorHtml += '</div>';
+                        form.prepend(errorHtml);
+                    }
+                });
+            }
+
+            // DataTable
+
+            function initDataTable(userType) {
+                // Default configuration (facilitator or case_manager)
+				let columns = [1, 2, 3, 4];
+				let order = [[1, 'desc']];
+				let columnDefs = [
+					{targets: 4, orderData: 5},
+					{targets: 5, visible: false},
+					{targets: [0, 6], orderable: false, searchable: false}
+				];
+
+                // If it's a grm_manager, change the settings.
+                if (userType === 'grm_manager') {
+					columns = [1, 2];
+					columnDefs = [
+						{targets: 2, orderData: 3},
+						{targets: 3, visible: false},
+						{targets: [0, 3], orderable: false, searchable: false}
+					];
+                }
+
+                {% get_current_language as lang %}
+                let table = $('#table').DataTable({
+                    destroy: true, // important for restarting
+                    language: {
+                        url: '{% static "AdminLTE/plugins/datatables/locale/lang.json" %}'.replace('lang', '{{ lang }}')
+                    },
+                    dom: "ltipr",
+                    buttons: [
+                        {
+                            extend: 'csv',
+                            exportOptions: {columns: columns}
+                        }
+                    ],
+                    columnDefs: columnDefs,
+                    lengthMenu: [10, 50, 100],
+                    pageLength: 10,
+                    order: order
+                });
+
+                // Search and export events
+                $(document).off("keyup", "#search").on("keyup", "#search", function () {
+                    table.search($(this).val()).draw();
+                });
+                $(document).off("click", "#export-information").on("click", "#export-information", function () {
+                    table.button('.buttons-csv').trigger();
+                });
+            }
+        });
+
+        // ---- PASSWORD VISIBILITY TOGGLE ----
+        $(document).on('click', '.toggle-passwords', function () {
+            const formId = $(this).data('form-id');
+            const form = $(formId);
+            const icon = $(this).find('i');
+            const inputs = form.find('input[type="password"], input[data-type="password"]');
+
+            // Si hay campos tipo text (visibles), volver a ocultar
+            if (inputs.length === 0) {
+                form.find('input[type="text"]').each(function () {
+                    if ($(this).attr('name').includes('password')) {
+                        $(this).attr('type', 'password');
+                    }
+                });
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            } else {
+                // Mostrar ambos
+                inputs.each(function () {
+                    if ($(this).attr('name').includes('password')) {
+                        $(this).attr('type', 'text');
+                    }
+                });
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            }
+        });
+
+        // ---- RESET PASSWORD FIELDS TO HIDDEN WHEN TAB CHANGES ----
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
+            $('.user-creation-form').each(function () {
+                $(this).find('input[name$="password"]').attr('type', 'password');
+            });
+            $('.toggle-passwords i').removeClass('fa-eye-slash').addClass('fa-eye');
+        });
+	</script>
+{% endblock %}

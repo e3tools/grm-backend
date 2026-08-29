@@ -1,0 +1,174 @@
+{% load i18n custom_tags %}
+
+<!-- Last Updated Header -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="d-flex justify-content-end align-items-center">
+            <span class="text-muted">
+                <i class="fas fa-clock mr-1"></i>
+                {% translate "Last Updated" %}:
+                <span id="last-updated-time" data-timestamp="{% if last_updated %}{{ last_updated|date:'c' }}{% endif %}">
+                    {% translate "Just now" %}
+                </span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards Row -->
+<div class="row">
+	<!-- User Adoption Card -->
+	<div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+		<div class="card card-primary card-outline">
+			<div class="card-body">
+				<div class="kpi-label">{% translate "User Adoption" %}</div>
+				<div class="d-flex justify-content-between mb-3">
+					<div>
+						<div class="text-xl font-weight-bold d-inline-block">
+							{{ metrics.active_users_count|default:0 }}
+						</div>
+						<small class="text-muted d-inline-block"
+							   title="{% get_active_user_title_display metrics.active_users_metric %}">
+							{% get_active_user_abbrev_display metrics.active_users_metric %}
+						</small>
+						<div class="kpi-change {% if metrics.active_users_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.active_users_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.active_users_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.active_users_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+					<div class="img-circle bg-primary fs30">
+						<div class="center-70">
+							<i class="fas fa-user-friends"></i>
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="my-3">
+						<span class="text-lg font-weight-bold">{{ metrics.new_issues_count|default:0 }}</span>
+						<small class="text-muted">{% translate "New Issues" %}</small>
+						<div class="kpi-change {% if metrics.new_issues_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.new_issues_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.new_issues_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.new_issues_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="mt-3 badge {{ user_adoption_status.badge_class }}" title="{% translate "Performance" %}">
+						<i class="{{ user_adoption_status.icon_class }} mr-2"></i>{{ user_adoption_status.badge_text }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Issue Resolution Card -->
+	<div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+		<div class="card card-warning card-outline">
+			<div class="card-body">
+				<div class="kpi-label">{% translate "Issue Resolution" %}</div>
+				<div class="d-flex justify-content-between mb-3">
+					<div>
+						<div class="text-xl font-weight-bold d-inline-block">
+							{{ metrics.average_resolution_days|floatformat:1|default:"0.0" }}
+						</div>
+						<small class="text-muted d-inline-block">{% translate "days avg" %}</small>
+						<div class="kpi-change {% if metrics.resolution_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.resolution_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.resolution_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.resolution_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+					<div class="img-circle bg-warning fs30">
+						<div class="center-70">
+							<i class="far fa-file-alt"></i>
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="my-3">
+						<div>
+							<span class="text-lg font-weight-bold">{{ metrics.resolution_rate|floatformat:1|default:"0.0" }}%</span>
+							<small class="text-muted">{% translate "Resolution Rate" %}</small>
+							<small class="text-muted">({{ metrics.total_resolved_issues }}/{{ metrics.total_issues }})</small>
+						</div>
+						<div class="kpi-change {% if metrics.resolution_rate_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.resolution_rate_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.resolution_rate_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.resolution_rate_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="mt-3 badge {{ resolution_status.badge_class }}" title="{% translate "Performance" %}">
+						<i class="{{ resolution_status.icon_class }} mr-2"></i>{{ resolution_status.badge_text }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Citizen Satisfaction Card -->
+	<div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+		<div class="card card-danger card-outline">
+			<div class="card-body">
+						<div class="kpi-label">{% translate "Citizen Satisfaction" %}</div>
+				<div class="d-flex justify-content-between mb-3">
+					<div>
+						<div class="text-xl font-weight-bold d-inline-block">
+							{{ metrics.average_satisfaction_score|floatformat:2|default:"0.00" }}
+						</div>
+						<small class="text-muted d-inline-block">
+							/ 5.0
+							{% if metrics.total_rated_issues %}
+								({{ metrics.total_rated_issues }} )
+							{% endif %}
+						</small>
+						<div class="kpi-change {% if metrics.satisfaction_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.satisfaction_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.satisfaction_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.satisfaction_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+					<div class="img-circle bg-danger fs30">
+						<div class="center-70">
+							<i class="far fa-star"></i>
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="my-3">
+						<div>
+							<span class="text-lg font-weight-bold">{{ metrics.appeal_rate|floatformat:1|default:"0.0" }}%</span>
+							<small class="text-muted">{% translate "Appeal Rate" %}</small>
+							<small class="text-muted">({{ metrics.total_appeals }}/{{ metrics.total_issues }})</small>
+						</div>
+						<div class="kpi-change {% if metrics.appeal_rate_change_percentage >= 0 %}positive{% else %}negative{% endif %}">
+							{% if metrics.appeal_rate_change_percentage >= 0 %}
+								<i class="fas fa-arrow-up"></i> +{{ metrics.appeal_rate_change_percentage }}%
+							{% else %}
+								<i class="fas fa-arrow-down"></i> {{ metrics.appeal_rate_change_percentage }}%
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div class="border-top">
+					<div class="mt-3 badge {{ satisfaction_status.badge_class }}" title="{% translate "Performance" %}">
+						<i class="{{ satisfaction_status.icon_class }} mr-2"></i>{{ satisfaction_status.badge_text }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

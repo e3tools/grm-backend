@@ -1,0 +1,84 @@
+{% extends 'layouts/base.html' %}{% load bootstrap4 custom_tags static i18n %}
+
+{% block content %}
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card h-100 d-flex flex-column">
+				<div class="overlay-wrapper">
+					<div id="statusFormAjax"></div>
+					<div class="overlay" id="status-form-spin">
+						<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascript %}
+	{{ block.super }}
+	<script src="{% static 'js/csrfSafeMethodAjax.js' %}"></script>
+	<script type="text/javascript">
+        let status_form_spin = $('#status-form-spin');
+        status_form_spin.show();
+        let status_url = "{% url 'dashboard:settings:by_status' %}";
+
+        function loadSettingsByStatusForm($formAjax) {
+			$('#statusFormAjax').load(status_url, function (response, status) {
+				if (status === "error") {
+					alert(error_server_message);
+					$(".disabled-on-submit").removeClass('disabled').removeAttr('disabled');
+					enableButton($("form"));
+				}
+				status_form_spin.hide();
+			});
+        }
+
+        loadSettingsByStatusForm();
+
+        <!-- status_form_spin disable button on submit -->
+        $(document).on("submit", "form", function () {
+            status_form_spin.show();
+        });
+
+        $(document).on("submit", "#form", function (e) {
+            let $this = $(this);
+            e.preventDefault();
+            let data = new FormData(this)
+            $.ajax({
+                type: "post",
+                url: status_url,
+                data: data,
+                cache: false,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response && typeof response === "object" && 'msg' in response) {
+                        showPopupMessage(response);
+                        loadSettingsByStatusForm();
+                    } else {
+                        $('#statusFormAjax').html(response);
+
+						if (response.includes("alert-danger")) {
+							setTimeout(function () {
+								const firstError = document.querySelector('.alert-danger');
+								if (firstError) {
+									firstError.scrollIntoView({behavior: 'smooth', block: 'start'});
+								}
+							}, 50);
+						}
+                    }
+                },
+                error: function () {
+                    alert(error_server_message);
+                },
+                complete: function () {
+                    console.log('complete');
+                    status_form_spin.hide();
+                    enableOnSubmit();
+                    enableButton($this);
+                }
+            });
+        });
+	</script>
+{% endblock %}

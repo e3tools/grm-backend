@@ -1,137 +1,446 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 from django.views import generic
 
-from client import get_db
 from dashboard.grm.forms import SearchIssueForm
-from dashboard.mixins import AJAXRequestMixin, JSONResponseMixin, PageMixin
-from grm.utils import get_administrative_level_descendants, get_base_administrative_id
+from dashboard.mixins import LoginRequiredAndAJAXRequestMixin, PageMixin
+from etl.models import ETLExecutionLog
+from issues.models import (
+    AdministrativeRegion,
+    Issue,
+    IssueCategory,
+    IssueStatus,
+    IssueType,
+)
 
 COUCHDB_GRM_DATABASE = settings.COUCHDB_GRM_DATABASE
 
 
 class HomeFormView(PageMixin, LoginRequiredMixin, generic.FormView):
     form_class = SearchIssueForm
-    template_name = 'diagnostics/home.html'
-    title = _('Diagnostics')
-    active_level1 = 'diagnostics'
+    template_name = "diagnostics/home.html"
+    title = _("Diagnostics")
+    active_level1 = "diagnostics"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['access_token'] = settings.MAPBOX_ACCESS_TOKEN
-        context['lat'] = settings.DIAGNOSTIC_MAP_LATITUDE
-        context['lng'] = settings.DIAGNOSTIC_MAP_LONGITUDE
-        context['zoom'] = settings.DIAGNOSTIC_MAP_ZOOM
-        context['ws_bound'] = settings.DIAGNOSTIC_MAP_WS_BOUND
-        context['en_bound'] = settings.DIAGNOSTIC_MAP_EN_BOUND
-        context['country_iso_code'] = settings.DIAGNOSTIC_MAP_ISO_CODE
+        context["access_token"] = settings.MAPBOX_ACCESS_TOKEN
+        context["lat"] = settings.DIAGNOSTIC_MAP_LATITUDE
+        context["lng"] = settings.DIAGNOSTIC_MAP_LONGITUDE
+        context["zoom"] = settings.DIAGNOSTIC_MAP_ZOOM
+        context["ws_bound"] = settings.DIAGNOSTIC_MAP_WS_BOUND
+        context["en_bound"] = settings.DIAGNOSTIC_MAP_EN_BOUND
+        context["country_iso_code"] = settings.DIAGNOSTIC_MAP_ISO_CODE
+        context["last_update"] = ETLExecutionLog.objects.filter(status='SUCCESS').first()
         return context
 
 
-class IssuesStatisticsView(AJAXRequestMixin, LoginRequiredMixin, JSONResponseMixin, generic.View):
-    def get(self, request, *args, **kwargs):
-        grm_db = get_db(COUCHDB_GRM_DATABASE)
-        eadl_db = get_db()
+class UpdateIssuesDataView(LoginRequiredAndAJAXRequestMixin, generic.View):
 
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        category = self.request.GET.get('category')
-        issue_type = self.request.GET.get('type')
-        region = self.request.GET.get('region')
+    def post(self, request, *args, **kwargs):
+        from django.core.management import call_command
 
-        selector = {
-            "type": "issue",
-            "confirmed": True,
-            "auto_increment_id": {"$ne": ""},
-        }
-
-        date_range = {}
-        if start_date:
-            start_date = datetime.strptime(start_date, '%d/%m/%Y').strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            date_range["$gte"] = start_date
-            selector["intake_date"] = date_range
-        if end_date:
-            end_date = (datetime.strptime(end_date, '%d/%m/%Y') + timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-            date_range["$lte"] = end_date
-            selector["intake_date"] = date_range
-        if category:
-            selector["category.id"] = int(category)
-        if issue_type:
-            selector["issue_type.id"] = int(issue_type)
-
-        if region:
-            filter_regions = get_administrative_level_descendants(eadl_db, region, []) + [region]
-            selector["administrative_region.administrative_id"] = {
-                "$in": filter_regions
-            }
-
-        issues = grm_db.get_query_result(selector)
-        issues = [doc for doc in issues]
-
-        total_issues = len(issues)
-        region_stats = {}
-        status_stats = {}
-        type_stats = {}
-        category_stats = {}
-
-        def fill_count(key, stats: dict, name=None):
-            if key in stats:
-                stats[key]['count'] = stats[key]['count'] + 1
+        last_success = ETLExecutionLog.objects.filter(status='SUCCESS').first()
+        call_command("etl_fetch_issue_data", only_confirmed=True)
+        log_entry = ETLExecutionLog.objects.first()
+        if log_entry and last_success != log_entry and log_entry.status == 'SUCCESS':
+            msg = _(f"The data was successfully updated.<br>Records processed: {log_entry.records_processed}")
+            level = messages.SUCCESS
+            extra_tags = "success"
+            finished_at = log_entry.finished_at
+        else:
+            if not log_entry or last_success == log_entry or log_entry.status == 'RUNNING':
+                error = _(
+                    "Internal error while running etl_fetch_issue_data. " "For more details, check the server logs."
+                )
             else:
-                stats[key] = {
-                    'count': 1
+                error = log_entry.error_message.split("Traceback (most recent call last)")[0].strip()
+            msg = _(f"Data update failed.<br>Error: {error}")
+            level = messages.ERROR
+            extra_tags = "danger"
+            finished_at = last_success.finished_at if last_success else None
+
+        if finished_at:
+            # Convert to local time zone based on settings.TIME_ZONE
+            finished_at = timezone.localtime(finished_at)
+
+            # Use Django's format (SHORT_DATETIME_FORMAT by default in templates)
+            finished_at = date_format(finished_at, format='DATETIME_FORMAT', use_l10n=True)
+
+        messages.add_message(self.request, level, msg, extra_tags=extra_tags)
+        context = {
+            "msg": render(self.request, "common/messages.html").content.decode("utf-8"),
+            "finished_at": finished_at,
+        }
+        return JsonResponse(context, safe=False)
+
+
+class IssuesStatisticsView(LoginRequiredAndAJAXRequestMixin, generic.View):
+    def get(self, request, *args, **kwargs):
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        category = request.GET.get('category')
+        issue_type = request.GET.get('type')
+        region_id = request.GET.get('region')
+
+        # Get base/root region with prefetch
+        if region_id:
+            try:
+                root_region = AdministrativeRegion.objects.select_related('parent').get(id=region_id)
+            except AdministrativeRegion.DoesNotExist:
+                return JsonResponse({"error": "Region not found"})
+        else:
+            root_region = AdministrativeRegion.objects.get(parent__isnull=True)
+
+        # Build filters for issues
+        filters = Q(confirmed=True)
+
+        if start_date:
+            filters &= Q(intake_date__gte=make_aware(datetime.strptime(start_date, "%d/%m/%Y")))
+        if end_date:
+            filters &= Q(intake_date__lte=make_aware(datetime.strptime(end_date, "%d/%m/%Y")))
+        if category:
+            filters &= Q(category=category)
+        if issue_type:
+            filters &= Q(issue_type=issue_type)
+
+        # Get all descendant regions efficiently using CTE or optimized query
+        if region_id:
+            descendant_ids = root_region.get_descendant_ids()
+            filters &= Q(administrative_region__in=descendant_ids)
+
+        # Single query to get all statistics using annotations
+        issues_stats = Issue.objects.filter(filters).aggregate(
+            total_count=Count('id'),
+            # Status stats
+            **{
+                f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
+                for status in IssueStatus.objects.all()
+            },
+            # Type stats
+            **{
+                f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
+                for issue_type in IssueType.objects.all()
+            },
+            # Category stats
+            **{
+                f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
+                for cat in IssueCategory.objects.all()
+            },
+        )
+
+        total_issues = issues_stats['total_count']
+
+        if total_issues == 0:
+            return JsonResponse(
+                {
+                    "region_stats": {},
+                    "status_stats": {},
+                    "type_stats": {},
+                    "category_stats": {},
                 }
-            if name:
-                stats[key]['name'] = name
+            )
 
-        def process_stats(stats: dict):
-            for k in stats:
-                stats[k]['percentage'] = round(stats[k]['count'] * 100 / total_issues)
-                stats[k]['issues'] = stats[k]['count']
+        # Get region stats efficiently - solo regiones con issues
+        region_stats = self.get_region_stats_optimized(filters, root_region, total_issues)
 
-        for doc in issues:
-            region_key = get_base_administrative_id(eadl_db, doc['administrative_region']['administrative_id'], region)
-            fill_count(region_key, region_stats)
+        # Single query to get all statistics using annotations (for the filtered branch)
+        issues_stats = Issue.objects.filter(filters).aggregate(
+            total_count=Count('id'),
+            # Status stats
+            **{
+                f'status_{status.id}_count': Count('id', filter=Q(status_id=status.id))
+                for status in IssueStatus.objects.all()
+            },
+            # Type stats
+            **{
+                f'type_{issue_type.id}_count': Count('id', filter=Q(issue_type_id=issue_type.id))
+                for issue_type in IssueType.objects.all()
+            },
+            # Category stats
+            **{
+                f'category_{cat.id}_count': Count('id', filter=Q(category_id=cat.id))
+                for cat in IssueCategory.objects.all()
+            },
+        )
 
-            status_key = doc['status']['id']
-            fill_count(status_key, status_stats, doc['status']['name'])
+        # Process other stats from the aggregated data
+        status_stats = self.process_status_stats(issues_stats, total_issues)
+        type_stats = self.process_type_stats(issues_stats, total_issues)
+        category_stats = self.process_category_stats(issues_stats, total_issues)
 
-            type_key = doc['issue_type']['id']
-            fill_count(type_key, type_stats, doc['issue_type']['name'])
-
-            category_key = doc['category']['id']
-            fill_count(category_key, category_stats, doc['category']['name'])
-
-        process_stats(region_stats)
-        process_stats(status_stats)
-        process_stats(type_stats)
-        process_stats(category_stats)
-
-        regions = [k for k in region_stats]
-        selector = {
-            "type": "administrative_level",
-            "administrative_id": {
-                "$in": regions
-            }
-        }
-        administrative_level_docs = eadl_db.get_query_result(selector)
-        without_administrative_level_docs = True
-        for doc in administrative_level_docs:
-            without_administrative_level_docs = False
-            data = region_stats[doc['administrative_id']]
-            data['name'] = doc['name']
-            data['latitude'] = doc['latitude']
-            data['longitude'] = doc['longitude']
-            data['level'] = doc['administrative_level'].capitalize()
-        if without_administrative_level_docs:
-            region_stats = {}
         statistics = {
-            'region_stats': region_stats,
-            'status_stats': status_stats,
-            'type_stats': type_stats,
-            'category_stats': category_stats,
+            "region_stats": region_stats,
+            "status_stats": status_stats,
+            "type_stats": type_stats,
+            "category_stats": category_stats,
         }
-        return self.render_to_json_response(statistics)
+
+        return JsonResponse(statistics)
+
+    def get_region_stats_optimized(self, filters, target_region, total_issues):
+        """
+        Retrieves issue statistics for a specific region and its direct children in an optimized way.
+
+        This method is designed to efficiently calculate aggregated issue counts and percentages
+        for a target region and its immediate subregions (direct children), while also including
+        all issues from the entire branch (the target region and all its descendants).
+        It minimizes database queries by:
+          - Using a single filtered query to fetch issue counts per region.
+          - Mapping each region's issues to either the target region or one of its direct children.
+
+        The returned dictionary includes only regions with at least one issue, and for the target
+        region itself, the name will be displayed as "Global" if it contains direct issues.
+        If the target region has no direct issues, it is omitted from the results.
+
+        Args:
+            filters (Q): A Django Q object containing the filter conditions for issues.
+            target_region (AdministrativeRegion): The region whose statistics will be retrieved.
+            total_issues (int): The total number of issues that match the filters.
+
+        Returns:
+            dict:
+                A mapping where keys are region IDs and values are dictionaries with:
+                    - count (int): Number of issues for that region (including its descendants).
+                    - percentage (int): Percentage of total_issues represented by this count.
+                    - name (str): Display name of the region ("Global" for target_region with issues).
+                    - latitude (float or None): Latitude of the region center.
+                    - longitude (float or None): Longitude of the region center.
+                    - level (str): Capitalized administrative level of the region.
+        """
+
+        # Get the direct children of the target region + the region itself
+        target_regions = [target_region.id]  # Include the target region
+        direct_children = list(
+            AdministrativeRegion.objects.filter(parent_id=target_region.id).values_list('id', flat=True)
+        )
+        target_regions.extend(direct_children)
+
+        # Get all descendants of the target region (to filter issues that belong to this branch)
+        target_branch_ids = target_region.get_descendant_ids()
+
+        # Filter issues only from the target region branch
+        branch_filter = filters & Q(administrative_region__in=target_branch_ids)
+
+        # Optimized query that only includes regions with issues in this branch
+        region_data = (
+            Issue.objects.filter(branch_filter)
+            .select_related('administrative_region')
+            .values(
+                'administrative_region__id',
+                'administrative_region__name',
+                'administrative_region__latitude',
+                'administrative_region__longitude',
+                'administrative_region__administrative_level',
+                'administrative_region__parent_id',
+            )
+            .annotate(count=Count('id'))
+            .order_by('-count')
+        )
+
+        # Create a mapping from each region with issues to its target region (target_region or direct children)
+        region_counts = {region_id: 0 for region_id in target_regions}
+
+        # Target region information cache
+        target_regions_info = {}
+        for region in AdministrativeRegion.objects.filter(id__in=target_regions):
+            target_regions_info[region.id] = {
+                'name': region.name,
+                'latitude': region.latitude,
+                'longitude': region.longitude,
+                'level': region.administrative_level.name.capitalize() if region.administrative_level else '',
+            }
+
+        for item in region_data:
+            region_id = item['administrative_region__id']
+            count = item['count']
+
+            # Determine which target region this issue belongs to
+            target_region_id = self.find_target_region(region_id, target_region.id, direct_children)
+
+            if target_region_id in region_counts:
+                region_counts[target_region_id] += count
+
+        # Build final result only with regions that have issues
+        base_region_counts = {}
+        for region_id, count in region_counts.items():
+            if count > 0:  # Only include regions with issues
+                percentage = round((count / total_issues) * 100) if total_issues else 0
+
+                # Determine the display name
+                region_name = target_regions_info[region_id]['name']
+
+                # Only show "Global" if it is the target region AND has direct issues
+                if region_id == target_region.id:
+                    # Check if there are direct issues in the target region
+                    direct_issues_count = sum(
+                        1 for item in region_data if item['administrative_region__id'] == target_region.id
+                    )
+                    if direct_issues_count > 0:
+                        region_name = _("Global")
+                    else:
+                        # If there are no direct issues, do not include the target region in the results
+                        continue
+
+                base_region_counts[region_id] = {
+                    'count': count,
+                    'percentage': percentage,
+                    'name': region_name,
+                    'latitude': target_regions_info[region_id]['latitude'],
+                    'longitude': target_regions_info[region_id]['longitude'],
+                    'level': target_regions_info[region_id]['level'],
+                }
+
+        return base_region_counts
+
+    def find_target_region(self, region_id, root_region_id, direct_children_ids):
+        """
+        Find which "target region" a given region_id belongs to.
+
+        A "target region" is either:
+          - the root_region itself (root_region_id), or
+          - one of the direct children of root_region.
+
+        This function returns the id of the direct child of root_region that is an
+        ancestor of `region_id`. If `region_id` is itself the root_region, returns
+        root_region_id. If no ancestor under root is found, returns None.
+
+        Implementation notes:
+          - Uses a recursive CTE to climb the parent chain (efficient in Postgres).
+          - First tries to find the ancestor whose parent_id == root_region_id
+            (this is the direct child of root).
+          - If none found, falls back to checking if region_id == root_region_id.
+          - Caches results on self._region_ancestry_cache to avoid repeated DB calls.
+        """
+        # Quick checks
+        if region_id == root_region_id:
+            return root_region_id
+        if region_id in direct_children_ids:
+            return region_id
+
+        # Cache
+        if not hasattr(self, "_region_ancestry_cache"):
+            self._region_ancestry_cache = {}
+
+        if region_id in self._region_ancestry_cache:
+            return self._region_ancestry_cache[region_id]
+
+        from django.db import connection
+
+        table = AdministrativeRegion._meta.db_table
+
+        with connection.cursor() as cursor:
+            # 1) Try to find the ancestor whose parent is the root (the direct child of root)
+            cursor.execute(
+                f"""
+                WITH RECURSIVE region_path AS (
+                    SELECT id, parent_id, 0 AS lvl
+                    FROM {table}
+                    WHERE id = %s
+
+                    UNION ALL
+
+                    SELECT ar.id, ar.parent_id, rp.lvl + 1
+                    FROM {table} ar
+                    JOIN region_path rp ON ar.id = rp.parent_id
+                )
+                SELECT id
+                FROM region_path
+                WHERE parent_id = %s
+                LIMIT 1;
+            """,
+                [region_id, root_region_id],
+            )
+            row = cursor.fetchone()
+            if row:
+                target = row[0]
+                self._region_ancestry_cache[region_id] = target
+                return target
+
+            # 2) If none found, maybe region is the root or an error — check if root is in path
+            cursor.execute(
+                f"""
+                WITH RECURSIVE region_path AS (
+                    SELECT id, parent_id
+                    FROM {table}
+                    WHERE id = %s
+
+                    UNION ALL
+
+                    SELECT ar.id, ar.parent_id
+                    FROM {table} ar
+                    JOIN region_path rp ON ar.id = rp.parent_id
+                )
+                SELECT 1 FROM region_path WHERE id = %s LIMIT 1;
+            """,
+                [region_id, root_region_id],
+            )
+            row = cursor.fetchone()
+            if row:
+                # root is an ancestor (and since we didn't find a direct child, region must be root)
+                self._region_ancestry_cache[region_id] = root_region_id
+                return root_region_id
+
+        # Not found — return None
+        self._region_ancestry_cache[region_id] = None
+        return None
+
+    def process_status_stats(self, issues_stats: dict, total_issues: int) -> dict:
+        """Wrapper for processing status statistics."""
+        return self._process_aggregated_stats(issues_stats, total_issues, "status", IssueStatus)
+
+    def process_type_stats(self, issues_stats: dict, total_issues: int) -> dict:
+        """Wrapper for processing type statistics."""
+        return self._process_aggregated_stats(issues_stats, total_issues, "type", IssueType)
+
+    def process_category_stats(self, issues_stats: dict, total_issues: int) -> dict:
+        """Wrapper for processing category statistics."""
+        return self._process_aggregated_stats(issues_stats, total_issues, "category", IssueCategory)
+
+    def _process_aggregated_stats(self, issues_stats: dict, total_issues: int, prefix: str, model: type) -> dict:
+        """
+        Processes aggregated statistics for a given model and field prefix.
+
+        Args:
+            issues_stats (dict): Dictionary with aggregated counts returned by Django's aggregate().
+                                 Keys are in the format "{prefix}_{id}_count".
+            total_issues (int): Total number of issues after filtering.
+            prefix (str): The prefix used in the aggregated keys (e.g., "status", "type", "category").
+            model (type): Django model class containing 'id' and 'name' fields.
+
+        Returns:
+            dict: A dictionary mapping each model ID to its statistics:
+                  {
+                      id: {
+                          "count": <int>,
+                          "name": <str>,
+                          "percentage": <int>
+                      },
+                      ...
+                  }
+                  Only entries with count > 0 are included.
+        """
+        stats = {}
+        name_cache = {obj.id: obj.name for obj in model.objects.all()}
+
+        for obj_id, name in name_cache.items():
+            count = issues_stats.get(f"{prefix}_{obj_id}_count", 0)
+            if count > 0:
+                percentage = round((count / total_issues) * 100) if total_issues else 0
+                stats[obj_id] = {
+                    "count": count,
+                    "name": name,
+                    "percentage": percentage,
+                }
+
+        return stats

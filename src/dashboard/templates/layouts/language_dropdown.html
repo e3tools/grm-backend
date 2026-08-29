@@ -12,7 +12,7 @@
         {% for language in languages %}
             {% if lang.code != language.code %}
                 <a class="dropdown-item language" data-language_code="{{ language.code }}">
-                    {% trans language.name_local|capfirst %}
+                    {% translate language.name_local|capfirst %}
                 </a>
             {% endif %}
         {% endfor %}

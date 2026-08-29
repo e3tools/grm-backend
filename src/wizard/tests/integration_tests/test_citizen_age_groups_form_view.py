@@ -1,0 +1,287 @@
+from django.urls import reverse
+
+from authentication.factories import UserFactory
+from grm.tests.base import ViewTestCase
+from issues.factories import CitizenAgeGroupFactory, CitizenFactory
+from issues.models import CitizenAgeGroup
+from wizard.constants import (
+    CITIZEN_AGE_GROUPS_CHOICE,
+    COMPLETED_CHOICE,
+    IN_PROGRESS_CHOICE,
+    ITEM_DELETE_ERROR_MESSAGE,
+    ITEM_TOAST_ERROR_MESSAGE,
+    NOT_PERMITTED_TEXT,
+)
+from wizard.forms import DEFAULT_CITIZEN_AGE_GROUPS
+from wizard.models import WizardSection
+from wizard.registry import get_next_step, get_step_by_name
+
+
+class CitizenAgeGroupsFormViewTest(ViewTestCase):
+    """Integration tests for the CitizenAgeGroupsFormView."""
+
+    def setUp(self):
+        self.step = get_step_by_name(CITIZEN_AGE_GROUPS_CHOICE)['step']
+        self.url = reverse(f"wizard:setup_step_{self.step}")
+        self.user = UserFactory(grm_owner=True)
+
+        # Wizard sections
+        self.current_section = WizardSection.objects.get(step=self.step)
+        self.current_section.status = IN_PROGRESS_CHOICE
+        self.current_section.save()
+
+        next_step_config = get_next_step(CITIZEN_AGE_GROUPS_CHOICE)
+        self.next_section = WizardSection.objects.get(step=next_step_config['step'])
+
+    # ---- Access control ----
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.get(self.url, authorized=False, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
+    def test_non_ajax_request_returns_404(self):
+        response = self.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_non_grm_owner_user_cannot_access(self):
+        self.user = UserFactory()
+        response = self.get(self.url, ajax=True)
+        self.assertEqual(response.status_code, 404)
+
+    # ---- Rendering ----
+
+    def test_get_ajax_request_renders(self):
+        response = self.get(self.url, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "wizard/formset.html")
+        self.assertIn("formset", response.context)
+        self.assertEqual(response.context["step"], self.step)
+        self.assertEqual(response.context["formset_label"], "Citizen Age Groups")
+        self.assertEqual(response.context["toast_title"], NOT_PERMITTED_TEXT)
+        self.assertEqual(response.context["toast_message"], ITEM_TOAST_ERROR_MESSAGE)
+
+    # ---- Creation logic ----
+
+    def test_post_creates_default_age_groups_when_none_exist(self):
+        """Should create the default CitizenAgeGroups if none exist yet."""
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
+
+        data = {
+            "form-TOTAL_FORMS": str(len(DEFAULT_CITIZEN_AGE_GROUPS)),
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        # Add each default age group
+        for i, name in enumerate(DEFAULT_CITIZEN_AGE_GROUPS):
+            data[f"form-{i}-name"] = name
+
+        response = self.post(self.url, data, ajax=True)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
+        self.assertEqual(CitizenAgeGroup.objects.count(), len(DEFAULT_CITIZEN_AGE_GROUPS))
+
+        # Wizard sections should be updated
+        self.current_section.refresh_from_db()
+        self.next_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, COMPLETED_CHOICE)
+        self.assertEqual(self.next_section.status, IN_PROGRESS_CHOICE)
+
+    # ---- Update ----
+
+    def test_post_updates_existing_age_group(self):
+        """Should update an existing CitizenAgeGroup."""
+        group = CitizenAgeGroupFactory(name="Under 12 or younger")
+        updated_name = "Under 10 or younger"
+
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": group.id,
+            "form-0-name": updated_name,
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 302)
+
+        group.refresh_from_db()
+        self.assertEqual(group.name, updated_name)
+
+    # ---- Deletion ----
+
+    def test_post_cannot_delete_restricted_age_group(self):
+        """Should prevent deletion if the CitizenAgeGroup is linked to existing Citizen(s)."""
+        group = CitizenAgeGroupFactory(name="35–44 years")
+        CitizenFactory(age_group=group)
+
+        data = {
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": group.id,
+            "form-0-name": group.name,
+            "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "wizard/formset.html")
+        self.assertIn(
+            ITEM_DELETE_ERROR_MESSAGE % {"name": group.name},
+            response.context["formset"].non_form_errors()[0],
+        )
+        self.assertTrue(CitizenAgeGroup.objects.filter(id=group.id).exists())
+
+    def test_post_can_delete_non_restricted_age_group(self):
+        """Should delete successfully if no linked Citizens exist."""
+        group = CitizenAgeGroupFactory(name="45–54 years")
+
+        data = {
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "1",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-id": group.id,
+            "form-0-name": group.name,
+            "form-0-DELETE": "on",  # marked for deletion
+            "form-1-name": "new",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse(f"wizard:setup_step_{self.step + 1}"))
+        self.assertFalse(CitizenAgeGroup.objects.filter(id=group.id).exists())
+
+    # ---- Validation ----
+
+    def test_required_field_validation(self):
+        """Should return validation errors if 'name' is empty."""
+        data = {
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-name": "",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        form = response.context["form"].forms[0]
+        self.assertIn("name", form.errors)
+        self.assertEqual(form.errors["name"][0], "This field is required.")
+
+    def test_duplicate_name_validation_on_update(self):
+        """Should raise validation error when updating with a duplicate name."""
+        group1 = CitizenAgeGroupFactory(name="18–24 years")
+        group2 = CitizenAgeGroupFactory(name="25–34 years")
+
+        data = {
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "2",
+            "form-MIN_NUM_FORMS": "1",
+            "form-MAX_NUM_FORMS": "100",
+            # Group 1 unchanged
+            "form-0-id": group1.id,
+            "form-0-name": group1.name,
+            # Group 2 duplicated
+            "form-1-id": group2.id,
+            "form-1-name": group1.name,
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.context["form"].forms[1]
+        self.assertIn("name", form.errors)
+        self.assertIn("Citizen Age Group with this Name already exists.", form.errors["name"][0])
+
+        group2.refresh_from_db()
+        self.assertEqual(group2.name, "25–34 years")
+
+    def test_duplicate_name_validation_on_create(self):
+        """Should raise validation error when creating with a duplicate name."""
+
+        data = {
+            "form-TOTAL_FORMS": "2",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "100",
+            "form-0-name": "Duplicate Name",
+            "form-1-name": "Duplicate Name",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
+
+        self.assertEqual(response.context["form"].errors[1]["__all__"][0], "Please correct the duplicate values below.")
+
+    def test_post_requires_minimum_one_form_when_age_groups_exist(self):
+        """
+        Should require at least one CitizenAgeGroup form to be valid
+        when CitizenAgeGroup objects exist in the database.
+        """
+        CitizenAgeGroupFactory()
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(CitizenAgeGroup.objects.count(), 1)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)
+
+    def test_post_requires_minimum_one_form_when_no_age_groups_exist(self):
+        """
+        Should require at least one CitizenAgeGroup form to be valid
+        when no CitizenAgeGroup objects exist in the database.
+        """
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
+
+        data = {
+            "form-TOTAL_FORMS": "0",  # no forms submitted
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "1",  # formset requires at least one
+            "form-MAX_NUM_FORMS": "100",
+        }
+
+        response = self.post(self.url, data, ajax=True)
+
+        # The form should not be valid and should render the same template again
+        self.assertEqual(response.status_code, 200)
+        formset = response.context["formset"]
+
+        # Should not create anything
+        self.assertEqual(CitizenAgeGroup.objects.count(), 0)
+
+        # Verify formset validation error due to min_num constraint
+        non_form_errors = formset.non_form_errors()
+        self.assertTrue(any("at least" in e.lower() or "minimum" in e.lower() for e in non_form_errors))
+
+        # Wizard should stay in current section (not mark completed)
+        self.current_section.refresh_from_db()
+        self.assertEqual(self.current_section.status, IN_PROGRESS_CHOICE)

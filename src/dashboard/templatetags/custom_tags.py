@@ -1,11 +1,16 @@
-from datetime import datetime
-
 from django import template
+from django.utils import timezone
 
 from authentication.utils import get_validation_code
-from client import get_db
-from dashboard.grm import CITIZEN_TYPE_CHOICES, CITIZEN_TYPE_CHOICES_ALT, CONTACT_CHOICES, MEDIUM_CHOICES
-from grm.utils import get_administrative_region_name as get_region_name
+from dashboard.constants import MAP_ACTIVE_USER_ABBREV, MAP_ACTIVE_USER_TITLE
+from grm.constants import (
+    CITIZEN_TYPE_CHOICES,
+    CITIZEN_TYPE_CHOICES_ALT,
+    CONTACT_CHOICES,
+    MAP_ISSUE_STATUS_BADGE,
+    MEDIUM_CHOICES,
+)
+from wizard.constants import MAP_WIZARD_SECTION, MAP_WIZARD_STATUS
 
 register = template.Library()
 
@@ -24,68 +29,19 @@ def get_code(email):
 
 
 @register.simple_tag
-def get_status_phase(tasks):
-    len_tasks = len(tasks)
-    status = 'in-progress'
-    completed = len([task for task in tasks if task['status'] == 'completed'])
-    not_started = len([task for task in tasks if task['status'] == 'not-started'])
-    if completed == len_tasks:
-        status = 'completed'
-    elif not_started == len_tasks:
-        status = 'not-started'
-    return status
-
-
-@register.simple_tag
-def get_completed_tasks(tasks):
-    len_tasks = len(tasks)
-    completed = len([task for task in tasks if task['status'] == 'completed'])
-    return f'{completed}/{len_tasks}'
-
-
-@register.simple_tag
-def date_order_format(date):
-    data = date.split('-') if date else []
-    return f'{data[2]}{data[1]}{data[0]}' if len(data) > 2 else ''
-
-
-@register.simple_tag
-def get_date(date_time):
-    data = date_time.split('T') if date_time else ''
-    if data:
-        data = data[0].split('-')
-        data = f'{data[2]}-{data[1]}-{data[0]}' if len(data) > 2 else ''
-    return data
-
-
-@register.filter(expects_localtime=True)
-def string_to_date(date_time, date_format="%Y-%m-%dT%H:%M:%S.%fZ"):
-    if date_time:
-        return datetime.strptime(date_time, date_format)
-
-
-@register.simple_tag
 def get_days_until_today(date_time):
-    date = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S.%fZ')
-    delta = datetime.now() - date
-    return delta.days
-
-
-@register.simple_tag
-def get_days_until_date(date_time):
-    date = datetime.strptime(date_time, '%Y-%m-%dT%H:%M:%S.%fZ')
-    delta = date - datetime.now()
+    delta = timezone.now() - date_time
     return delta.days
 
 
 @register.simple_tag
 def get_percentage_style(percentage):
-    style = 'danger'
+    style = "danger"
     percentage = int(percentage)
     if percentage > 19:
-        style = 'yellow'
+        style = "yellow"
     if percentage > 49:
-        style = 'primary'
+        style = "primary"
     return style
 
 
@@ -125,19 +81,43 @@ def get_contact_medium_display(value):
 
 
 @register.simple_tag
+def get_issue_status_badge(value):
+    return MAP_ISSUE_STATUS_BADGE[value]
+
+
+@register.simple_tag
+def get_wizard_status_display(value):
+    return MAP_WIZARD_STATUS[value]
+
+
+@register.simple_tag
+def get_wizard_section_display(value):
+    return MAP_WIZARD_SECTION.get(value)
+
+
+@register.simple_tag
+def get_active_user_abbrev_display(value):
+    return MAP_ACTIVE_USER_ABBREV.get(value)
+
+
+@register.simple_tag
+def get_active_user_title_display(value):
+    return MAP_ACTIVE_USER_TITLE.get(value)
+
+
+@register.simple_tag
 def get_initials(string):
-    return ''.join((w[0] for w in string.split(' ') if w)).upper()
+    return "".join(w[0] for w in string.split(" ") if w).upper()
 
 
-@register.simple_tag
-def get_hour(date_time):
-    data = date_time.split('T') if date_time else ''
-    if data:
-        data = data[1].split('.')[0]
-    return data
+@register.filter
+def get_item(list_obj, index):
+    """
+    Get item from list by index.
 
-
-@register.simple_tag
-def get_administrative_region_name(administrative_id):
-    eadl_db = get_db()
-    return get_region_name(eadl_db, administrative_id)
+    Usage: {{ formset.subformsets|get_item:forloop.counter0 }}
+    """
+    try:
+        return list_obj[int(index)]
+    except (IndexError, ValueError, TypeError, AttributeError):
+        return None

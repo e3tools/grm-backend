@@ -1,0 +1,47 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "Connectivité",
+   "type": "issue_subproject_group"
+ },
+ {
+   "id": 2,
+   "name": "Eau, Assainissement et Hygiène (WASH)",
+   "type": "issue_subproject_group"
+ },
+ {
+   "id": 3,
+   "name": "Gestion des ressources naturelles et adaptation au climat",
+   "type": "issue_subproject_group"
+ },
+ {
+   "id": 4,
+   "name": "Énergie et technologie de l'information et de la communication",
+   "type": "issue_subproject_group"
+ },
+ {
+   "id": 5,
+   "name": "Social : École maternelle, primaire, secondaire, alphabétisation, centre de santé, garde d'enfants",
+   "type": "issue_subproject_group"
+ },
+ {
+   "id": 7,
+   "name": "Économie locale: marchés ruraux, aire de stationnement, stockage etc",
+   "type": "issue_subproject_group"
+ },
+ {
+  "id": 8,
+  "name": "Dialogue social",
+  "type": "issue_subproject_group"
+},
+{
+  "id": 9,
+  "name": "Évenements sportif et culturel",
+  "type": "issue_subproject_group"
+},
+{
+  "id": 10,
+  "name": "Activités de volontariat",
+  "type": "issue_subproject_group"
+}
+]}

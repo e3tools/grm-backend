@@ -1,0 +1,12 @@
+{"docs":[
+ {
+   "id": 1,
+   "name": "Homme",
+   "type": "issue_gender"
+ },
+ {
+   "id": 2,
+   "name": "Femme",
+   "type": "issue_gender"
+ }
+]}

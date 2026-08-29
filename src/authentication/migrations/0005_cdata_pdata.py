@@ -4,30 +4,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('authentication', '0004_rename_administrative_level_governmentworker_administrative_id'),
+        (
+            "authentication",
+            "0004_rename_administrative_level_governmentworker_administrative_id",
+        ),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Cdata',
+            name="Cdata",
             fields=[
-                ('key', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
-                ('data', models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "key",
+                    models.CharField(max_length=255, primary_key=True, serialize=False, unique=True),
+                ),
+                ("data", models.CharField(blank=True, max_length=255, null=True)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Pdata',
+            name="Pdata",
             fields=[
-                ('key', models.CharField(max_length=255, primary_key=True, serialize=False, unique=True)),
-                ('data', models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "key",
+                    models.CharField(max_length=255, primary_key=True, serialize=False, unique=True),
+                ),
+                ("data", models.CharField(blank=True, max_length=255, null=True)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]
