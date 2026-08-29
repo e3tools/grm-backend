@@ -1,0 +1,86 @@
+{% load i18n custom_tags %}
+
+{% if semantic_search_notice %}
+	<div class="alert alert-info" role="alert">{{ semantic_search_notice }}</div>
+{% endif %}
+
+{% if total_results %}
+	<p class="mb-4">{% translate 'Found results' %}: {{ total_results }}</p>
+	{% for r in page_obj %}
+		<div class="card">
+			<div class="card-body">
+				{% translate "No description" as no_description %}
+				<p class="mt-2">
+					{% if r.fields.description|length > 100 %}
+						<span class="truncate" title="{% translate "Click to show more" %}"
+							  data-full-text="{{ r.fields.description }}">
+                            {{ r.fields.description|slice:":100" }}...
+                        </span>
+					{% else %}
+						{{ r.fields.description|default:no_description }}
+					{% endif %}
+				</p>
+				<div class="text-sm mt-2">
+					<span class="badge badge-pill {% get_issue_status_badge r.status.id %}">
+						{{ r.status.name }}
+					</span>
+					<span class="badge badge-pill badge-secondary">
+						{{ r.fields.administrative_region_name }}
+					</span>
+					{% if r.fields.issue_type_name %}
+						<span class="badge badge-pill badge-secondary">
+							{{ r.fields.issue_type_name }}
+						</span>
+					{% endif %}
+					{% if r.fields.age_group_name %}
+						<span class="badge badge-pill badge-secondary">
+							{{ r.fields.age_group_name }}
+						</span>
+					{% endif %}
+					{% if r.fields.group_name %}
+						<span class="badge badge-pill badge-secondary">
+						{{ r.fields.group_name }}
+					</span>
+					{% endif %}
+					{% if r.fields.group_2_name %}
+						<span class="badge badge-pill badge-secondary">
+						{{ r.fields.group_2_name }}
+					</span>
+					{% endif %}
+				</div>
+				{% translate "No case date" as no_date %}
+				<div class="d-flex justify-content-between align-items-center mt-2">
+					<a href="{% url 'dashboard:grm:issue_detail' r.id_str %}"
+					   target="_blank"
+					   rel="noopener noreferrer"
+					   class="btn btn-sm btn-primary">
+						<i class="fa fa-external-link-alt mr-1"></i>
+						{% translate 'View details' %}
+					</a>
+					<div class="text-sm">
+						{{ r.fields.issue_date|default:no_date }}
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+
+	<!-- Pagination (HTMX-enabled) -->
+	<div class="text-right">
+		{% if page_obj.has_previous %}
+			<button hx-get="{% url 'dashboard:search:semantic_search' %}?q={{ query }}&page={{ page_obj.previous_page_number }}"
+					hx-include="#searchForm" hx-target="#search-container" hx-push-url="true" hx-indicator="#loading"
+					class="btn text-primary"><i class="fa fa-chevron-left fs20 align-middle"></i>
+			</button>
+		{% endif %}
+		<span>{% translate 'Page' %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+		{% if page_obj.has_next %}
+			<button hx-get="{% url 'dashboard:search:semantic_search' %}?q={{ query }}&page={{ page_obj.next_page_number }}"
+					hx-include="#searchForm" hx-target="#search-container" hx-push-url="true" hx-indicator="#loading"
+					class="btn text-primary"><i class="fa fa-chevron-right fs20 align-middle"></i>
+			</button>
+		{% endif %}
+	</div>
+{% elif search_active %}
+	<p>{% translate 'No results found.' %}</p>
+{% endif %}

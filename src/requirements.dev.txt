@@ -1,0 +1,7 @@
+Werkzeug<2.2
+django-query-inspector<1.2
+django-queryinspect
+django_debug_toolbar<3.6
+django-extensions
+pip-audit
+black

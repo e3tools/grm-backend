@@ -1,0 +1,254 @@
+{% load bootstrap4 i18n custom_tags %}
+
+{% include 'common/toast_template.html' with toast_title=toast_title toast_message=toast_message %}
+
+<div class="card-header">
+	<h3 class="card-title">
+		{{ card_title }}
+	</h3>
+</div>
+<form id="form" enctype="multipart/form-data" class="d-flex flex-column h-100">
+	{% csrf_token %}
+	<div class="card-body flex-grow-1">
+		<div class="overlay-wrapper">
+			{{ formset.management_form }}
+
+			<!-- Error messages -->
+			{% if formset.non_form_errors %}
+				<div class="alert alert-danger">
+					{{ formset.non_form_errors }}
+				</div>
+			{% endif %}
+
+			<div class="mb-3">
+				{{ formset_label }}
+			</div>
+
+			<div id="formset-container">
+				{% for form in formset %}
+					<div class="formset-row border-bottom p-3 mb-3" data-form-index="{{ forloop.counter0 }}">
+						<!-- Component Form -->
+						<div class="component-header d-flex justify-content-between align-items-center mb-2">
+							<h6 class="mb-0">{% translate "Component" %} {{ forloop.counter }}</h6>
+							{% if form.instance.pk %}
+								<button type="button" class="btn btn-sm 
+								text-secondary {% if form.instance.restricted_deletion %}restricted-deletion disabled{% else %}delete-row{% endif %}"
+										title="{% translate 'Delete' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% else %}
+								<button type="button" class="btn btn-sm text-secondary remove-row"
+										title="{% translate 'Remove component' %}">
+									<i class="fas fa-times-circle"></i>
+								</button>
+							{% endif %}
+						</div>
+
+						<!-- Hidden fields -->
+						{% for hidden in form.hidden_fields %}
+							{{ hidden }}
+						{% endfor %}
+
+						<!-- DELETE checkbox (hidden) -->
+						{% if form.DELETE %}
+							<div class="d-none">
+								{{ form.DELETE }}
+							</div>
+						{% endif %}
+
+						<!-- Component fields -->
+						<div class="row">
+							<div class="col-md-6">
+								{% bootstrap_field form.name %}
+							</div>
+							<div class="col-md-6">
+								{% bootstrap_field form.description %}
+							</div>
+						</div>
+
+						<!-- SubComponents Section -->
+						{% with subformset=formset.subformsets|get_item:forloop.counter0 %}
+							<div class="subcomponents-section pl-4 border-left">
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<h6 class="mb-0 text-muted">{% translate "Subcomponents" %}</h6>
+								</div>
+
+								{{ subformset.management_form }}
+
+								{% if subformset.non_form_errors %}
+									<div class="alert alert-danger">
+										{{ subformset.non_form_errors }}
+									</div>
+								{% endif %}
+
+								<div class="subcomponent-container" data-form-index="{{ forloop.counter0 }}">
+									{% for subform in subformset %}
+										<div class="subcomponent-row row mb-2 pt-3"
+											 data-subcomponent-index="{{ forloop.counter0 }}">
+											<div class="col-md-5">
+												{% for hidden in subform.hidden_fields %}
+													{{ hidden }}
+												{% endfor %}
+												{% if subform.DELETE %}
+													<div class="d-none">
+														{{ subform.DELETE }}
+													</div>
+												{% endif %}
+												{% bootstrap_field subform.name show_label=False %}
+											</div>
+											<div class="col-md-5">
+												{% bootstrap_field subform.description show_label=False %}
+											</div>
+											<div class="col-md-2 d-flex align-items-start">
+												{% if subform.instance.pk %}
+													<button type="button"
+															class="btn btn-sm text-secondary {% if subform.restricted_deletion %}restricted-deletion disabled{% else %}delete-row{% endif %}"
+															title="{% translate 'Delete' %}">
+														<i class="fas fa-times-circle"></i>
+													</button>
+												{% else %}
+													<button type="button" data-form-index="{{ forloop.counter0 }}"
+															class="btn btn-sm text-secondary remove-subcomponent"
+															title="{% translate 'Remove subcomponent' %}">
+														<i class="fas fa-times-circle"></i>
+													</button>
+												{% endif %}
+											</div>
+										</div>
+									{% endfor %}
+								</div>
+								<button type="button" class="btn btn-link add-subcomponent pl-0"
+										data-form-index="{{ forloop.counter0 }}">
+									<i class="fas fa-plus"></i> {% translate "Add subcomponent" %}
+								</button>
+							</div>
+						{% endwith %}
+					</div>
+				{% endfor %}
+			</div>
+
+			<!-- Alert text -->
+			<div id="max-forms-alert" class="d-none text-danger mt-1">
+				{% translate "Maximum number of forms reached." %}
+			</div>
+
+			<!-- Add Component button -->
+			<button type="button" id="add-component" class="btn btn-link-primary pl-0">
+				<i class="fas fa-plus"></i> {% translate "Add component" %}
+			</button>
+
+			<div class="overlay submit-spin d-none">
+				<i class="fas fa-2x fa-sync-alt fa-spin"></i>
+			</div>
+		</div>
+	</div>
+
+	<div class="card-footer">
+		{% if step != 1 %}
+			<button id="previous_step" data-step="{{ step }}"
+					class="btn btn-secondary disabled-on-submit">
+				<i class="fa fa-chevron-left mr-2"></i>
+				{% translate "Previous" %}
+			</button>
+		{% endif %}
+		<button type="submit" class="btn btn-primary float-right">
+			{% translate "Next" %}
+		</button>
+	</div>
+</form>
+
+<!-- Empty Component Template -->
+<div id="empty-form-template" style="display: none;">
+	<div class="formset-row border-bottom p-3 mb-3" data-form-index="__prefix__">
+		<div class="component-header d-flex justify-content-between align-items-center mb-2">
+			<h6 class="mb-0">{% translate "Component" %} <span class="component-number"></span></h6>
+			<button type="button" class="btn btn-sm text-secondary remove-row"
+					title="{% translate 'Remove component' %}">
+				<i class="fas fa-times-circle"></i>
+			</button>
+		</div>
+
+		{% with form=formset.empty_form %}
+			{% for hidden in form.hidden_fields %}
+				{{ hidden }}
+			{% endfor %}
+
+			{% if form.DELETE %}
+				{{ form.DELETE.as_hidden }}
+			{% endif %}
+
+			<div class="row">
+				<div class="col-md-6">
+					{% bootstrap_field form.name %}
+				</div>
+				<div class="col-md-6">
+					{% bootstrap_field form.description %}
+				</div>
+			</div>
+		{% endwith %}
+
+		<!-- Empty Subcomponents Section -->
+		<div class="subcomponents-section pl-4 border-left">
+			<div class="d-flex justify-content-between align-items-center mb-2">
+				<h6 class="mb-0 text-muted">{% translate "Subcomponents" %}</h6>
+			</div>
+
+			<!-- Subformset management form template -->
+			<input type="hidden" name="subcomponent_form-__prefix__-TOTAL_FORMS" value="1"
+				   id="id_subcomponent_form-__prefix__-TOTAL_FORMS">
+			<input type="hidden" name="subcomponent_form-__prefix__-INITIAL_FORMS" value="0"
+				   id="id_subcomponent_form-__prefix__-INITIAL_FORMS">
+			<input type="hidden" name="subcomponent_form-__prefix__-MIN_NUM_FORMS" value="1"
+				   id="id_subcomponent_form-__prefix__-MIN_NUM_FORMS">
+			<input type="hidden" name="subcomponent_form-__prefix__-MAX_NUM_FORMS" value="100"
+				   id="id_subcomponent_form-__prefix__-MAX_NUM_FORMS">
+
+			<div class="subcomponent-container" data-form-index="__prefix__">
+				<div class="subcomponent-row row mb-2 pt-3" data-subcomponent-index="0">
+					<div class="col-md-5">
+						<input type="text" name="subcomponent_form-__prefix__-0-name" class="form-control"
+							   placeholder="{% translate 'Enter subcomponent name' %}"
+							   id="id_subcomponent_form-__prefix__-0-name">
+					</div>
+					<div class="col-md-5">
+                        <textarea name="subcomponent_form-__prefix__-0-description" class="form-control" rows="3"
+								  placeholder="{% translate 'Enter subcomponent description' %}"
+								  id="id_subcomponent_form-__prefix__-0-description"></textarea>
+					</div>
+					<div class="col-md-2 d-flex align-items-start">
+						<button type="button" class="btn btn-sm text-secondary remove-subcomponent"
+								title="{% translate 'Remove subcomponent' %}" data-form-index="__prefix__">
+							<i class="fas fa-times-circle"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<button type="button" class="btn btn-link add-subcomponent pl-0"
+					data-form-index="__prefix__">
+				<i class="fas fa-plus"></i> {% translate "Add subcomponent" %}
+			</button>
+		</div>
+	</div>
+</div>
+
+<!-- Empty form template for JavaScript -->
+<div id="empty-subform-template" style="display: none;">
+	<div class="subcomponent-row row mb-2 pt-3" data-subcomponent-index="__subIndex__">
+		<div class="col-md-5">
+			<input type="text" name="subcomponent_form-__componentIdx__-__subIndex__-name" class="form-control"
+				   placeholder="{% translate 'Enter subcomponent name' %}"
+				   id="id_subcomponent_form-__componentIdx__-__subIndex__-name">
+		</div>
+		<div class="col-md-5">
+                <textarea name="subcomponent_form-__componentIdx__-__subIndex__-description" class="form-control"
+						  rows="3" placeholder="{% translate 'Enter subcomponent description' %}"
+						  id="id_subcomponent_form-__componentIdx__-__subIndex__-description"></textarea>
+		</div>
+		<div class="col-md-2 d-flex align-items-start">
+			<button type="button" class="btn btn-sm text-secondary remove-subcomponent"
+					title="{% translate 'Remove subcomponent' %}" data-form-index="__componentIdx__">
+				<i class="fas fa-times-circle"></i>
+			</button>
+		</div>
+	</div>
+</div>

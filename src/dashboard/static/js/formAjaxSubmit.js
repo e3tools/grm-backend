@@ -19,7 +19,7 @@ class FormAjaxSubmit {
                     } else {
                         modal.modal('hide');
                         self.submitted_form(xhr);
-                        showPopupMessage(xhr.msg);
+                        showPopupMessage(xhr);
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -47,7 +47,7 @@ class FormAjaxSubmit {
                     } else {
                         modal.modal('hide');
                         self.submitted_form(xhr);
-                        showPopupMessage(xhr.msg);
+                        showPopupMessage(xhr);
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -91,6 +91,7 @@ class FormAjaxSubmit {
                 } else {
                     modal.find('.modal-dialog').addClass(self.modal_size_class);
                     modal.modal('show');
+                    modal.attr('aria-hidden', 'false');
                     self.loaded_form();
                     self.first_loaded_form();
                     def.resolve(true);

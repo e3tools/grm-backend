@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from authentication.models import User
 
@@ -8,11 +8,11 @@ from authentication.models import User
 class EmailAuthenticationForm(AuthenticationForm):
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].label = _('Email')
+        self.fields["username"].label = _("Email")
 
     def clean(self):
-        email = self.cleaned_data.get('username')
-        password = self.cleaned_data.get('password')
+        email = self.cleaned_data.get("username")
+        password = self.cleaned_data.get("password")
 
         user = User.objects.filter(email__iexact=email).first()
 

@@ -1,140 +1,137 @@
-import django.contrib.auth.password_validation as validators
-from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from authentication import ADL, MAJOR
-from authentication.utils import get_validation_code
-from client import get_db
+from authentication.models import Citizen, Facilitator, User
+from grm.constants import (
+    EMAIL_ERROR_MESSAGE,
+    PASSWORD_CONFIRMATION_ERROR_MESSAGE,
+    USERNAME_ERROR_MESSAGE,
+)
 
 
-class CredentialSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
-    doc_id = serializers.CharField()
+class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for user login credentials.
 
+    This serializer validates username and password for authentication
+    and returns appropriate error messages for invalid credentials.
+    """
 
-class UserAuthSerializer(serializers.Serializer):
-    email = serializers.CharField(label=_("Email"))
+    username = serializers.CharField(max_length=150, help_text=_("Username for authentication"))
     password = serializers.CharField(
-        label=_("Password"),
-        style={'input_type': 'password'},
-        trim_whitespace=False,
-        min_length=8,
-        max_length=16,
+        write_only=True, style={'input_type': 'password'}, help_text=_("Password for authentication")
     )
-    default_error_messages = {
-        'invalid': _('Invalid data. Expected a dictionary, but got {datatype}.'),
-        'credentials': _('Unable to log in with provided credentials.'),
-    }
 
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
 
-        selector = {
-            "$and": [
-                {
-                    "representative.email": {"$eq": email}
-                },
-                {
-                    "representative.is_active": {"$eq": True}
-                },
-                {
-                    "type": {
-                        "$in": [ADL, MAJOR]
-                    }
-                }
-            ]
+class UserBasicSerializer(serializers.ModelSerializer):
+    """
+    Basic serializer for User objects to display minimal user information.
+    """
+
+    class Meta:
+        model = User
+        fields = ['id', 'name']
+        read_only_fields = ['id', 'name']
+
+
+class CitizenRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for citizen registration.
+
+    Handles user creation with required fields and password confirmation validation.
+    """
+
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password']
+        extra_kwargs = {
+            "email": {"required": False, "allow_blank": True},
         }
-        eadl_db = get_db()
-        docs = eadl_db.get_query_result(selector)
-        try:
-            doc = eadl_db[docs[0][0]['_id']]
-        except Exception:
-            raise serializers.ValidationError(self.default_error_messages.get('credentials'))
 
-        if email and password:
-            if not doc or not check_password(password, doc['representative']['password']):
-                msg = self.default_error_messages['credentials']
-                raise serializers.ValidationError(msg, code='authorization')
-        else:
-            msg = _('Must include "email" and "password".')
-            raise serializers.ValidationError(msg, code='authorization')
+    def validate_username(self, value):
+        """Validate username is unique."""
+        if User.objects.filter(username=value.lower()).exists():
+            raise serializers.ValidationError(USERNAME_ERROR_MESSAGE)
+        return value
 
-        attrs['doc_id'] = doc['_id'] if '_id' in doc else None
-        return attrs
-
-
-class RegisterSerializer(serializers.Serializer):
-    email = serializers.CharField()
-    password = serializers.CharField(max_length=16, trim_whitespace=False)
-    validation_code = serializers.CharField()
-    default_error_messages = {
-        'invalid': _('Invalid data. Expected a dictionary, but got {datatype}.'),
-        'credentials': _('Unable to register with provided credentials.'),
-        'duplicated_email': _('A user with that email is already registered.'),
-        'wrong_validation_code': _('Unable to register with provided validation code.')
-
-    }
+    def validate_email(self, value):
+        """Validate email is unique."""
+        if value and User.objects.filter(email=value.lower()).exists():
+            raise serializers.ValidationError(EMAIL_ERROR_MESSAGE)
+        return value
 
     def validate(self, attrs):
-        email = attrs.get('email', '').lower()
+        """Validate password confirmation and strength."""
         password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+
+        if password != confirm_password:
+            raise serializers.ValidationError({'confirm_password': PASSWORD_CONFIRMATION_ERROR_MESSAGE})
+
+        # Validate password strength using Django's built-in validators
         try:
-            validators.validate_password(password=password)
+            validate_password(password)
         except ValidationError as e:
             raise serializers.ValidationError({'password': list(e.messages)})
 
-        selector = {
-            "$and": [
-                {
-                    "representative.email": email
-                },
-                {
-                    "representative.is_active": {"$eq": True}
-                },
-                {
-                    "type": {
-                        "$in": [ADL, MAJOR]
-                    }
-                }
-            ]
-        }
-        eadl_db = get_db()
-        docs = eadl_db.get_query_result(selector)
-        try:
-            doc = eadl_db[docs[0][0]['_id']]
-        except Exception:
-            raise serializers.ValidationError(self.default_error_messages.get('credentials'))
-
-        # prevents the sign up is used to reset password
-        if 'password' in doc['representative'] and doc['representative']['password']:
-            raise serializers.ValidationError(self.default_error_messages.get('duplicated_email'))
-
-        errors = dict()
-        try:
-            # validate the password and catch the exception
-            validators.validate_password(password=password)
-
-        # the exception raised here is different than serializers.ValidationError
-        except ValidationError as e:
-            errors['password'] = list(e.messages)
-
-        if errors:
-            raise serializers.ValidationError(errors)
-
-        validation_code = attrs.get('validation_code')
-
-        if validation_code != get_validation_code(doc['representative']['email']):
-            raise serializers.ValidationError(self.default_error_messages.get('wrong_validation_code'))
-        doc['representative']['password'] = make_password(password)
-        doc.save()
-
-        attrs['doc_id'] = doc['_id'] if '_id' in doc else None
         return attrs
 
+    def create(self, validated_data):
+        """Create user and associated citizen."""
+        validated_data.pop('confirm_password')  # Remove confirm_password
 
-class ADLActiveResponseSerializer(serializers.Serializer):
-    is_active = serializers.BooleanField()
+        # Create user
+        user = User.objects.create_user(
+            username=validated_data['username'].lower(),
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            email=validated_data['email'].lower(),
+            phone_number=validated_data['phone_number'],
+            password=validated_data['password'],
+        )
+
+        # Create associated citizen
+        Citizen.objects.create(user=user)
+
+        return user
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+
+class FacilitatorProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Facilitator profile information.
+
+    Provides complete facilitator data including nested serialization
+    of user, and administrative_region.
+    """
+
+    user = UserBasicSerializer(read_only=True)
+    administrative_region = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Facilitator
+        fields = [
+            'id',
+            'user',
+            'administrative_region',
+            'unique_region',
+            'village_secretary',
+            'created_date',
+            'updated_date',
+        ]
+
+    def get_administrative_region(self, obj):
+        """Lazy import to avoid circular import."""
+        if not obj.administrative_region:
+            return None
+        from issues.serializers import AdministrativeRegionSerializer
+
+        return AdministrativeRegionSerializer(obj.administrative_region).data

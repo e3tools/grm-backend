@@ -1,0 +1,11 @@
+{% load i18n %}
+<div class="row mr-2 mb-2">
+	<div class="col-md-12">
+		<button class="btn btn-primary mb-2" id="escalate" {% if non_scalable %}disabled{% endif %}>
+			{% translate 'Escalate' %}
+		</button>
+		<button class="btn btn-primary mb-2" id="de-escalate" {% if non_descalable %}disabled{% endif %}>
+			{% translate 'De-escalate' %}
+		</button>
+	</div>
+</div>

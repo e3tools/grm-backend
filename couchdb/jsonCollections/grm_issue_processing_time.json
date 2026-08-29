@@ -1,0 +1,25 @@
+{
+  "docs": [
+    {
+      "id": 1,
+      "name": "National",
+      "description": "07 jours ouvrables à partir de la date de réception de la plainte. Si la plainte n'est pas résolue au bout de 07 jours, alors elle est référée aux juridictions compétentes.",
+      "administrative_level": "country",
+      "type": "issue_processing_time"
+    },
+    {
+      "id": 2,
+      "name": "Commune",
+      "description": "07 jours ouvrables à partir de la date de réception de la plainte. Si la plainte n'est pas résolue au bout de 07 jours, alors elle est remontée au niveau national.",
+      "administrative_level": "commune",
+      "type": "issue_processing_time"
+    },
+    {
+      "id": 3,
+      "name": "Village",
+      "description": "03 jours ouvrables à partir de la date de réception de la plainte. Si la plainte n'est pas résolue au bout de 03 jours, alors elle est remontée au niveau communal.",
+      "administrative_level": "village",
+      "type": "issue_processing_time"
+    }
+  ]
+}

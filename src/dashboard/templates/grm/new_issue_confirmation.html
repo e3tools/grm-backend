@@ -1,214 +1,212 @@
-{% extends 'layouts/base.html' %}
-{% load bootstrap4 static i18n custom_tags %}
+{% extends 'layouts/base.html' %}{% load bootstrap4 static i18n custom_tags %}
 
 {% block progress-bar %}
-    {% include 'common/progress_bar.html' with percentage=100 %}
+	{% include 'common/progress_bar.html' with percentage=100 %}
 {% endblock progress-bar %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <img src="{% static 'images/celebration.png' %}" class="bg-left-horizontal-celebration"/>
-                <form method="post">{% csrf_token %}
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="fs20 lh46 mb-1 text-regular-family">
-                                    {% translate 'Enter New Issue' %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="fs56 lh46 text-primary text-bold-family mb-4">
-                                    {% translate 'Step' %} 6
-                                </div>
-                                <div class="fs35 lh35 text-bold-family ">
-                                    {% translate 'Confirmation' %}<br>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate 'ID Number' %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.internal_code }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Citizen contact" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {% if doc.contact_medium == choice_contact %}
-                                            <div class="row mb-2">
-                                                <div class="col-12">
-                                                    {% get_contact_type_display doc.contact_information.type %}
-                                                </div>
-                                            </div>
-                                            {% comment %}<div class="row mb-2">
-                                                <div class="col-12">
-                                                    {{ doc.contact_information.contact }}
-                                                </div>
-                                            </div>{% endcomment %}
-                                        {% else %}
-                                            <div class="row mb-2">
-                                                <div class="col-12">
-                                                    {% get_contact_medium_display doc.contact_medium %}
-                                                </div>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% comment %}{% if doc.citizen %}
-                                    <div class="row mr-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Citizen name" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ doc.citizen }}
-                                        </div>
-                                    </div>
-                                {% endif %}{% endcomment %}
-                                {% if doc.citizen_type %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_type.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {% get_citizen_type_display doc.citizen_type %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if doc.citizen_age_group %}
-                                    <div class="row mr-2 mb-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Age" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ doc.citizen_age_group.name }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if doc.gender %}
-                                    <div class="row mr-2 mb-2">
-                                        <label class="col-3 label-align">
-                                            {% translate "Gender" %}:
-                                        </label>
-                                        <div class="col-9 text-regular-family">
-                                            {{ doc.gender }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if doc.citizen_group_1 %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_group_1.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {{ doc.citizen_group_1.name }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                {% if doc.citizen_group_2 %}
-                                    <div class="row mr-2 mb-2">
-                                        <div class="col-3 label-align">
-                                            {{ form.citizen_group_2.label_tag }}
-                                        </div>
-                                        <div class="col-9 text-regular-family">
-                                            {{ doc.citizen_group_2.name }}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                <div class="row mr-2 mb-2">
-                                    <div class="col-3 label-align">
-                                        {{ form.intake_date.label_tag }}
-                                    </div>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.intake_date|string_to_date|date:'j - F - Y' }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <div class="col-3 label-align">
-                                        {{ form.issue_date.label_tag }}
-                                    </div>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.issue_date|string_to_date|date:'j - F - Y' }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Report" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.issue_type.name }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Type of grievance" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.category.name }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Description" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {{ doc.description }}
-                                    </div>
-                                </div>
-                                <div class="row mr-2 mb-2">
-                                    <div class="col-3"></div>
-                                    <div class="col-9 text-regular-family">
-                                        {% if doc.ongoing_issue %}
-                                            {{ form.ongoing_issue.label }}
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% if doc.attachments %}
-                                    <div class="row mr-2 mb-2">
-                                        <label class="col-3 label-align">
-                                            {% translate 'Attachments' %}:
-                                        </label>
-                                        <div class="col-9">
-                                            {% for attachment in doc.attachments %}
-                                                <div class="row mb-2">
-                                                    <div class="col-12">
-                                                        <a href="{% url 'attachments:get-attachment' attachment.bd_id attachment.name %}?db=grm"
-                                                           target="_blank">
-                                                            <i class="fas fa-paperclip mr-2"></i>
-                                                            {{ attachment.name }}
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                <div class="row mr-2 mb-2">
-                                    <label class="col-3 label-align">
-                                        {% translate "Location" %}:
-                                    </label>
-                                    <div class="col-9 text-regular-family">
-                                        {% get_administrative_region_name doc.administrative_region.administrative_id %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-footer mb-2">
-                        <a href="{% url 'dashboard:grm:dashboard' %}"
-                           class="btn btn-primary btn-sm rounded-xl float-right mt-5">
-                            {% translate "Done" %}
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+	<h5>{% translate 'Step' %} 6</h5>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="card">
+				<div class="card-header">
+					<h3 class="card-title">{% translate 'Confirmation' %}</h3>
+				</div>
+				<div class="card-body bg-left-horizontal-celebration">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{% translate 'ID Number' %}:
+								</label>
+								<div class="col-md-9">
+									{{ obj.internal_code }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{% translate "Citizen contact" %}:
+								</label>
+								<div class="col-md-9">
+									{% if obj.contact_medium == choice_contact %}
+										<div class="row mb-2">
+											<div class="col-md-12">
+												{% get_contact_type_display obj.contact_method %}
+											</div>
+										</div>
+									{% else %}
+										<div class="row mb-2">
+											<div class="col-md-12">
+												{% get_contact_medium_display obj.contact_medium %}
+											</div>
+										</div>
+									{% endif %}
+								</div>
+							</div>
+							{% if obj.citizen %}
+								{% if obj.citizen.type %}
+									<div class="row mr-2 mb-2">
+										<div class="col-md-3 label-align">
+											{{ form.citizen_type.label_tag }}
+										</div>
+										<div class="col-md-9">
+											{% get_citizen_type_display obj.citizen.type %}
+										</div>
+									</div>
+								{% endif %}
+								{% if obj.citizen.age_group %}
+									<div class="row mr-2 mb-2">
+										<label class="col-md-3 label-align">
+											{% translate "Age" %}:
+										</label>
+										<div class="col-md-9">
+											{{ obj.citizen.age_group.name }}
+										</div>
+									</div>
+								{% endif %}
+								{% if obj.citizen.gender %}
+									<div class="row mr-2 mb-2">
+										<label class="col-md-3 label-align">
+											{% translate "Gender" %}:
+										</label>
+										<div class="col-md-9">
+											{{ obj.citizen.gender }}
+										</div>
+									</div>
+								{% endif %}
+								{% if obj.citizen.group %}
+									<div class="row mr-2 mb-2">
+										<div class="col-md-3 label-align">
+											{{ form.citizen_group.label_tag }}
+										</div>
+										<div class="col-md-9">
+											{{ obj.citizen.group.name }}
+										</div>
+									</div>
+								{% endif %}
+							{% endif %}
+							<div class="row mr-2 mb-2">
+								<div class="col-md-3 label-align">
+									{{ form.intake_date.label_tag }}
+								</div>
+								<div class="col-md-9">
+									{{ obj.intake_date|date:'j - F - Y' }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<div class="col-md-3 label-align">
+									{{ form.issue_date.label_tag }}
+								</div>
+								<div class="col-md-9">
+									{{ obj.issue_date|date:'j - F - Y' }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{% translate "Type of grievance" %}:
+								</label>
+								<div class="col-md-9">
+									{{ obj.issue_type.name }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{{ form.issue_sub_type.label_tag }}
+								</label>
+								<div class="col-md-9">
+									{{ obj.issue_sub_type.name }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{{ form.category.label_tag }}
+								</label>
+								<div class="col-md-9">
+									{{ obj.category.name }}
+								</div>
+							</div>
+							{% if obj.component %}
+								<div class="row mr-2 mb-2">
+									<label class="col-md-3 label-align">
+										{% translate "Component" %}:
+									</label>
+									<div class="col-md-9">
+										{{ obj.component.name }}
+									</div>
+								</div>
+							{% endif %}
+							{% if obj.subproject_group %}
+								<div class="row mr-2 mb-2">
+									<label class="col-md-3 label-align">
+										{{ form.subproject_group.label_tag }}
+									</label>
+									<div class="col-md-9">
+										{{ obj.subproject_group.name }}
+									</div>
+								</div>
+							{% endif %}
+							<div class="row mr-2">
+								<label class="col-md-3 label-align">
+									{% translate "Description" %}:
+								</label>
+								<div class="col-md-9">
+									{{ obj.description }}
+								</div>
+							</div>
+							<div class="row mr-2 mb-2">
+								<div class="col-md-3"></div>
+								<div class="col-md-9">
+									{% if obj.ongoing_issue %}
+										{{ form.ongoing_issue.label }}
+									{% endif %}
+								</div>
+							</div>
+							{% if obj.attachments.all %}
+								<div class="row mr-2 mb-2">
+									<label class="col-md-3 label-align">
+										{% translate 'Attachments' %}:
+									</label>
+									<div class="col-md-9">
+										{% for attachment in obj.attachments.all %}
+											<div class="row mb-2">
+												<div class="col-md-12">
+													<a href="{{ attachment.file.url }}" target="_blank">
+														<i class="fas fa-paperclip mr-2"></i>
+														{{ attachment.filename }}
+													</a>
+												</div>
+											</div>
+										{% endfor %}
+									</div>
+								</div>
+							{% endif %}
+							<div class="row mr-2 mb-2">
+								<label class="col-md-3 label-align">
+									{% translate "Location" %}:
+								</label>
+								<div class="col-md-9">
+									{{ obj.administrative_region.hierarchical_name }}
+								</div>
+							</div>
+							{% if obj.location_description %}
+								<div class="row mr-2 mb-2">
+									<label class="col-md-3 label-align">
+										{% translate "Location description" %}:
+									</label>
+									<div class="col-md-9">
+										{{ obj.location_description }}
+									</div>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<div class="card-footer">
+					<a href="{% url 'dashboard:grm:review_issues' %}" class="btn btn-outline-primary float-right">
+						{% translate "Done" %}
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

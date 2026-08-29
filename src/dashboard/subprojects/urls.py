@@ -2,7 +2,7 @@ from django.urls import path
 
 from dashboard.subprojects import views
 
-app_name = 'subprojects'
+app_name = "subprojects"
 urlpatterns = [
-    path('', views.DashboardTemplateView.as_view(), name='dashboard'),
+    path("", views.DashboardTemplateView.as_view(), name="dashboard"),
 ]

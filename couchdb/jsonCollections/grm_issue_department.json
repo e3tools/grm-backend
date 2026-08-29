@@ -1,0 +1,25 @@
+{
+  "docs": [
+    {
+      "name": "Comité communautaire de gestion des plaintes",
+      "id": 1,
+      "head": {},
+      "type": "issue_department"
+    },
+    {
+      "name": "Comité local de gestion des plaintes",
+      "id": 2,
+      "head": {},
+      "type": "issue_department"
+    },
+    {
+      "name": "Secrétariat technique à la coordination",
+      "id": 3,
+      "head": {
+        "id": 1,
+        "name": "Innocent AKPACA"
+      },
+      "type": "issue_department"
+    }
+  ]
+}

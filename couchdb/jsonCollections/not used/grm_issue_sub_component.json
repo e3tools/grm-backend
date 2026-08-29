@@ -1,0 +1,34 @@
+{ "docs":
+  [
+    {
+      "id": 1,
+      "label": "Sous-composante 1.1",
+      "name": "Sous-composante 1.1",
+      "description": "Investissements communautaires pour renforcer la résilience et l'inclusion locales.",
+      "type": "issue_sub_component",
+      "value": 1,
+      "parent_type": "issue_component",
+      "parent_id": 1
+    },
+    {
+      "id": 2,
+      "label": "Sous-composante 1.2",
+      "name": "Sous-composante 1.2",
+      "description": "Investissements stratégiques dans les activités économiques pour un développement économique résilient sur le plan climatique.",
+      "type": "issue_sub_component",
+      "value": 2,
+      "parent_type": "issue_component",
+      "parent_id": 1
+    },
+    {
+      "id": 3,
+      "label": "Sous-composante 1.3",
+      "name": "Sous-composante 1.3",
+      "description": "Activités d'engagement des jeunes et de cohésion sociale.",
+      "type": "issue_sub_component",
+      "value": 3,
+      "parent_type": "issue_component",
+      "parent_id": 1
+    }
+  ]
+}

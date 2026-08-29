@@ -1,0 +1,13 @@
+# Never upload local secrets with CLI deploys (gitignored files can still be sent).
+grm/.env
+.env
+.env.local
+**/.env
+*.pyc
+__pycache__
+.pytest_cache
+media/
+*.sqlite3
+venv/
+.venv/
+staticfiles/
