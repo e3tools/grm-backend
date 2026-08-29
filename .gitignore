@@ -131,3 +131,6 @@ dmypy.json
 
 # SO
 .DS_Store
+# BMad personal install answers (installer-managed, per-user)
+_bmad/config.user.toml
+_bmad/**/config.user.yaml
