@@ -176,8 +176,8 @@ rejected.
    it? An agent that helps fill a field with no effect makes things worse, and the re-base
    carried the field across unchanged.
 4. **LLM provider, cost per run, and data residency** for a government deployment.
-5. **Language.** The PIUs we work with operate in French. The agent must elicit in French, and
-   of that conversation is the whole feature.
+5. **Language.** The PIUs we work with operate in French. The agent must elicit in French, and the
+   quality of that conversation is the whole feature.
 6. **Is the three-level type/subtype/category hierarchy necessary?** Part of the vocabulary gap
    may be a model one level deeper than the domain requires. Worth asking before building an
    agent to explain it.
